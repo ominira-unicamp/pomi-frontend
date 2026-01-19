@@ -9,6 +9,7 @@ import { routeTree } from './routeTree.gen'
 
 import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 
 // Create a new router instance
 
@@ -35,11 +36,16 @@ declare module '@tanstack/react-router' {
 const rootElement = document.getElementById('app')
 if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
+  const clientId = String(import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '')
+  if (!clientId)
+    console.warn('VITE_GOOGLE_CLIENT_ID is not set')
   root.render(
     <StrictMode>
-      <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
-        <RouterProvider router={router} />
-      </TanStackQueryProvider.Provider>
+      <GoogleOAuthProvider clientId={clientId}>
+        <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
+          <RouterProvider router={router} />
+        </TanStackQueryProvider.Provider>
+      </GoogleOAuthProvider>
     </StrictMode>,
   )
 }
