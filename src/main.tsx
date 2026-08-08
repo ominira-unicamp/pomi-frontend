@@ -3,13 +3,13 @@ import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
+import { AuthProvider } from './auth/AuthProvider.tsx'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
 import './styles.css'
 import reportWebVitals from './reportWebVitals.ts'
-import { GoogleOAuthProvider } from '@react-oauth/google'
 
 // Create a new router instance
 
@@ -36,16 +36,13 @@ declare module '@tanstack/react-router' {
 const rootElement = document.getElementById('app')
 if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
-  const clientId = String(import.meta.env.VITE_GOOGLE_CLIENT_ID ?? '')
-  if (!clientId)
-    console.warn('VITE_GOOGLE_CLIENT_ID is not set')
   root.render(
     <StrictMode>
-      <GoogleOAuthProvider clientId={clientId}>
+      <AuthProvider>
         <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
           <RouterProvider router={router} />
         </TanStackQueryProvider.Provider>
-      </GoogleOAuthProvider>
+      </AuthProvider>
     </StrictMode>,
   )
 }

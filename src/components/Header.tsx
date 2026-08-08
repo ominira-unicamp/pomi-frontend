@@ -2,9 +2,11 @@ import { Link } from '@tanstack/react-router'
 
 import { useState } from 'react'
 import { Home, Menu, Network, X } from 'lucide-react'
+import { useAuth } from '../auth/AuthProvider'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
+  const { initialized, isAuthenticated, profile, login, logout } = useAuth()
 
   return (
     <>
@@ -25,6 +27,21 @@ export default function Header() {
             />
           </Link>
         </h1>
+        <div className="ml-auto flex items-center gap-3">
+          {isAuthenticated && (
+            <span className="hidden text-sm text-gray-200 sm:inline">
+              {String(profile?.preferred_username || profile?.email || '')}
+            </span>
+          )}
+          <button
+            type="button"
+            disabled={!initialized}
+            onClick={() => void (isAuthenticated ? logout() : login())}
+            className="rounded-lg bg-cyan-600 px-4 py-2 font-medium transition-colors hover:bg-cyan-700 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isAuthenticated ? 'Sair' : 'Entrar'}
+          </button>
+        </div>
       </header>
 
       <aside

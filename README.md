@@ -1,4 +1,6 @@
-Welcome to your new TanStack app! 
+# POMI Frontend
+
+SPA do planejador POMI com autenticação OpenID Connect pelo Keycloak.
 
 # Getting Started
 
@@ -6,8 +8,11 @@ To run this application:
 
 ```bash
 npm install
-npm run start
+npm run dev
 ```
+
+Copie `.env.example` para `.env`. O client `pomi-frontend` usa Authorization
+Code com PKCE S256; access e refresh tokens permanecem somente em memória.
 
 # Building For Production
 
