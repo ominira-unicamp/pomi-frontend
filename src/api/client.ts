@@ -6,6 +6,10 @@ if (import.meta.env.PROD && !configuredApiUrl) {
 
 const apiUrl = configuredApiUrl || 'http://localhost:3000'
 
+export function publicApiRequest(path: string, init: RequestInit = {}) {
+  return fetch(new URL(path, apiUrl), init)
+}
+
 export async function apiRequest(
   path: string,
   getAccessToken: () => Promise<string>,

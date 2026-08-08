@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import type { HTMLAttributes, ReactNode } from 'react'
 
 import { cn } from '@/lib/utils'
@@ -10,11 +10,25 @@ type SidebarContextValue = {
   toggle: () => void
 }
 
+const sidebarPreferenceKey = 'pomi.sidebar.collapsed'
+
 const SidebarContext = createContext<SidebarContextValue | undefined>(undefined)
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(() => {
+    if (typeof window === 'undefined') return true
+    try {
+      return window.localStorage.getItem(sidebarPreferenceKey) !== 'false'
+    } catch {
+      return true
+    }
+  })
   const [mobileOpen, setMobileOpen] = useState(false)
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(sidebarPreferenceKey, String(collapsed))
+    } catch {}
+  }, [collapsed])
   const value = useMemo(
     () => ({
       collapsed,

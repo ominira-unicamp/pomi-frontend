@@ -33,7 +33,6 @@ let initialization: Promise<boolean> | undefined
 
 function initializeKeycloak() {
   initialization ??= keycloak.init({
-    onLoad: 'check-sso',
     pkceMethod: 'S256',
     checkLoginIframe: false,
   })
@@ -71,9 +70,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       void keycloak.logout({ redirectUri: window.location.origin })
     }
     keycloak.onTokenExpired = () => {
-      void keycloak.updateToken(30).catch(() =>
-        keycloak.logout({ redirectUri: window.location.origin }),
-      )
+      void keycloak
+        .updateToken(30)
+        .catch(() => keycloak.logout({ redirectUri: window.location.origin }))
     }
 
     void initializeKeycloak()

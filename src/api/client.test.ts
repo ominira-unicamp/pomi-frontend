@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { apiRequest } from './client'
+import { apiRequest, publicApiRequest } from './client'
 
 describe('apiRequest', () => {
   afterEach(() => {
@@ -18,5 +18,15 @@ describe('apiRequest', () => {
     expect(new Headers(init.headers).get('Authorization')).toBe(
       'Bearer access-token',
     )
+  })
+
+  it('supports public API reads without requesting or sending a token', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json([]))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await publicApiRequest('/courses')
+
+    const [, init] = fetchMock.mock.calls[0]
+    expect(new Headers(init?.headers).has('Authorization')).toBe(false)
   })
 })

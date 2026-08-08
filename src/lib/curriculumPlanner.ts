@@ -10,10 +10,7 @@ export type ProgramId = OpaqueId<'ProgramId'>
 export type SpecializationId = OpaqueId<'SpecializationId'>
 export type LanguageId = OpaqueId<'LanguageId'>
 export type CourseId = OpaqueId<'CourseId'>
-export type PrefixId = OpaqueId<'PrefixId'>
-export type RequirementId = OpaqueId<'RequirementId'>
 export type PlanningPeriodId = OpaqueId<'PlanningPeriodId'>
-export type ElectivePlaceholderId = OpaqueId<'ElectivePlaceholderId'>
 export type PlannerRevision = OpaqueId<'PlannerRevision'>
 
 export type Course = Readonly<{
@@ -21,7 +18,6 @@ export type Course = Readonly<{
   code: string
   name: string
   credits: number
-  prefixId?: PrefixId
   prefix?: string
 }>
 
@@ -76,7 +72,6 @@ export type CourseSelector =
   | Readonly<{ type: 'anyCourse' }>
   | Readonly<{
       type: 'prefix'
-      prefixId: PrefixId
       prefix: string
     }>
   | Readonly<{
@@ -85,14 +80,12 @@ export type CourseSelector =
     }>
 
 export type CourseRequirement = Readonly<{
-  id: RequirementId
   type: 'course'
   source: RequirementSource
   selector: CourseSelector
 }>
 
 export type ElectiveCreditsRequirement = Readonly<{
-  id: RequirementId
   type: 'electiveCredits'
   source: RequirementSource
   requiredCredits: number
@@ -119,29 +112,25 @@ export type PlannedCourse = Readonly<{
   courseId: CourseId
 }>
 
-export type ElectivePlaceholder = Readonly<{
-  type: 'electivePlaceholder'
-  id: ElectivePlaceholderId
-  requirementId: RequirementId
-  credits: number
-}>
-
-export type PlannedItem = PlannedCourse | ElectivePlaceholder
+export type PlannedItem = PlannedCourse
 
 export type PlanningPeriod = Readonly<{
   id: PlanningPeriodId
-  label?: string
   items: ReadonlyArray<PlannedItem>
 }>
 
 export type CurriculumPlan = Readonly<{
   currentPeriodId?: PlanningPeriodId
+  planningStart?: Readonly<{
+    year: number
+    semester: 1 | 2
+    semesterNumber?: number
+  }>
   periods: ReadonlyArray<PlanningPeriod>
 }>
 
 export type CompletedCourse = Readonly<{
   courseId: CourseId
-  periodId?: PlanningPeriodId
 }>
 
 export type AcademicRecord = Readonly<{
@@ -158,7 +147,7 @@ export type EvaluatedCourse = Readonly<{
   courseId: CourseId
   situation: CourseSituation
   periodId?: PlanningPeriodId
-  contributesTo: ReadonlyArray<RequirementId>
+  contributesTo: ReadonlyArray<CurriculumRequirement>
 }>
 
 export type RequirementProgressStatus =
@@ -167,21 +156,18 @@ export type RequirementProgressStatus =
   | 'satisfied'
 
 export type RequirementProgress = Readonly<{
-  requirementId: RequirementId
+  requirement: CurriculumRequirement
   status: RequirementProgressStatus
   completedCredits: number
   inProgressCredits: number
   plannedCredits: number
-  reservedCredits: number
   contributingCourseIds: ReadonlyArray<CourseId>
-  placeholderIds: ReadonlyArray<ElectivePlaceholderId>
 }>
 
 export type CurriculumCreditTotals = Readonly<{
   completed: number
   inProgress: number
   planned: number
-  reservedElective: number
 }>
 
 export type PlannerFindingCode =
@@ -190,20 +176,14 @@ export type PlannerFindingCode =
   | 'insufficientCredits'
   | 'courseDoesNotContribute'
   | 'completedCoursePlannedAgain'
-  | 'electivePlaceholderDoesNotContribute'
-  | 'electivePlaceholderExceedsRequirement'
 
 export type PlannerFindingSeverity = 'info' | 'warning' | 'error'
 
 export type PlannerFindingReference =
   | Readonly<{ type: 'selection' }>
   | Readonly<{ type: 'course'; courseId: CourseId }>
-  | Readonly<{ type: 'requirement'; requirementId: RequirementId }>
+  | Readonly<{ type: 'requirement'; requirement: CurriculumRequirement }>
   | Readonly<{ type: 'period'; periodId: PlanningPeriodId }>
-  | Readonly<{
-      type: 'electivePlaceholder'
-      placeholderId: ElectivePlaceholderId
-    }>
 
 export type PlannerFinding = Readonly<{
   code: PlannerFindingCode
@@ -237,9 +217,7 @@ export type PlannerEntityType =
   | 'specialization'
   | 'language'
   | 'course'
-  | 'requirement'
   | 'planningPeriod'
-  | 'electivePlaceholder'
 
 export type PlannerSelectionField =
   | 'catalogProgramId'
@@ -315,6 +293,18 @@ export type PlanningPeriodPosition =
       periodId: PlanningPeriodId
     }>
 
+export type CurriculumPlannerImport = Readonly<{
+  selection: CurriculumSelection
+  planningStart?: CurriculumPlan['planningStart']
+  periods: ReadonlyArray<
+    Readonly<{
+      courses: ReadonlyArray<CourseId>
+      completedCourses?: ReadonlyArray<CourseId>
+    }>
+  >
+  completedCourses: ReadonlyArray<CourseId>
+}>
+
 export type CurriculumPlannerCommand =
   | Readonly<{
       type: 'selectCatalogProgram'
@@ -330,13 +320,7 @@ export type CurriculumPlannerCommand =
     }>
   | Readonly<{
       type: 'addPlanningPeriod'
-      label?: string
       position: PlanningPeriodPosition
-    }>
-  | Readonly<{
-      type: 'renamePlanningPeriod'
-      periodId: PlanningPeriodId
-      label: string | null
     }>
   | Readonly<{
       type: 'movePlanningPeriod'
@@ -350,6 +334,12 @@ export type CurriculumPlannerCommand =
   | Readonly<{
       type: 'setCurrentPlanningPeriod'
       periodId: PlanningPeriodId | null
+    }>
+  | Readonly<{
+      type: 'setPlanningStart'
+      year: number
+      semester: 1 | 2
+      semesterNumber: number
     }>
   | Readonly<{
       type: 'addCourseToPeriod'
@@ -366,33 +356,16 @@ export type CurriculumPlannerCommand =
       courseId: CourseId
     }>
   | Readonly<{
-      type: 'addElectivePlaceholder'
-      periodId: PlanningPeriodId
-      requirementId: RequirementId
-      credits: number
-    }>
-  | Readonly<{
-      type: 'updateElectivePlaceholderCredits'
-      placeholderId: ElectivePlaceholderId
-      credits: number
-    }>
-  | Readonly<{
-      type: 'moveElectivePlaceholder'
-      placeholderId: ElectivePlaceholderId
-      periodId: PlanningPeriodId
-    }>
-  | Readonly<{
-      type: 'removeElectivePlaceholder'
-      placeholderId: ElectivePlaceholderId
-    }>
-  | Readonly<{
       type: 'markCourseCompleted'
       courseId: CourseId
-      periodId: PlanningPeriodId | null
     }>
   | Readonly<{
       type: 'unmarkCourseCompleted'
       courseId: CourseId
+    }>
+  | Readonly<{
+      type: 'importPlanning'
+      data: CurriculumPlannerImport
     }>
 
 export interface CurriculumPlanner {
@@ -402,4 +375,26 @@ export interface CurriculumPlanner {
     command: CurriculumPlannerCommand,
     context: PlannerCommandContext,
   ) => Promise<PlannerResult>
+}
+
+export type CurriculumPlannerState = Readonly<{
+  revision: PlannerRevision
+  selection: CurriculumSelection
+  plan: CurriculumPlan
+  academicRecord: AcademicRecord
+}>
+
+export type CurriculumPlannerStoredStateV1 = Readonly<{
+  version: 1
+  state: CurriculumPlannerState
+}>
+
+export interface CurriculumPlannerStateStore {
+  read: () => Promise<unknown | null>
+  write: (state: CurriculumPlannerStoredStateV1) => Promise<void>
+  clear: () => Promise<void>
+}
+
+export interface CurriculumPlannerStaticDataSource {
+  load: () => Promise<PlannerResult<CurriculumPlannerStaticData>>
 }

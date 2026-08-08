@@ -76,12 +76,13 @@ describe('AppShell', () => {
     expect(screen.getByText('Navegação do POMI')).toBeTruthy()
   })
 
-  it('collapses the desktop navigation', async () => {
+  it('starts collapsed and persists the desktop navigation preference', async () => {
     const { container } = renderShell()
     fireEvent.click(
-      await screen.findByRole('button', { name: 'Recolher navegação' }),
+      await screen.findByRole('button', { name: 'Expandir navegação' }),
     )
 
-    expect(container.querySelector('aside')?.dataset.collapsed).toBe('true')
+    expect(container.querySelector('aside')?.dataset.collapsed).toBe('false')
+    expect(window.localStorage.getItem('pomi.sidebar.collapsed')).toBe('false')
   })
 })

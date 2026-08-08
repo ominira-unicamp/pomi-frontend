@@ -5,6 +5,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 import { AuthProvider } from './auth/AuthProvider.tsx'
 import { ThemeProvider } from './components/ThemeProvider.tsx'
+import { CurriculumPlannerProvider } from './planner/CurriculumPlannerProvider.tsx'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
@@ -42,7 +43,9 @@ if (rootElement && !rootElement.innerHTML) {
       <ThemeProvider>
         <AuthProvider>
           <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
-            <RouterProvider router={router} />
+            <CurriculumPlannerProvider>
+              <RouterProvider router={router} />
+            </CurriculumPlannerProvider>
           </TanStackQueryProvider.Provider>
         </AuthProvider>
       </ThemeProvider>
