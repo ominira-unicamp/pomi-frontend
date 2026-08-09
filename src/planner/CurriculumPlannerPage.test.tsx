@@ -172,21 +172,31 @@ describe('CurriculumPlannerPage', () => {
     expect(
       await screen.findByRole('heading', { name: 'Semestres' }),
     ).toBeTruthy()
-    const catalog = screen.getByRole('combobox', { name: 'Catálogo' })
+    expect(screen.queryByRole('combobox', { name: 'Língua' })).toBeNull()
+    expect(
+      screen.queryByRole('spinbutton', { name: 'Número do semestre inicial' }),
+    ).toBeNull()
+    const catalog = screen.getByRole('combobox', {
+      name: 'Catálogo da sugestão',
+    })
     expect(catalog).toBeTruthy()
-    expect(screen.getByRole('combobox', { name: 'Programa' })).toBeTruthy()
+    expect(
+      screen.getByRole('combobox', { name: 'Programa da sugestão' }),
+    ).toBeTruthy()
     expect(
       screen.getByRole('button', { name: 'Adicionar primeiro semestre' }),
     ).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Concluídas' })).toBeTruthy()
     fireEvent.focus(catalog)
     expect(
-      screen.getByRole('listbox', { name: 'Opções de Catálogo' }),
+      screen.getByRole('listbox', { name: 'Opções de Catálogo da sugestão' }),
     ).toBeTruthy()
     expect(screen.getByRole('option', { name: 'Catálogo 2026' })).toBeTruthy()
     fireEvent.click(
       screen.getByRole('button', { name: 'Planejar manualmente' }),
     )
+    expect(screen.getByRole('combobox', { name: 'Catálogo' })).toBeTruthy()
+    expect(screen.getByRole('combobox', { name: 'Programa' })).toBeTruthy()
     expect(
       screen.queryByRole('heading', { name: 'Comece por uma sugestão' }),
     ).toBeNull()
@@ -256,13 +266,14 @@ describe('CurriculumPlannerPage', () => {
     const suggestion = screen.getByRole('combobox', {
       name: 'Sugestão curricular',
     })
-    fireEvent.focus(suggestion)
-    fireEvent.click(
-      await screen.findByRole('option', {
-        name: 'GERAL — Sugestão geral (Geral)',
-      }),
+    expect((suggestion as HTMLInputElement).disabled).toBe(true)
+    const createButton = screen.getByRole('button', {
+      name: 'Criar planejamento',
+    })
+    await waitFor(() =>
+      expect((createButton as HTMLButtonElement).disabled).toBe(false),
     )
-    fireEvent.click(screen.getByRole('button', { name: 'Criar planejamento' }))
+    fireEvent.click(createButton)
 
     await waitFor(() =>
       expect(

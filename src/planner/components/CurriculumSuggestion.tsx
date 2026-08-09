@@ -3,7 +3,6 @@ import { Sparkles } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { AutocompleteSelect } from './AutocompleteSelect'
-import { CurriculumSelectionFields } from './CurriculumSelection'
 import type {
   CatalogProgramId,
   CurriculumPlannerSnapshot,
@@ -22,10 +21,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { loadCurriculumSuggestions } from '@/planner/data/curriculumSuggestionApi'
 import {
-  compatibleSuggestions,
   planningFromSuggestion,
   suggestionTypeLabel,
 } from '@/planner/domain/suggestionPlanning'
@@ -45,51 +42,60 @@ export function SuggestionOnboardingPanel({
   dispatch: Dispatch
   onDismiss: () => void
 }) {
-  const currentYear = new Date().getFullYear()
-  const [year, setYear] = useState(
-    snapshot.plan.planningStart?.year ?? currentYear,
+  const selectedCatalogProgram = staticData.catalogPrograms.find(
+    (program) => program.id === snapshot.selection.catalogProgramId,
   )
-  const [semester, setSemester] = useState(
-    String(snapshot.plan.planningStart?.semester ?? 1),
+  const [catalogId, setCatalogId] = useState(
+    selectedCatalogProgram?.catalog.id ?? '',
   )
-  const [semesterNumber, setSemesterNumber] = useState(
-    snapshot.plan.planningStart?.semesterNumber ?? 1,
+  const [catalogProgramId, setCatalogProgramId] = useState(
+    snapshot.selection.catalogProgramId ?? '',
   )
   const [suggestionId, setSuggestionId] = useState('')
   const [applyError, setApplyError] = useState<string>()
-  const catalogProgramId = snapshot.selection.catalogProgramId
+  const catalogs = [
+    ...new Map(
+      staticData.catalogPrograms.map((program) => [
+        program.catalog.id,
+        {
+          value: program.catalog.id,
+          label: `Catálogo ${program.catalog.year}`,
+        },
+      ]),
+    ).values(),
+  ].sort((left, right) => left.label.localeCompare(right.label))
+  const programs = staticData.catalogPrograms
+    .filter((program) => program.catalog.id === catalogId)
+    .sort((left, right) => left.program.name.localeCompare(right.program.name))
   const suggestionsQuery = useQuery({
     queryKey: ['curriculum-suggestions', catalogProgramId],
-    queryFn: () => loadCurriculumSuggestions(catalogProgramId!),
+    queryFn: () =>
+      loadCurriculumSuggestions(catalogProgramId as CatalogProgramId),
     enabled: Boolean(catalogProgramId),
     retry: false,
   })
-  const suggestions = compatibleSuggestions(
-    suggestionsQuery.data ?? [],
-    snapshot.selection.specializationId,
-  )
+  const suggestions = suggestionsQuery.data ?? []
   const selectedSuggestion = suggestions.find(
     (suggestion) => suggestion.id === suggestionId,
   )
   useEffect(() => {
-    if (!suggestions.some((suggestion) => suggestion.id === suggestionId))
+    if (suggestions.length === 1) {
+      setSuggestionId(suggestions[0].id)
+    } else if (
+      !suggestions.some((suggestion) => suggestion.id === suggestionId)
+    ) {
       setSuggestionId('')
+    }
   }, [suggestionId, suggestions])
 
-  const planningStartValid =
-    Number.isInteger(year) &&
-    year >= 1900 &&
-    year <= 9999 &&
-    Number.isInteger(semesterNumber) &&
-    semesterNumber >= 1 &&
-    (semester === '1' || semester === '2')
+  const planningStart = snapshot.plan.planningStart ?? {
+    year: new Date().getFullYear(),
+    semester: 1 as const,
+    semesterNumber: 1,
+  }
   const submit = async () => {
-    if (!selectedSuggestion || !planningStartValid) return
-    const data = planningFromSuggestion(selectedSuggestion, {
-      year,
-      semester: Number(semester) as 1 | 2,
-      semesterNumber,
-    })
+    if (!selectedSuggestion) return
+    const data = planningFromSuggestion(selectedSuggestion, planningStart)
     if (!data) {
       setApplyError(
         'A sugestão não possui semestres a partir do início escolhido.',
@@ -116,44 +122,41 @@ export function SuggestionOnboardingPanel({
         </p>
       </CardHeader>
       <CardContent className="space-y-5 p-4">
-        <CurriculumSelectionFields
-          staticData={staticData}
-          snapshot={snapshot}
-          disabled={disabled}
-          dispatch={dispatch}
-        />
-        <div className="grid gap-4 border-t-2 border-border pt-5 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           <label className="space-y-2 text-sm font-bold">
-            <span>Número do semestre inicial</span>
-            <Input
-              type="number"
-              min={1}
-              value={semesterNumber}
-              onChange={(event) =>
-                setSemesterNumber(Number(event.target.value))
-              }
-            />
-          </label>
-          <label className="space-y-2 text-sm font-bold">
-            <span>Ano inicial</span>
-            <Input
-              type="number"
-              min={1900}
-              max={9999}
-              value={year}
-              onChange={(event) => setYear(Number(event.target.value))}
-            />
-          </label>
-          <label className="space-y-2 text-sm font-bold">
-            <span>Período inicial</span>
+            <span>Catálogo</span>
             <AutocompleteSelect
-              ariaLabel="Período inicial da sugestão"
-              value={semester}
-              onValueChange={setSemester}
-              options={[
-                { value: '1', label: '1º semestre' },
-                { value: '2', label: '2º semestre' },
-              ]}
+              ariaLabel="Catálogo da sugestão"
+              value={catalogId}
+              disabled={disabled}
+              options={catalogs}
+              placeholder="Digite o ano do catálogo"
+              onValueChange={(value) => {
+                setCatalogId(value)
+                setCatalogProgramId('')
+                setSuggestionId('')
+                setApplyError(undefined)
+              }}
+            />
+          </label>
+          <label className="space-y-2 text-sm font-bold">
+            <span>Programa</span>
+            <AutocompleteSelect
+              ariaLabel="Programa da sugestão"
+              value={catalogProgramId}
+              disabled={disabled || !catalogId}
+              options={programs.map((program) => ({
+                value: program.id,
+                label: `${program.program.code} — ${program.program.name}`,
+              }))}
+              placeholder={
+                catalogId ? 'Digite o programa' : 'Escolha um catálogo primeiro'
+              }
+              onValueChange={(value) => {
+                setCatalogProgramId(value)
+                setSuggestionId('')
+                setApplyError(undefined)
+              }}
             />
           </label>
           <label className="space-y-2 text-sm font-bold">
@@ -162,7 +165,11 @@ export function SuggestionOnboardingPanel({
               ariaLabel="Sugestão curricular"
               value={suggestionId}
               onValueChange={setSuggestionId}
-              disabled={!catalogProgramId || suggestionsQuery.isLoading}
+              disabled={
+                !catalogProgramId ||
+                suggestionsQuery.isLoading ||
+                suggestions.length === 1
+              }
               options={suggestions.map((suggestion) => ({
                 value: suggestion.id,
                 label: `${suggestion.code} — ${suggestion.name} (${suggestionTypeLabel(suggestion.type)})`,
@@ -218,7 +225,7 @@ export function SuggestionOnboardingPanel({
             Planejar manualmente
           </Button>
           <Button
-            disabled={disabled || !selectedSuggestion || !planningStartValid}
+            disabled={disabled || !selectedSuggestion}
             onClick={() => void submit()}
           >
             <Sparkles /> Criar planejamento
@@ -293,11 +300,14 @@ export function ChangeSuggestionDialog({
     (suggestion) => suggestion.id === suggestionId,
   )
   useEffect(() => {
-    if (
+    if (suggestions.length === 1) {
+      setSuggestionId(suggestions[0].id)
+    } else if (
       suggestionId &&
       !suggestions.some((suggestion) => suggestion.id === suggestionId)
-    )
+    ) {
       setSuggestionId('')
+    }
   }, [suggestionId, suggestions])
   const submit = async () => {
     if (!selected) return
@@ -393,7 +403,10 @@ export function ChangeSuggestionDialog({
                 value={suggestionId}
                 onValueChange={setSuggestionId}
                 disabled={
-                  disabled || !catalogProgramId || suggestionsQuery.isLoading
+                  disabled ||
+                  !catalogProgramId ||
+                  suggestionsQuery.isLoading ||
+                  suggestions.length === 1
                 }
                 options={suggestions.map((suggestion) => ({
                   value: suggestion.id,

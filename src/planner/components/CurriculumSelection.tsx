@@ -17,12 +17,14 @@ export function CurriculumSelectionFields({
   disabled,
   dispatch,
   className,
+  showLanguage = true,
 }: {
   staticData: CurriculumPlannerStaticData
   snapshot: CurriculumPlannerSnapshot
   disabled: boolean
   dispatch: Dispatch
   className?: string
+  showLanguage?: boolean
 }) {
   const selected = staticData.catalogPrograms.find(
     (program) => program.id === snapshot.selection.catalogProgramId,
@@ -111,28 +113,30 @@ export function CurriculumSelectionFields({
           }
         />
       </label>
-      <label className="space-y-2 text-sm font-bold">
-        <span>Língua</span>
-        <AutocompleteSelect
-          ariaLabel="Língua"
-          value={snapshot.selection.languageId ?? ''}
-          disabled={disabled || !selected}
-          emptyLabel="Sem língua adicional"
-          options={
-            selected?.languages.map((option) => ({
-              value: option.id,
-              label: option.name,
-            })) ?? []
-          }
-          placeholder="Digite a língua"
-          onValueChange={(value) =>
-            void dispatch({
-              type: 'selectLanguage',
-              languageId: value ? (value as never) : null,
-            })
-          }
-        />
-      </label>
+      {showLanguage && (
+        <label className="space-y-2 text-sm font-bold">
+          <span>Língua</span>
+          <AutocompleteSelect
+            ariaLabel="Língua"
+            value={snapshot.selection.languageId ?? ''}
+            disabled={disabled || !selected}
+            emptyLabel="Sem língua adicional"
+            options={
+              selected?.languages.map((option) => ({
+                value: option.id,
+                label: option.name,
+              })) ?? []
+            }
+            placeholder="Digite a língua"
+            onValueChange={(value) =>
+              void dispatch({
+                type: 'selectLanguage',
+                languageId: value ? (value as never) : null,
+              })
+            }
+          />
+        </label>
+      )}
     </div>
   )
 }

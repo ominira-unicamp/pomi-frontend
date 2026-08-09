@@ -307,6 +307,9 @@ export type CurriculumPlannerImport = Readonly<{
 
 export type CurriculumPlannerCommand =
   | Readonly<{
+      type: 'clearPlanning'
+    }>
+  | Readonly<{
       type: 'selectCatalogProgram'
       catalogProgramId: CatalogProgramId | null
     }>

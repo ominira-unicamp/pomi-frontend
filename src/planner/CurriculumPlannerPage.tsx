@@ -14,6 +14,7 @@ import { useMemo, useRef, useState } from 'react'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 
 import type { PlannerDragData } from '@/planner/components/CourseCard'
+import type { PlannerError } from '@/planner/domain/curriculumPlanner'
 import {
   EmptyState,
   ErrorState,
@@ -25,6 +26,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { CurriculumBlocksPanel } from '@/planner/components/CurriculumBlocksPanel'
+import { ClearPlanningDialog } from '@/planner/components/ClearPlanningDialog'
 import { CurriculumSelectionPanel } from '@/planner/components/CurriculumSelection'
 import {
   ChangeSuggestionDialog,
@@ -50,7 +52,25 @@ const dragMeasuring = {
   droppable: { strategy: MeasuringStrategy.BeforeDragging },
 }
 
-function errorText(code: string) {
+function errorText(error: PlannerError | string) {
+  const code = typeof error === 'string' ? error : error.code
+  if (typeof error !== 'string' && error.code === 'invalidInput') {
+    const importReasons = {
+      catalogProgram:
+        'O catálogo/programa do arquivo não está disponível nos dados atuais.',
+      specialization:
+        'A habilitação do arquivo não pertence ao programa atual.',
+      language: 'A língua do arquivo não pertence ao programa atual.',
+      courses:
+        'O arquivo contém uma ou mais disciplinas que não existem no catálogo atual.',
+      periods: 'O arquivo coloca a mesma disciplina em mais de um semestre.',
+      completedCourses:
+        'O arquivo repete uma disciplina na lista de concluídas.',
+      import: 'O formato interno do arquivo de planejamento não é válido.',
+    } as const
+    const field = error.details.field as keyof typeof importReasons
+    return importReasons[field]
+  }
   return (
     {
       conflict: 'O planejamento mudou. O estado mais recente foi carregado.',
@@ -74,7 +94,7 @@ export function CurriculumPlannerPage() {
     [planner.snapshot, planner.staticData],
   )
   const [activeDrag, setActiveDrag] = useState<PlannerDragData>()
-  const [importError, setImportError] = useState<string>()
+  const [importError, setImportError] = useState<'parse' | 'dispatch'>()
   const [suggestionOnboardingDismissed, setSuggestionOnboardingDismissed] =
     useState(() => {
       try {
@@ -154,11 +174,9 @@ export function CurriculumPlannerPage() {
       const data = parsePlanning(JSON.parse(await file.text()))
       if (!data) throw new Error('invalid')
       const succeeded = await planner.dispatch({ type: 'importPlanning', data })
-      setImportError(
-        succeeded ? undefined : 'O arquivo não é compatível com este catálogo.',
-      )
+      setImportError(succeeded ? undefined : 'dispatch')
     } catch {
-      setImportError('Não foi possível ler o arquivo de planejamento.')
+      setImportError('parse')
     }
   }
   return (
@@ -173,14 +191,26 @@ export function CurriculumPlannerPage() {
               variant="outline"
               onClick={() => downloadPlanning(snapshot)}
             >
-              <Download /> Exportar catálogo
+              <Download /> Exportar currículo
             </Button>
             <Button
               variant="outline"
               onClick={() => importInputRef.current?.click()}
             >
-              <Upload /> Importar catálogo
+              <Upload /> Importar currículo
             </Button>
+            <ClearPlanningDialog
+              disabled={planner.isDispatching}
+              dispatch={planner.dispatch}
+              onCleared={() => {
+                setSuggestionOnboardingDismissed(false)
+                try {
+                  window.localStorage.removeItem(
+                    suggestionOnboardingPreferenceKey,
+                  )
+                } catch {}
+              }}
+            />
             <ChangeSuggestionDialog
               staticData={staticData}
               snapshot={snapshot}
@@ -204,14 +234,18 @@ export function CurriculumPlannerPage() {
       {importError && (
         <Alert variant="destructive" className="mb-6">
           <AlertTitle>Não foi possível importar</AlertTitle>
-          <AlertDescription>{importError}</AlertDescription>
+          <AlertDescription>
+            {importError === 'parse'
+              ? 'O arquivo não é um planejamento JSON válido ou está em uma versão incompatível.'
+              : errorText(planner.error ?? 'invalidInput')}
+          </AlertDescription>
         </Alert>
       )}
-      {planner.error && (
+      {planner.error && !importError && (
         <Alert variant="destructive" className="mb-6" aria-live="polite">
           <RotateCcw />
           <AlertTitle>Não foi possível concluir a ação</AlertTitle>
-          <AlertDescription>{errorText(planner.error.code)}</AlertDescription>
+          <AlertDescription>{errorText(planner.error)}</AlertDescription>
         </Alert>
       )}
       <DndContext

@@ -148,6 +148,10 @@ function executeCommand(
   const next = clone(state)
   const catalogProgram = activeCatalog(next.selection, staticData)
   switch (command.type) {
+    case 'clearPlanning':
+      next.plan = { periods: [] }
+      next.academicRecord = { completedCourses: [] }
+      return ok(next)
     case 'selectCatalogProgram': {
       if (
         command.catalogProgramId !== null &&
@@ -240,33 +244,43 @@ function executeCommand(
             (item) => item.id === imported.selection.catalogProgramId,
           )
         : undefined
+      if (imported.selection.catalogProgramId && !selected)
+        return invalidInput('catalogProgram', 'incompatible')
       if (
-        (imported.selection.catalogProgramId && !selected) ||
-        (imported.selection.specializationId &&
-          (!selected ||
-            !selected.specializations.some(
-              (item) => item.id === imported.selection.specializationId,
-            ))) ||
-        (imported.selection.languageId &&
-          (!selected ||
-            !selected.languages.some(
-              (item) => item.id === imported.selection.languageId,
-            )))
+        imported.selection.specializationId &&
+        (!selected ||
+          !selected.specializations.some(
+            (item) => item.id === imported.selection.specializationId,
+          ))
       )
-        return invalidInput('import', 'incompatible')
+        return invalidInput('specialization', 'incompatible')
+      if (
+        imported.selection.languageId &&
+        (!selected ||
+          !selected.languages.some(
+            (item) => item.id === imported.selection.languageId,
+          ))
+      )
+        return invalidInput('language', 'incompatible')
       const courseIds = new Set(staticData.courses.map((course) => course.id))
-      const importedIds = [
+      const plannedIds = imported.periods.flatMap((period) => period.courses)
+      const completedIds = [
         ...imported.completedCourses,
-        ...imported.periods.flatMap((period) => [
-          ...period.courses,
-          ...(period.completedCourses ?? []),
-        ]),
+        ...imported.periods.flatMap((period) => period.completedCourses ?? []),
       ]
+      const importedIds = [...plannedIds, ...completedIds]
       if (
         importedIds.some((courseId) => !courseIds.has(courseId)) ||
-        new Set(importedIds).size !== importedIds.length
+        new Set(completedIds).size !== completedIds.length
       )
-        return invalidInput('import', 'incompatible')
+        return invalidInput(
+          importedIds.some((courseId) => !courseIds.has(courseId))
+            ? 'courses'
+            : 'completedCourses',
+          'incompatible',
+        )
+      if (new Set(plannedIds).size !== plannedIds.length)
+        return invalidInput('periods', 'incompatible')
       const periods = imported.periods.map((period) => ({
         id: generateId() as PlanningPeriodId,
         items: period.courses.map((courseId) => ({
@@ -280,12 +294,9 @@ function executeCommand(
         periods,
       }
       next.academicRecord = {
-        completedCourses: [
-          ...imported.completedCourses.map((courseId) => ({ courseId })),
-          ...imported.periods.flatMap((period) =>
-            (period.completedCourses ?? []).map((courseId) => ({ courseId })),
-          ),
-        ],
+        completedCourses: [...new Set(completedIds)].map((courseId) => ({
+          courseId,
+        })),
       }
       return ok(next)
     }

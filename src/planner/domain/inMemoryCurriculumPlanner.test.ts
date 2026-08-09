@@ -157,6 +157,36 @@ describe('createInMemoryCurriculumPlanner', () => {
     })
   })
 
+  it('clears planning while preserving the curriculum selection', async () => {
+    const planner = createInMemoryCurriculumPlanner({
+      staticDataSource: {
+        load: () => Promise.resolve({ ok: true as const, value: staticData }),
+      },
+      initialState: {
+        ...initialState,
+        selection: { catalogProgramId },
+        plan: {
+          planningStart: { year: 2027, semester: 1, semesterNumber: 3 },
+          periods: [{ id: 'period-1' as never, items: [] }],
+        },
+        academicRecord: { completedCourses: [{ courseId }] },
+      },
+    })
+    const result = await planner.dispatch(
+      { type: 'clearPlanning' },
+      { expectedRevision: initialRevision },
+    )
+    expect(result).toEqual({ ok: true, value: undefined })
+    const snapshot = await planner.getSnapshot()
+    expect(snapshot.ok && snapshot.value.selection).toEqual({
+      catalogProgramId,
+    })
+    expect(snapshot.ok && snapshot.value.plan).toEqual({ periods: [] })
+    expect(snapshot.ok && snapshot.value.academicRecord).toEqual({
+      completedCourses: [],
+    })
+  })
+
   it('imports a portable planning document with fresh period ids', async () => {
     const planner = createInMemoryCurriculumPlanner({
       staticDataSource: {
@@ -191,6 +221,38 @@ describe('createInMemoryCurriculumPlanner', () => {
         },
       ],
     })
+  })
+
+  it('allows a course to be planned and completed in an imported document', async () => {
+    const planner = createInMemoryCurriculumPlanner({
+      staticDataSource: {
+        load: () => Promise.resolve({ ok: true as const, value: staticData }),
+      },
+      initialState,
+      generateId: () => 'period-imported',
+    })
+
+    await expect(
+      planner.dispatch(
+        {
+          type: 'importPlanning',
+          data: {
+            selection: { catalogProgramId },
+            periods: [{ courses: [courseId] }],
+            completedCourses: [courseId],
+          },
+        },
+        { expectedRevision: initialRevision },
+      ),
+    ).resolves.toEqual({ ok: true, value: undefined })
+
+    const snapshot = await planner.getSnapshot()
+    expect(
+      snapshot.ok && snapshot.value.academicRecord.completedCourses,
+    ).toEqual([{ courseId }])
+    expect(snapshot.ok && snapshot.value.plan.periods[0]?.items).toEqual([
+      { type: 'course', courseId },
+    ])
   })
 
   it('keeps a completed course planned in one period when loading state', async () => {
