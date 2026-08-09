@@ -74,6 +74,9 @@ function courseStates(
       planned.set(item.courseId, period.id)
     }
   }
+  for (const courseId of snapshot.plan.unallocatedCourseIds ?? []) {
+    planned.set(courseId, '' as PlanningPeriodId)
+  }
   return courses
     .filter((course) => !completed.has(course.id) && !planned.has(course.id))
     .map((course) => ({

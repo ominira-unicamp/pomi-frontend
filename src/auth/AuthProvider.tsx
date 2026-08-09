@@ -33,6 +33,7 @@ let initialization: Promise<boolean> | undefined
 
 function initializeKeycloak() {
   initialization ??= keycloak.init({
+    onLoad: 'check-sso',
     pkceMethod: 'S256',
     checkLoginIframe: false,
   })
@@ -46,6 +47,7 @@ interface AuthContextValue {
   login: () => Promise<void>
   logout: () => Promise<void>
   getAccessToken: () => Promise<string>
+  emailVerificationRequired: boolean
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -54,10 +56,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initialized, setInitialized] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<KeycloakTokenParsed>()
+  const [emailVerificationRequired, setEmailVerificationRequired] =
+    useState(false)
 
   const synchronizeSession = useCallback(() => {
     setIsAuthenticated(Boolean(keycloak.authenticated))
     setProfile(keycloak.tokenParsed)
+    setEmailVerificationRequired(
+      Boolean(
+        keycloak.authenticated &&
+          keycloak.tokenParsed &&
+          keycloak.tokenParsed.email_verified !== true,
+      ),
+    )
   }, [])
 
   useEffect(() => {
@@ -86,6 +97,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setInitialized(true)
         setIsAuthenticated(false)
         setProfile(undefined)
+        setEmailVerificationRequired(false)
       })
 
     return () => {
@@ -122,8 +134,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       logout,
       getAccessToken,
+      emailVerificationRequired,
     }),
-    [getAccessToken, initialized, isAuthenticated, login, logout, profile],
+    [
+      emailVerificationRequired,
+      getAccessToken,
+      initialized,
+      isAuthenticated,
+      login,
+      logout,
+      profile,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -135,4 +156,16 @@ export function useAuth() {
     throw new Error('useAuth must be used within AuthProvider.')
   }
   return context
+}
+
+export function useOptionalAuth(): AuthContextValue {
+  const context = useContext(AuthContext)
+  return context ?? {
+    initialized: true,
+    isAuthenticated: false,
+    login: () => Promise.resolve(),
+    logout: () => Promise.resolve(),
+    getAccessToken: () => Promise.reject(new Error('Authentication is required.')),
+    emailVerificationRequired: false,
+  }
 }

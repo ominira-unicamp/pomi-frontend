@@ -8,6 +8,11 @@ export function commandForCourseDrop(
   data: PlannerDragData,
   overId: string,
 ): CurriculumPlannerCommand | undefined {
+  if (overId === 'unallocated') {
+    return data.currentPeriodId
+      ? { type: 'moveCourseToUnallocated', courseId: data.course.id }
+      : undefined
+  }
   if (overId === 'completed') {
     return data.completed
       ? undefined

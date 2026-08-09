@@ -9,12 +9,14 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { Download, Plus, RotateCcw, Upload } from 'lucide-react'
-import { useMemo, useRef, useState } from 'react'
+import { Download, MoreHorizontal, Pencil, Plus, RotateCcw, Save, Trash2, Upload } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 
 import type { PlannerDragData } from '@/planner/components/CourseCard'
 import type { PlannerError } from '@/planner/domain/curriculumPlanner'
+import type { ResolvedPlanningImport } from '@/planner/domain/planningTransfer'
 import {
   EmptyState,
   ErrorState,
@@ -25,17 +27,29 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { CurriculumBlocksPanel } from '@/planner/components/CurriculumBlocksPanel'
 import { ClearPlanningDialog } from '@/planner/components/ClearPlanningDialog'
+import {
+  DeleteCurriculumDialog,
+  RenameCurriculumDialog,
+} from '@/planner/components/CurriculumPlanActions'
 import { CurriculumSelectionPanel } from '@/planner/components/CurriculumSelection'
 import {
   ChangeSuggestionDialog,
   SuggestionOnboardingPanel,
 } from '@/planner/components/CurriculumSuggestion'
 import { PlanningStartDialog } from '@/planner/components/PlanningStartDialog'
+import { PlanningImportReviewDialog } from '@/planner/components/PlanningImportReviewDialog'
 import {
-  CompletedCoursesPanel,
   SemesterRow,
+  UnallocatedCoursesPanel,
 } from '@/planner/components/SemesterBoard'
 import { CompactVisual } from '@/planner/components/CourseCard'
 import { suggestionOnboardingPreferenceKey } from '@/planner/data/curriculumSuggestionApi'
@@ -44,6 +58,7 @@ import { periodTitle } from '@/planner/domain/planningPeriods'
 import {
   downloadPlanning,
   parsePlanning,
+  resolvePlanningImport,
 } from '@/planner/domain/planningTransfer'
 import { buildPlannerViewModel } from '@/planner/viewModel'
 import { commandForCourseDrop } from '@/planner/dnd'
@@ -64,8 +79,6 @@ function errorText(error: PlannerError | string) {
       courses:
         'O arquivo contém uma ou mais disciplinas que não existem no catálogo atual.',
       periods: 'O arquivo coloca a mesma disciplina em mais de um semestre.',
-      completedCourses:
-        'O arquivo repete uma disciplina na lista de concluídas.',
       import: 'O formato interno do arquivo de planejamento não é válido.',
     } as const
     const field = error.details.field as keyof typeof importReasons
@@ -84,8 +97,37 @@ function errorText(error: PlannerError | string) {
   )
 }
 
-export function CurriculumPlannerPage() {
+function curriculumName(name: string | undefined, id?: number) {
+  return name?.trim() || (id ? `Planejamento ${id}` : 'Planejamento sem nome')
+}
+
+export function CurriculumPlannerPage({
+  curriculumId,
+  showSelection = false,
+}: {
+  curriculumId?: string
+  showSelection?: boolean
+} = {}) {
   const planner = useCurriculumPlanner()
+  const navigate = useNavigate()
+  useEffect(() => {
+    if (showSelection) {
+      planner.backToSelection()
+      return
+    }
+    if (!curriculumId) return
+    if (curriculumId === 'rascunho') planner.openAnonymousDraft()
+    else {
+      const id = Number(curriculumId)
+      if (Number.isInteger(id)) planner.selectCurriculum(id)
+    }
+  }, [
+    curriculumId,
+    planner.backToSelection,
+    planner.openAnonymousDraft,
+    planner.selectCurriculum,
+    showSelection,
+  ])
   const viewModel = useMemo(
     () =>
       planner.staticData && planner.snapshot
@@ -95,6 +137,11 @@ export function CurriculumPlannerPage() {
   )
   const [activeDrag, setActiveDrag] = useState<PlannerDragData>()
   const [importError, setImportError] = useState<'parse' | 'dispatch'>()
+  const [selectionError, setSelectionError] = useState(false)
+  const [pendingImport, setPendingImport] = useState<ResolvedPlanningImport>()
+  const [curriculumAction, setCurriculumAction] = useState<
+    'rename' | 'delete'
+  >()
   const [suggestionOnboardingDismissed, setSuggestionOnboardingDismissed] =
     useState(() => {
       try {
@@ -114,6 +161,43 @@ export function CurriculumPlannerPage() {
     }),
     useSensor(KeyboardSensor),
   )
+  const importPlanning = async (file?: File) => {
+    if (!file) return
+    try {
+      if (file.size > 2 * 1024 * 1024) throw new Error('invalid')
+      const parsed = parsePlanning(JSON.parse(await file.text()))
+      if (!parsed || !planner.staticData) throw new Error('invalid')
+      setPendingImport(resolvePlanningImport(parsed, planner.staticData))
+      setImportError(undefined)
+    } catch {
+      setImportError('parse')
+    }
+  }
+  const confirmImport = async () => {
+    if (!pendingImport) return
+    const succeeded = await planner.dispatch({
+      type: 'importPlanning',
+      data: pendingImport.data,
+    })
+    if (!succeeded) {
+      setImportError('dispatch')
+      return
+    }
+    if (pendingImport.name) {
+      planner.setDraftName(pendingImport.name)
+      if (planner.activeCurriculumId)
+        await planner.renameCurriculum(pendingImport.name)
+    }
+    setPendingImport(undefined)
+    if (planner.entryState === 'selection') {
+      planner.openAnonymousDraft()
+      if (pendingImport.name) planner.setDraftName(pendingImport.name)
+      void navigate({
+        to: '/planejamentos/$planejamentoId',
+        params: { planejamentoId: 'rascunho' },
+      })
+    }
+  }
   if (planner.isLoading) {
     return (
       <PageContainer size="wide">
@@ -139,7 +223,129 @@ export function CurriculumPlannerPage() {
       </PageContainer>
     )
   }
+  if (planner.entryState === 'selection') {
+    const createPlan = async () => {
+      const id = await planner.createCurriculumPlan()
+      setSelectionError(!id)
+      if (id)
+        void navigate({
+          to: '/planejamentos/$planejamentoId',
+          params: { planejamentoId: String(id) },
+        })
+    }
+    return (
+      <PageContainer>
+        <PageHeader
+          eyebrow="Planejamento acadêmico"
+          title="Selecione um planejamento"
+          description={
+            planner.isAuthenticated
+              ? 'Escolha um planejamento existente ou crie um novo para começar.'
+              : 'Comece um rascunho nesta sessão ou importe um currículo existente.'
+          }
+        />
+        <Card className="shadow-none">
+          <CardContent className="space-y-4 p-5">
+            {planner.isAuthenticated ? (
+              planner.curricula.length ? (
+                <div className="space-y-2">
+                  <p className="text-sm font-bold">Seus planejamentos</p>
+                  <div className="grid gap-2">
+                    {planner.curricula.map((curriculum) => (
+                      <Button
+                        key={curriculum.id}
+                        variant="outline"
+                        className="justify-start"
+                        onClick={() =>
+                          void navigate({
+                            to: '/planejamentos/$planejamentoId',
+                            params: { planejamentoId: String(curriculum.id) },
+                          })
+                        }
+                      >
+                        {curriculum.name}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Você ainda não possui planejamentos salvos.
+                </p>
+              )
+            ) : (
+              <Button
+                onClick={() => {
+                  planner.openAnonymousDraft()
+                  void navigate({
+                    to: '/planejamentos/$planejamentoId',
+                    params: { planejamentoId: 'rascunho' },
+                  })
+                }}
+              >
+                <Plus /> Novo rascunho
+              </Button>
+            )}
+            {planner.isAuthenticated && (
+                <Button
+                  variant="outline"
+                  onClick={() => void createPlan()}
+                >
+                <Plus /> Novo planejamento
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSelectionError(false)
+                importInputRef.current?.click()
+              }}
+            >
+              <Upload /> Importar currículo
+            </Button>
+            <input
+              ref={importInputRef}
+              className="hidden"
+              type="file"
+              accept="application/json"
+              onChange={(event) => {
+                void importPlanning(event.target.files?.[0])
+                event.target.value = ''
+              }}
+            />
+            <PlanningImportReviewDialog
+              disabled={planner.isDispatching}
+              importResult={pendingImport}
+              onConfirm={() => void confirmImport()}
+              onOpenChange={(open) => {
+                if (!open) setPendingImport(undefined)
+              }}
+            />
+            {importError && (
+              <Alert variant="destructive">
+                <AlertTitle>Não foi possível importar</AlertTitle>
+                <AlertDescription>
+                  O arquivo não é um currículo válido ou é incompatível com os dados atuais.
+                </AlertDescription>
+              </Alert>
+            )}
+            {selectionError && (
+              <Alert variant="destructive">
+                <AlertTitle>Não foi possível criar o planejamento</AlertTitle>
+                <AlertDescription>
+                  {planner.actionError ?? 'Verifique sua sessão e tente novamente.'}
+                </AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+      </PageContainer>
+    )
+  }
   const { staticData, snapshot } = planner
+  const activeCurriculum = planner.curricula.find(
+    (curriculum) => curriculum.id === planner.activeCurriculumId,
+  )
   const plannerView = viewModel!
   const periods = plannerView.periods
   const showSuggestionOnboarding =
@@ -168,59 +374,170 @@ export function CurriculumPlannerPage() {
       position: { type: 'end' },
     })
   }
-  const importPlanning = async (file?: File) => {
-    if (!file) return
-    try {
-      const data = parsePlanning(JSON.parse(await file.text()))
-      if (!data) throw new Error('invalid')
-      const succeeded = await planner.dispatch({ type: 'importPlanning', data })
-      setImportError(succeeded ? undefined : 'dispatch')
-    } catch {
-      setImportError('parse')
-    }
-  }
   return (
     <PageContainer size="wide">
       <PageHeader
         eyebrow="Planejamento acadêmico"
         title="Seu planejamento"
-        description="Monte os semestres livremente ou a partir dos blocos do currículo. O rascunho fica salvo neste navegador."
+        description={
+          planner.isAuthenticated
+            ? planner.saveStatus === 'error'
+              ? 'Não foi possível salvar. Suas alterações continuam nesta sessão; tente novamente.'
+              : planner.saveStatus === 'saving' || planner.saveStatus === 'pending'
+                ? 'Salvando automaticamente na sua conta.'
+                : 'Monte os semestres livremente ou a partir dos blocos do currículo. Alterações salvas automaticamente.'
+            : 'Monte os semestres livremente ou a partir dos blocos do currículo. O plano anônimo fica apenas nesta sessão.'
+        }
         actions={
           <>
             <Button
               variant="outline"
-              onClick={() => downloadPlanning(snapshot)}
+                  onClick={() => {
+                    planner.backToSelection()
+                    void navigate({ to: '/' })
+                  }}
             >
-              <Download /> Exportar currículo
+              Planejamentos
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => importInputRef.current?.click()}
-            >
-              <Upload /> Importar currículo
-            </Button>
-            <ClearPlanningDialog
-              disabled={planner.isDispatching}
-              dispatch={planner.dispatch}
-              onCleared={() => {
-                setSuggestionOnboardingDismissed(false)
-                try {
-                  window.localStorage.removeItem(
-                    suggestionOnboardingPreferenceKey,
-                  )
-                } catch {}
-              }}
-            />
-            <ChangeSuggestionDialog
-              staticData={staticData}
-              snapshot={snapshot}
-              disabled={planner.isDispatching}
-              dispatch={planner.dispatch}
-              label="Usar sugestão"
-            />
+            {planner.isAuthenticated && !planner.activeCurriculumId && (
+              <Button
+                variant="outline"
+                disabled={planner.isDispatching}
+                onClick={() =>
+                  void planner.saveDraft().then((id) => {
+                    if (!id) return
+                    void navigate({
+                      to: '/planejamentos/$planejamentoId',
+                      params: { planejamentoId: String(id) },
+                    })
+                  })
+                }
+              >
+                <Save /> Salvar rascunho
+              </Button>
+            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" aria-label="Ações do planejamento">
+                  <MoreHorizontal /> Ações
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <ChangeSuggestionDialog
+                  staticData={staticData}
+                  snapshot={snapshot}
+                  disabled={planner.isDispatching}
+                  dispatch={planner.dispatch}
+                  label="Usar sugestão"
+                  trigger={
+                    <DropdownMenuItem
+                      disabled={planner.isDispatching}
+                      onSelect={(event) => event.preventDefault()}
+                    >
+                      Usar sugestão
+                    </DropdownMenuItem>
+                  }
+                />
+                <DropdownMenuItem
+                  onSelect={() => importInputRef.current?.click()}
+                >
+                  <Upload /> Importar currículo
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={() =>
+                    downloadPlanning(
+                      snapshot,
+                      staticData,
+                      activeCurriculum?.name ?? planner.draftName,
+                    )
+                  }
+                >
+                  <Download /> Exportar currículo
+                </DropdownMenuItem>
+                {planner.isAuthenticated && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      disabled={planner.isDispatching}
+                      onSelect={() => setCurriculumAction('rename')}
+                    >
+                      <Pencil /> Editar nome
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                      disabled={planner.isDispatching}
+                      onSelect={() => setCurriculumAction('delete')}
+                    >
+                      <Trash2 /> Apagar planejamento
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuSeparator />
+                <ClearPlanningDialog
+                  disabled={planner.isDispatching}
+                  dispatch={planner.dispatch}
+                  onCleared={() => {
+                    setSuggestionOnboardingDismissed(false)
+                    try {
+                      window.localStorage.removeItem(
+                        suggestionOnboardingPreferenceKey,
+                      )
+                    } catch {}
+                  }}
+                  trigger={
+                    <DropdownMenuItem
+                      className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                      disabled={planner.isDispatching}
+                      onSelect={(event) => event.preventDefault()}
+                    >
+                      Limpar planejamento
+                    </DropdownMenuItem>
+                  }
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
           </>
         }
       />
+      <PlanningImportReviewDialog
+        disabled={planner.isDispatching}
+        importResult={pendingImport}
+        onConfirm={() => void confirmImport()}
+        onOpenChange={(open) => {
+          if (!open) setPendingImport(undefined)
+        }}
+      />
+      {planner.isAuthenticated && (
+        <>
+          <RenameCurriculumDialog
+            disabled={planner.isDispatching}
+            initialName={curriculumName(
+              activeCurriculum?.name,
+              planner.activeCurriculumId,
+            )}
+            open={curriculumAction === 'rename'}
+            onOpenChange={(open) => {
+              if (!open) setCurriculumAction(undefined)
+            }}
+            onRename={planner.renameCurriculum}
+          />
+          <DeleteCurriculumDialog
+            disabled={planner.isDispatching}
+            open={curriculumAction === 'delete'}
+            onOpenChange={(open) => {
+              if (!open) setCurriculumAction(undefined)
+            }}
+            onDelete={async () => {
+              const succeeded = await planner.deleteCurriculumPlan()
+              if (succeeded) {
+                planner.backToSelection()
+                void navigate({ to: '/' })
+              }
+              return succeeded
+            }}
+          />
+        </>
+      )}
       <input
         ref={importInputRef}
         className="hidden"
@@ -294,7 +611,7 @@ export function CurriculumPlannerPage() {
             </div>
           </div>
           <div className="space-y-4">
-            <CompletedCoursesPanel
+            <UnallocatedCoursesPanel
               courses={plannerView.completedCourses}
               credits={plannerView.completedCredits}
               courseOptions={plannerView.courseOptions}

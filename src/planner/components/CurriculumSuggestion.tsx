@@ -3,6 +3,7 @@ import { Sparkles } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { AutocompleteSelect } from './AutocompleteSelect'
+import type { ReactNode } from 'react'
 import type {
   CatalogProgramId,
   CurriculumPlannerSnapshot,
@@ -20,6 +21,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from '@/components/ui/dialog'
 import { loadCurriculumSuggestions } from '@/planner/data/curriculumSuggestionApi'
 import {
@@ -242,12 +244,14 @@ export function ChangeSuggestionDialog({
   disabled,
   dispatch,
   label = 'Trocar sugestão',
+  trigger,
 }: {
   staticData: CurriculumPlannerStaticData
   snapshot: CurriculumPlannerSnapshot
   disabled: boolean
   dispatch: Dispatch
   label?: string
+  trigger?: ReactNode
 }) {
   const [open, setOpen] = useState(false)
   const [catalogId, setCatalogId] = useState('')
@@ -330,13 +334,13 @@ export function ChangeSuggestionDialog({
   }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Button
-        variant="outline"
-        disabled={disabled}
-        onClick={() => setOpen(true)}
-      >
-        <Sparkles /> {label}
-      </Button>
+      <DialogTrigger asChild>
+        {trigger ?? (
+          <Button variant="outline" disabled={disabled}>
+            <Sparkles /> {label}
+          </Button>
+        )}
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Usar sugestão curricular</DialogTitle>

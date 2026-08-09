@@ -40,7 +40,7 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
     () =>
       options.map((option) => ({
         option,
-        searchText: option.label.toLocaleLowerCase('pt-BR'),
+        searchText: String(option.label).toLocaleLowerCase('pt-BR'),
       })),
     [options],
   )
@@ -56,7 +56,7 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
       setOpen(false)
       return
     }
-    setQuery(option.label)
+    setQuery(String(option.label))
     onValueChange(option.value)
     setOpen(false)
   }

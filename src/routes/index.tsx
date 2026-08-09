@@ -7,5 +7,5 @@ export const Route = createFileRoute('/')({
 })
 
 function PlanningPage() {
-  return <CurriculumPlannerPage />
+  return <CurriculumPlannerPage showSelection />
 }

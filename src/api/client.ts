@@ -19,5 +19,9 @@ export async function apiRequest(
   const headers = new Headers(init.headers)
   headers.set('Authorization', `Bearer ${token}`)
 
-  return fetch(new URL(path, apiUrl), { ...init, headers })
+  return fetch(new URL(path, apiUrl), {
+    ...init,
+    headers,
+    cache: 'no-store',
+  })
 }

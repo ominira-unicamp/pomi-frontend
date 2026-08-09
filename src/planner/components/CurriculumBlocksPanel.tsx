@@ -107,6 +107,7 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
       ...snapshot.plan.periods.flatMap((period) =>
         period.items.map((item) => item.courseId),
       ),
+      ...(snapshot.plan.unallocatedCourseIds ?? []),
     ])
     const courses = staticData.courses.filter((course) =>
       courseIds.has(course.id),
@@ -123,6 +124,7 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
     groups,
     snapshot.academicRecord.completedCourses,
     snapshot.plan.periods,
+    snapshot.plan.unallocatedCourseIds,
     staticData.courses,
   ])
   const remainingCreditsByRequirement = new Map(

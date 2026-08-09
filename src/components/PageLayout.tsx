@@ -33,8 +33,8 @@ export function PageHeader({
   actions?: ReactNode
 }) {
   return (
-    <header className="mb-8 flex flex-col gap-5 border-b-2 border-strong-border pb-6 sm:flex-row sm:items-end sm:justify-between">
-      <div className="max-w-3xl">
+    <header className="mb-8 flex flex-col gap-5 border-b-2 border-strong-border pb-6 sm:flex-row sm:items-start sm:justify-between">
+      <div className="min-w-0 flex-1 max-w-3xl">
         {eyebrow && (
           <p className="mb-2 text-xs font-black tracking-[0.18em] text-primary uppercase">
             {eyebrow}
@@ -50,7 +50,9 @@ export function PageHeader({
         )}
       </div>
       {actions && (
-        <div className="flex shrink-0 items-center gap-2">{actions}</div>
+        <div className="flex w-full max-w-full shrink-0 flex-wrap items-center justify-start gap-2 sm:max-w-[52%] sm:justify-end">
+          {actions}
+        </div>
       )}
     </header>
   )

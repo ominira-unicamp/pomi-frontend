@@ -203,8 +203,7 @@ describe('createInMemoryCurriculumPlanner', () => {
           data: {
             selection: { catalogProgramId },
             planningStart: { year: 2027, semester: 1, semesterNumber: 3 },
-            periods: [{ courses: [courseId], completedCourses: [] }],
-            completedCourses: [],
+            periods: [{ courses: [courseId] }],
           },
         },
         { expectedRevision: initialRevision },
@@ -223,12 +222,15 @@ describe('createInMemoryCurriculumPlanner', () => {
     })
   })
 
-  it('allows a course to be planned and completed in an imported document', async () => {
+  it('preserves completed courses when importing a planning document', async () => {
     const planner = createInMemoryCurriculumPlanner({
       staticDataSource: {
         load: () => Promise.resolve({ ok: true as const, value: staticData }),
       },
-      initialState,
+      initialState: {
+        ...initialState,
+        academicRecord: { completedCourses: [{ courseId }] },
+      },
       generateId: () => 'period-imported',
     })
 
@@ -239,7 +241,6 @@ describe('createInMemoryCurriculumPlanner', () => {
           data: {
             selection: { catalogProgramId },
             periods: [{ courses: [courseId] }],
-            completedCourses: [courseId],
           },
         },
         { expectedRevision: initialRevision },

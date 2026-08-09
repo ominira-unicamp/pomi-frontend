@@ -36,6 +36,7 @@ export function buildPlannerViewModel(
   const completedIds = new Set(
     snapshot.academicRecord.completedCourses.map((course) => course.courseId),
   )
+  const unallocatedIds = new Set(snapshot.plan.unallocatedCourseIds ?? [])
   const plannedIds = new Set(
     snapshot.plan.periods.flatMap((period) =>
       period.items.map((item) => item.courseId),
@@ -64,8 +65,10 @@ export function buildPlannerViewModel(
       current: snapshot.plan.currentPeriodId === period.id,
     }
   })
-  const completedCourses = staticData.courses.filter(
-    (course) => completedIds.has(course.id) && !plannedIds.has(course.id),
+  const completedCourses = staticData.courses.filter((course) =>
+    snapshot.plan.unallocatedCourseIds
+      ? unallocatedIds.has(course.id)
+      : completedIds.has(course.id) && !plannedIds.has(course.id),
   )
   return {
     periods: snapshot.plan.periods,

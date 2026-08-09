@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 
 import type { PlannerDispatch } from '@/planner/types'
 import { Button } from '@/components/ui/button'
@@ -17,10 +18,12 @@ export function ClearPlanningDialog({
   disabled,
   dispatch,
   onCleared,
+  trigger,
 }: {
   disabled: boolean
   dispatch: PlannerDispatch
   onCleared: () => void
+  trigger?: ReactNode
 }) {
   const [open, setOpen] = useState(false)
   const submit = async () => {
@@ -33,9 +36,11 @@ export function ClearPlanningDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" disabled={disabled}>
-          Limpar planejamento
-        </Button>
+        {trigger ?? (
+          <Button variant="outline" disabled={disabled}>
+            Limpar planejamento
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

@@ -281,7 +281,7 @@ const SemesterRowContent = memo(function SemesterRowContent({
   )
 })
 
-const AddCompletedCourseDialog = memo(function AddCompletedCourseDialog({
+const AddUnallocatedCourseDialog = memo(function AddUnallocatedCourseDialog({
   courseOptions,
   disabled,
   dispatch,
@@ -295,7 +295,7 @@ const AddCompletedCourseDialog = memo(function AddCompletedCourseDialog({
   const submit = async () => {
     if (!courseId) return
     const succeeded = await dispatch({
-      type: 'markCourseCompleted',
+        type: 'addCourseToUnallocated',
       courseId: courseId as Course['id'],
     })
     if (succeeded) {
@@ -310,21 +310,21 @@ const AddCompletedCourseDialog = memo(function AddCompletedCourseDialog({
         variant="outline"
         disabled={disabled}
         onClick={() => setOpen(true)}
-        aria-label="Adicionar disciplina concluída"
-        title="Adicionar disciplina concluída"
+        aria-label="Adicionar disciplina não alocada"
+        title="Adicionar disciplina não alocada"
         className="h-8 w-8 shrink-0 rounded-sm border-2 border-strong-border bg-background p-0 shadow-[2px_2px_0_var(--strong-border)] hover:bg-accent"
       >
         <Plus />
       </Button>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Adicionar disciplina concluída</DialogTitle>
+          <DialogTitle>Adicionar disciplina não alocada</DialogTitle>
           <DialogDescription>
-            Escolha uma disciplina já cumprida.
+            Escolha uma disciplina que ainda não foi alocada a um semestre.
           </DialogDescription>
         </DialogHeader>
         <AutocompleteSelect
-          ariaLabel="Disciplina concluída"
+          ariaLabel="Disciplina não alocada"
           value={courseId}
           onValueChange={setCourseId}
           options={courseOptions}
@@ -346,7 +346,7 @@ const AddCompletedCourseDialog = memo(function AddCompletedCourseDialog({
   )
 })
 
-type CompletedCoursesPanelProps = {
+type UnallocatedCoursesPanelProps = {
   courses: ReadonlyArray<Course>
   credits: number
   courseOptions: ReadonlyArray<CourseOption>
@@ -356,10 +356,10 @@ type CompletedCoursesPanelProps = {
   dispatch: Dispatch
 }
 
-export function CompletedCoursesPanel(props: CompletedCoursesPanelProps) {
-  const { isOver, setNodeRef } = useDroppable({ id: 'completed' })
+export function UnallocatedCoursesPanel(props: UnallocatedCoursesPanelProps) {
+  const { isOver, setNodeRef } = useDroppable({ id: 'unallocated' })
   return (
-    <CompletedCoursesPanelContent
+    <UnallocatedCoursesPanelContent
       {...props}
       isOver={isOver}
       setNodeRef={setNodeRef}
@@ -367,8 +367,8 @@ export function CompletedCoursesPanel(props: CompletedCoursesPanelProps) {
   )
 }
 
-const CompletedCoursesPanelContent = memo(
-  function CompletedCoursesPanelContent({
+const UnallocatedCoursesPanelContent = memo(
+  function UnallocatedCoursesPanelContent({
     courses,
     credits,
     courseOptions,
@@ -378,7 +378,7 @@ const CompletedCoursesPanelContent = memo(
     dispatch,
     isOver,
     setNodeRef,
-  }: CompletedCoursesPanelProps & {
+  }: UnallocatedCoursesPanelProps & {
     isOver: boolean
     setNodeRef: (node: HTMLElement | null) => void
   }) {
@@ -386,7 +386,7 @@ const CompletedCoursesPanelContent = memo(
       <article className="grid overflow-hidden rounded-md border-2 border-strong-border bg-card shadow-[4px_4px_0_color-mix(in_srgb,var(--primary)_25%,transparent)] lg:grid-cols-[11rem_1fr_7rem]">
         <header className="flex items-center border-b-2 border-border bg-primary/10 p-2 lg:border-r-2 lg:border-b-0">
           <div>
-            <h3 className="whitespace-nowrap text-sm font-black">Concluídas</h3>
+            <h3 className="whitespace-nowrap text-sm font-black">Não alocadas</h3>
           </div>
         </header>
         <div
@@ -397,7 +397,7 @@ const CompletedCoursesPanelContent = memo(
           )}
         >
           <div className="flex flex-wrap items-center gap-1.5">
-            <AddCompletedCourseDialog
+            <AddUnallocatedCourseDialog
               courseOptions={courseOptions}
               disabled={disabled}
               dispatch={dispatch}
@@ -405,10 +405,10 @@ const CompletedCoursesPanelContent = memo(
             {courses.map((course) => (
               <CompactCourseCard
                 key={course.id}
-                dragId={`completed:course:${course.id}`}
+                dragId={`unallocated:course:${course.id}`}
                 state={{
                   course,
-                  completed: true,
+                  completed: false,
                 }}
                 periods={periods}
                 planningStart={planningStart}
@@ -418,7 +418,7 @@ const CompletedCoursesPanelContent = memo(
             ))}
             {!courses.length && (
               <p className="min-h-8 content-center text-sm font-semibold text-muted-foreground">
-                Adicione as disciplinas que você já concluiu.
+                Adicione as disciplinas que ainda não foram alocadas.
               </p>
             )}
           </div>

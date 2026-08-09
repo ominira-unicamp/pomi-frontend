@@ -1,5 +1,6 @@
 import type {
   AcademicRecord,
+  CourseId,
   CurriculumBlocks,
   CurriculumDefinition,
   CurriculumPlanner,
@@ -264,23 +265,17 @@ function executeCommand(
         return invalidInput('language', 'incompatible')
       const courseIds = new Set(staticData.courses.map((course) => course.id))
       const plannedIds = imported.periods.flatMap((period) => period.courses)
-      const completedIds = [
-        ...imported.completedCourses,
-        ...imported.periods.flatMap((period) => period.completedCourses ?? []),
-      ]
-      const importedIds = [...plannedIds, ...completedIds]
-      if (
-        importedIds.some((courseId) => !courseIds.has(courseId)) ||
-        new Set(completedIds).size !== completedIds.length
-      )
-        return invalidInput(
-          importedIds.some((courseId) => !courseIds.has(courseId))
-            ? 'courses'
-            : 'completedCourses',
-          'incompatible',
-        )
+      const unallocatedIds = imported.unallocatedCourses ?? []
+      const importedIds = [...plannedIds, ...unallocatedIds]
+      if (importedIds.some((courseId) => !courseIds.has(courseId)))
+        return invalidInput('courses', 'incompatible')
       if (new Set(plannedIds).size !== plannedIds.length)
         return invalidInput('periods', 'incompatible')
+      if (
+        new Set(unallocatedIds).size !== unallocatedIds.length ||
+        unallocatedIds.some((courseId) => plannedIds.includes(courseId))
+      )
+        return invalidInput('unallocatedCourses', 'incompatible')
       const periods = imported.periods.map((period) => ({
         id: generateId() as PlanningPeriodId,
         items: period.courses.map((courseId) => ({
@@ -292,11 +287,10 @@ function executeCommand(
       next.plan = {
         planningStart: imported.planningStart,
         periods,
-      }
-      next.academicRecord = {
-        completedCourses: [...new Set(completedIds)].map((courseId) => ({
-          courseId,
-        })),
+        currentPeriodId: imported.currentPeriodPosition
+          ? periods[imported.currentPeriodPosition - 1]?.id
+          : undefined,
+        unallocatedCourseIds: [...new Set(unallocatedIds)],
       }
       return ok(next)
     }
@@ -342,6 +336,10 @@ function executeCommand(
         periods: next.plan.periods.filter(
           (period) => period.id !== command.periodId,
         ),
+        unallocatedCourseIds: [
+          ...(next.plan.unallocatedCourseIds ?? []),
+          ...next.plan.periods[index].items.map((item) => item.courseId),
+        ],
       }
       return ok(next)
     }
@@ -401,7 +399,13 @@ function executeCommand(
           { type: 'course', courseId: command.courseId },
         ],
       }
-      next.plan = { ...next.plan, periods }
+      next.plan = {
+        ...next.plan,
+        periods,
+        unallocatedCourseIds: (next.plan.unallocatedCourseIds ?? []).filter(
+          (id) => id !== command.courseId,
+        ),
+      }
       return ok(next)
     }
     case 'moveCourseToPeriod': {
@@ -411,7 +415,26 @@ function executeCommand(
       const sourceIndex = next.plan.periods.findIndex((period) =>
         period.items.some((item) => item.courseId === command.courseId),
       )
-      if (sourceIndex === -1) return notFound('course', command.courseId)
+      if (sourceIndex === -1) {
+        if (!(next.plan.unallocatedCourseIds ?? []).includes(command.courseId))
+          return notFound('course', command.courseId)
+        const periods = [...next.plan.periods]
+        periods[targetIndex] = {
+          ...periods[targetIndex],
+          items: [
+            ...periods[targetIndex].items,
+            { type: 'course', courseId: command.courseId },
+          ],
+        }
+        next.plan = {
+          ...next.plan,
+          periods,
+          unallocatedCourseIds: next.plan.unallocatedCourseIds!.filter(
+            (id) => id !== command.courseId,
+          ),
+        }
+        return ok(next)
+      }
       if (sourceIndex === targetIndex) return ok(next)
       const periods = [...next.plan.periods]
       periods.forEach((period, index) => {
@@ -429,14 +452,30 @@ function executeCommand(
           { type: 'course', courseId: command.courseId },
         ],
       }
-      next.plan = { ...next.plan, periods }
+      next.plan = {
+        ...next.plan,
+        periods,
+        unallocatedCourseIds: (next.plan.unallocatedCourseIds ?? []).filter(
+          (id) => id !== command.courseId,
+        ),
+      }
       return ok(next)
     }
     case 'removeCourseFromPlan': {
       const sourceIndex = next.plan.periods.findIndex((period) =>
         period.items.some((item) => item.courseId === command.courseId),
       )
-      if (sourceIndex === -1) return notFound('course', command.courseId)
+      if (sourceIndex === -1) {
+        if (!(next.plan.unallocatedCourseIds ?? []).includes(command.courseId))
+          return notFound('course', command.courseId)
+        next.plan = {
+          ...next.plan,
+          unallocatedCourseIds: next.plan.unallocatedCourseIds!.filter(
+            (id) => id !== command.courseId,
+          ),
+        }
+        return ok(next)
+      }
       const periods = [...next.plan.periods]
       periods[sourceIndex] = {
         ...periods[sourceIndex],
@@ -444,7 +483,61 @@ function executeCommand(
           (item) => item.courseId !== command.courseId,
         ),
       }
-      next.plan = { ...next.plan, periods }
+      next.plan = {
+        ...next.plan,
+        periods,
+        unallocatedCourseIds: [
+          ...(next.plan.unallocatedCourseIds ?? []).filter(
+            (id) => id !== command.courseId,
+          ),
+          command.courseId,
+        ],
+      }
+      return ok(next)
+    }
+    case 'moveCourseToUnallocated': {
+      const periods = next.plan.periods.map((period) => ({
+        ...period,
+        items: period.items.filter(
+          (item) => item.courseId !== command.courseId,
+        ),
+      }))
+      const alreadyUnallocated = (next.plan.unallocatedCourseIds ?? []).includes(
+        command.courseId,
+      )
+      const existsInPlan = next.plan.periods.some((period) =>
+        period.items.some((item) => item.courseId === command.courseId),
+      )
+      if (!existsInPlan && !alreadyUnallocated) return notFound('course', command.courseId)
+      next.plan = {
+        ...next.plan,
+        periods,
+        unallocatedCourseIds: alreadyUnallocated
+          ? next.plan.unallocatedCourseIds
+          : [...(next.plan.unallocatedCourseIds ?? []), command.courseId],
+      }
+      return ok(next)
+    }
+    case 'addCourseToUnallocated': {
+      if (!staticData.courses.some((course) => course.id === command.courseId))
+        return notFound('course', command.courseId)
+      if (
+        next.plan.periods.some((period) =>
+          period.items.some((item) => item.courseId === command.courseId),
+        ) || (next.plan.unallocatedCourseIds ?? []).includes(command.courseId)
+      )
+        return fail({
+          code: 'duplicateCourse',
+          retryable: false,
+          details: { courseId: command.courseId },
+        })
+      next.plan = {
+        ...next.plan,
+        unallocatedCourseIds: [
+          ...(next.plan.unallocatedCourseIds ?? []),
+          command.courseId,
+        ],
+      }
       return ok(next)
     }
     case 'markCourseCompleted': {
@@ -483,8 +576,13 @@ function isCurriculumPlannerImport(value: unknown): boolean {
       return id === undefined || typeof id === 'string'
     }) ||
     !Array.isArray(value.periods) ||
-    !Array.isArray(value.completedCourses) ||
-    !value.completedCourses.every((courseId) => typeof courseId === 'string')
+    (value.currentPeriodPosition !== undefined &&
+      (typeof value.currentPeriodPosition !== 'number' ||
+        !Number.isInteger(value.currentPeriodPosition) ||
+        value.currentPeriodPosition < 1)) ||
+    (value.unallocatedCourses !== undefined &&
+      (!Array.isArray(value.unallocatedCourses) ||
+        !value.unallocatedCourses.every((courseId) => typeof courseId === 'string')))
   )
     return false
   if (value.planningStart !== undefined) {
@@ -507,12 +605,7 @@ function isCurriculumPlannerImport(value: unknown): boolean {
     (period) =>
       isRecord(period) &&
       Array.isArray(period.courses) &&
-      period.courses.every((courseId) => typeof courseId === 'string') &&
-      (period.completedCourses === undefined ||
-        (Array.isArray(period.completedCourses) &&
-          period.completedCourses.every(
-            (courseId) => typeof courseId === 'string',
-          ))),
+      period.courses.every((courseId) => typeof courseId === 'string'),
   )
 }
 
@@ -606,9 +699,21 @@ function normalizeState(state: CurriculumPlannerState): CurriculumPlannerState {
       return true
     }),
   }))
+  const unallocatedIds = new Set<string>()
+  const unallocatedCourseIds = (state.plan.unallocatedCourseIds ?? []).filter(
+    (courseId) => {
+      if (plannedIds.has(courseId) || unallocatedIds.has(courseId)) return false
+      unallocatedIds.add(courseId)
+      return true
+    },
+  )
   return {
     ...state,
-    plan: { ...state.plan, periods },
+    plan: {
+      ...state.plan,
+      periods,
+      unallocatedCourseIds: [...unallocatedCourseIds] as Array<CourseId>,
+    },
     academicRecord: {
       completedCourses: completedCourses.map((course) => ({
         courseId: course.courseId,

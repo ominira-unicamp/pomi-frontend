@@ -126,6 +126,7 @@ export type CurriculumPlan = Readonly<{
     semester: 1 | 2
     semesterNumber?: number
   }>
+  unallocatedCourseIds?: ReadonlyArray<CourseId>
   periods: ReadonlyArray<PlanningPeriod>
 }>
 
@@ -296,13 +297,13 @@ export type PlanningPeriodPosition =
 export type CurriculumPlannerImport = Readonly<{
   selection: CurriculumSelection
   planningStart?: CurriculumPlan['planningStart']
+  currentPeriodPosition?: number
   periods: ReadonlyArray<
     Readonly<{
       courses: ReadonlyArray<CourseId>
-      completedCourses?: ReadonlyArray<CourseId>
     }>
   >
-  completedCourses: ReadonlyArray<CourseId>
+  unallocatedCourses?: ReadonlyArray<CourseId>
 }>
 
 export type CurriculumPlannerCommand =
@@ -356,6 +357,14 @@ export type CurriculumPlannerCommand =
     }>
   | Readonly<{
       type: 'removeCourseFromPlan'
+      courseId: CourseId
+    }>
+  | Readonly<{
+      type: 'moveCourseToUnallocated'
+      courseId: CourseId
+    }>
+  | Readonly<{
+      type: 'addCourseToUnallocated'
       courseId: CourseId
     }>
   | Readonly<{

@@ -58,6 +58,5 @@ export function planningFromSuggestion(
         }
       },
     ),
-    completedCourses: [],
   }
 }

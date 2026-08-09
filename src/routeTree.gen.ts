@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as DesignSystemRouteImport } from './routes/[_]design-system'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PlanejamentosPlanejamentoIdRouteImport } from './routes/planejamentos.$planejamentoId'
 
 const DesignSystemRoute = DesignSystemRouteImport.update({
   id: '/_design-system',
@@ -22,31 +23,41 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlanejamentosPlanejamentoIdRoute =
+  PlanejamentosPlanejamentoIdRouteImport.update({
+    id: '/planejamentos/$planejamentoId',
+    path: '/planejamentos/$planejamentoId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/planejamentos/$planejamentoId': typeof PlanejamentosPlanejamentoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/planejamentos/$planejamentoId': typeof PlanejamentosPlanejamentoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/planejamentos/$planejamentoId': typeof PlanejamentosPlanejamentoIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/_design-system'
+  fullPaths: '/' | '/_design-system' | '/planejamentos/$planejamentoId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/_design-system'
-  id: '__root__' | '/' | '/_design-system'
+  to: '/' | '/_design-system' | '/planejamentos/$planejamentoId'
+  id: '__root__' | '/' | '/_design-system' | '/planejamentos/$planejamentoId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignSystemRoute: typeof DesignSystemRoute
+  PlanejamentosPlanejamentoIdRoute: typeof PlanejamentosPlanejamentoIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -65,12 +76,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/planejamentos/$planejamentoId': {
+      id: '/planejamentos/$planejamentoId'
+      path: '/planejamentos/$planejamentoId'
+      fullPath: '/planejamentos/$planejamentoId'
+      preLoaderRoute: typeof PlanejamentosPlanejamentoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignSystemRoute: DesignSystemRoute,
+  PlanejamentosPlanejamentoIdRoute: PlanejamentosPlanejamentoIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

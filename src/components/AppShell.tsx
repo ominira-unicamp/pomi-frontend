@@ -24,6 +24,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -141,6 +149,29 @@ function AccountMenu() {
   )
 }
 
+function EmailVerificationDialog() {
+  const { emailVerificationRequired, logout } = useAuth()
+  return (
+    <Dialog open={emailVerificationRequired}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Verifique seu e-mail</DialogTitle>
+          <DialogDescription>
+            Para acessar o POMI, confirme o endereço de e-mail da sua conta.
+            Verifique sua caixa de entrada e a pasta de spam, depois entre
+            novamente.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button onClick={() => void logout()}>
+            Sair e tentar novamente
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function AppHeader() {
   const { collapsed, mobileOpen, setMobileOpen, toggle } = useSidebar()
   return (
@@ -228,6 +259,7 @@ function Shell({ children }: { children: ReactNode }) {
           {children}
         </main>
       </div>
+      <EmailVerificationDialog />
     </div>
   )
 }

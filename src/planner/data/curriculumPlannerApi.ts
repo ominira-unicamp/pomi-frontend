@@ -5,6 +5,7 @@ import type {
   CourseRequirement,
   CourseSelector,
   CurriculumBlocks,
+  CurriculumPlannerStaticData,
   CurriculumPlannerStaticDataSource,
   ElectiveCreditsRequirement,
   LanguageId,
@@ -86,6 +87,9 @@ const unexpected = <T = never>(): PlannerResult<T> => ({
   ok: false,
   error: { code: 'unexpected', retryable: false },
 })
+
+let cachedStaticData: CurriculumPlannerStaticData | undefined
+let staticDataLoad: Promise<PlannerResult<CurriculumPlannerStaticData>> | undefined
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -233,7 +237,22 @@ async function getJson(path: string) {
 export function createApiCurriculumPlannerStaticDataSource(): CurriculumPlannerStaticDataSource {
   return {
     async load() {
+      if (cachedStaticData) return ok(cachedStaticData)
+      if (staticDataLoad) return staticDataLoad
+      staticDataLoad = loadStaticData()
       try {
+        const result = await staticDataLoad
+        if (result.ok) cachedStaticData = result.value
+        return result
+      } finally {
+        staticDataLoad = undefined
+      }
+    },
+  }
+}
+
+async function loadStaticData(): Promise<PlannerResult<CurriculumPlannerStaticData>> {
+  try {
         const [rawPrograms, firstCoursesPage] = await Promise.all([
           getJson('/catalog-program'),
           getJson('/courses?page=1&pageSize=1000'),
@@ -300,12 +319,10 @@ export function createApiCurriculumPlannerStaticDataSource(): CurriculumPlannerS
             }))
             .sort((left, right) => left.id.localeCompare(right.id)),
         })
-      } catch (error) {
-        if (error instanceof ApiResponseError && error.status < 500)
-          return unexpected()
-        if (error instanceof TypeError) return unexpected()
-        return unavailable()
-      }
-    },
+  } catch (error) {
+    if (error instanceof ApiResponseError && error.status < 500)
+      return unexpected()
+    if (error instanceof TypeError) return unexpected()
+    return unavailable()
   }
 }

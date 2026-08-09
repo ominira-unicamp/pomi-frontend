@@ -186,7 +186,7 @@ describe('CurriculumPlannerPage', () => {
     expect(
       screen.getByRole('button', { name: 'Adicionar primeiro semestre' }),
     ).toBeTruthy()
-    expect(screen.getByRole('heading', { name: 'Concluídas' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: 'Não alocadas' })).toBeTruthy()
     fireEvent.focus(catalog)
     expect(
       screen.getByRole('listbox', { name: 'Opções de Catálogo da sugestão' }),
