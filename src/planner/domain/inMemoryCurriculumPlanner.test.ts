@@ -193,7 +193,7 @@ describe('createInMemoryCurriculumPlanner', () => {
     })
   })
 
-  it('keeps a course in only one academic situation when loading state', async () => {
+  it('keeps a completed course planned in one period when loading state', async () => {
     const planner = createInMemoryCurriculumPlanner({
       staticDataSource: {
         load: () => Promise.resolve({ ok: true as const, value: staticData }),
@@ -217,7 +217,7 @@ describe('createInMemoryCurriculumPlanner', () => {
     expect(
       snapshot.ok &&
         snapshot.value.plan.periods.flatMap((period) => period.items),
-    ).toEqual([])
+    ).toEqual([{ type: 'course', courseId }])
   })
 
   it('preserves corrupt stored data and reports unexpected', async () => {

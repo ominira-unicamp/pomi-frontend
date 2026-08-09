@@ -16,12 +16,13 @@ import type {
   CurriculumPlannerStaticData,
   PlannerError,
   PlannerRevision,
-} from '@/lib/curriculumPlanner'
-import { createApiCurriculumPlannerStaticDataSource } from '@/lib/curriculumPlannerApi'
+} from '@/planner/domain/curriculumPlanner'
+import { createApiCurriculumPlannerStaticDataSource } from '@/planner/data/curriculumPlannerApi'
+import { suggestionOnboardingPreferenceKey } from '@/planner/data/curriculumSuggestionApi'
 import {
   createInMemoryCurriculumPlanner,
   createLocalStorageCurriculumPlannerStateStore,
-} from '@/lib/inMemoryCurriculumPlanner'
+} from '@/planner/domain/inMemoryCurriculumPlanner'
 
 const staticDataKey = ['curriculum-planner', 'static-data'] as const
 const snapshotKey = ['curriculum-planner', 'snapshot'] as const
@@ -33,7 +34,12 @@ class PlannerResultError extends Error {
   }
 }
 
-async function unwrap<T>(operation: Promise<Readonly<{ ok: true; value: T }> | Readonly<{ ok: false; error: PlannerError }>>) {
+async function unwrap<T>(
+  operation: Promise<
+    | Readonly<{ ok: true; value: T }>
+    | Readonly<{ ok: false; error: PlannerError }>
+  >,
+) {
   const result = await operation
   if (!result.ok) throw new PlannerResultError(result.error)
   return result.value
@@ -50,7 +56,9 @@ export type CurriculumPlannerContextValue = Readonly<{
   resetLocalPlan: () => Promise<void>
 }>
 
-const CurriculumPlannerContext = createContext<CurriculumPlannerContextValue | undefined>(undefined)
+const CurriculumPlannerContext = createContext<
+  CurriculumPlannerContextValue | undefined
+>(undefined)
 
 function createDefaultPlanner(store: CurriculumPlannerStateStore) {
   return createInMemoryCurriculumPlanner({
@@ -100,7 +108,8 @@ export function CurriculumPlannerProvider({
         ...snapshotKey,
         generation,
       ])
-      if (!snapshot) throw new Error('Curriculum planner snapshot is unavailable')
+      if (!snapshot)
+        throw new Error('Curriculum planner snapshot is unavailable')
       await unwrap(
         planner.dispatch(command, { expectedRevision: snapshot.revision }),
       )
@@ -120,17 +129,18 @@ export function CurriculumPlannerProvider({
       }
     },
   })
+  const mutateAsync = mutation.mutateAsync
 
   const dispatch = useCallback(
     async (command: CurriculumPlannerCommand) => {
       try {
-        await mutation.mutateAsync(command)
+        await mutateAsync(command)
         return true
       } catch {
         return false
       }
     },
-    [mutation],
+    [mutateAsync],
   )
 
   const retry = useCallback(async () => {
@@ -139,6 +149,7 @@ export function CurriculumPlannerProvider({
 
   const resetLocalPlan = useCallback(async () => {
     await store.clear()
+    window.localStorage.removeItem(suggestionOnboardingPreferenceKey)
     queryClient.removeQueries({ queryKey: staticDataKey })
     queryClient.removeQueries({ queryKey: snapshotKey })
     setGeneration((current) => current + 1)

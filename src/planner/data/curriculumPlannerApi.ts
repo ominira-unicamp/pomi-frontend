@@ -12,7 +12,7 @@ import type {
   ProgramId,
   RequirementSource,
   SpecializationId,
-} from './curriculumPlanner'
+} from '@/planner/domain/curriculumPlanner'
 
 import { publicApiRequest } from '@/api/client'
 
@@ -24,10 +24,12 @@ type ApiCourseRequirement = Readonly<{
 
 type ApiBlockSet = Readonly<{
   mandatory: ReadonlyArray<ApiCourseRequirement>
-  electives: ReadonlyArray<Readonly<{
-    credits: number
-    courses: ReadonlyArray<ApiCourseRequirement>
-  }>>
+  electives: ReadonlyArray<
+    Readonly<{
+      credits: number
+      courses: ReadonlyArray<ApiCourseRequirement>
+    }>
+  >
 }>
 
 type ApiCatalogProgram = Readonly<{
@@ -39,17 +41,21 @@ type ApiCatalogProgram = Readonly<{
   programCode: number
   programName: string
   base: ApiBlockSet
-  modalities: ReadonlyArray<Readonly<{
-    specializationId: number
-    code: string
-    name: string
-    blocks: ApiBlockSet
-  }>>
-  languages: ReadonlyArray<Readonly<{
-    languageId: number
-    name: string
-    blocks: ApiBlockSet
-  }>>
+  modalities: ReadonlyArray<
+    Readonly<{
+      specializationId: number
+      code: string
+      name: string
+      blocks: ApiBlockSet
+    }>
+  >
+  languages: ReadonlyArray<
+    Readonly<{
+      languageId: number
+      name: string
+      blocks: ApiBlockSet
+    }>
+  >
 }>
 
 type ApiCourse = Readonly<{
@@ -91,7 +97,8 @@ function expectString(value: unknown): string {
 }
 
 function expectNumber(value: unknown): number {
-  if (typeof value !== 'number' || !Number.isFinite(value)) throw new TypeError('Expected number')
+  if (typeof value !== 'number' || !Number.isFinite(value))
+    throw new TypeError('Expected number')
   return value
 }
 
@@ -103,7 +110,8 @@ function expectArray(value: unknown): Array<unknown> {
 function parseRequirement(value: unknown): ApiCourseRequirement {
   if (!isRecord(value)) throw new TypeError('Expected requirement')
   const type = expectString(value.type)
-  if (type !== 'any' && type !== 'prefix' && type !== 'specific') throw new TypeError('Invalid requirement type')
+  if (type !== 'any' && type !== 'prefix' && type !== 'specific')
+    throw new TypeError('Invalid requirement type')
   const courseId = value.courseId === null ? null : expectNumber(value.courseId)
   const prefix = value.prefix === null ? null : expectString(value.prefix)
   return { type, courseId, prefix }
@@ -156,7 +164,8 @@ function parseCatalogProgram(value: unknown): ApiCatalogProgram {
 
 function parseCourse(value: unknown): ApiCourse {
   if (!isRecord(value)) throw new TypeError('Expected course')
-  const prefix = value.prefix === undefined ? undefined : expectString(value.prefix)
+  const prefix =
+    value.prefix === undefined ? undefined : expectString(value.prefix)
   return {
     id: expectNumber(value.id),
     code: expectString(value.code),
@@ -167,16 +176,21 @@ function parseCourse(value: unknown): ApiCourse {
 }
 
 function parseCoursesPage(value: unknown): ApiCoursesPage {
-  if (!isRecord(value) || !isRecord(value._paths)) throw new TypeError('Expected courses page')
+  if (!isRecord(value) || !isRecord(value._paths))
+    throw new TypeError('Expected courses page')
   const next = value._paths.next
-  if (next !== null && typeof next !== 'string') throw new TypeError('Expected next page')
+  if (next !== null && typeof next !== 'string')
+    throw new TypeError('Expected next page')
   return { data: expectArray(value.data).map(parseCourse), _paths: { next } }
 }
 
 function selectorFromApi(requirement: ApiCourseRequirement): CourseSelector {
   if (requirement.type === 'any') return { type: 'anyCourse' }
   if (requirement.type === 'specific' && requirement.courseId !== null) {
-    return { type: 'specificCourse', courseId: String(requirement.courseId) as CourseId }
+    return {
+      type: 'specificCourse',
+      courseId: String(requirement.courseId) as CourseId,
+    }
   }
   if (requirement.type === 'prefix' && requirement.prefix) {
     return { type: 'prefix', prefix: requirement.prefix.trim().toUpperCase() }
@@ -184,18 +198,29 @@ function selectorFromApi(requirement: ApiCourseRequirement): CourseSelector {
   throw new TypeError('Incomplete course requirement')
 }
 
-function blocksFromApi(blocks: ApiBlockSet, source: RequirementSource): CurriculumBlocks {
-  const mandatory: Array<CourseRequirement> = blocks.mandatory.map((requirement) => ({
-    type: 'course',
-    source,
-    selector: selectorFromApi(requirement),
-  }))
-  const electives: Array<ElectiveCreditsRequirement> = blocks.electives.map((elective) => ({
-    type: 'electiveCredits',
-    source,
-    requiredCredits: elective.credits,
-    eligibleCourses: elective.courses.map(selectorFromApi).sort((left, right) => JSON.stringify(left).localeCompare(JSON.stringify(right))),
-  }))
+function blocksFromApi(
+  blocks: ApiBlockSet,
+  source: RequirementSource,
+): CurriculumBlocks {
+  const mandatory: Array<CourseRequirement> = blocks.mandatory.map(
+    (requirement) => ({
+      type: 'course',
+      source,
+      selector: selectorFromApi(requirement),
+    }),
+  )
+  const electives: Array<ElectiveCreditsRequirement> = blocks.electives.map(
+    (elective) => ({
+      type: 'electiveCredits',
+      source,
+      requiredCredits: elective.credits,
+      eligibleCourses: elective.courses
+        .map(selectorFromApi)
+        .sort((left, right) =>
+          JSON.stringify(left).localeCompare(JSON.stringify(right)),
+        ),
+    }),
+  )
   return { mandatory, electives }
 }
 
@@ -211,7 +236,7 @@ export function createApiCurriculumPlannerStaticDataSource(): CurriculumPlannerS
       try {
         const [rawPrograms, firstCoursesPage] = await Promise.all([
           getJson('/catalog-program'),
-          getJson('/courses?page=1&pageSize=100'),
+          getJson('/courses?page=1&pageSize=1000'),
         ])
         const programs = expectArray(rawPrograms).map(parseCatalogProgram)
         const courses: Array<ApiCourse> = []
@@ -222,34 +247,62 @@ export function createApiCurriculumPlannerStaticDataSource(): CurriculumPlannerS
           courses.push(...page.data)
         }
         return ok({
-          catalogPrograms: programs.map((program) => ({
-            id: String(program.id) as CatalogProgramId,
-            title: program.title,
-            catalog: { id: String(program.catalogId) as CatalogId, year: program.catalogYear },
-            program: { id: String(program.programId) as ProgramId, code: String(program.programCode), name: program.programName },
-            baseBlocks: blocksFromApi(program.base, { type: 'base' }),
-            specializations: program.modalities.map((specialization) => ({
-              id: String(specialization.specializationId) as SpecializationId,
-              code: specialization.code,
-              name: specialization.name,
-              blocks: blocksFromApi(specialization.blocks, { type: 'specialization', specializationId: String(specialization.specializationId) as SpecializationId }),
-            })).sort((left, right) => left.id.localeCompare(right.id)),
-            languages: program.languages.map((language) => ({
-              id: String(language.languageId) as LanguageId,
-              name: language.name,
-              blocks: blocksFromApi(language.blocks, { type: 'language', languageId: String(language.languageId) as LanguageId }),
-            })).sort((left, right) => left.id.localeCompare(right.id)),
-          })).sort((left, right) => left.id.localeCompare(right.id)),
-          courses: courses.map((course) => ({
-            id: String(course.id) as CourseId,
-            code: course.code,
-            name: course.name,
-            credits: course.credits,
-            prefix: (course.prefix ?? course.code.slice(0, 2)).trim().toUpperCase(),
-          })).sort((left, right) => left.id.localeCompare(right.id)),
+          catalogPrograms: programs
+            .map((program) => ({
+              id: String(program.id) as CatalogProgramId,
+              title: program.title,
+              catalog: {
+                id: String(program.catalogId) as CatalogId,
+                year: program.catalogYear,
+              },
+              program: {
+                id: String(program.programId) as ProgramId,
+                code: String(program.programCode),
+                name: program.programName,
+              },
+              baseBlocks: blocksFromApi(program.base, { type: 'base' }),
+              specializations: program.modalities
+                .map((specialization) => ({
+                  id: String(
+                    specialization.specializationId,
+                  ) as SpecializationId,
+                  code: specialization.code,
+                  name: specialization.name,
+                  blocks: blocksFromApi(specialization.blocks, {
+                    type: 'specialization',
+                    specializationId: String(
+                      specialization.specializationId,
+                    ) as SpecializationId,
+                  }),
+                }))
+                .sort((left, right) => left.id.localeCompare(right.id)),
+              languages: program.languages
+                .map((language) => ({
+                  id: String(language.languageId) as LanguageId,
+                  name: language.name,
+                  blocks: blocksFromApi(language.blocks, {
+                    type: 'language',
+                    languageId: String(language.languageId) as LanguageId,
+                  }),
+                }))
+                .sort((left, right) => left.id.localeCompare(right.id)),
+            }))
+            .sort((left, right) => left.id.localeCompare(right.id)),
+          courses: courses
+            .map((course) => ({
+              id: String(course.id) as CourseId,
+              code: course.code,
+              name: course.name,
+              credits: course.credits,
+              prefix: (course.prefix ?? course.code.slice(0, 2))
+                .trim()
+                .toUpperCase(),
+            }))
+            .sort((left, right) => left.id.localeCompare(right.id)),
         })
       } catch (error) {
-        if (error instanceof ApiResponseError && error.status < 500) return unexpected()
+        if (error instanceof ApiResponseError && error.status < 500)
+          return unexpected()
         if (error instanceof TypeError) return unexpected()
         return unavailable()
       }

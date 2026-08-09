@@ -8,7 +8,7 @@ import type {
   CurriculumPlannerStaticData,
   ElectiveCreditsRequirement,
   PlanningPeriodId,
-} from '@/lib/curriculumPlanner'
+} from '@/planner/domain/curriculumPlanner'
 
 export type CurriculumCourseState = Readonly<{
   course: Course
@@ -71,7 +71,7 @@ function courseStates(
   const planned = new Map<CourseId, PlanningPeriodId>()
   for (const period of snapshot.plan.periods) {
     for (const item of period.items) {
-      if (item.type === 'course') planned.set(item.courseId, period.id)
+      planned.set(item.courseId, period.id)
     }
   }
   return courses
@@ -162,7 +162,7 @@ export function buildCurriculumGroups(
     groups.push(
       groupFromBlocks(
         `specialization:${specialization.id}`,
-        `Habilitação · ${specialization.name}`,
+        `Habilitação · ${specialization.code} — ${specialization.name}`,
         specialization.blocks,
         staticData,
         snapshot,

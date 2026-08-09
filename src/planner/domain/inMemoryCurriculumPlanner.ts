@@ -391,11 +391,6 @@ function executeCommand(
         ],
       }
       next.plan = { ...next.plan, periods }
-      next.academicRecord = {
-        completedCourses: next.academicRecord.completedCourses.filter(
-          (course) => course.courseId !== command.courseId,
-        ),
-      }
       return ok(next)
     }
     case 'moveCourseToPeriod': {
@@ -452,15 +447,6 @@ function executeCommand(
       if (index === -1) completedCourses.push(completed)
       else completedCourses[index] = completed
       next.academicRecord = { completedCourses }
-      next.plan = {
-        ...next.plan,
-        periods: next.plan.periods.map((period) => ({
-          ...period,
-          items: period.items.filter(
-            (item) => item.courseId !== command.courseId,
-          ),
-        })),
-      }
       return ok(next)
     }
     case 'unmarkCourseCompleted': {
@@ -604,8 +590,7 @@ function normalizeState(state: CurriculumPlannerState): CurriculumPlannerState {
   const periods = state.plan.periods.map((period) => ({
     ...period,
     items: period.items.filter((item) => {
-      if (completedIds.has(item.courseId) || plannedIds.has(item.courseId))
-        return false
+      if (plannedIds.has(item.courseId)) return false
       plannedIds.add(item.courseId)
       return true
     }),

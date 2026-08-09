@@ -7,8 +7,8 @@ import type {
   CurriculumPlannerStaticData,
   PlannerRevision,
   PlanningPeriodId,
-} from '@/lib/curriculumPlanner'
-import { buildCurriculumGroups } from '@/planner/curriculumBlocks'
+} from '@/planner/domain/curriculumPlanner'
+import { buildCurriculumGroups } from '@/planner/domain/curriculumBlocks'
 
 const course = (id: string, code: string, prefix: string) => ({
   id: id as CourseId,
@@ -95,7 +95,7 @@ describe('buildCurriculumGroups', () => {
 
     expect(groups.map((group) => group.title)).toEqual([
       'Base',
-      'Habilitação · Sistemas',
+      'Habilitação · S — Sistemas',
     ])
     expect(groups[0].mandatory?.courses).toEqual([])
     expect(groups[0].electives[0].selectorLabels).toEqual(['AB'])

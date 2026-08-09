@@ -9,7 +9,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
       aria-label="POMI — ir para Planejamento"
       className="pomi-focus inline-flex items-center gap-3 rounded-sm text-sidebar-foreground"
     >
-      <span className="grid size-11 place-items-center bg-primary">
+      <span className="grid size-11 place-items-center">
         <img
           src="/pomi-logo.svg"
           alt=""

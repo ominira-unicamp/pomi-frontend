@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type {
   CatalogProgramId,
@@ -8,8 +8,8 @@ import type {
   CurriculumPlannerStaticData,
   PlannerRevision,
   PlanningPeriodId,
-} from '@/lib/curriculumPlanner'
-import { createInMemoryCurriculumPlanner } from '@/lib/inMemoryCurriculumPlanner'
+} from '@/planner/domain/curriculumPlanner'
+import { createInMemoryCurriculumPlanner } from '@/planner/domain/inMemoryCurriculumPlanner'
 import { CurriculumPlannerPage } from '@/planner/CurriculumPlannerPage'
 import { CurriculumPlannerProvider } from '@/planner/CurriculumPlannerProvider'
 
@@ -53,6 +53,8 @@ const staticData: CurriculumPlannerStaticData = {
 }
 
 describe('CurriculumPlannerPage', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
   it('renders compact curriculum cards and vertical semesters without authentication', async () => {
     const planner = createInMemoryCurriculumPlanner({
       staticDataSource: {
@@ -182,5 +184,95 @@ describe('CurriculumPlannerPage', () => {
       screen.getByRole('listbox', { name: 'Opções de Catálogo' }),
     ).toBeTruthy()
     expect(screen.getByRole('option', { name: 'Catálogo 2026' })).toBeTruthy()
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Planejar manualmente' }),
+    )
+    expect(
+      screen.queryByRole('heading', { name: 'Comece por uma sugestão' }),
+    ).toBeNull()
+    expect(
+      window.localStorage.getItem(
+        'pomi.curriculum-planner.suggestion-onboarding-dismissed',
+      ),
+    ).toBe('true')
+  })
+
+  it('uses a public curriculum suggestion as the first interaction', async () => {
+    const suggestionStaticData: CurriculumPlannerStaticData = {
+      ...staticData,
+      catalogPrograms: staticData.catalogPrograms.map((program) => ({
+        ...program,
+        id: '1' as CatalogProgramId,
+      })),
+    }
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        Response.json([
+          {
+            id: 1,
+            catalogProgramId: 1,
+            code: 'GERAL',
+            name: 'Sugestão geral',
+            type: 'GENERAL',
+            specialization: null,
+            semesters: [
+              { semester: 1, electiveCredits: 0, courses: [] },
+              { semester: 2, electiveCredits: 0, courses: [] },
+            ],
+          },
+        ]),
+      ),
+    )
+    const planner = createInMemoryCurriculumPlanner({
+      staticDataSource: {
+        load: () => Promise.resolve({ ok: true, value: suggestionStaticData }),
+      },
+      initialState: {
+        revision: 'revision' as PlannerRevision,
+        selection: { catalogProgramId: '1' as CatalogProgramId },
+        plan: { periods: [] },
+        academicRecord: { completedCourses: [] },
+      },
+      generateId: (() => {
+        const ids = ['period-1', 'period-2', 'revision-2']
+        return () => ids.shift()!
+      })(),
+    })
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+    render(
+      <QueryClientProvider client={queryClient}>
+        <CurriculumPlannerProvider planner={planner}>
+          <CurriculumPlannerPage />
+        </CurriculumPlannerProvider>
+      </QueryClientProvider>,
+    )
+
+    expect(
+      await screen.findByRole('heading', { name: 'Comece por uma sugestão' }),
+    ).toBeTruthy()
+    const suggestion = screen.getByRole('combobox', {
+      name: 'Sugestão curricular',
+    })
+    fireEvent.focus(suggestion)
+    fireEvent.click(
+      await screen.findByRole('option', {
+        name: 'GERAL — Sugestão geral (Geral)',
+      }),
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Criar planejamento' }))
+
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('heading', { name: 'Comece por uma sugestão' }),
+      ).toBeNull(),
+    )
+    expect(
+      screen
+        .getAllByRole('heading', { level: 3 })
+        .filter((heading) => heading.textContent.includes('sem -')),
+    ).toHaveLength(2)
   })
 })
