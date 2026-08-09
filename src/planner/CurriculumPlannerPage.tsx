@@ -112,6 +112,16 @@ export function CurriculumPlannerPage({
   const navigate = useNavigate()
   useEffect(() => {
     if (showSelection) {
+      if (!planner.isAuthenticationReady) return
+      if (!planner.isAuthenticated) {
+        planner.openAnonymousDraft()
+        void navigate({
+          to: '/planejamentos/$planejamentoId',
+          params: { planejamentoId: 'rascunho' },
+          replace: true,
+        })
+        return
+      }
       planner.backToSelection()
       return
     }
@@ -124,8 +134,11 @@ export function CurriculumPlannerPage({
   }, [
     curriculumId,
     planner.backToSelection,
+    planner.isAuthenticated,
+    planner.isAuthenticationReady,
     planner.openAnonymousDraft,
     planner.selectCurriculum,
+    navigate,
     showSelection,
   ])
   const viewModel = useMemo(
@@ -346,6 +359,12 @@ export function CurriculumPlannerPage({
   const activeCurriculum = planner.curricula.find(
     (curriculum) => curriculum.id === planner.activeCurriculumId,
   )
+  const planningName =
+    activeCurriculum?.name.trim() ||
+    planner.draftName?.trim() ||
+    (planner.activeCurriculumId
+      ? `Planejamento ${planner.activeCurriculumId}`
+      : 'Rascunho')
   const plannerView = viewModel!
   const periods = plannerView.periods
   const showSuggestionOnboarding =
@@ -377,16 +396,19 @@ export function CurriculumPlannerPage({
   return (
     <PageContainer size="wide">
       <PageHeader
+        compact
         eyebrow="Planejamento acadêmico"
-        title="Seu planejamento"
+        title={planningName}
         description={
           planner.isAuthenticated
             ? planner.saveStatus === 'error'
-              ? 'Não foi possível salvar. Suas alterações continuam nesta sessão; tente novamente.'
+              ? 'Não foi possível salvar'
               : planner.saveStatus === 'saving' || planner.saveStatus === 'pending'
-                ? 'Salvando automaticamente na sua conta.'
-                : 'Monte os semestres livremente ou a partir dos blocos do currículo. Alterações salvas automaticamente.'
-            : 'Monte os semestres livremente ou a partir dos blocos do currículo. O plano anônimo fica apenas nesta sessão.'
+                ? 'Salvando…'
+                : planner.activeCurriculumId
+                  ? 'Salvo automaticamente'
+                  : 'Rascunho não salvo'
+            : 'Rascunho desta sessão'
         }
         actions={
           <>

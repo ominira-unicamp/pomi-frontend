@@ -58,6 +58,7 @@ export type CurriculumPlannerContextValue = Readonly<{
   snapshot?: CurriculumPlannerSnapshot
   isLoading: boolean
   isDispatching: boolean
+  isAuthenticationReady: boolean
   isAuthenticated: boolean
   saveStatus: 'idle' | 'pending' | 'saving' | 'error'
   error?: PlannerError
@@ -406,8 +407,13 @@ export function CurriculumPlannerProvider({ children, planner: injectedPlanner }
   const value = useMemo<CurriculumPlannerContextValue>(() => ({
     staticData: staticDataQuery.data,
     snapshot: snapshotQuery.data,
-    isLoading: staticDataQuery.isLoading || snapshotQuery.isLoading || remoteQuery.isLoading,
+    isLoading:
+      !auth.initialized ||
+      staticDataQuery.isLoading ||
+      snapshotQuery.isLoading ||
+      remoteQuery.isLoading,
     isDispatching: saveStatus === 'saving',
+    isAuthenticationReady: auth.initialized,
     isAuthenticated: auth.isAuthenticated,
     saveStatus,
     error: resultError,
@@ -427,7 +433,7 @@ export function CurriculumPlannerProvider({ children, planner: injectedPlanner }
       entryState,
       openAnonymousDraft,
       backToSelection,
-  }), [actionError, activeCurriculumId, auth.isAuthenticated, backToSelection, createCurriculumPlan, deleteCurriculumPlan, dispatch, draftName, entryState, openAnonymousDraft, renameCurriculum, resetLocalPlan, resultError, retry, remoteQuery.data?.summaries, remoteQuery.isLoading, saveDraft, saveStatus, selectCurriculum, snapshotQuery.data, snapshotQuery.isLoading, staticDataQuery.data, staticDataQuery.isLoading])
+  }), [actionError, activeCurriculumId, auth.initialized, auth.isAuthenticated, backToSelection, createCurriculumPlan, deleteCurriculumPlan, dispatch, draftName, entryState, openAnonymousDraft, renameCurriculum, resetLocalPlan, resultError, retry, remoteQuery.data?.summaries, remoteQuery.isLoading, saveDraft, saveStatus, selectCurriculum, snapshotQuery.data, snapshotQuery.isLoading, staticDataQuery.data, staticDataQuery.isLoading])
 
   return <CurriculumPlannerContext.Provider value={value}>{children}</CurriculumPlannerContext.Provider>
 }

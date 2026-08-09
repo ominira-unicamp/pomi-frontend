@@ -26,25 +26,49 @@ export function PageHeader({
   title,
   description,
   actions,
+  compact = false,
 }: {
   eyebrow?: string
   title: string
   description?: string
   actions?: ReactNode
+  compact?: boolean
 }) {
   return (
-    <header className="mb-8 flex flex-col gap-5 border-b-2 border-strong-border pb-6 sm:flex-row sm:items-start sm:justify-between">
+    <header
+      className={cn(
+        'flex flex-col border-b-2 border-strong-border sm:flex-row sm:justify-between',
+        compact
+          ? 'mb-6 gap-3 pb-4 sm:items-center'
+          : 'mb-8 gap-5 pb-6 sm:items-start',
+      )}
+    >
       <div className="min-w-0 flex-1 max-w-3xl">
         {eyebrow && (
-          <p className="mb-2 text-xs font-black tracking-[0.18em] text-primary uppercase">
+          <p
+            className={cn(
+              'text-xs font-black tracking-[0.18em] text-primary uppercase',
+              compact ? 'mb-1' : 'mb-2',
+            )}
+          >
             {eyebrow}
           </p>
         )}
-        <h1 className="text-3xl font-black tracking-tight sm:text-4xl">
+        <h1
+          className={cn(
+            'font-black tracking-tight',
+            compact ? 'text-xl sm:text-2xl' : 'text-3xl sm:text-4xl',
+          )}
+        >
           {title}
         </h1>
         {description && (
-          <p className="mt-3 text-base text-muted-foreground sm:text-lg">
+          <p
+            className={cn(
+              'text-muted-foreground',
+              compact ? 'mt-1 text-sm' : 'mt-3 text-base sm:text-lg',
+            )}
+          >
             {description}
           </p>
         )}
