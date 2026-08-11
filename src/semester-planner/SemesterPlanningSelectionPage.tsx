@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
+import { useEffect } from 'react'
 import {
   ArrowRight,
   BookOpen,
@@ -20,12 +21,6 @@ import { Card } from '@/components/ui/card'
 import { getCurrentStudent } from '@/student/data/studentApi'
 import { listSemesterPlannings } from '@/semester-planner/data/semesterPlanningApi'
 
-function guideLabel(plan: PersistedSemesterPlanning) {
-  if (plan.guide.mode === 'CURRICULUM') return 'Guia por currículo'
-  if (plan.guide.mode === 'PROGRAM') return 'Guia por programa'
-  return 'Seleção livre'
-}
-
 function totalCredits(plan: PersistedSemesterPlanning) {
   return plan.classes.reduce(
     (total, classItem) => total + classItem.courseCredits,
@@ -35,6 +30,7 @@ function totalCredits(plan: PersistedSemesterPlanning) {
 
 export function SemesterPlanningSelectionPage() {
   const auth = useOptionalAuth()
+  const navigate = useNavigate()
   const studentQuery = useQuery({
     queryKey: ['semester-planner', 'student', auth.isAuthenticated],
     queryFn: () => getCurrentStudent(auth.getAccessToken),
@@ -48,6 +44,11 @@ export function SemesterPlanningSelectionPage() {
     enabled: Boolean(studentQuery.data?.studentId),
     retry: false,
   })
+
+  useEffect(() => {
+    if (auth.initialized && !auth.isAuthenticated)
+      void navigate({ to: '/planejamentos-de-semestre/novo', replace: true })
+  }, [auth.initialized, auth.isAuthenticated, navigate])
 
   if (!auth.initialized || (auth.isAuthenticated && plansQuery.isLoading)) {
     return (
@@ -65,8 +66,7 @@ export function SemesterPlanningSelectionPage() {
         description="Monte alternativas de horário para cada período letivo."
         actions={
           <Link
-            to="/planejamentos-de-semestre/$planejamentoId"
-            params={{ planejamentoId: 'rascunho' }}
+            to="/planejamentos-de-semestre/novo"
             className="pomi-focus inline-flex h-10 items-center gap-2 rounded-md border-2 border-primary bg-primary px-4 text-sm font-bold text-primary-foreground shadow-[3px_3px_0_var(--strong-border)] transition-[transform,box-shadow] hover:-translate-x-px hover:-translate-y-px hover:shadow-[5px_5px_0_var(--strong-border)]"
           >
             <Plus className="size-4" />
@@ -122,9 +122,6 @@ export function SemesterPlanningSelectionPage() {
                   <h3 className="mt-5 text-lg font-extrabold">
                     {plan.name || `Planejamento ${plan.id}`}
                   </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {guideLabel(plan)}
-                  </p>
                   <div className="mt-5 flex items-center justify-between gap-3 border-t border-strong-border/30 pt-4 text-xs font-semibold text-muted-foreground">
                     <span className="inline-flex items-center gap-1.5">
                       <BookOpen className="size-3.5" />

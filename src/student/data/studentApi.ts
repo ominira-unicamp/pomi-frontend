@@ -53,6 +53,16 @@ export function registerCurrentStudent(
   })
 }
 
+export async function ensureCurrentStudent(
+  name: string,
+  getAccessToken: () => Promise<string>,
+) {
+  const current = await getCurrentStudent(getAccessToken)
+  if (current.studentId) return current.studentId
+  const student = await registerCurrentStudent(name, getAccessToken)
+  return student.id
+}
+
 export function getStudentProfile(
   studentId: number,
   getAccessToken: () => Promise<string>,

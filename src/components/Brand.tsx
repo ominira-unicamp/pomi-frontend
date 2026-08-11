@@ -6,7 +6,7 @@ export function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <Link
       to="/"
-      aria-label="POMI — ir para Planejamento"
+      aria-label="POMI — ir para o início"
       className="pomi-focus inline-flex items-center gap-3 rounded-sm text-sidebar-foreground"
     >
       <span className="grid size-11 place-items-center">

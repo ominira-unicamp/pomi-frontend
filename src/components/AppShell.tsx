@@ -4,6 +4,8 @@ import {
   ChevronLeft,
   ChevronRight,
   GraduationCap,
+  House,
+  Info,
   LogIn,
   LogOut,
   Menu,
@@ -87,8 +89,20 @@ function Navigation({ compact = false }: { compact?: boolean }) {
           compact && 'justify-center px-0',
         )}
       >
+        <House className="size-5 shrink-0" />
+        <span className={cn(compact && 'sr-only')}>Início</span>
+      </Link>
+      <Link
+        to="/planejamentos-de-curriculo"
+        onClick={() => setMobileOpen(false)}
+        activeProps={{ 'aria-current': 'page' }}
+        className={cn(
+          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
+          compact && 'justify-center px-0',
+        )}
+      >
         <PanelsTopLeft className="size-5 shrink-0" />
-        <span className={cn(compact && 'sr-only')}>Planejamento</span>
+        <span className={cn(compact && 'sr-only')}>Currículo</span>
       </Link>
       <Link
         to="/planejamentos-de-semestre"
@@ -230,6 +244,14 @@ function AppHeader() {
         </TooltipContent>
       </Tooltip>
       <div className="ml-auto flex items-center gap-1">
+        <Link
+          to="/sobre"
+          aria-label="Sobre nós"
+          className="pomi-focus inline-flex size-10 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground sm:w-auto sm:gap-2 sm:px-3"
+        >
+          <Info className="size-4" />
+          <span className="hidden text-sm font-bold sm:inline">Sobre nós</span>
+        </Link>
         <ThemeMenu />
         <AccountMenu />
       </div>
@@ -252,7 +274,7 @@ function AppSidebar() {
               collapsed && 'sr-only',
             )}
           >
-            Planejador Ominira
+            Feito por Ominira
           </p>
         </SidebarFooter>
       </Sidebar>

@@ -44,7 +44,7 @@ interface AuthContextValue {
   initialized: boolean
   isAuthenticated: boolean
   profile?: KeycloakTokenParsed
-  login: () => Promise<void>
+  login: (redirectUri?: string) => Promise<void>
   logout: () => Promise<void>
   getAccessToken: () => Promise<string>
   emailVerificationRequired: boolean
@@ -105,8 +105,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [synchronizeSession])
 
-  const login = useCallback(async () => {
-    await keycloak.login({ redirectUri: window.location.origin })
+  const login = useCallback(async (redirectUri?: string) => {
+    const target = redirectUri
+      ? new URL(redirectUri, window.location.origin)
+      : new URL(window.location.origin)
+    if (target.origin !== window.location.origin) {
+      throw new Error('A URL de retorno do login não é permitida.')
+    }
+    await keycloak.login({ redirectUri: target.href })
   }, [])
 
   const logout = useCallback(async () => {

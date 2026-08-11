@@ -12,6 +12,7 @@ import type { PlannerDispatch } from '@/planner/types'
 import type { CourseOption, SemesterViewModel } from '@/planner/viewModel'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'
+import { ActionTooltip } from '@/planner/components/ActionTooltip'
 import {
   Dialog,
   DialogClose,
@@ -62,17 +63,18 @@ function AddCourseToSemesterDialog({
   }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Button
-        size="icon"
-        variant="outline"
-        disabled={disabled}
-        onClick={() => setOpen(true)}
-        aria-label={`Adicionar disciplina a ${title}`}
-        title={`Adicionar disciplina a ${title}`}
-        className="h-8 w-8 shrink-0 rounded-sm border-2 border-strong-border bg-background p-0 shadow-[2px_2px_0_var(--strong-border)] hover:bg-accent"
-      >
-        <Plus />
-      </Button>
+      <ActionTooltip content={`Adicione uma disciplina a ${title}.`}>
+        <Button
+          size="icon"
+          variant="outline"
+          disabled={disabled}
+          onClick={() => setOpen(true)}
+          aria-label={`Adicionar disciplina a ${title}`}
+          className="h-8 w-8 shrink-0 rounded-sm border-2 border-strong-border bg-background p-0 shadow-[2px_2px_0_var(--strong-border)] hover:bg-accent"
+        >
+          <Plus />
+        </Button>
+      </ActionTooltip>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Adicionar disciplina</DialogTitle>
@@ -88,15 +90,19 @@ function AddCourseToSemesterDialog({
           placeholder="Clique ou digite o código ou nome"
         />
         <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancelar</Button>
-          </DialogClose>
-          <Button
-            disabled={disabled || !courseId}
-            onClick={() => void submit()}
-          >
-            Adicionar
-          </Button>
+          <ActionTooltip content="Feche sem adicionar uma disciplina.">
+            <DialogClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DialogClose>
+          </ActionTooltip>
+          <ActionTooltip content="Adicione a disciplina selecionada a este semestre.">
+            <Button
+              disabled={disabled || !courseId}
+              onClick={() => void submit()}
+            >
+              Adicionar
+            </Button>
+          </ActionTooltip>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -162,42 +168,49 @@ const SemesterRowContent = memo(function SemesterRowContent({
                 size="icon"
                 variant="ghost"
                 aria-label={`Ações de ${title}`}
+                title={`Abra as ações de ${title}.`}
               >
                 <GripVertical />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              <DropdownMenuItem
-                disabled={disabled || current}
-                onSelect={() =>
-                  void dispatch({
-                    type: 'setCurrentPlanningPeriod',
-                    periodId: period.id,
-                  })
-                }
-              >
-                Marcar como atual
-              </DropdownMenuItem>
-              {current && (
+              <ActionTooltip content="Indique que este é o semestre que você está cursando agora.">
                 <DropdownMenuItem
-                  disabled={disabled}
+                  disabled={disabled || current}
                   onSelect={() =>
                     void dispatch({
                       type: 'setCurrentPlanningPeriod',
-                      periodId: null,
+                      periodId: period.id,
                     })
                   }
                 >
-                  Desmarcar como atual
+                  Marcar como atual
                 </DropdownMenuItem>
+              </ActionTooltip>
+              {current && (
+                <ActionTooltip content="Remova a indicação de semestre atual.">
+                  <DropdownMenuItem
+                    disabled={disabled}
+                    onSelect={() =>
+                      void dispatch({
+                        type: 'setCurrentPlanningPeriod',
+                        periodId: null,
+                      })
+                    }
+                  >
+                    Desmarcar como atual
+                  </DropdownMenuItem>
+                </ActionTooltip>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive"
-                onSelect={() => setRemoveOpen(true)}
-              >
-                <Trash2 /> Remover semestre
-              </DropdownMenuItem>
+              <ActionTooltip content="Remova este semestre e suas alocações do currículo.">
+                <DropdownMenuItem
+                  className="text-destructive"
+                  onSelect={() => setRemoveOpen(true)}
+                >
+                  <Trash2 /> Remover semestre
+                </DropdownMenuItem>
+              </ActionTooltip>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -295,7 +308,7 @@ const AddUnallocatedCourseDialog = memo(function AddUnallocatedCourseDialog({
   const submit = async () => {
     if (!courseId) return
     const succeeded = await dispatch({
-        type: 'addCourseToUnallocated',
+      type: 'addCourseToUnallocated',
       courseId: courseId as Course['id'],
     })
     if (succeeded) {
@@ -305,17 +318,18 @@ const AddUnallocatedCourseDialog = memo(function AddUnallocatedCourseDialog({
   }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Button
-        size="icon"
-        variant="outline"
-        disabled={disabled}
-        onClick={() => setOpen(true)}
-        aria-label="Adicionar disciplina não alocada"
-        title="Adicionar disciplina não alocada"
-        className="h-8 w-8 shrink-0 rounded-sm border-2 border-strong-border bg-background p-0 shadow-[2px_2px_0_var(--strong-border)] hover:bg-accent"
-      >
-        <Plus />
-      </Button>
+      <ActionTooltip content="Adicione uma disciplina sem vinculá-la a um semestre.">
+        <Button
+          size="icon"
+          variant="outline"
+          disabled={disabled}
+          onClick={() => setOpen(true)}
+          aria-label="Adicionar disciplina não alocada"
+          className="h-8 w-8 shrink-0 rounded-sm border-2 border-strong-border bg-background p-0 shadow-[2px_2px_0_var(--strong-border)] hover:bg-accent"
+        >
+          <Plus />
+        </Button>
+      </ActionTooltip>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Adicionar disciplina não alocada</DialogTitle>
@@ -331,15 +345,19 @@ const AddUnallocatedCourseDialog = memo(function AddUnallocatedCourseDialog({
           placeholder="Clique ou digite o código ou nome"
         />
         <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancelar</Button>
-          </DialogClose>
-          <Button
-            disabled={disabled || !courseId}
-            onClick={() => void submit()}
-          >
-            Adicionar
-          </Button>
+          <ActionTooltip content="Feche sem adicionar uma disciplina.">
+            <DialogClose asChild>
+              <Button variant="outline">Cancelar</Button>
+            </DialogClose>
+          </ActionTooltip>
+          <ActionTooltip content="Guarde a disciplina para alocá-la depois.">
+            <Button
+              disabled={disabled || !courseId}
+              onClick={() => void submit()}
+            >
+              Adicionar
+            </Button>
+          </ActionTooltip>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -386,7 +404,9 @@ const UnallocatedCoursesPanelContent = memo(
       <article className="grid overflow-hidden rounded-md border-2 border-strong-border bg-card shadow-[4px_4px_0_color-mix(in_srgb,var(--primary)_25%,transparent)] lg:grid-cols-[11rem_1fr_7rem]">
         <header className="flex items-center border-b-2 border-border bg-primary/10 p-2 lg:border-r-2 lg:border-b-0">
           <div>
-            <h3 className="whitespace-nowrap text-sm font-black">Não alocadas</h3>
+            <h3 className="whitespace-nowrap text-sm font-black">
+              Não alocadas
+            </h3>
           </div>
         </header>
         <div

@@ -65,7 +65,7 @@ export function SuggestionOnboardingPanel({
         },
       ]),
     ).values(),
-  ].sort((left, right) => left.label.localeCompare(right.label))
+  ].sort((left, right) => right.label.localeCompare(left.label))
   const programs = staticData.catalogPrograms
     .filter((program) => program.catalog.id === catalogId)
     .sort((left, right) => left.program.name.localeCompare(right.program.name))
@@ -276,7 +276,7 @@ export function ChangeSuggestionDialog({
         },
       ]),
     ).values(),
-  ].sort((left, right) => left.label.localeCompare(right.label))
+  ].sort((left, right) => right.label.localeCompare(left.label))
   const programs = staticData.catalogPrograms
     .filter((program) => program.catalog.id === catalogId)
     .sort((left, right) => left.program.name.localeCompare(right.program.name))

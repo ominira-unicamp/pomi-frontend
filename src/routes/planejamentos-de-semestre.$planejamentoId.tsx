@@ -1,6 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { SemesterPlannerPage } from '@/semester-planner/SemesterPlannerPage'
+import {
+  PlanningAccessGate,
+  PlanningDraftGate,
+} from '@/planner/components/PlanningDraftGate'
 
 export const Route = createFileRoute(
   '/planejamentos-de-semestre/$planejamentoId',
@@ -10,5 +14,16 @@ export const Route = createFileRoute(
 
 function SemesterPlanningRoute() {
   const { planejamentoId } = Route.useParams()
-  return <SemesterPlannerPage planningId={planejamentoId} />
+  if (planejamentoId === 'rascunho') {
+    return (
+      <PlanningDraftGate kind="semester">
+        <SemesterPlannerPage planningId={planejamentoId} />
+      </PlanningDraftGate>
+    )
+  }
+  return (
+    <PlanningAccessGate kind="semester">
+      <SemesterPlannerPage planningId={planejamentoId} />
+    </PlanningAccessGate>
+  )
 }

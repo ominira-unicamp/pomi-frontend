@@ -129,6 +129,11 @@ describe('CurriculumPlannerPage', () => {
       }),
     ).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Cancelar' }))
+    await waitFor(() =>
+      expect(
+        screen.queryByRole('dialog', { name: 'Adicionar disciplina' }),
+      ).toBeNull(),
+    )
     fireEvent.pointerDown(
       screen.getByRole('button', { name: 'Ações de 5º sem - 1s2026' }),
       { button: 0, ctrlKey: false },

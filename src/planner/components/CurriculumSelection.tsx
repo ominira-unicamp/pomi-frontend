@@ -43,7 +43,7 @@ export function CurriculumSelectionFields({
         },
       ]),
     ).values(),
-  ].sort((left, right) => left.label.localeCompare(right.label))
+  ].sort((left, right) => right.label.localeCompare(left.label))
   const programs = staticData.catalogPrograms
     .filter((program) => program.catalog.id === catalogId)
     .sort((left, right) => left.program.name.localeCompare(right.program.name))
@@ -91,42 +91,40 @@ export function CurriculumSelectionFields({
           }
         />
       </label>
-      <label className="space-y-2 text-sm font-bold">
-        <span>Habilitação</span>
-        <AutocompleteSelect
-          ariaLabel="Habilitação"
-          value={snapshot.selection.specializationId ?? ''}
-          disabled={disabled || !selected}
-          emptyLabel="Sem habilitação"
-          options={
-            selected?.specializations.map((option) => ({
+      {selected?.specializations.length ? (
+        <label className="space-y-2 text-sm font-bold">
+          <span>Habilitação</span>
+          <AutocompleteSelect
+            ariaLabel="Habilitação"
+            value={snapshot.selection.specializationId ?? ''}
+            disabled={disabled}
+            emptyLabel="Sem habilitação"
+            options={selected.specializations.map((option) => ({
               value: option.id,
               label: `${option.code} — ${option.name}`,
-            })) ?? []
-          }
-          placeholder="Digite a habilitação"
-          onValueChange={(value) =>
-            void dispatch({
-              type: 'selectSpecialization',
-              specializationId: value ? (value as never) : null,
-            })
-          }
-        />
-      </label>
-      {showLanguage && (
+            }))}
+            placeholder="Digite a habilitação"
+            onValueChange={(value) =>
+              void dispatch({
+                type: 'selectSpecialization',
+                specializationId: value ? (value as never) : null,
+              })
+            }
+          />
+        </label>
+      ) : null}
+      {showLanguage && selected?.languages.length ? (
         <label className="space-y-2 text-sm font-bold">
           <span>Língua</span>
           <AutocompleteSelect
             ariaLabel="Língua"
             value={snapshot.selection.languageId ?? ''}
-            disabled={disabled || !selected}
+            disabled={disabled}
             emptyLabel="Sem língua adicional"
-            options={
-              selected?.languages.map((option) => ({
-                value: option.id,
-                label: option.name,
-              })) ?? []
-            }
+            options={selected.languages.map((option) => ({
+              value: option.id,
+              label: option.name,
+            }))}
             placeholder="Digite a língua"
             onValueChange={(value) =>
               void dispatch({
@@ -136,7 +134,7 @@ export function CurriculumSelectionFields({
             }
           />
         </label>
-      )}
+      ) : null}
     </div>
   )
 }

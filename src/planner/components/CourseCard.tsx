@@ -37,6 +37,7 @@ import { cn } from '@/lib/utils'
 import { periodReference } from '@/planner/domain/planningPeriods'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { listStudyPeriods } from '@/student/data/studentApi'
+import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
 
 export type CourseDragData = Readonly<{
   type: 'course'
@@ -61,13 +62,13 @@ export function CompactVisual({
   return (
     <span
       className={cn(
-        'inline-flex h-8 min-w-24 items-center justify-between gap-2 rounded-sm border-2 border-strong-border bg-background px-2 font-mono text-xs font-black text-foreground shadow-[2px_2px_0_var(--strong-border)]',
+        'inline-grid h-8 w-[5.75rem] shrink-0 grid-cols-[5ch_1fr] items-center gap-2 rounded-sm border-2 border-strong-border bg-background px-2 font-mono text-xs font-black text-foreground shadow-[2px_2px_0_var(--strong-border)]',
         planned && 'border-primary bg-primary/12',
         className,
       )}
     >
-      <span>{code}</span>
-      <span>({String(credits).padStart(2, '0')})</span>
+      <span className="text-center">{code}</span>
+      <span className="text-right">({String(credits).padStart(2, '0')})</span>
     </span>
   )
 }
@@ -119,7 +120,9 @@ function CourseDestinationMenu({
     })
     if (succeeded) setCompletionDialogOpen(false)
   }
-  const studyPeriodOptions = (studyPeriodsQuery.data ?? []).map((period) => ({
+  const studyPeriodOptions = mostRecentStudyPeriodsFirst(
+    studyPeriodsQuery.data ?? [],
+  ).map((period) => ({
     value: String(period.id),
     label: period.code,
   }))

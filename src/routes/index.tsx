@@ -1,16 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { CurriculumPlannerPage } from '@/planner/CurriculumPlannerPage'
-import { CurriculumPlannerProvider } from '@/planner/CurriculumPlannerProvider'
+import { HomePage } from '@/home/HomePage'
 
 export const Route = createFileRoute('/')({
   component: PlanningPage,
 })
 
 function PlanningPage() {
-  return (
-    <CurriculumPlannerProvider>
-      <CurriculumPlannerPage showSelection />
-    </CurriculumPlannerProvider>
-  )
+  return <HomePage />
 }

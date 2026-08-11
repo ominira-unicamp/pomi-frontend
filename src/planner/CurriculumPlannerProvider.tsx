@@ -23,6 +23,7 @@ import type {
   CurriculumSummary,
 } from '@/planner/data/curriculumPersistenceApi'
 import type { StudentProfile } from '@/student/data/studentApi'
+import type { CurriculumDraftBootstrap } from '@/planner/data/planningDraftBootstrap'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { createCurriculumCatalogDataSource } from '@/catalog/data/curriculumCatalogApi'
 import {
@@ -32,6 +33,7 @@ import {
   stateFromDocument,
 } from '@/planner/data/curriculumPersistenceApi'
 import { persistCurriculumState } from '@/planner/data/curriculumPersistenceAdapter'
+import { curriculumDraftBootstrapKey } from '@/planner/data/planningDraftBootstrap'
 import {
   getCurrentStudent,
   registerCurrentStudent,
@@ -117,6 +119,11 @@ export function CurriculumPlannerProvider({
 }) {
   const auth = useOptionalAuth()
   const queryClient = useQueryClient()
+  const [draftBootstrap] = useState(() =>
+    queryClient.getQueryData<CurriculumDraftBootstrap>(
+      curriculumDraftBootstrapKey,
+    ),
+  )
   const [generation, setGeneration] = useState(0)
   const [activeCurriculumId, setActiveCurriculumId] = useState<number>()
   const [entryState, setEntryState] = useState<'selection' | 'editing'>(
@@ -126,7 +133,9 @@ export function CurriculumPlannerProvider({
     'idle' | 'pending' | 'saving' | 'error'
   >('idle')
   const [actionError, setActionError] = useState<string>()
-  const [draftName, setDraftName] = useState<string>()
+  const [draftName, setDraftName] = useState<string | undefined>(
+    draftBootstrap?.name,
+  )
   const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const saveQueue = useRef(Promise.resolve())
   const remoteDocument = useRef<CurriculumDocument | undefined>(undefined)
@@ -160,8 +169,8 @@ export function CurriculumPlannerProvider({
             remoteQuery.data.document,
             remoteQuery.data.completed,
           )
-        : undefined,
-    [remoteQuery.data],
+        : draftBootstrap?.state,
+    [draftBootstrap?.state, remoteQuery.data],
   )
   const planner = useMemo(
     () => injectedPlanner ?? createDefaultPlanner(initialState),
@@ -170,6 +179,10 @@ export function CurriculumPlannerProvider({
   useEffect(() => {
     remoteDocument.current = remoteQuery.data?.document
   }, [remoteQuery.data?.document])
+  useEffect(() => {
+    if (draftBootstrap)
+      queryClient.removeQueries({ queryKey: curriculumDraftBootstrapKey })
+  }, [draftBootstrap, queryClient])
 
   const staticDataQuery = useQuery({
     queryKey: staticDataKey,
@@ -324,7 +337,6 @@ export function CurriculumPlannerProvider({
     setGeneration((current) => current + 1)
   }, [])
   const openAnonymousDraft = useCallback(() => {
-    setDraftName(undefined)
     setActiveCurriculumId(undefined)
     setEntryState('editing')
   }, [])

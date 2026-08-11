@@ -9,13 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SituacaoDoCursoRouteImport } from './routes/situacao-do-curso'
 import { Route as DesignSystemRouteImport } from './routes/[_]design-system'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlanejamentosDeSemestreIndexRouteImport } from './routes/planejamentos-de-semestre.index'
-import { Route as PlanejamentosPlanejamentoIdRouteImport } from './routes/planejamentos.$planejamentoId'
+import { Route as PlanejamentosDeCurriculoIndexRouteImport } from './routes/planejamentos-de-curriculo.index'
+import { Route as PlanejamentosDeSemestreNovoRouteImport } from './routes/planejamentos-de-semestre.novo'
 import { Route as PlanejamentosDeSemestrePlanejamentoIdRouteImport } from './routes/planejamentos-de-semestre.$planejamentoId'
+import { Route as PlanejamentosDeCurriculoNovoRouteImport } from './routes/planejamentos-de-curriculo.novo'
+import { Route as PlanejamentosDeCurriculoPlanejamentoIdRouteImport } from './routes/planejamentos-de-curriculo.$planejamentoId'
 
+const SobreRoute = SobreRouteImport.update({
+  id: '/sobre',
+  path: '/sobre',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SituacaoDoCursoRoute = SituacaoDoCursoRouteImport.update({
   id: '/situacao-do-curso',
   path: '/situacao-do-curso',
@@ -37,10 +46,16 @@ const PlanejamentosDeSemestreIndexRoute =
     path: '/planejamentos-de-semestre/',
     getParentRoute: () => rootRouteImport,
   } as any)
-const PlanejamentosPlanejamentoIdRoute =
-  PlanejamentosPlanejamentoIdRouteImport.update({
-    id: '/planejamentos/$planejamentoId',
-    path: '/planejamentos/$planejamentoId',
+const PlanejamentosDeCurriculoIndexRoute =
+  PlanejamentosDeCurriculoIndexRouteImport.update({
+    id: '/planejamentos-de-curriculo/',
+    path: '/planejamentos-de-curriculo/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PlanejamentosDeSemestreNovoRoute =
+  PlanejamentosDeSemestreNovoRouteImport.update({
+    id: '/planejamentos-de-semestre/novo',
+    path: '/planejamentos-de-semestre/novo',
     getParentRoute: () => rootRouteImport,
   } as any)
 const PlanejamentosDeSemestrePlanejamentoIdRoute =
@@ -49,21 +64,41 @@ const PlanejamentosDeSemestrePlanejamentoIdRoute =
     path: '/planejamentos-de-semestre/$planejamentoId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const PlanejamentosDeCurriculoNovoRoute =
+  PlanejamentosDeCurriculoNovoRouteImport.update({
+    id: '/planejamentos-de-curriculo/novo',
+    path: '/planejamentos-de-curriculo/novo',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PlanejamentosDeCurriculoPlanejamentoIdRoute =
+  PlanejamentosDeCurriculoPlanejamentoIdRouteImport.update({
+    id: '/planejamentos-de-curriculo/$planejamentoId',
+    path: '/planejamentos-de-curriculo/$planejamentoId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
+  '/sobre': typeof SobreRoute
+  '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
+  '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
   '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
-  '/planejamentos/$planejamentoId': typeof PlanejamentosPlanejamentoIdRoute
+  '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
+  '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
+  '/sobre': typeof SobreRoute
+  '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
+  '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
   '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
-  '/planejamentos/$planejamentoId': typeof PlanejamentosPlanejamentoIdRoute
+  '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
+  '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
 }
 export interface FileRoutesById {
@@ -71,8 +106,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
+  '/sobre': typeof SobreRoute
+  '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
+  '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
   '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
-  '/planejamentos/$planejamentoId': typeof PlanejamentosPlanejamentoIdRoute
+  '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
+  '/planejamentos-de-curriculo/': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre/': typeof PlanejamentosDeSemestreIndexRoute
 }
 export interface FileRouteTypes {
@@ -81,24 +120,36 @@ export interface FileRouteTypes {
     | '/'
     | '/_design-system'
     | '/situacao-do-curso'
+    | '/sobre'
+    | '/planejamentos-de-curriculo/$planejamentoId'
+    | '/planejamentos-de-curriculo/novo'
     | '/planejamentos-de-semestre/$planejamentoId'
-    | '/planejamentos/$planejamentoId'
+    | '/planejamentos-de-semestre/novo'
+    | '/planejamentos-de-curriculo'
     | '/planejamentos-de-semestre'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/_design-system'
     | '/situacao-do-curso'
+    | '/sobre'
+    | '/planejamentos-de-curriculo/$planejamentoId'
+    | '/planejamentos-de-curriculo/novo'
     | '/planejamentos-de-semestre/$planejamentoId'
-    | '/planejamentos/$planejamentoId'
+    | '/planejamentos-de-semestre/novo'
+    | '/planejamentos-de-curriculo'
     | '/planejamentos-de-semestre'
   id:
     | '__root__'
     | '/'
     | '/_design-system'
     | '/situacao-do-curso'
+    | '/sobre'
+    | '/planejamentos-de-curriculo/$planejamentoId'
+    | '/planejamentos-de-curriculo/novo'
     | '/planejamentos-de-semestre/$planejamentoId'
-    | '/planejamentos/$planejamentoId'
+    | '/planejamentos-de-semestre/novo'
+    | '/planejamentos-de-curriculo/'
     | '/planejamentos-de-semestre/'
   fileRoutesById: FileRoutesById
 }
@@ -106,13 +157,24 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignSystemRoute: typeof DesignSystemRoute
   SituacaoDoCursoRoute: typeof SituacaoDoCursoRoute
+  SobreRoute: typeof SobreRoute
+  PlanejamentosDeCurriculoPlanejamentoIdRoute: typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
+  PlanejamentosDeCurriculoNovoRoute: typeof PlanejamentosDeCurriculoNovoRoute
   PlanejamentosDeSemestrePlanejamentoIdRoute: typeof PlanejamentosDeSemestrePlanejamentoIdRoute
-  PlanejamentosPlanejamentoIdRoute: typeof PlanejamentosPlanejamentoIdRoute
+  PlanejamentosDeSemestreNovoRoute: typeof PlanejamentosDeSemestreNovoRoute
+  PlanejamentosDeCurriculoIndexRoute: typeof PlanejamentosDeCurriculoIndexRoute
   PlanejamentosDeSemestreIndexRoute: typeof PlanejamentosDeSemestreIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sobre': {
+      id: '/sobre'
+      path: '/sobre'
+      fullPath: '/sobre'
+      preLoaderRoute: typeof SobreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/situacao-do-curso': {
       id: '/situacao-do-curso'
       path: '/situacao-do-curso'
@@ -141,11 +203,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlanejamentosDeSemestreIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/planejamentos/$planejamentoId': {
-      id: '/planejamentos/$planejamentoId'
-      path: '/planejamentos/$planejamentoId'
-      fullPath: '/planejamentos/$planejamentoId'
-      preLoaderRoute: typeof PlanejamentosPlanejamentoIdRouteImport
+    '/planejamentos-de-curriculo/': {
+      id: '/planejamentos-de-curriculo/'
+      path: '/planejamentos-de-curriculo'
+      fullPath: '/planejamentos-de-curriculo'
+      preLoaderRoute: typeof PlanejamentosDeCurriculoIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planejamentos-de-semestre/novo': {
+      id: '/planejamentos-de-semestre/novo'
+      path: '/planejamentos-de-semestre/novo'
+      fullPath: '/planejamentos-de-semestre/novo'
+      preLoaderRoute: typeof PlanejamentosDeSemestreNovoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/planejamentos-de-semestre/$planejamentoId': {
@@ -155,6 +224,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlanejamentosDeSemestrePlanejamentoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/planejamentos-de-curriculo/novo': {
+      id: '/planejamentos-de-curriculo/novo'
+      path: '/planejamentos-de-curriculo/novo'
+      fullPath: '/planejamentos-de-curriculo/novo'
+      preLoaderRoute: typeof PlanejamentosDeCurriculoNovoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planejamentos-de-curriculo/$planejamentoId': {
+      id: '/planejamentos-de-curriculo/$planejamentoId'
+      path: '/planejamentos-de-curriculo/$planejamentoId'
+      fullPath: '/planejamentos-de-curriculo/$planejamentoId'
+      preLoaderRoute: typeof PlanejamentosDeCurriculoPlanejamentoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -162,9 +245,14 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignSystemRoute: DesignSystemRoute,
   SituacaoDoCursoRoute: SituacaoDoCursoRoute,
+  SobreRoute: SobreRoute,
+  PlanejamentosDeCurriculoPlanejamentoIdRoute:
+    PlanejamentosDeCurriculoPlanejamentoIdRoute,
+  PlanejamentosDeCurriculoNovoRoute: PlanejamentosDeCurriculoNovoRoute,
   PlanejamentosDeSemestrePlanejamentoIdRoute:
     PlanejamentosDeSemestrePlanejamentoIdRoute,
-  PlanejamentosPlanejamentoIdRoute: PlanejamentosPlanejamentoIdRoute,
+  PlanejamentosDeSemestreNovoRoute: PlanejamentosDeSemestreNovoRoute,
+  PlanejamentosDeCurriculoIndexRoute: PlanejamentosDeCurriculoIndexRoute,
   PlanejamentosDeSemestreIndexRoute: PlanejamentosDeSemestreIndexRoute,
 }
 export const routeTree = rootRouteImport

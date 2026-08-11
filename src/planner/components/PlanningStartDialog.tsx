@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import type { PlannerDispatch } from '@/planner/types'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'
+import { ActionTooltip } from '@/planner/components/ActionTooltip'
 import {
   Dialog,
   DialogClose,
@@ -54,11 +55,13 @@ export function PlanningStartDialog({
   }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <Button variant="outline" onClick={() => setOpen(true)}>
-        {savedYear && savedSemester
-          ? `Início: ${savedSemesterNumber ?? 1}º sem - ${savedSemester}s${savedYear}`
-          : 'Definir início'}
-      </Button>
+      <ActionTooltip content="Defina o primeiro semestre, período e ano do currículo.">
+        <Button variant="outline" onClick={() => setOpen(true)}>
+          {savedYear && savedSemester
+            ? `Início: ${savedSemesterNumber ?? 1}º sem - ${savedSemester}s${savedYear}`
+            : 'Definir início'}
+        </Button>
+      </ActionTooltip>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Início do planejamento</DialogTitle>
@@ -102,22 +105,26 @@ export function PlanningStartDialog({
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancelar</Button>
+            <ActionTooltip content="Feche sem alterar o início do currículo.">
+              <Button variant="outline">Cancelar</Button>
+            </ActionTooltip>
           </DialogClose>
-          <Button
-            disabled={
-              disabled ||
-              !Number.isInteger(year) ||
-              year < 1900 ||
-              year > 9999 ||
-              !Number.isInteger(semesterNumber) ||
-              semesterNumber < 1 ||
-              (semester !== '1' && semester !== '2')
-            }
-            onClick={() => void submit()}
-          >
-            Salvar
-          </Button>
+          <ActionTooltip content="Salve o início usado para numerar os semestres.">
+            <Button
+              disabled={
+                disabled ||
+                !Number.isInteger(year) ||
+                year < 1900 ||
+                year > 9999 ||
+                !Number.isInteger(semesterNumber) ||
+                semesterNumber < 1 ||
+                (semester !== '1' && semester !== '2')
+              }
+              onClick={() => void submit()}
+            >
+              Salvar
+            </Button>
+          </ActionTooltip>
         </DialogFooter>
       </DialogContent>
     </Dialog>

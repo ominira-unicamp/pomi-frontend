@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { ActionTooltip } from '@/planner/components/ActionTooltip'
 import {
   Dialog,
   DialogClose,
@@ -69,11 +70,15 @@ export function RenameCurriculumDialog({
           )}
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">Cancelar</Button>
+              <ActionTooltip content="Feche sem alterar o nome do currículo.">
+                <Button variant="outline">Cancelar</Button>
+              </ActionTooltip>
             </DialogClose>
-            <Button disabled={disabled || !name.trim()} type="submit">
-              Salvar nome
-            </Button>
+            <ActionTooltip content="Salve o novo nome deste currículo.">
+              <Button disabled={disabled || !name.trim()} type="submit">
+                Salvar nome
+              </Button>
+            </ActionTooltip>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -116,15 +121,19 @@ export function DeleteCurriculumDialog({
         )}
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancelar</Button>
+            <ActionTooltip content="Feche sem apagar o currículo.">
+              <Button variant="outline">Cancelar</Button>
+            </ActionTooltip>
           </DialogClose>
-          <Button
-            disabled={disabled}
-            variant="destructive"
-            onClick={() => void submit()}
-          >
-            Apagar planejamento
-          </Button>
+          <ActionTooltip content="Confirme a exclusão permanente deste currículo.">
+            <Button
+              disabled={disabled}
+              variant="destructive"
+              onClick={() => void submit()}
+            >
+              Apagar planejamento
+            </Button>
+          </ActionTooltip>
         </DialogFooter>
       </DialogContent>
     </Dialog>

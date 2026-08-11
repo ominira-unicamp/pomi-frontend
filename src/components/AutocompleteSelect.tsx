@@ -18,6 +18,13 @@ const viewportHeight = 224
 const overscan = 4
 const listChromeHeight = 10
 
+function normalizeSearchText(value: string) {
+  return value
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toLocaleLowerCase('pt-BR')
+}
+
 export const AutocompleteSelect = memo(function AutocompleteSelect({
   ariaLabel,
   disabled,
@@ -37,7 +44,7 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
     () =>
       options.map((option) => ({
         option,
-        searchText: String(option.label).toLocaleLowerCase('pt-BR'),
+        searchText: normalizeSearchText(String(option.label)),
       })),
     [options],
   )
@@ -55,7 +62,7 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
     onValueChange(option.value)
     setOpen(false)
   }
-  const normalizedQuery = query.trim().toLocaleLowerCase('pt-BR')
+  const normalizedQuery = normalizeSearchText(query.trim())
   const visibleOptions = useMemo(
     () =>
       indexedOptions

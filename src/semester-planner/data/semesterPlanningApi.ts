@@ -155,6 +155,8 @@ export async function loadSemesterPlannerStaticData(
 export type PersistedSemesterPlanning = Readonly<{
   id: number
   name: string
+  createdAt: string
+  updatedAt: string
   studyPeriodId: number
   studyPeriodCode: string
   curriculumId: number | null

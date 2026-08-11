@@ -1,5 +1,6 @@
 import type { ResolvedPlanningImport } from '@/planner/domain/planningTransfer'
 import { Button } from '@/components/ui/button'
+import { ActionTooltip } from '@/planner/components/ActionTooltip'
 import {
   Dialog,
   DialogClose,
@@ -64,11 +65,15 @@ export function PlanningImportReviewDialog({
         )}
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancelar</Button>
+            <ActionTooltip content="Feche sem importar o currículo selecionado.">
+              <Button variant="outline">Cancelar</Button>
+            </ActionTooltip>
           </DialogClose>
-          <Button disabled={disabled} onClick={onConfirm}>
-            Importar currículo
-          </Button>
+          <ActionTooltip content="Confirme a importação deste currículo.">
+            <Button disabled={disabled} onClick={onConfirm}>
+              Importar currículo
+            </Button>
+          </ActionTooltip>
         </DialogFooter>
       </DialogContent>
     </Dialog>

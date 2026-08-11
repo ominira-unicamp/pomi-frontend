@@ -10,6 +10,7 @@ import type {
 import type { CurriculumBlockView } from '@/planner/domain/curriculumBlocks'
 import type { PlannerDispatch } from '@/planner/types'
 import { Button } from '@/components/ui/button'
+import { ActionTooltip } from '@/planner/components/ActionTooltip'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { buildCurriculumGroups } from '@/planner/domain/curriculumBlocks'
 import { calculateElectiveCreditsBalances } from '@/planner/domain/electiveCredits'
@@ -149,15 +150,23 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
             {count} disciplinas não concluídas
           </p>
         </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          aria-expanded={!collapsed}
-          onClick={() => setCollapsed((value) => !value)}
+        <ActionTooltip
+          content={
+            collapsed
+              ? 'Mostre as disciplinas organizadas por bloco curricular.'
+              : 'Oculte a lista de blocos curriculares.'
+          }
         >
-          {collapsed ? <ChevronDown /> : <ChevronUp />}
-          {collapsed ? 'Expandir' : 'Recolher'}
-        </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            aria-expanded={!collapsed}
+            onClick={() => setCollapsed((value) => !value)}
+          >
+            {collapsed ? <ChevronDown /> : <ChevronUp />}
+            {collapsed ? 'Expandir' : 'Recolher'}
+          </Button>
+        </ActionTooltip>
       </CardHeader>
       {!collapsed && (
         <CardContent className="border-t-2 border-border p-4">

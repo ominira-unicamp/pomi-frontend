@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Plus, Trash2 } from 'lucide-react'
+import { BookOpenCheck, Check, LogIn, Pencil, Plus, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import type { CourseProfileValues } from '@/student/components/CourseProfilePanel'
@@ -11,7 +11,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { EmptyState, PageContainer, PageHeader } from '@/components/PageLayout'
+import {
+  EmptyState,
+  LoadingState,
+  PageContainer,
+  PageHeader,
+} from '@/components/PageLayout'
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { createCurriculumCatalogDataSource } from '@/catalog/data/curriculumCatalogApi'
 import {
@@ -23,9 +34,9 @@ import {
   patchStudentProfile,
 } from '@/student/data/studentApi'
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
-import {
-  CourseProfilePanel,
-} from '@/student/components/CourseProfilePanel'
+import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
+import { CourseProfilePanel } from '@/student/components/CourseProfilePanel'
+import { Card } from '@/components/ui/card'
 
 const staticSource = createCurriculumCatalogDataSource()
 const statuses = [
@@ -36,20 +47,31 @@ const statuses = [
 ] as const
 
 type Status = (typeof statuses)[number][0]
+type SituationTab = 'course' | 'enrolled' | 'history'
 
 function labelForStatus(status: Status) {
   return statuses.find(([value]) => value === status)?.[1] ?? status
+}
+
+function TabCount({ value }: { value: number }) {
+  return (
+    <span className="inline-flex min-w-5 items-center justify-center rounded-full border border-current/25 bg-background px-1.5 py-0.5 text-xs leading-none tabular-nums">
+      {value}
+    </span>
+  )
 }
 
 export function CourseSituationPage() {
   const auth = useOptionalAuth()
   const queryClient = useQueryClient()
   const [attemptDialogOpen, setAttemptDialogOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState<SituationTab>('enrolled')
   const [editingAttemptId, setEditingAttemptId] = useState<number>()
   const [courseId, setCourseId] = useState('')
   const [studyPeriodId, setStudyPeriodId] = useState('')
-  const [status, setStatus] = useState<Status>('ENROLLED')
+  const [status, setStatus] = useState<Status | ''>('')
   const [grade, setGrade] = useState('')
+  const [attemptError, setAttemptError] = useState<string>()
 
   const { studentId, profileQuery } = useStudentProfile()
   const attemptsQuery = useQuery({
@@ -61,6 +83,7 @@ export function CourseSituationPage() {
     queryKey: ['course-situation', 'study-periods'],
     queryFn: listStudyPeriods,
     staleTime: Infinity,
+    enabled: auth.isAuthenticated,
   })
   const staticQuery = useQuery({
     queryKey: ['course-situation', 'static-data'],
@@ -70,6 +93,7 @@ export function CourseSituationPage() {
       return result.value
     },
     staleTime: Infinity,
+    enabled: auth.isAuthenticated,
   })
 
   const programs = staticQuery.data?.catalogPrograms ?? []
@@ -87,13 +111,21 @@ export function CourseSituationPage() {
     }
     return [...entries.entries()]
   }, [attempts])
+  const normalizedGrade = grade.trim().replace(',', '.')
+  const numericGrade = normalizedGrade ? Number(normalizedGrade) : null
+  const gradeError =
+    numericGrade !== null &&
+    (!Number.isFinite(numericGrade) || numericGrade < 0 || numericGrade > 10)
+      ? 'Informe uma nota entre 0 e 10.'
+      : undefined
 
   function resetAttempt() {
     setEditingAttemptId(undefined)
     setCourseId('')
     setStudyPeriodId('')
-    setStatus('ENROLLED')
+    setStatus('')
     setGrade('')
+    setAttemptError(undefined)
   }
 
   function openEdit(attempt: (typeof attempts)[number]) {
@@ -105,33 +137,44 @@ export function CourseSituationPage() {
     setAttemptDialogOpen(true)
   }
 
+  function openNewAttempt(initialStatus?: Status) {
+    resetAttempt()
+    setStatus(initialStatus ?? '')
+    setAttemptDialogOpen(true)
+  }
+
   async function saveAttempt() {
-    if (!studentId) return
-    const numericGrade = grade.trim() === '' ? null : Number(grade)
+    if (!studentId || !status || gradeError) return
     const body = {
       studyPeriodId: studyPeriodId ? Number(studyPeriodId) : null,
       status,
       grade: numericGrade,
     }
-    if (editingAttemptId) {
-      await patchStudentCourseAttempt(
-        studentId,
-        editingAttemptId,
-        body,
-        auth.getAccessToken,
-      )
-    } else if (courseId) {
-      await createStudentCourseAttempt(
-        studentId,
-        { ...body, courseId: Number(courseId) },
-        auth.getAccessToken,
-      )
+    setAttemptError(undefined)
+    try {
+      if (editingAttemptId) {
+        await patchStudentCourseAttempt(
+          studentId,
+          editingAttemptId,
+          body,
+          auth.getAccessToken,
+        )
+      } else if (courseId) {
+        await createStudentCourseAttempt(
+          studentId,
+          { ...body, courseId: Number(courseId) },
+          auth.getAccessToken,
+        )
+      }
+      await queryClient.invalidateQueries({
+        queryKey: ['course-situation', 'attempts'],
+      })
+      setActiveTab(status === 'ENROLLED' ? 'enrolled' : 'history')
+      setAttemptDialogOpen(false)
+      resetAttempt()
+    } catch {
+      setAttemptError('Não foi possível salvar a tentativa. Verifique os dados e tente novamente.')
     }
-    await queryClient.invalidateQueries({
-      queryKey: ['course-situation', 'attempts'],
-    })
-    setAttemptDialogOpen(false)
-    resetAttempt()
   }
 
   async function removeAttempt(attemptId: number) {
@@ -145,11 +188,7 @@ export function CourseSituationPage() {
 
   async function saveProfile(value: CourseProfileValues) {
     if (!studentId) return
-    await patchStudentProfile(
-      studentId,
-      value,
-      auth.getAccessToken,
-    )
+    await patchStudentProfile(studentId, value, auth.getAccessToken)
     await queryClient.invalidateQueries({
       queryKey: ['student', 'profile'],
     })
@@ -170,14 +209,14 @@ export function CourseSituationPage() {
             {attempt.grade !== null ? ` · Nota ${attempt.grade}` : ''}
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={() => openEdit(attempt)}>
+        <div className="flex w-full gap-2 sm:w-auto">
+          <Button className="flex-1 sm:flex-none" size="sm" variant="outline" onClick={() => openEdit(attempt)}>
             <Pencil /> Editar
           </Button>
           <Button
             size="sm"
             variant="outline"
-            className="text-destructive"
+            className="flex-1 text-destructive sm:flex-none"
             onClick={() => void removeAttempt(attempt.id)}
           >
             <Trash2 /> Remover
@@ -188,11 +227,58 @@ export function CourseSituationPage() {
   }
 
   if (!auth.initialized || profileQuery.isLoading || attemptsQuery.isLoading)
-    return <PageContainer>Carregando situação do curso…</PageContainer>
-  if (!auth.isAuthenticated || !studentId)
     return (
       <PageContainer>
-        Entre para gerenciar a situação do seu curso.
+        <LoadingState label="Carregando situação do curso" />
+      </PageContainer>
+    )
+  if (!auth.isAuthenticated)
+    return (
+      <PageContainer>
+        <PageHeader
+          eyebrow="Vida acadêmica"
+          title="Situação do curso"
+          description="Registre seu percurso acadêmico e use essas informações para orientar seus planejamentos."
+        />
+        <Card className="mx-auto max-w-3xl overflow-hidden">
+          <div className="border-b-2 border-strong-border bg-secondary/60 p-5 sm:p-6">
+            <div className="flex items-start gap-4">
+              <span className="grid size-11 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
+                <BookOpenCheck className="size-5" />
+              </span>
+              <div>
+                <h2 className="text-xl font-extrabold">Guarde sua trajetória em um só lugar</h2>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  Entre para manter seus dados vinculados à sua conta e continuar de qualquer dispositivo.
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="p-5 sm:p-6">
+            <p className="font-bold">Com uma conta, você pode:</p>
+            <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+              {[
+                'Informar curso e ano de ingresso',
+                'Acompanhar disciplinas cursando',
+                'Registrar conclusões e tentativas',
+              ].map((item) => (
+                <li key={item} className="flex gap-2 text-sm text-muted-foreground">
+                  <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <Button className="mt-6 w-full sm:w-auto" onClick={() => void auth.login('/situacao-do-curso')}>
+              <LogIn /> Entrar para acompanhar meu curso
+            </Button>
+          </div>
+        </Card>
+      </PageContainer>
+    )
+  if (!studentId)
+    return (
+      <PageContainer>
+        <LoadingState label="Preparando sua situação do curso" />
       </PageContainer>
     )
 
@@ -206,54 +292,78 @@ export function CourseSituationPage() {
             ? `${profileQuery.data.name} · acompanhe suas tentativas por período.`
             : undefined
         }
+        actions={
+          <Button onClick={() => openNewAttempt()}>
+            <Plus /> Adicionar disciplina
+          </Button>
+        }
       />
-      <CourseProfilePanel
-        profile={profileQuery.data}
-        catalogPrograms={programs}
-        onSave={saveProfile}
-      />
-      <div className="mb-6 flex justify-end">
-        <Button
-          onClick={() => {
-            resetAttempt()
-            setAttemptDialogOpen(true)
-          }}
-        >
-          <Plus /> Adicionar disciplina
-        </Button>
-      </div>
-      {attempts.length === 0 ? (
-        <EmptyState
-          title="Nenhuma disciplina registrada"
-          description="Adicione uma tentativa para começar seu histórico."
-        />
-      ) : (
-        <div className="space-y-5">
-          <section className="rounded-lg border-2 border-strong-border bg-card p-4">
-            <h2 className="mb-3 font-extrabold">Cursando</h2>
-            <div className="space-y-2">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as SituationTab)}
+      >
+        <TabsList aria-label="Seções da situação do curso">
+          <TabsTrigger value="course">Curso</TabsTrigger>
+          <TabsTrigger value="enrolled">
+            Cursando
+            <TabCount value={enrolledAttempts.length} />
+          </TabsTrigger>
+          <TabsTrigger value="history">
+            Histórico
+            <TabCount value={attempts.length - enrolledAttempts.length} />
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="course">
+          <CourseProfilePanel
+            profile={profileQuery.data}
+            catalogPrograms={programs}
+            onSave={saveProfile}
+          />
+        </TabsContent>
+
+        <TabsContent value="enrolled">
+          {enrolledAttempts.length ? (
+            <section className="space-y-2">
               {enrolledAttempts.map(renderAttempt)}
-              {!enrolledAttempts.length && (
-                <p className="text-sm text-muted-foreground">
-                  Nenhuma disciplina em andamento.
-                </p>
-              )}
-            </div>
-          </section>
-          {attemptsByPeriod.length > 0 && (
-            <h2 className="text-xl font-extrabold">Histórico</h2>
-          )}
-          {attemptsByPeriod.map(([period, entries]) => (
-            <section
-              key={period}
-              className="rounded-lg border-2 border-strong-border bg-card p-4"
-            >
-              <h2 className="mb-3 font-extrabold">{period}</h2>
-              <div className="space-y-2">{entries.map(renderAttempt)}</div>
             </section>
-          ))}
-        </div>
-      )}
+          ) : (
+            <EmptyState
+              title="Nenhuma disciplina em andamento"
+              description="Adicione as disciplinas que você está cursando neste período."
+              action={{
+                label: 'Adicionar disciplina cursando',
+                onClick: () => openNewAttempt('ENROLLED'),
+              }}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="history">
+          {attemptsByPeriod.length ? (
+            <div className="space-y-5">
+              {attemptsByPeriod.map(([period, entries]) => (
+                <section
+                  key={period}
+                  className="rounded-lg border-2 border-strong-border bg-card p-4"
+                >
+                  <h2 className="mb-3 font-extrabold">{period}</h2>
+                  <div className="space-y-2">{entries.map(renderAttempt)}</div>
+                </section>
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              title="Nenhuma tentativa no histórico"
+              description="Registre disciplinas concluídas, reprovadas ou desistidas."
+              action={{
+                label: 'Registrar tentativa anterior',
+                onClick: () => openNewAttempt('COMPLETED'),
+              }}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
       <Dialog open={attemptDialogOpen} onOpenChange={setAttemptDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -262,6 +372,13 @@ export function CourseSituationPage() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
+            <AutocompleteSelect
+              ariaLabel="Situação"
+              value={status}
+              options={statuses.map(([value, label]) => ({ value, label }))}
+              placeholder="Escolha a situação"
+              onValueChange={(value) => setStatus(value as Status)}
+            />
             {!editingAttemptId && (
               <AutocompleteSelect
                 ariaLabel="Disciplina"
@@ -277,31 +394,43 @@ export function CourseSituationPage() {
             <AutocompleteSelect
               ariaLabel="Período letivo"
               value={studyPeriodId}
-              options={(periodsQuery.data ?? []).map((period) => ({
-                value: String(period.id),
-                label: period.code,
-              }))}
+              options={mostRecentStudyPeriodsFirst(periodsQuery.data ?? []).map(
+                (period) => ({
+                  value: String(period.id),
+                  label: period.code,
+                }),
+              )}
               placeholder="Escolha o período (opcional)"
               onValueChange={setStudyPeriodId}
-            />
-            <AutocompleteSelect
-              ariaLabel="Situação"
-              value={status}
-              options={statuses.map(([value, label]) => ({ value, label }))}
-              onValueChange={(value) => setStatus(value as Status)}
             />
             <label className="block text-sm font-bold">
               Nota (quando houver)
               <input
                 value={grade}
-                onChange={(event) => setGrade(event.target.value)}
+                onChange={(event) => {
+                  setGrade(event.target.value)
+                  setAttemptError(undefined)
+                }}
                 inputMode="decimal"
+                aria-invalid={Boolean(gradeError)}
                 className="mt-1 h-10 w-full rounded-md border-2 border-strong-border bg-background px-3"
               />
             </label>
+            {gradeError && (
+              <p className="text-sm font-semibold text-destructive" role="alert">
+                {gradeError}
+              </p>
+            )}
+            {attemptError && (
+              <p className="text-sm font-semibold text-destructive" role="alert">
+                {attemptError}
+              </p>
+            )}
             <Button
               className="w-full"
-              disabled={!editingAttemptId && !courseId}
+              disabled={
+                !status || Boolean(gradeError) || (!editingAttemptId && !courseId)
+              }
               onClick={() => void saveAttempt()}
             >
               Salvar

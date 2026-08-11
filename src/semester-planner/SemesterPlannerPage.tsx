@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Download,
   MoreHorizontal,
@@ -16,11 +16,9 @@ import type {
   SemesterPlanningDocument,
   SemesterPlanningGuide,
 } from '@/semester-planner/domain/semesterPlanner'
-import type {
-  GuideChanges,
-  GuideMode,
-} from '@/semester-planner/domain/guide'
+import type { GuideChanges, GuideMode } from '@/semester-planner/domain/guide'
 import type { GridSelection } from '@/semester-planner/domain/scheduleGrid'
+import type { SemesterDraftBootstrap } from '@/planner/data/planningDraftBootstrap'
 import {
   scheduleDays as days,
   scheduleEndHour as endHour,
@@ -45,12 +43,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { PageContainer, PageHeader } from '@/components/PageLayout'
-import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
-  createSemesterPlanning,
-  deleteSemesterPlanning,
-} from '@/semester-planner/data/semesterPlanningApi'
+  LoadingState,
+  PageContainer,
+  PageHeader,
+} from '@/components/PageLayout'
+import { useOptionalAuth } from '@/auth/AuthProvider'
+import { deleteSemesterPlanning } from '@/semester-planner/data/semesterPlanningApi'
 import { createApiSemesterPlanner } from '@/semester-planner/data/apiSemesterPlanner'
 import { createInMemorySemesterPlanner } from '@/semester-planner/domain/inMemorySemesterPlanner'
 import {
@@ -70,6 +69,10 @@ import {
 } from '@/semester-planner/domain/guide'
 import { useSemesterPlannerQueries } from '@/semester-planner/hooks/useSemesterPlannerQueries'
 import { ClassesGuidePanel } from '@/semester-planner/components/ClassesGuidePanel'
+import { semesterDraftBootstrapKey } from '@/planner/data/planningDraftBootstrap'
+import { saveDraftHandoff } from '@/planner/data/planningDraftHandoff'
+import { SaveDraftDialog } from '@/planner/components/SaveDraftDialog'
+import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
 
 type GuideTab = 'disciplines' | 'classes'
 
@@ -81,7 +84,6 @@ function clampGridIndex(value: number, max: number) {
   return Math.max(0, Math.min(max, value))
 }
 
-
 export function SemesterPlannerPage({
   planningId = 'rascunho',
 }: {
@@ -89,8 +91,20 @@ export function SemesterPlannerPage({
 }) {
   const auth = useOptionalAuth()
   const navigate = useNavigate()
-  const [studyPeriodId, setStudyPeriodId] = useState<number>()
-  const [studyPeriodLocked, setStudyPeriodLocked] = useState(false)
+  const queryClient = useQueryClient()
+  const [draftBootstrap] = useState(() =>
+    planningId === 'rascunho'
+      ? queryClient.getQueryData<SemesterDraftBootstrap>(
+          semesterDraftBootstrapKey,
+        )
+      : undefined,
+  )
+  const [studyPeriodId, setStudyPeriodId] = useState<number | undefined>(
+    draftBootstrap?.studyPeriodId ?? undefined,
+  )
+  const [studyPeriodLocked, setStudyPeriodLocked] = useState(
+    Boolean(draftBootstrap?.studyPeriodId),
+  )
   const [activePlanId, setActivePlanId] = useState<number>()
   const [previewClassId, setPreviewClassId] = useState<number>()
   const gridSelectionRef = useRef<HTMLDivElement>(null)
@@ -98,6 +112,7 @@ export function SemesterPlannerPage({
     useState<GridSelection>()
   const [isDraggingGridSelection, setIsDraggingGridSelection] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [saveDraftDialogOpen, setSaveDraftDialogOpen] = useState(false)
   const [guideMode, setGuideMode] = useState<GuideMode>('none')
   const [guideCurriculumId, setGuideCurriculumId] = useState<number | null>()
   const [guideCurriculumTouched, setGuideCurriculumTouched] = useState(false)
@@ -137,13 +152,15 @@ export function SemesterPlannerPage({
       >
     >()
   const importInput = useRef<HTMLInputElement>(null)
-  const [document, setDocument] = useState<SemesterPlanningDocument>({
-    name: 'Novo planejamento de semestre',
-    studyPeriodId: null,
-    curriculumId: null,
-    classIds: [],
-    guide: emptyGuide(),
-  })
+  const [document, setDocument] = useState<SemesterPlanningDocument>(
+    draftBootstrap ?? {
+      name: 'Novo planejamento de semestre',
+      studyPeriodId: null,
+      curriculumId: null,
+      classIds: [],
+      guide: emptyGuide(),
+    },
+  )
   const [error, setError] = useState<string>()
   const {
     studentId,
@@ -163,7 +180,14 @@ export function SemesterPlannerPage({
   })
 
   useEffect(() => {
-    const first = query.data?.studyPeriods.at(0)
+    if (draftBootstrap)
+      queryClient.removeQueries({ queryKey: semesterDraftBootstrapKey })
+  }, [draftBootstrap, queryClient])
+
+  useEffect(() => {
+    const first = query.data
+      ? mostRecentStudyPeriodsFirst(query.data.studyPeriods).at(0)
+      : undefined
     if (!studyPeriodId && first) setStudyPeriodId(first.id)
   }, [query.data?.studyPeriods, studyPeriodId])
 
@@ -217,7 +241,7 @@ export function SemesterPlannerPage({
         },
       ]),
     ).values(),
-  ].sort((left, right) => left.label.localeCompare(right.label))
+  ].sort((left, right) => right.label.localeCompare(left.label))
   const anonymousPrograms = anonymousCatalogPrograms
     .filter(
       (catalogProgram) => catalogProgram.catalog.id === anonymousCatalogId,
@@ -347,13 +371,7 @@ export function SemesterPlannerPage({
       getAccessToken: auth.getAccessToken,
       onSavingChange: setIsSaving,
     })
-  }, [
-    activePlanId,
-    auth.getAccessToken,
-    document,
-    query.data,
-    studentId,
-  ])
+  }, [activePlanId, auth.getAccessToken, document, query.data, studentId])
 
   const snapshotQuery = useQuery({
     queryKey: ['semester-planner', 'snapshot', document, Boolean(planner)],
@@ -431,47 +449,20 @@ export function SemesterPlannerPage({
     setDocument((current) => ({ ...current, studyPeriodId: nextId }))
   }
 
-  async function createPlan() {
+  function saveDraft() {
     if (!studyPeriodId) return
-    if (!auth.isAuthenticated || !studentId) {
-      setError(
-        'Entre na sua conta para salvar este planejamento. Visitantes podem montar um rascunho e exportá-lo depois.',
-      )
-      return
-    }
-    try {
-      setIsSaving(true)
-      const created = await createSemesterPlanning(
-        studentId,
-        {
-          ...document,
-          studyPeriodId,
-          name:
-            document.name.trim() ||
-            `Planejamento ${query.data?.studyPeriods.find((period) => period.id === studyPeriodId)?.code ?? ''}`,
-        },
-        auth.getAccessToken,
-      )
-      setActivePlanId(created.id)
-      setDocument((current) => ({
-        ...current,
-        name: created.name,
-        studyPeriodId: created.studyPeriodId,
-        curriculumId: created.curriculumId,
-        classIds: created.classes.map((item) => item.id),
-        guide: guideFromApi(created.guide),
-      }))
-      await plansQuery.refetch()
-      await navigate({
-        to: '/planejamentos-de-semestre/$planejamentoId',
-        params: { planejamentoId: String(created.id) },
-        replace: true,
-      })
-    } catch {
-      setError('Não foi possível criar o planejamento na sua conta.')
-    } finally {
-      setIsSaving(false)
-    }
+    saveDraftHandoff({
+      version: 1,
+      kind: 'semester',
+      document: {
+        ...document,
+        studyPeriodId,
+        name:
+          document.name.trim() ||
+          `Planejamento ${query.data?.studyPeriods.find((period) => period.id === studyPeriodId)?.code ?? ''}`,
+      },
+    })
+    void auth.login(window.location.href)
   }
 
   function selectPlan(planId: number) {
@@ -530,11 +521,7 @@ export function SemesterPlannerPage({
       return
     try {
       setIsSaving(true)
-      await deleteSemesterPlanning(
-        studentId,
-        activePlanId,
-        auth.getAccessToken,
-      )
+      await deleteSemesterPlanning(studentId, activePlanId, auth.getAccessToken)
       await plansQuery.refetch()
       await navigate({ to: '/planejamentos-de-semestre', replace: true })
     } catch {
@@ -606,7 +593,7 @@ export function SemesterPlannerPage({
   if (query.isLoading) {
     return (
       <PageContainer size="wide">
-        Carregando planejamento de semestre…
+        <LoadingState label="Carregando planejamento de semestre" />
       </PageContainer>
     )
   }
@@ -618,9 +605,16 @@ export function SemesterPlannerPage({
     )
   }
   if (!snapshot) {
-    return <PageContainer size="wide">Preparando o planejamento…</PageContainer>
+    return (
+      <PageContainer size="wide">
+        <LoadingState label="Preparando o planejamento" />
+      </PageContainer>
+    )
   }
 
+  const studyPeriodCode = query.data.studyPeriods.find(
+    (period) => period.id === studyPeriodId,
+  )?.code
   const selectedIds = new Set(document.classIds)
   const selectedClassIdsWithConflict = new Set(
     snapshot.conflicts.flatMap((conflict) => [
@@ -1134,22 +1128,32 @@ export function SemesterPlannerPage({
         description="Monte seu horário a partir das turmas oferecidas."
         actions={
           <>
-            <select
-              className="h-10 rounded-md border-2 border-strong-border bg-background px-3 font-semibold"
-              value={studyPeriodId ?? ''}
-              disabled={studyPeriodLocked}
-              onChange={(event) => changePeriod(Number(event.target.value))}
-            >
-              {query.data.studyPeriods.map((period) => (
-                <option key={period.id} value={period.id}>
-                  {period.code}
-                </option>
-              ))}
-            </select>
+            {studyPeriodLocked ? (
+              <div className="flex h-10 items-center gap-2 text-sm font-bold text-muted-foreground">
+                <span className="text-xs tracking-[0.08em] uppercase">
+                  Período
+                </span>
+                <span className="text-foreground">{studyPeriodCode}</span>
+              </div>
+            ) : (
+              <select
+                className="h-10 rounded-md border-2 border-strong-border bg-background px-3 font-semibold"
+                value={studyPeriodId ?? ''}
+                onChange={(event) => changePeriod(Number(event.target.value))}
+              >
+                {mostRecentStudyPeriodsFirst(query.data.studyPeriods).map(
+                  (period) => (
+                    <option key={period.id} value={period.id}>
+                      {period.code}
+                    </option>
+                  ),
+                )}
+              </select>
+            )}
             {planningId === 'rascunho' && (
               <Button
                 variant="outline"
-                onClick={createPlan}
+                onClick={() => setSaveDraftDialogOpen(true)}
                 disabled={isSaving || !studyPeriodId}
               >
                 <Save className="size-4" />
@@ -1227,12 +1231,6 @@ export function SemesterPlannerPage({
               accept="application/json,.json"
               onChange={(event) => void importPlanning(event.target.files?.[0])}
             />
-            {activePlanId && (
-              <span className="inline-flex items-center gap-1 text-xs font-bold text-muted-foreground">
-                <Save className="size-3" />
-                {isSaving ? 'Salvando' : 'Salvo'}
-              </span>
-            )}
           </>
         }
       />
@@ -1841,6 +1839,12 @@ export function SemesterPlannerPage({
           </div>
         </aside>
       </div>
+      <SaveDraftDialog
+        open={saveDraftDialogOpen}
+        onOpenChange={setSaveDraftDialogOpen}
+        onExport={exportPlanning}
+        onLogin={saveDraft}
+      />
     </PageContainer>
   )
 }

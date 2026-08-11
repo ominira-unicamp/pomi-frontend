@@ -6,8 +6,12 @@ if (import.meta.env.PROD && !configuredApiUrl) {
 
 const apiUrl = configuredApiUrl || 'http://localhost:3000'
 
+export function publicApiUrl(path: string) {
+  return new URL(path, apiUrl).href
+}
+
 export function publicApiRequest(path: string, init: RequestInit = {}) {
-  return fetch(new URL(path, apiUrl), init)
+  return fetch(publicApiUrl(path), init)
 }
 
 export async function apiRequest(
@@ -19,7 +23,7 @@ export async function apiRequest(
   const headers = new Headers(init.headers)
   headers.set('Authorization', `Bearer ${token}`)
 
-  return fetch(new URL(path, apiUrl), {
+  return fetch(publicApiUrl(path), {
     ...init,
     headers,
     cache: 'no-store',

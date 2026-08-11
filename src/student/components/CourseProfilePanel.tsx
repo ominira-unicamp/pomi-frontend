@@ -23,125 +23,164 @@ export function CourseProfilePanel({
   catalogPrograms: ReadonlyArray<CatalogProgramOption>
   onSave: (value: CourseProfileValues) => Promise<void>
 }) {
-  const [editing, setEditing] = useState(false)
   const [catalogProgramId, setCatalogProgramId] = useState('')
   const [specializationId, setSpecializationId] = useState('')
   const [languageId, setLanguageId] = useState('')
   const [entryYear, setEntryYear] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState(false)
 
   const selectedProgram = useMemo(
     () => catalogPrograms.find((item) => item.id === catalogProgramId),
     [catalogProgramId, catalogPrograms],
   )
 
-  const beginEditing = () => {
+  useEffect(() => {
     const current = catalogPrograms.find(
       (item) =>
         Number(item.catalog.id) === profile?.catalogId &&
         Number(item.program.id) === profile.programId,
     )
     setCatalogProgramId(current?.id ?? '')
-    setSpecializationId(profile?.specializationId ? String(profile.specializationId) : '')
+    setSpecializationId(
+      profile?.specializationId ? String(profile.specializationId) : '',
+    )
     setLanguageId(profile?.languageId ? String(profile.languageId) : '')
     setEntryYear(profile?.entryYear ? String(profile.entryYear) : '')
-    setEditing(true)
-  }
+  }, [catalogPrograms, profile])
 
-  useEffect(() => {
-    if (!editing) return
-    if (selectedProgram) return
-    setSpecializationId('')
-    setLanguageId('')
-  }, [editing, selectedProgram])
+  const values: CourseProfileValues = {
+    catalogId: selectedProgram ? Number(selectedProgram.catalog.id) : null,
+    programId: selectedProgram ? Number(selectedProgram.program.id) : null,
+    specializationId: specializationId ? Number(specializationId) : null,
+    languageId: languageId ? Number(languageId) : null,
+    entryYear: entryYear ? Number(entryYear) : null,
+  }
+  const hasChanges =
+    values.catalogId !== (profile?.catalogId ?? null) ||
+    values.programId !== (profile?.programId ?? null) ||
+    values.specializationId !== (profile?.specializationId ?? null) ||
+    values.languageId !== (profile?.languageId ?? null) ||
+    values.entryYear !== (profile?.entryYear ?? null)
+  const parsedEntryYear = values.entryYear
+  const entryYearValid =
+    !entryYear ||
+    (parsedEntryYear !== null &&
+      Number.isInteger(parsedEntryYear) &&
+      parsedEntryYear >= 1900 &&
+      parsedEntryYear <= 9999)
 
   const save = async () => {
-    await onSave({
-      catalogId: selectedProgram ? Number(selectedProgram.catalog.id) : null,
-      programId: selectedProgram ? Number(selectedProgram.program.id) : null,
-      specializationId: specializationId ? Number(specializationId) : null,
-      languageId: languageId ? Number(languageId) : null,
-      entryYear: entryYear ? Number(entryYear) : null,
-    })
-    setEditing(false)
+    if (!hasChanges || !entryYearValid) return
+    setSaving(true)
+    setSaveError(false)
+    try {
+      await onSave(values)
+    } catch {
+      setSaveError(true)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
     <Card className="mb-6 shadow-none">
-      <CardContent className="flex flex-wrap items-center justify-between gap-3 p-4">
-        <div>
-          <p className="text-sm font-bold">Curso e ingresso</p>
-          <p className="text-sm text-muted-foreground">
-            {profile?.entryYear
-              ? `Ingresso em ${profile.entryYear}`
-              : 'Informe seu curso e ano de ingresso para preencher os planejamentos.'}
-          </p>
-        </div>
-        <Button variant="outline" onClick={beginEditing}>
-          Configurar
-        </Button>
+      <CardContent className="p-4">
+        <p className="font-extrabold">Curso e ingresso</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Estas informações preenchem automaticamente os novos planejamentos.
+        </p>
       </CardContent>
-      {editing && (
-        <CardContent className="border-t-2 border-strong-border p-4">
-          <div className="grid gap-3 md:grid-cols-2">
+      <CardContent className="border-t-2 border-strong-border p-4">
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="block space-y-2 text-sm font-bold">
+            <span>Catálogo e programa</span>
             <AutocompleteSelect
               ariaLabel="Catálogo e programa"
               value={catalogProgramId}
-              options={catalogPrograms.map((item) => ({
-                value: item.id,
-                label: `Catálogo ${item.catalog.year} — ${item.program.code} ${item.program.name}`,
-              }))}
+              options={[...catalogPrograms]
+                .sort((left, right) => right.catalog.year - left.catalog.year)
+                .map((item) => ({
+                  value: item.id,
+                  label: `Catálogo ${item.catalog.year} — ${item.program.code} ${item.program.name}`,
+                }))}
               placeholder="Escolha catálogo e programa"
               onValueChange={(value) => {
+                setSaveError(false)
                 setCatalogProgramId(value)
                 setSpecializationId('')
                 setLanguageId('')
               }}
             />
-            <AutocompleteSelect
-              ariaLabel="Habilitação"
-              value={specializationId}
-              disabled={!selectedProgram}
-              emptyLabel="Sem habilitação"
-              options={(selectedProgram?.specializations ?? []).map((item) => ({
-                value: item.id,
-                label: `${item.code} — ${item.name}`,
-              }))}
-              placeholder="Escolha a habilitação"
-              onValueChange={setSpecializationId}
-            />
-            <AutocompleteSelect
-              ariaLabel="Língua"
-              value={languageId}
-              disabled={!selectedProgram}
-              emptyLabel="Sem língua adicional"
-              options={(selectedProgram?.languages ?? []).map((item) => ({
-                value: item.id,
-                label: item.name,
-              }))}
-              placeholder="Escolha a língua"
-              onValueChange={setLanguageId}
-            />
+          </label>
+          {selectedProgram?.specializations.length ? (
             <label className="block space-y-2 text-sm font-bold">
-              <span>Ano de ingresso</span>
-              <input
-                type="number"
-                min="1900"
-                max="9999"
-                value={entryYear}
-                placeholder="Ex.: 2024"
-                onChange={(event) => setEntryYear(event.target.value)}
-                className="h-10 w-full rounded-md border-2 border-strong-border bg-background px-3"
+              <span>Habilitação</span>
+              <AutocompleteSelect
+                ariaLabel="Habilitação"
+                value={specializationId}
+                emptyLabel="Sem habilitação"
+                options={selectedProgram.specializations.map((item) => ({
+                  value: item.id,
+                  label: `${item.code} — ${item.name}`,
+                }))}
+                placeholder="Escolha a habilitação"
+                onValueChange={setSpecializationId}
               />
             </label>
-          </div>
-          <div className="mt-4 flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setEditing(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={() => void save()}>Salvar</Button>
-          </div>
-        </CardContent>
-      )}
+          ) : null}
+          {selectedProgram?.languages.length ? (
+            <label className="block space-y-2 text-sm font-bold">
+              <span>Língua</span>
+              <AutocompleteSelect
+                ariaLabel="Língua"
+                value={languageId}
+                emptyLabel="Sem língua adicional"
+                options={selectedProgram.languages.map((item) => ({
+                  value: item.id,
+                  label: item.name,
+                }))}
+                placeholder="Escolha a língua"
+                onValueChange={setLanguageId}
+              />
+            </label>
+          ) : null}
+          <label className="block space-y-2 text-sm font-bold">
+            <span>Ano de ingresso</span>
+            <input
+              type="number"
+              min="1900"
+              max="9999"
+              value={entryYear}
+              placeholder="Ex.: 2024"
+              onChange={(event) => {
+                setSaveError(false)
+                setEntryYear(event.target.value)
+              }}
+              aria-invalid={!entryYearValid}
+              className="h-10 w-full rounded-md border-2 border-strong-border bg-background px-3"
+            />
+          </label>
+        </div>
+        {!entryYearValid && (
+          <p className="mt-3 text-sm font-semibold text-destructive" role="alert">
+            Informe um ano de ingresso entre 1900 e 9999.
+          </p>
+        )}
+        {saveError && (
+          <p className="mt-3 text-sm font-semibold text-destructive" role="alert">
+            Não foi possível salvar as informações do curso.
+          </p>
+        )}
+        <div className="mt-5 flex justify-end">
+          <Button
+            disabled={!hasChanges || !entryYearValid || saving}
+            onClick={() => void save()}
+          >
+            {saving ? 'Salvando…' : 'Salvar alterações'}
+          </Button>
+        </div>
+      </CardContent>
     </Card>
   )
 }

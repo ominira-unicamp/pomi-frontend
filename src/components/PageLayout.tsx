@@ -2,6 +2,7 @@ import { AlertCircle, Inbox, LoaderCircle } from 'lucide-react'
 import type { HTMLAttributes, ReactNode } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 
 export function PageContainer({
@@ -74,7 +75,7 @@ export function PageHeader({
         )}
       </div>
       {actions && (
-        <div className="flex w-full max-w-full shrink-0 flex-wrap items-center justify-start gap-2 sm:max-w-[52%] sm:justify-end">
+        <div className="flex w-full max-w-full shrink-0 flex-wrap items-center justify-start gap-2 sm:w-auto sm:max-w-[60%] sm:justify-end">
           {actions}
         </div>
       )}
@@ -125,12 +126,32 @@ export function ErrorState(props: PageStateProps) {
 
 export function LoadingState({ label = 'Carregando' }: { label?: string }) {
   return (
-    <div
-      className="flex min-h-72 items-center justify-center gap-3 text-muted-foreground"
+    <section
+      className="grid min-h-72 place-items-center px-2 py-8"
       role="status"
+      aria-live="polite"
+      aria-busy="true"
     >
-      <LoaderCircle className="size-5 animate-spin" />
-      <span className="font-semibold">{label}</span>
-    </div>
+      <div className="w-full max-w-xl rounded-lg border-2 border-strong-border bg-card p-5 shadow-[4px_4px_0_var(--strong-border)] sm:p-6">
+        <div className="flex items-center gap-4">
+          <span className="grid size-11 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
+            <LoaderCircle className="size-5 animate-spin" />
+          </span>
+          <div className="min-w-0">
+            <strong className="block text-base font-extrabold sm:text-lg">
+              {label}
+            </strong>
+            <span className="text-sm text-muted-foreground">
+              Organizando as informações para você.
+            </span>
+          </div>
+        </div>
+        <div className="mt-6 space-y-3" aria-hidden="true">
+          <Skeleton className="h-3 w-full" />
+          <Skeleton className="h-3 w-4/5" />
+          <Skeleton className="h-3 w-3/5" />
+        </div>
+      </div>
+    </section>
   )
 }

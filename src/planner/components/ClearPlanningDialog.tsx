@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 
 import type { PlannerDispatch } from '@/planner/types'
 import { Button } from '@/components/ui/button'
+import { ActionTooltip } from '@/planner/components/ActionTooltip'
 import {
   Dialog,
   DialogClose,
@@ -35,13 +36,15 @@ export function ClearPlanningDialog({
   }
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button variant="outline" disabled={disabled}>
-            Limpar planejamento
-          </Button>
-        )}
-      </DialogTrigger>
+      <ActionTooltip content="Remova todas as disciplinas e semestres deste currículo.">
+        <DialogTrigger asChild>
+          {trigger ?? (
+            <Button variant="outline" disabled={disabled}>
+              Limpar planejamento
+            </Button>
+          )}
+        </DialogTrigger>
+      </ActionTooltip>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Limpar planejamento?</DialogTitle>
@@ -53,15 +56,19 @@ export function ClearPlanningDialog({
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancelar</Button>
+            <ActionTooltip content="Feche sem remover o conteúdo do currículo.">
+              <Button variant="outline">Cancelar</Button>
+            </ActionTooltip>
           </DialogClose>
-          <Button
-            variant="destructive"
-            disabled={disabled}
-            onClick={() => void submit()}
-          >
-            Limpar planejamento
-          </Button>
+          <ActionTooltip content="Confirme a remoção de todas as disciplinas e semestres.">
+            <Button
+              variant="destructive"
+              disabled={disabled}
+              onClick={() => void submit()}
+            >
+              Limpar planejamento
+            </Button>
+          </ActionTooltip>
         </DialogFooter>
       </DialogContent>
     </Dialog>
