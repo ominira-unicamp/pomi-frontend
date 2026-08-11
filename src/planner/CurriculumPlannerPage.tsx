@@ -19,6 +19,7 @@ import {
   Plus,
   RotateCcw,
   Save,
+  Star,
   Trash2,
   Upload,
 } from 'lucide-react'
@@ -420,45 +421,86 @@ export function CurriculumPlannerPage({
                     key={curriculum.id}
                     className="overflow-hidden transition-colors hover:border-primary"
                   >
-                    <button
-                      className="pomi-focus flex h-full min-h-44 w-full flex-col p-5 text-left"
-                      onClick={() =>
-                        void navigate({
-                          to: '/planejamentos-de-curriculo/$planejamentoId',
-                          params: { planejamentoId: String(curriculum.id) },
-                        })
-                      }
-                    >
-                      <div className="flex items-start justify-between gap-4">
-                        <span className="grid size-10 shrink-0 place-items-center rounded-md bg-secondary text-secondary-foreground">
-                          <GraduationCap className="size-5" />
-                        </span>
-                        <span className="inline-flex items-center gap-1 text-sm font-bold text-primary">
-                          Abrir <ArrowRight className="size-4" />
-                        </span>
-                      </div>
-                      <h3 className="mt-5 text-lg font-extrabold">
-                        {curriculum.name}
-                      </h3>
-                      {details.length > 0 && (
-                        <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-3 text-sm">
-                          {details.map((detail) => (
-                            <div key={detail.label} className="min-w-32">
-                              <dt className="text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase">
-                                {detail.label}
-                              </dt>
-                              <dd className="mt-0.5 font-semibold">
-                                {detail.value}
-                              </dd>
-                            </div>
-                          ))}
-                        </dl>
-                      )}
-                      <div className="mt-auto flex items-center gap-1.5 border-t border-strong-border/30 pt-4 text-xs font-semibold text-muted-foreground">
-                        <Clock3 className="size-3.5" />
-                        {updatedAtLabel(curriculum.updatedAt)}
-                      </div>
-                    </button>
+                    <div className="relative h-full">
+                      <ActionTooltip
+                        content={
+                          curriculum.isFavorite
+                            ? 'Remova este planejamento da Home.'
+                            : 'Mostre este planejamento como principal na Home.'
+                        }
+                      >
+                        <Button
+                          aria-label={
+                            curriculum.isFavorite
+                              ? 'Remover dos favoritos'
+                              : 'Favoritar planejamento'
+                          }
+                          aria-pressed={curriculum.isFavorite}
+                          className="absolute top-4 right-4 z-10"
+                          disabled={planner.isDispatching}
+                          size="icon"
+                          variant={
+                            curriculum.isFavorite ? 'default' : 'outline'
+                          }
+                          onClick={() =>
+                            void planner.setCurriculumFavorite(
+                              curriculum.id,
+                              !curriculum.isFavorite,
+                            )
+                          }
+                        >
+                          <Star
+                            className={
+                              curriculum.isFavorite ? 'fill-current' : undefined
+                            }
+                          />
+                        </Button>
+                      </ActionTooltip>
+                      <button
+                        className="pomi-focus flex h-full min-h-44 w-full flex-col p-5 pr-16 text-left"
+                        onClick={() =>
+                          void navigate({
+                            to: '/planejamentos-de-curriculo/$planejamentoId',
+                            params: { planejamentoId: String(curriculum.id) },
+                          })
+                        }
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <span className="grid size-10 shrink-0 place-items-center rounded-md bg-secondary text-secondary-foreground">
+                            <GraduationCap className="size-5" />
+                          </span>
+                          <span className="inline-flex items-center gap-1 text-sm font-bold text-primary">
+                            Abrir <ArrowRight className="size-4" />
+                          </span>
+                        </div>
+                        <h3 className="mt-5 text-lg font-extrabold">
+                          {curriculum.name}
+                        </h3>
+                        {curriculum.isFavorite && (
+                          <p className="mt-1 text-xs font-bold text-primary">
+                            Planejamento favorito
+                          </p>
+                        )}
+                        {details.length > 0 && (
+                          <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-3 text-sm">
+                            {details.map((detail) => (
+                              <div key={detail.label} className="min-w-32">
+                                <dt className="text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase">
+                                  {detail.label}
+                                </dt>
+                                <dd className="mt-0.5 font-semibold">
+                                  {detail.value}
+                                </dd>
+                              </div>
+                            ))}
+                          </dl>
+                        )}
+                        <div className="mt-auto flex items-center gap-1.5 border-t border-strong-border/30 pt-4 text-xs font-semibold text-muted-foreground">
+                          <Clock3 className="size-3.5" />
+                          {updatedAtLabel(curriculum.updatedAt)}
+                        </div>
+                      </button>
+                    </div>
                   </Card>
                 )
               })}
@@ -633,6 +675,35 @@ export function CurriculumPlannerPage({
                 {planner.isAuthenticated && (
                   <>
                     <DropdownMenuSeparator />
+                    <ActionTooltip
+                      content={
+                        activeCurriculum?.isFavorite
+                          ? 'Remova este planejamento da Home.'
+                          : 'Mostre este planejamento como principal na Home.'
+                      }
+                    >
+                      <DropdownMenuItem
+                        disabled={planner.isDispatching || !activeCurriculum}
+                        onSelect={() => {
+                          if (!activeCurriculum) return
+                          void planner.setCurriculumFavorite(
+                            activeCurriculum.id,
+                            !activeCurriculum.isFavorite,
+                          )
+                        }}
+                      >
+                        <Star
+                          className={
+                            activeCurriculum?.isFavorite
+                              ? 'fill-current'
+                              : undefined
+                          }
+                        />
+                        {activeCurriculum?.isFavorite
+                          ? 'Remover dos favoritos'
+                          : 'Favoritar planejamento'}
+                      </DropdownMenuItem>
+                    </ActionTooltip>
                     <ActionTooltip content="Altere o nome deste currículo salvo.">
                       <DropdownMenuItem
                         disabled={planner.isDispatching}

@@ -82,6 +82,10 @@ export type CurriculumPlannerContextValue = Readonly<{
   draftName?: string
   setDraftName: (name?: string) => void
   renameCurriculum: (name: string) => Promise<boolean>
+  setCurriculumFavorite: (
+    curriculumId: number,
+    isFavorite: boolean,
+  ) => Promise<boolean>
   deleteCurriculumPlan: () => Promise<boolean>
   entryState: 'selection' | 'editing'
   openAnonymousDraft: () => void
@@ -380,6 +384,7 @@ export function CurriculumPlannerProvider({
           studentId,
           {
             name,
+            isFavorite: false,
             selection: {
               catalogProgramId: null,
               specializationId: null,
@@ -454,6 +459,26 @@ export function CurriculumPlannerProvider({
     },
     [auth.getAccessToken, auth.isAuthenticated, persist, planner, remoteQuery],
   )
+  const setCurriculumFavorite = useCallback(
+    async (curriculumId: number, isFavorite: boolean) => {
+      if (!auth.isAuthenticated || !remoteQuery.data?.studentId) return false
+      try {
+        const updated = await patchCurriculum(
+          remoteQuery.data.studentId,
+          curriculumId,
+          { isFavorite },
+          auth.getAccessToken,
+        )
+        if (remoteDocument.current?.id === curriculumId)
+          remoteDocument.current = updated
+        await remoteQuery.refetch()
+        return true
+      } catch {
+        return false
+      }
+    },
+    [auth.getAccessToken, auth.isAuthenticated, remoteQuery],
+  )
   const deleteCurriculumPlan = useCallback(async () => {
     if (!auth.isAuthenticated) return false
     if (!remoteDocument.current?.id) {
@@ -507,6 +532,7 @@ export function CurriculumPlannerProvider({
       draftName,
       setDraftName,
       renameCurriculum,
+      setCurriculumFavorite,
       deleteCurriculumPlan,
       actionError,
       studentProfile: studentProfileQuery.data,
@@ -528,6 +554,7 @@ export function CurriculumPlannerProvider({
       entryState,
       openAnonymousDraft,
       renameCurriculum,
+      setCurriculumFavorite,
       resetLocalPlan,
       resultError,
       retry,

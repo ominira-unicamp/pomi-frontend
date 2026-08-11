@@ -29,10 +29,13 @@ import {
 import { listSemesterPlannings } from '@/semester-planner/data/semesterPlanningApi'
 import {
   ensureCurrentStudent,
+  listClassSchedulesByStudyPeriod,
   listStudentCourseAttempts,
 } from '@/student/data/studentApi'
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
 import { cn } from '@/lib/utils'
+import { TodayClassesPanel } from '@/home/TodayClassesPanel'
+import { currentStudyPeriodCode } from '@/home/todayClasses'
 
 const staticSource = createApiCurriculumPlannerStaticDataSource()
 
@@ -202,12 +205,14 @@ function AuthenticatedHome() {
     enabled: Boolean(studentId),
     retry: false,
   })
-  const latestCurriculum = curriculaQuery.data?.[0]
-  const latestCurriculumQuery = useQuery({
-    queryKey: ['home', 'curriculum', studentId, latestCurriculum?.id],
+  const featuredCurriculum =
+    curriculaQuery.data?.find((curriculum) => curriculum.isFavorite) ??
+    curriculaQuery.data?.[0]
+  const featuredCurriculumQuery = useQuery({
+    queryKey: ['home', 'curriculum', studentId, featuredCurriculum?.id],
     queryFn: () =>
-      getCurriculum(studentId!, latestCurriculum!.id, auth.getAccessToken),
-    enabled: Boolean(studentId && latestCurriculum?.id),
+      getCurriculum(studentId!, featuredCurriculum!.id, auth.getAccessToken),
+    enabled: Boolean(studentId && featuredCurriculum?.id),
     retry: false,
   })
   const staticQuery = useQuery({
@@ -224,6 +229,34 @@ function AuthenticatedHome() {
   })
 
   const attempts = attemptsQuery.data ?? []
+  const enrolledAttempts = attempts.filter(
+    (attempt) => attempt.status === 'ENROLLED',
+  )
+  const studyPeriodCode = currentStudyPeriodCode()
+  const currentPeriodId = enrolledAttempts.find(
+    (attempt) =>
+      attempt.studyPeriod?.code.toLocaleLowerCase() === studyPeriodCode,
+  )?.studyPeriodId
+  const todayScheduleQuery = useQuery({
+    queryKey: [
+      'course-situation',
+      'class-schedules',
+      currentPeriodId ? String(currentPeriodId) : '',
+    ],
+    queryFn: () => listClassSchedulesByStudyPeriod(currentPeriodId!),
+    enabled: Boolean(currentPeriodId),
+    staleTime: Infinity,
+  })
+  const currentClassIds = new Set(
+    enrolledAttempts.flatMap((attempt) =>
+      attempt.studyPeriodId === currentPeriodId && attempt.classId
+        ? [attempt.classId]
+        : [],
+    ),
+  )
+  const currentMeetings = (todayScheduleQuery.data ?? []).filter((meeting) =>
+    currentClassIds.has(meeting.classId),
+  )
   const completedCourses = useMemo(
     () =>
       new Map(
@@ -242,7 +275,7 @@ function AuthenticatedHome() {
   ).length
   const curriculumCourseIds = [
     ...new Set(
-      (latestCurriculumQuery.data?.courses ?? []).map((course) => course.courseId),
+      (featuredCurriculumQuery.data?.courses ?? []).map((course) => course.courseId),
     ),
   ]
   const creditsByCourse = new Map(
@@ -273,9 +306,9 @@ function AuthenticatedHome() {
   )
   const resumeSemester = Boolean(
     latestSemesterPlan &&
-      (!latestCurriculum?.updatedAt ||
+      (!featuredCurriculum?.updatedAt ||
         new Date(latestSemesterPlan.updatedAt).getTime() >
-          new Date(latestCurriculum.updatedAt).getTime()),
+          new Date(featuredCurriculum.updatedAt).getTime()),
   )
 
   async function openSituation() {
@@ -335,9 +368,17 @@ function AuthenticatedHome() {
                 to: '/planejamentos-de-semestre/novo' as const,
                 label: 'Montar horário',
               }
-            : {
-                title: 'Continue de onde parou',
-                description: resumeSemester
+            : featuredCurriculum?.isFavorite
+              ? {
+                  title: 'Seu planejamento favorito',
+                  description: 'Retome o currículo que você escolheu como principal.',
+                  to: '/planejamentos-de-curriculo/$planejamentoId' as const,
+                  params: { planejamentoId: String(featuredCurriculum.id) },
+                  label: 'Abrir favorito',
+                }
+              : {
+                  title: 'Continue de onde parou',
+                  description: resumeSemester
                   ? 'Retome o planejamento de semestre atualizado mais recentemente.'
                   : 'Retome o planejamento de currículo atualizado mais recentemente.',
                 to: resumeSemester
@@ -345,7 +386,7 @@ function AuthenticatedHome() {
                   : ('/planejamentos-de-curriculo/$planejamentoId' as const),
                 params: {
                   planejamentoId: String(
-                    resumeSemester ? latestSemesterPlan!.id : latestCurriculum!.id,
+                    resumeSemester ? latestSemesterPlan!.id : featuredCurriculum!.id,
                   ),
                 },
                 label: 'Retomar planejamento',
@@ -359,14 +400,14 @@ function AuthenticatedHome() {
         curriculaQuery.isLoading ||
         semesterPlansQuery.isLoading ||
         staticQuery.isLoading ||
-        (Boolean(latestCurriculum) && latestCurriculumQuery.isLoading)))
+        (Boolean(featuredCurriculum) && featuredCurriculumQuery.isLoading)))
   const hasDataError =
     studentQuery.isError ||
     profileQuery.isError ||
     attemptsQuery.isError ||
     curriculaQuery.isError ||
     semesterPlansQuery.isError ||
-    latestCurriculumQuery.isError ||
+    featuredCurriculumQuery.isError ||
     staticQuery.isError
 
   return (
@@ -424,6 +465,17 @@ function AuthenticatedHome() {
             </div>
           </section>
 
+          {enrolledAttempts.length > 0 && (
+            <TodayClassesPanel
+              currentPeriodCode={studyPeriodCode}
+              attempts={enrolledAttempts}
+              meetings={currentMeetings}
+              isLoading={todayScheduleQuery.isLoading}
+              isError={todayScheduleQuery.isError}
+              scheduleLoaded={todayScheduleQuery.isSuccess}
+            />
+          )}
+
           <section aria-labelledby="summary-title">
             <h2 id="summary-title" className="mb-4 text-xl font-extrabold">Seu resumo</h2>
             <Card className="grid gap-5 p-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -458,17 +510,17 @@ function AuthenticatedHome() {
             </div>
           </section>
 
-          {(latestCurriculum || latestSemesterPlan) && (
+          {(featuredCurriculum || latestSemesterPlan) && (
             <section aria-labelledby="recent-title">
               <div className="mb-4 flex items-end justify-between gap-4">
                 <h2 id="recent-title" className="text-xl font-extrabold">Retomar planejamentos</h2>
                 <CheckCircle2 className="size-5 text-muted-foreground" />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
-                {latestCurriculum && (
+                {featuredCurriculum && (
                   <Link
                     to="/planejamentos-de-curriculo/$planejamentoId"
-                    params={{ planejamentoId: String(latestCurriculum.id) }}
+                    params={{ planejamentoId: String(featuredCurriculum.id) }}
                     className="pomi-focus block"
                   >
                     <Card className="h-full p-5 transition-colors hover:border-primary">
@@ -476,7 +528,10 @@ function AuthenticatedHome() {
                         <BookOpen className="size-5 text-primary" />
                         <span className="inline-flex items-center gap-1 text-sm font-bold text-primary">Abrir <ArrowRight /></span>
                       </div>
-                      <h3 className="mt-4 font-extrabold">{latestCurriculum.name}</h3>
+                      <h3 className="mt-4 font-extrabold">
+                        {featuredCurriculum.name}
+                        {featuredCurriculum.isFavorite ? ' · Favorito' : ''}
+                      </h3>
                       <p className="mt-1 text-sm text-muted-foreground">{curriculumCourseIds.length} disciplinas · {curriculumCredits} créditos</p>
                     </Card>
                   </Link>

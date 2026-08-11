@@ -8,8 +8,18 @@ import {
 } from '@tanstack/react-router'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type * as TodayClassesModule from '@/home/todayClasses'
 
 import { HomePage } from '@/home/HomePage'
+
+vi.mock('@/home/todayClasses', async (importOriginal) => {
+  const original = await importOriginal<typeof TodayClassesModule>()
+  return {
+    ...original,
+    currentScheduleDay: () => 'TUESDAY',
+    currentStudyPeriodCode: () => '2s2026',
+  }
+})
 
 const login = vi.fn()
 const getAccessToken = vi.fn()
@@ -40,33 +50,61 @@ vi.mock('@/student/hooks/useStudentProfile', () => ({
   useStudentProfile: () => studentState,
 }))
 
+const { listClassSchedulesByStudyPeriod, listStudentCourseAttempts } =
+  vi.hoisted(() => ({
+    listClassSchedulesByStudyPeriod: vi.fn(),
+    listStudentCourseAttempts: vi.fn(),
+  }))
+
 vi.mock('@/student/data/studentApi', () => ({
   ensureCurrentStudent: vi.fn(),
-  listStudentCourseAttempts: vi.fn(() => Promise.resolve([
-    {
-      id: 1,
-      courseId: 10,
-      status: 'COMPLETED',
-      course: { id: 10, code: 'MA111', name: 'Cálculo', credits: 6 },
+  listClassSchedulesByStudyPeriod,
+  listStudentCourseAttempts,
+}))
+
+const attempts = [
+  {
+    id: 1,
+    courseId: 10,
+    status: 'COMPLETED',
+    course: { id: 10, code: 'MA111', name: 'Cálculo', credits: 6 },
+  },
+  {
+    id: 2,
+    courseId: 11,
+    studyPeriodId: 20,
+    classId: 40,
+    status: 'ENROLLED',
+    course: { id: 11, code: 'MC102', name: 'Algoritmos', credits: 6 },
+    studyPeriod: { id: 20, code: '2s2026' },
+    class: {
+      id: 40,
+      code: 'A',
+      professors: [{ id: 50, name: 'Ana Silva' }],
     },
-    {
-      id: 2,
-      courseId: 11,
-      status: 'ENROLLED',
-      course: { id: 11, code: 'MC102', name: 'Algoritmos', credits: 6 },
-    },
-  ])),
+  },
+] as const
+
+const schedules = [
+      {
+        id: 30,
+        classId: 40,
+        classCode: 'A',
+        courseCode: 'MC102',
+        studyPeriodId: 20,
+        dayOfWeek: 'TUESDAY',
+        start: '14:00',
+        end: '16:00',
+        roomCode: 'CB01',
+      },
+] as const
+
+const { listCurricula } = vi.hoisted(() => ({
+  listCurricula: vi.fn(),
 }))
 
 vi.mock('@/planner/data/curriculumPersistenceApi', () => ({
-  listCurricula: vi.fn(() => Promise.resolve([
-    {
-      id: 7,
-      name: 'Meu currículo',
-      selection: {},
-      updatedAt: '2026-08-01T12:00:00.000Z',
-    },
-  ])),
+  listCurricula,
   getCurriculum: vi.fn(() => Promise.resolve({
     id: 7,
     name: 'Meu currículo',
@@ -143,6 +181,19 @@ describe('HomePage', () => {
       isLoading: false,
       isError: false,
     }
+    listCurricula.mockResolvedValue([
+      {
+        id: 7,
+        name: 'Meu currículo',
+        isFavorite: false,
+        selection: {},
+        updatedAt: '2026-08-01T12:00:00.000Z',
+      },
+    ])
+    listStudentCourseAttempts.mockReset()
+    listClassSchedulesByStudyPeriod.mockReset()
+    listStudentCourseAttempts.mockResolvedValue(attempts)
+    listClassSchedulesByStudyPeriod.mockResolvedValue(schedules)
   })
 
   it('guides anonymous students without presenting a marketing page', async () => {
@@ -180,5 +231,103 @@ describe('HomePage', () => {
     ).toBeTruthy()
     expect(screen.getAllByText('6', { selector: 'strong' }).length).toBeGreaterThan(0)
     expect(screen.getByText('Próximo semestre')).toBeTruthy()
+    expect(screen.getByText('Aulas de hoje')).toBeTruthy()
+    expect(screen.getByText('MC102 — Algoritmos')).toBeTruthy()
+    expect(screen.getByText('Ana Silva')).toBeTruthy()
+  })
+
+  it('prioritizes the favorite curriculum on the home page', async () => {
+    authState.isAuthenticated = true
+    authState.profile = { given_name: 'Ana' }
+    studentState.studentId = 1
+    studentState.profileQuery = {
+      data: {
+        catalogId: 2,
+        programId: 3,
+        entryYear: 2026,
+        specializationId: null,
+        languageId: null,
+      },
+      isLoading: false,
+      isError: false,
+    }
+    listCurricula.mockResolvedValue([
+      {
+        id: 7,
+        name: 'Planejamento recente',
+        isFavorite: false,
+        selection: {},
+        updatedAt: '2026-08-03T12:00:00.000Z',
+      },
+      {
+        id: 9,
+        name: 'Planejamento favorito',
+        isFavorite: true,
+        selection: {},
+        updatedAt: '2026-08-01T12:00:00.000Z',
+      },
+    ])
+
+    renderHome()
+
+    expect(await screen.findByText('Seu planejamento favorito')).toBeTruthy()
+    expect(
+      screen.getByText('Retome o currículo que você escolheu como principal.'),
+    ).toBeTruthy()
+    expect(screen.getByRole('link', { name: /Abrir favorito/ })).toBeTruthy()
+  })
+
+  it('keeps the daily panel hidden without enrolled courses', async () => {
+    authState.isAuthenticated = true
+    authState.profile = { given_name: 'Ana' }
+    studentState.studentId = 1
+    studentState.profileQuery = {
+      data: undefined,
+      isLoading: false,
+      isError: false,
+    }
+    listStudentCourseAttempts.mockResolvedValue([attempts[0]])
+
+    renderHome()
+
+    expect(await screen.findByText('Olá, Ana')).toBeTruthy()
+    expect(screen.queryByText('Aulas de hoje')).toBeNull()
+    expect(listClassSchedulesByStudyPeriod).not.toHaveBeenCalled()
+  })
+
+  it('shows an empty daily state when there are no classes today', async () => {
+    authState.isAuthenticated = true
+    authState.profile = { given_name: 'Ana' }
+    studentState.studentId = 1
+    studentState.profileQuery = {
+      data: undefined,
+      isLoading: false,
+      isError: false,
+    }
+    listClassSchedulesByStudyPeriod.mockResolvedValue([])
+
+    renderHome()
+
+    expect(await screen.findByText('Você não tem aulas hoje.')).toBeTruthy()
+    expect(screen.getByText(/Agenda parcial:/)).toBeTruthy()
+  })
+
+  it('isolates a schedule error from the rest of the home page', async () => {
+    authState.isAuthenticated = true
+    authState.profile = { given_name: 'Ana' }
+    studentState.studentId = 1
+    studentState.profileQuery = {
+      data: undefined,
+      isLoading: false,
+      isError: false,
+    }
+    listClassSchedulesByStudyPeriod.mockRejectedValue(new Error('Unavailable'))
+
+    renderHome()
+
+    expect(
+      await screen.findByText('Não foi possível carregar as aulas de hoje'),
+    ).toBeTruthy()
+    expect(screen.getByText('Seu resumo')).toBeTruthy()
   })
 })

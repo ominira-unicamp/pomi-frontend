@@ -7,6 +7,7 @@ import { apiRequest } from '@/api/client'
 export type CurriculumDocument = Readonly<{
   id?: number
   name: string
+  isFavorite: boolean
   selection: {
     catalogProgramId: string | null
     specializationId: string | null
@@ -25,6 +26,7 @@ export type CurriculumDocument = Readonly<{
 export type CurriculumSummary = Readonly<{
   id: number
   name: string
+  isFavorite: boolean
   selection: Readonly<{
     catalogProgramId: number | null
     catalogSpecializationId: number | null
@@ -62,6 +64,7 @@ export async function listCurricula(
         typeof summary.name === 'string' && summary.name.trim()
           ? summary.name
           : 'Currículo sem nome',
+      isFavorite: summary.isFavorite === true,
       selection: {
         catalogProgramId:
           typeof summary.selection?.catalogProgramId === 'number'
@@ -180,6 +183,7 @@ export function documentFromState(
   ]
   return {
     name,
+    isFavorite: false,
     selection: {
       catalogProgramId: state.selection.catalogProgramId ?? null,
       specializationId: state.selection.specializationId ?? null,
