@@ -29,6 +29,7 @@ import {
   createStudentCourseAttempt,
   deleteStudentCourseAttempt,
   listStudentCourseAttempts,
+  listClassesForStudentCourseAttempt,
   listStudyPeriods,
   patchStudentCourseAttempt,
   patchStudentProfile,
@@ -69,6 +70,7 @@ export function CourseSituationPage() {
   const [editingAttemptId, setEditingAttemptId] = useState<number>()
   const [courseId, setCourseId] = useState('')
   const [studyPeriodId, setStudyPeriodId] = useState('')
+  const [classId, setClassId] = useState('')
   const [status, setStatus] = useState<Status | ''>('')
   const [grade, setGrade] = useState('')
   const [attemptError, setAttemptError] = useState<string>()
@@ -94,6 +96,13 @@ export function CourseSituationPage() {
     },
     staleTime: Infinity,
     enabled: auth.isAuthenticated,
+  })
+  const classesQuery = useQuery({
+    queryKey: ['course-situation', 'classes', courseId, studyPeriodId],
+    queryFn: () =>
+      listClassesForStudentCourseAttempt(Number(courseId), Number(studyPeriodId)),
+    enabled: attemptDialogOpen && Boolean(courseId && studyPeriodId),
+    staleTime: 5 * 60_000,
   })
 
   const programs = staticQuery.data?.catalogPrograms ?? []
@@ -123,6 +132,7 @@ export function CourseSituationPage() {
     setEditingAttemptId(undefined)
     setCourseId('')
     setStudyPeriodId('')
+    setClassId('')
     setStatus('')
     setGrade('')
     setAttemptError(undefined)
@@ -132,6 +142,7 @@ export function CourseSituationPage() {
     setEditingAttemptId(attempt.id)
     setCourseId(String(attempt.courseId))
     setStudyPeriodId(attempt.studyPeriodId ? String(attempt.studyPeriodId) : '')
+    setClassId(attempt.classId ? String(attempt.classId) : '')
     setStatus(attempt.status)
     setGrade(attempt.grade === null ? '' : String(attempt.grade))
     setAttemptDialogOpen(true)
@@ -147,6 +158,7 @@ export function CourseSituationPage() {
     if (!studentId || !status || gradeError) return
     const body = {
       studyPeriodId: studyPeriodId ? Number(studyPeriodId) : null,
+      classId: classId ? Number(classId) : null,
       status,
       grade: numericGrade,
     }
@@ -207,6 +219,10 @@ export function CourseSituationPage() {
           <p className="text-sm text-muted-foreground">
             {labelForStatus(attempt.status)} · {attempt.course.credits} créditos
             {attempt.grade !== null ? ` · Nota ${attempt.grade}` : ''}
+            {attempt.class ? ` · Turma ${attempt.class.code}` : ''}
+            {attempt.class?.professors.length
+              ? ` · ${attempt.class.professors.map((professor) => professor.name).join(', ')}`
+              : ''}
           </p>
         </div>
         <div className="flex w-full gap-2 sm:w-auto">
@@ -388,7 +404,10 @@ export function CourseSituationPage() {
                   label: `${course.code} — ${course.name}`,
                 }))}
                 placeholder="Escolha a disciplina"
-                onValueChange={setCourseId}
+                onValueChange={(value) => {
+                  setCourseId(value)
+                  setClassId('')
+                }}
               />
             )}
             <AutocompleteSelect
@@ -401,7 +420,26 @@ export function CourseSituationPage() {
                 }),
               )}
               placeholder="Escolha o período (opcional)"
-              onValueChange={setStudyPeriodId}
+              onValueChange={(value) => {
+                setStudyPeriodId(value)
+                setClassId('')
+              }}
+            />
+            <AutocompleteSelect
+              ariaLabel="Turma (opcional)"
+              value={classId}
+              options={(classesQuery.data ?? []).map((classData) => ({
+                value: String(classData.id),
+                label: `Turma ${classData.code}${classData.professors.length ? ` — ${classData.professors.map((professor) => professor.name).join(', ')}` : ''}`,
+              }))}
+              emptyLabel="Sem turma"
+              placeholder={
+                courseId && studyPeriodId
+                  ? 'Escolha a turma (opcional)'
+                  : 'Escolha disciplina e período primeiro'
+              }
+              disabled={!courseId || !studyPeriodId || classesQuery.isLoading}
+              onValueChange={setClassId}
             />
             <label className="block text-sm font-bold">
               Nota (quando houver)

@@ -4,8 +4,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CourseSituationPage } from './CourseSituationPage'
 
-const { listStudentCourseAttempts } = vi.hoisted(() => ({
+const { listStudentCourseAttempts, listClassesForStudentCourseAttempt } = vi.hoisted(() => ({
   listStudentCourseAttempts: vi.fn(),
+  listClassesForStudentCourseAttempt: vi.fn(),
 }))
 const login = vi.fn()
 const authState = {
@@ -34,6 +35,7 @@ vi.mock('@/catalog/data/curriculumCatalogApi', () => ({
 
 vi.mock('@/student/data/studentApi', () => ({
   listStudentCourseAttempts,
+  listClassesForStudentCourseAttempt,
   listStudyPeriods: () => Promise.resolve([]),
   createStudentCourseAttempt: vi.fn(),
   deleteStudentCourseAttempt: vi.fn(),
@@ -65,19 +67,27 @@ describe('CourseSituationPage', () => {
         id: 1,
         courseId: 10,
         studyPeriodId: 20,
+        classId: 30,
         status: 'ENROLLED',
         grade: null,
         course: { code: 'MC102', name: 'Algoritmos', credits: 6 },
         studyPeriod: { code: '1s2026' },
+        class: {
+          id: 30,
+          code: 'A',
+          professors: [{ id: 2, name: 'Docente' }],
+        },
       },
       {
         id: 2,
         courseId: 11,
         studyPeriodId: 19,
+        classId: null,
         status: 'COMPLETED',
         grade: 8,
         course: { code: 'MA111', name: 'Cálculo I', credits: 6 },
         studyPeriod: { code: '2s2025' },
+        class: null,
       },
     ])
   })
@@ -86,6 +96,7 @@ describe('CourseSituationPage', () => {
     renderPage()
 
     expect(await screen.findByText('MC102 — Algoritmos')).toBeTruthy()
+    expect(screen.getByText(/Turma A.*Docente/)).toBeTruthy()
     expect(screen.queryByText('Curso e ingresso')).toBeNull()
 
     fireEvent.mouseDown(screen.getByRole('tab', { name: /Curso/ }), {

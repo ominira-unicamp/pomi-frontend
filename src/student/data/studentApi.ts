@@ -14,10 +14,24 @@ export type StudentCourseAttempt = Readonly<{
   id: number
   courseId: number
   studyPeriodId: number | null
+  classId: number | null
   status: 'ENROLLED' | 'COMPLETED' | 'FAILED' | 'DROPPED'
   grade: number | null
   course: Readonly<{ id: number; code: string; name: string; credits: number }>
   studyPeriod: Readonly<{ id: number; code: string }> | null
+  class: Readonly<{
+    id: number
+    code: string
+    professors: ReadonlyArray<Readonly<{ id: number; name: string }>>
+  }> | null
+}>
+
+export type StudentCourseAttemptClass = Readonly<{
+  id: number
+  code: string
+  courseId: number
+  studyPeriodId: number
+  professors: ReadonlyArray<Readonly<{ id: number; name: string }>>
 }>
 
 export type StudyPeriod = Readonly<{
@@ -97,6 +111,25 @@ export async function listStudyPeriods(): Promise<ReadonlyArray<StudyPeriod>> {
   return (await response.json()) as ReadonlyArray<StudyPeriod>
 }
 
+export async function listClassesForStudentCourseAttempt(
+  courseId: number,
+  studyPeriodId: number,
+): Promise<ReadonlyArray<StudentCourseAttemptClass>> {
+  const classes: StudentCourseAttemptClass[] = []
+  let path: string | null = `/classes?courseId=${courseId}&studyPeriodId=${studyPeriodId}&page=1&pageSize=100`
+  while (path) {
+    const response = await publicApiRequest(path)
+    if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+    const page = (await response.json()) as Readonly<{
+      data: ReadonlyArray<StudentCourseAttemptClass>
+      _paths: Readonly<{ next: string | null }>
+    }>
+    classes.push(...page.data)
+    path = page._paths.next
+  }
+  return classes
+}
+
 export function listStudentCourseAttempts(
   studentId: number,
   getAccessToken: () => Promise<string>,
@@ -126,6 +159,7 @@ export function createStudentCourseAttempt(
   body: Readonly<{
     courseId: number
     studyPeriodId?: number | null
+    classId?: number | null
     status: StudentCourseAttempt['status']
     grade?: number | null
   }>,
@@ -142,7 +176,7 @@ export function patchStudentCourseAttempt(
   studentId: number,
   attemptId: number,
   body: Partial<
-    Pick<StudentCourseAttempt, 'studyPeriodId' | 'status' | 'grade'>
+    Pick<StudentCourseAttempt, 'studyPeriodId' | 'classId' | 'status' | 'grade'>
   >,
   getAccessToken: () => Promise<string>,
 ) {
