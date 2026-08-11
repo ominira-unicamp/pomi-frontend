@@ -253,18 +253,12 @@ export function createApiCurriculumPlannerStaticDataSource(): CurriculumPlannerS
 
 async function loadStaticData(): Promise<PlannerResult<CurriculumPlannerStaticData>> {
   try {
-        const [rawPrograms, firstCoursesPage] = await Promise.all([
+        const [rawPrograms, coursesPage] = await Promise.all([
           getJson('/catalog-program'),
-          getJson('/courses?page=1&pageSize=1000'),
+          getJson('/courses'),
         ])
         const programs = expectArray(rawPrograms).map(parseCatalogProgram)
-        const courses: Array<ApiCourse> = []
-        let page = parseCoursesPage(firstCoursesPage)
-        courses.push(...page.data)
-        while (page._paths.next !== null) {
-          page = parseCoursesPage(await getJson(page._paths.next))
-          courses.push(...page.data)
-        }
+        const courses = parseCoursesPage(coursesPage).data
         return ok({
           catalogPrograms: programs
             .map((program) => ({

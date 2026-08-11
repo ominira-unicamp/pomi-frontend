@@ -79,7 +79,9 @@ async function loadCachedStudyPeriods() {
 async function loadCachedCourses() {
   if (cachedCourses) return cachedCourses
   if (!coursesLoad) {
-    coursesLoad = listAllPages<SemesterCourse>('/courses?page=1&pageSize=1000')
+    coursesLoad = requestJson<ApiPage<SemesterCourse>>('/courses').then(
+      (page) => page.data,
+    )
   }
   try {
     cachedCourses = await coursesLoad

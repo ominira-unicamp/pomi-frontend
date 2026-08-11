@@ -28,7 +28,7 @@ function dateParts(date: Date) {
 
 export function currentStudyPeriodCode(date = new Date()) {
   const { year, month } = dateParts(date)
-  return `${month <= 6 ? 1 : 2}s${year}`
+  return `${year}s${month <= 6 ? 1 : 2}`
 }
 
 export function currentScheduleDay(date = new Date()) {

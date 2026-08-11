@@ -5,9 +5,10 @@ import { createApiCurriculumPlannerStaticDataSource } from './curriculumPlannerA
 describe('createApiCurriculumPlannerStaticDataSource', () => {
   afterEach(() => vi.unstubAllGlobals())
 
-  it('loads every courses page and maps requirements without database ids', async () => {
-    const fetchMock = vi.fn((input: URL) => {
-      if (input.pathname === '/catalog-program') {
+  it('loads all courses and maps requirements without database ids', async () => {
+    const fetchMock = vi.fn((input: string) => {
+      const url = new URL(input)
+      if (url.pathname === '/catalog-program') {
         return Promise.resolve(
           Response.json([
             {
@@ -38,7 +39,7 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
           ]),
         )
       }
-      if (input.searchParams.get('page') === '1') {
+      if (url.pathname === '/courses') {
         return Promise.resolve(
           Response.json({
             data: [
@@ -49,19 +50,13 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
                 credits: 4,
                 prefix: 'AB',
               },
+              { id: 8, code: 'CD100', name: 'Dados', credits: 4, prefix: 'CD' },
             ],
-            _paths: { next: '/courses?page=2&pageSize=1000' },
+            _paths: { next: null },
           }),
         )
       }
-      return Promise.resolve(
-        Response.json({
-          data: [
-            { id: 8, code: 'CD100', name: 'Dados', credits: 4, prefix: 'CD' },
-          ],
-          _paths: { next: null },
-        }),
-      )
+      return Promise.reject(new Error(`Unexpected request: ${input}`))
     })
     vi.stubGlobal('fetch', fetchMock)
 
@@ -69,7 +64,7 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.value.courses).toHaveLength(2)
-    expect(fetchMock.mock.calls[1][0].searchParams.get('pageSize')).toBe('1000')
+    expect(new URL(fetchMock.mock.calls[1][0]).pathname).toBe('/courses')
     expect(
       result.value.catalogPrograms[0].baseBlocks.mandatory[0],
     ).not.toHaveProperty('id')

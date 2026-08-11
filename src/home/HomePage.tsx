@@ -8,7 +8,7 @@ import {
   GraduationCap,
   LogIn,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type { PersistedSemesterPlanning } from '@/semester-planner/data/semesterPlanningApi'
 
@@ -51,15 +51,6 @@ function accountName(profile: ReturnType<typeof useOptionalAuth>['profile']) {
 function firstName(profile: ReturnType<typeof useOptionalAuth>['profile']) {
   const name = String(profile?.given_name || accountName(profile)).trim()
   return name.split(/\s+/)[0]
-}
-
-function Metric({ value, label }: { value: number; label: string }) {
-  return (
-    <div className="min-w-0 border-l-2 border-primary pl-3">
-      <strong className="block text-2xl font-black tabular-nums">{value}</strong>
-      <span className="text-sm text-muted-foreground">{label}</span>
-    </div>
-  )
 }
 
 function ObjectiveCard({
@@ -232,11 +223,13 @@ function AuthenticatedHome() {
   const enrolledAttempts = attempts.filter(
     (attempt) => attempt.status === 'ENROLLED',
   )
-  const studyPeriodCode = currentStudyPeriodCode()
-  const currentPeriodId = enrolledAttempts.find(
+  const academicPeriodCode = currentStudyPeriodCode()
+  const currentPeriodAttempt = enrolledAttempts.find(
     (attempt) =>
-      attempt.studyPeriod?.code.toLocaleLowerCase() === studyPeriodCode,
-  )?.studyPeriodId
+      attempt.studyPeriod?.code.toLocaleLowerCase() === academicPeriodCode,
+  )
+  const currentPeriodId = currentPeriodAttempt?.studyPeriodId ?? null
+  const studyPeriodCode = academicPeriodCode
   const todayScheduleQuery = useQuery({
     queryKey: [
       'course-situation',
@@ -257,22 +250,6 @@ function AuthenticatedHome() {
   const currentMeetings = (todayScheduleQuery.data ?? []).filter((meeting) =>
     currentClassIds.has(meeting.classId),
   )
-  const completedCourses = useMemo(
-    () =>
-      new Map(
-        attempts
-          .filter((attempt) => attempt.status === 'COMPLETED')
-          .map((attempt) => [attempt.courseId, attempt.course]),
-      ),
-    [attempts],
-  )
-  const completedCredits = [...completedCourses.values()].reduce(
-    (total, course) => total + course.credits,
-    0,
-  )
-  const enrolledCount = attempts.filter(
-    (attempt) => attempt.status === 'ENROLLED',
-  ).length
   const curriculumCourseIds = [
     ...new Set(
       (featuredCurriculumQuery.data?.courses ?? []).map((course) => course.courseId),
@@ -286,10 +263,6 @@ function AuthenticatedHome() {
     0,
   )
   const latestSemesterPlan = semesterPlansQuery.data?.[0]
-  const semesterCredits = (latestSemesterPlan?.classes ?? []).reduce(
-    (total, classItem) => total + classItem.courseCredits,
-    0,
-  )
   const profile = profileQuery.data
   const selectedProgram = staticQuery.data?.catalogPrograms.find(
     (item) =>
@@ -467,6 +440,7 @@ function AuthenticatedHome() {
 
           {enrolledAttempts.length > 0 && (
             <TodayClassesPanel
+              currentPeriodId={currentPeriodId}
               currentPeriodCode={studyPeriodCode}
               attempts={enrolledAttempts}
               meetings={currentMeetings}
@@ -475,16 +449,6 @@ function AuthenticatedHome() {
               scheduleLoaded={todayScheduleQuery.isSuccess}
             />
           )}
-
-          <section aria-labelledby="summary-title">
-            <h2 id="summary-title" className="mb-4 text-xl font-extrabold">Seu resumo</h2>
-            <Card className="grid gap-5 p-5 sm:grid-cols-2 lg:grid-cols-4">
-              <Metric value={completedCredits} label="créditos concluídos" />
-              <Metric value={enrolledCount} label="disciplinas cursando" />
-              <Metric value={curriculumCredits} label={`créditos em ${curriculumCourseIds.length} disciplinas planejadas`} />
-              <Metric value={semesterCredits} label={`créditos em ${latestSemesterPlan?.classes.length ?? 0} turmas`} />
-            </Card>
-          </section>
 
           <section aria-labelledby="objectives-title">
             <h2 id="objectives-title" className="mb-4 text-xl font-extrabold">O que você quer organizar?</h2>

@@ -17,7 +17,7 @@ vi.mock('@/home/todayClasses', async (importOriginal) => {
   return {
     ...original,
     currentScheduleDay: () => 'TUESDAY',
-    currentStudyPeriodCode: () => '2s2026',
+    currentStudyPeriodCode: () => '2026s2',
   }
 })
 
@@ -76,7 +76,7 @@ const attempts = [
     classId: 40,
     status: 'ENROLLED',
     course: { id: 11, code: 'MC102', name: 'Algoritmos', credits: 6 },
-    studyPeriod: { id: 20, code: '2s2026' },
+    studyPeriod: { id: 20, code: '2026s2' },
     class: {
       id: 40,
       code: 'A',
@@ -229,7 +229,6 @@ describe('HomePage', () => {
         'Retome o planejamento de semestre atualizado mais recentemente.',
       ),
     ).toBeTruthy()
-    expect(screen.getAllByText('6', { selector: 'strong' }).length).toBeGreaterThan(0)
     expect(screen.getByText('Próximo semestre')).toBeTruthy()
     expect(screen.getByText('Aulas de hoje')).toBeTruthy()
     expect(screen.getByText('MC102 — Algoritmos')).toBeTruthy()
@@ -328,6 +327,5 @@ describe('HomePage', () => {
     expect(
       await screen.findByText('Não foi possível carregar as aulas de hoje'),
     ).toBeTruthy()
-    expect(screen.getByText('Seu resumo')).toBeTruthy()
   })
 })

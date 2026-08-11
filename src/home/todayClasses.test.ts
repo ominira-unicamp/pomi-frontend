@@ -29,10 +29,10 @@ function meeting(
 describe('today classes', () => {
   it('uses academic halves to identify the current study period', () => {
     expect(currentStudyPeriodCode(new Date('2026-06-30T15:00:00Z'))).toBe(
-      '1s2026',
+      '2026s1',
     )
     expect(currentStudyPeriodCode(new Date('2026-07-01T15:00:00Z'))).toBe(
-      '2s2026',
+      '2026s2',
     )
   })
 

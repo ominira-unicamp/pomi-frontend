@@ -16,6 +16,7 @@ import {
 } from '@/home/todayClasses'
 
 type TodayClassesPanelProps = Readonly<{
+  currentPeriodId: number | null
   currentPeriodCode: string
   attempts: ReadonlyArray<StudentCourseAttempt>
   meetings: ReadonlyArray<StudentClassSchedule>
@@ -33,6 +34,7 @@ const statusLabels: Readonly<Record<TodayClassStatus, string>> = {
 }
 
 export function TodayClassesPanel({
+  currentPeriodId,
   currentPeriodCode,
   attempts,
   meetings,
@@ -44,7 +46,7 @@ export function TodayClassesPanel({
   const periodAttempts = attempts.filter(
     (attempt) =>
       attempt.status === 'ENROLLED' &&
-      attempt.studyPeriod?.code.toLocaleLowerCase() === currentPeriodCode,
+      attempt.studyPeriodId === currentPeriodId,
   )
   const attemptsByClass = new Map(
     periodAttempts.flatMap((attempt) =>
