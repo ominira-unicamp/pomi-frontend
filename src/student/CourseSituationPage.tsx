@@ -1,6 +1,16 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { BookOpenCheck, Check, LogIn, Pencil, Plus, Trash2 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import {
+  AlertCircle,
+  BookOpenCheck,
+  CalendarDays,
+  Check,
+  LoaderCircle,
+  LogIn,
+  Pencil,
+  Plus,
+  Trash2,
+} from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 
 import type { CourseProfileValues } from '@/student/components/CourseProfilePanel'
 import { useOptionalAuth } from '@/auth/AuthProvider'
@@ -17,19 +27,15 @@ import {
   PageContainer,
   PageHeader,
 } from '@/components/PageLayout'
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { createCurriculumCatalogDataSource } from '@/catalog/data/curriculumCatalogApi'
 import {
   createStudentCourseAttempt,
   deleteStudentCourseAttempt,
-  listStudentCourseAttempts,
+  listClassSchedulesByStudyPeriod,
   listClassesForStudentCourseAttempt,
+  listStudentCourseAttempts,
   listStudyPeriods,
   patchStudentCourseAttempt,
   patchStudentProfile,
@@ -38,6 +44,8 @@ import { useStudentProfile } from '@/student/hooks/useStudentProfile'
 import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
 import { CourseProfilePanel } from '@/student/components/CourseProfilePanel'
 import { Card } from '@/components/ui/card'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { StudentWeeklySchedule } from '@/student/components/StudentWeeklySchedule'
 
 const staticSource = createCurriculumCatalogDataSource()
 const statuses = [
@@ -67,6 +75,7 @@ export function CourseSituationPage() {
   const queryClient = useQueryClient()
   const [attemptDialogOpen, setAttemptDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<SituationTab>('enrolled')
+  const [selectedSchedulePeriodId, setSelectedSchedulePeriodId] = useState('')
   const [editingAttemptId, setEditingAttemptId] = useState<number>()
   const [courseId, setCourseId] = useState('')
   const [studyPeriodId, setStudyPeriodId] = useState('')
@@ -100,7 +109,10 @@ export function CourseSituationPage() {
   const classesQuery = useQuery({
     queryKey: ['course-situation', 'classes', courseId, studyPeriodId],
     queryFn: () =>
-      listClassesForStudentCourseAttempt(Number(courseId), Number(studyPeriodId)),
+      listClassesForStudentCourseAttempt(
+        Number(courseId),
+        Number(studyPeriodId),
+      ),
     enabled: attemptDialogOpen && Boolean(courseId && studyPeriodId),
     staleTime: 5 * 60_000,
   })
@@ -110,6 +122,72 @@ export function CourseSituationPage() {
   const enrolledAttempts = attempts.filter(
     (attempt) => attempt.status === 'ENROLLED',
   )
+  const enrolledPeriods = useMemo(() => {
+    const availablePeriods = new Map(
+      (periodsQuery.data ?? []).map((period) => [period.id, period]),
+    )
+    const periods = new Map<
+      number,
+      { id: number; code: string; startDate: string }
+    >()
+    for (const attempt of attempts) {
+      if (attempt.status !== 'ENROLLED' || !attempt.studyPeriodId) continue
+      periods.set(
+        attempt.studyPeriodId,
+        availablePeriods.get(attempt.studyPeriodId) ?? {
+          id: attempt.studyPeriodId,
+          code: attempt.studyPeriod?.code ?? String(attempt.studyPeriodId),
+          startDate: '',
+        },
+      )
+    }
+    return mostRecentStudyPeriodsFirst([...periods.values()])
+  }, [attempts, periodsQuery.data])
+
+  useEffect(() => {
+    setSelectedSchedulePeriodId((current) =>
+      enrolledPeriods.some((period) => String(period.id) === current)
+        ? current
+        : enrolledPeriods[0]
+          ? String(enrolledPeriods[0].id)
+          : '',
+    )
+  }, [enrolledPeriods])
+
+  const scheduleQuery = useQuery({
+    queryKey: ['course-situation', 'class-schedules', selectedSchedulePeriodId],
+    queryFn: () =>
+      listClassSchedulesByStudyPeriod(Number(selectedSchedulePeriodId)),
+    enabled:
+      activeTab === 'enrolled' &&
+      Boolean(selectedSchedulePeriodId && studentId),
+    staleTime: Infinity,
+  })
+  const selectedPeriodAttempts = enrolledAttempts.filter(
+    (attempt) =>
+      String(attempt.studyPeriodId ?? '') === selectedSchedulePeriodId,
+  )
+  const selectedClassIds = new Set(
+    selectedPeriodAttempts.flatMap((attempt) =>
+      attempt.classId ? [attempt.classId] : [],
+    ),
+  )
+  const scheduleMeetings = (scheduleQuery.data ?? []).filter((meeting) =>
+    selectedClassIds.has(meeting.classId),
+  )
+  const classesWithSchedule = new Set(
+    scheduleMeetings.map((meeting) => meeting.classId),
+  )
+  const attemptsWithoutPeriod = enrolledAttempts.filter(
+    (attempt) => !attempt.studyPeriodId,
+  ).length
+  const attemptsOutsideSchedule =
+    attemptsWithoutPeriod +
+    selectedPeriodAttempts.filter(
+      (attempt) =>
+        !attempt.classId ||
+        (scheduleQuery.isSuccess && !classesWithSchedule.has(attempt.classId)),
+    ).length
   const attemptsByPeriod = useMemo(() => {
     const entries = new Map<string, typeof attempts>()
     for (const attempt of attempts.filter(
@@ -185,7 +263,9 @@ export function CourseSituationPage() {
       setAttemptDialogOpen(false)
       resetAttempt()
     } catch {
-      setAttemptError('Não foi possível salvar a tentativa. Verifique os dados e tente novamente.')
+      setAttemptError(
+        'Não foi possível salvar a tentativa. Verifique os dados e tente novamente.',
+      )
     }
   }
 
@@ -226,7 +306,12 @@ export function CourseSituationPage() {
           </p>
         </div>
         <div className="flex w-full gap-2 sm:w-auto">
-          <Button className="flex-1 sm:flex-none" size="sm" variant="outline" onClick={() => openEdit(attempt)}>
+          <Button
+            className="flex-1 sm:flex-none"
+            size="sm"
+            variant="outline"
+            onClick={() => openEdit(attempt)}
+          >
             <Pencil /> Editar
           </Button>
           <Button
@@ -263,9 +348,12 @@ export function CourseSituationPage() {
                 <BookOpenCheck className="size-5" />
               </span>
               <div>
-                <h2 className="text-xl font-extrabold">Guarde sua trajetória em um só lugar</h2>
+                <h2 className="text-xl font-extrabold">
+                  Guarde sua trajetória em um só lugar
+                </h2>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  Entre para manter seus dados vinculados à sua conta e continuar de qualquer dispositivo.
+                  Entre para manter seus dados vinculados à sua conta e
+                  continuar de qualquer dispositivo.
                 </p>
               </div>
             </div>
@@ -278,13 +366,19 @@ export function CourseSituationPage() {
                 'Acompanhar disciplinas cursando',
                 'Registrar conclusões e tentativas',
               ].map((item) => (
-                <li key={item} className="flex gap-2 text-sm text-muted-foreground">
+                <li
+                  key={item}
+                  className="flex gap-2 text-sm text-muted-foreground"
+                >
                   <Check className="mt-0.5 size-4 shrink-0 text-primary" />
                   {item}
                 </li>
               ))}
             </ul>
-            <Button className="mt-6 w-full sm:w-auto" onClick={() => void auth.login('/situacao-do-curso')}>
+            <Button
+              className="mt-6 w-full sm:w-auto"
+              onClick={() => void auth.login('/situacao-do-curso')}
+            >
               <LogIn /> Entrar para acompanhar meu curso
             </Button>
           </div>
@@ -340,9 +434,118 @@ export function CourseSituationPage() {
 
         <TabsContent value="enrolled">
           {enrolledAttempts.length ? (
-            <section className="space-y-2">
-              {enrolledAttempts.map(renderAttempt)}
-            </section>
+            <div className="space-y-8">
+              <section
+                aria-labelledby="student-schedule-title"
+                className="space-y-4"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                  <div>
+                    <h2
+                      id="student-schedule-title"
+                      className="flex items-center gap-2 text-xl font-extrabold"
+                    >
+                      <CalendarDays className="size-5 text-primary" />
+                      Agenda das aulas
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Horários das turmas vinculadas às disciplinas cursando.
+                    </p>
+                  </div>
+                  {enrolledPeriods.length > 1 ? (
+                    <div className="w-full sm:w-64">
+                      <AutocompleteSelect
+                        ariaLabel="Período da agenda"
+                        value={selectedSchedulePeriodId}
+                        options={enrolledPeriods.map((period) => ({
+                          value: String(period.id),
+                          label: period.code,
+                        }))}
+                        placeholder="Escolha o período"
+                        onValueChange={setSelectedSchedulePeriodId}
+                      />
+                    </div>
+                  ) : (
+                    enrolledPeriods[0] && (
+                      <p className="rounded-md border-2 border-strong-border bg-card px-3 py-2 text-sm font-bold">
+                        {enrolledPeriods[0].code}
+                      </p>
+                    )
+                  )}
+                </div>
+
+                {attemptsOutsideSchedule > 0 && (
+                  <Alert>
+                    <AlertCircle />
+                    <AlertTitle>Agenda parcial</AlertTitle>
+                    <AlertDescription>
+                      {attemptsOutsideSchedule}{' '}
+                      {attemptsOutsideSchedule === 1
+                        ? 'disciplina ficou'
+                        : 'disciplinas ficaram'}{' '}
+                      fora da agenda por não possuir período, turma ou horário
+                      cadastrado.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {!selectedSchedulePeriodId ? (
+                  <Card className="grid min-h-40 place-items-center p-6 text-center">
+                    <div>
+                      <h3 className="font-extrabold">
+                        Nenhum período informado
+                      </h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Edite as disciplinas cursando e informe período e turma
+                        para montar sua agenda.
+                      </p>
+                    </div>
+                  </Card>
+                ) : scheduleQuery.isLoading ? (
+                  <Card
+                    className="flex min-h-40 items-center justify-center gap-3 p-6"
+                    role="status"
+                  >
+                    <LoaderCircle className="size-5 animate-spin text-primary" />
+                    <span className="font-bold">Carregando horários</span>
+                  </Card>
+                ) : scheduleQuery.isError ? (
+                  <Alert variant="destructive">
+                    <AlertCircle />
+                    <AlertTitle>Não foi possível carregar a agenda</AlertTitle>
+                    <AlertDescription>
+                      A lista de disciplinas continua disponível abaixo.
+                    </AlertDescription>
+                  </Alert>
+                ) : scheduleMeetings.length ? (
+                  <StudentWeeklySchedule meetings={scheduleMeetings} />
+                ) : (
+                  <Card className="grid min-h-40 place-items-center p-6 text-center">
+                    <div>
+                      <h3 className="font-extrabold">
+                        Nenhum horário disponível
+                      </h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Vincule turmas com horários cadastrados para preencher a
+                        agenda.
+                      </p>
+                    </div>
+                  </Card>
+                )}
+              </section>
+
+              <section aria-labelledby="enrolled-courses-title">
+                <h2
+                  id="enrolled-courses-title"
+                  className="mb-3 text-xl font-extrabold"
+                >
+                  Disciplinas cursando
+                </h2>
+                <div className="space-y-2">
+                  {enrolledAttempts.map(renderAttempt)}
+                </div>
+              </section>
+            </div>
           ) : (
             <EmptyState
               title="Nenhuma disciplina em andamento"
@@ -455,19 +658,27 @@ export function CourseSituationPage() {
               />
             </label>
             {gradeError && (
-              <p className="text-sm font-semibold text-destructive" role="alert">
+              <p
+                className="text-sm font-semibold text-destructive"
+                role="alert"
+              >
                 {gradeError}
               </p>
             )}
             {attemptError && (
-              <p className="text-sm font-semibold text-destructive" role="alert">
+              <p
+                className="text-sm font-semibold text-destructive"
+                role="alert"
+              >
                 {attemptError}
               </p>
             )}
             <Button
               className="w-full"
               disabled={
-                !status || Boolean(gradeError) || (!editingAttemptId && !courseId)
+                !status ||
+                Boolean(gradeError) ||
+                (!editingAttemptId && !courseId)
               }
               onClick={() => void saveAttempt()}
             >

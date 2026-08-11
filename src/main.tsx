@@ -5,14 +5,11 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 import { AuthProvider } from './auth/AuthProvider.tsx'
 import { ThemeProvider } from './components/ThemeProvider.tsx'
-import { recoverStaleChunks } from './recoverStaleChunk.ts'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
 import './styles.css'
-
-recoverStaleChunks()
 
 // Create a new router instance
 

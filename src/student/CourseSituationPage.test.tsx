@@ -1,12 +1,19 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { CourseSituationPage } from './CourseSituationPage'
 
-const { listStudentCourseAttempts, listClassesForStudentCourseAttempt } = vi.hoisted(() => ({
+const {
+  listStudentCourseAttempts,
+  listClassesForStudentCourseAttempt,
+  listClassSchedulesByStudyPeriod,
+  listStudyPeriods,
+} = vi.hoisted(() => ({
   listStudentCourseAttempts: vi.fn(),
   listClassesForStudentCourseAttempt: vi.fn(),
+  listClassSchedulesByStudyPeriod: vi.fn(),
+  listStudyPeriods: vi.fn(),
 }))
 const login = vi.fn()
 const authState = {
@@ -29,14 +36,19 @@ vi.mock('@/student/hooks/useStudentProfile', () => ({
 
 vi.mock('@/catalog/data/curriculumCatalogApi', () => ({
   createCurriculumCatalogDataSource: () => ({
-    load: () => Promise.resolve({ ok: true, value: { catalogPrograms: [], courses: [] } }),
+    load: () =>
+      Promise.resolve({
+        ok: true,
+        value: { catalogPrograms: [], courses: [] },
+      }),
   }),
 }))
 
 vi.mock('@/student/data/studentApi', () => ({
   listStudentCourseAttempts,
   listClassesForStudentCourseAttempt,
-  listStudyPeriods: () => Promise.resolve([]),
+  listClassSchedulesByStudyPeriod,
+  listStudyPeriods,
   createStudentCourseAttempt: vi.fn(),
   deleteStudentCourseAttempt: vi.fn(),
   patchStudentCourseAttempt: vi.fn(),
@@ -62,6 +74,23 @@ describe('CourseSituationPage', () => {
   beforeEach(() => {
     authState.isAuthenticated = true
     login.mockReset()
+    listStudyPeriods.mockResolvedValue([
+      { id: 20, code: '1s2026', startDate: '2026-02-01' },
+      { id: 19, code: '2s2025', startDate: '2025-08-01' },
+    ])
+    listClassSchedulesByStudyPeriod.mockResolvedValue([
+      {
+        id: 40,
+        classId: 30,
+        classCode: 'A',
+        courseCode: 'MC102',
+        studyPeriodId: 20,
+        dayOfWeek: 'MONDAY',
+        start: '08:00',
+        end: '10:00',
+        roomCode: 'CB01',
+      },
+    ])
     listStudentCourseAttempts.mockResolvedValue([
       {
         id: 1,
@@ -97,6 +126,11 @@ describe('CourseSituationPage', () => {
 
     expect(await screen.findByText('MC102 — Algoritmos')).toBeTruthy()
     expect(screen.getByText(/Turma A.*Docente/)).toBeTruthy()
+    expect(
+      await screen.findByLabelText('MC102, turma A, 08:00 às 10:00, sala CB01'),
+    ).toBeTruthy()
+    expect(screen.getByText('Agenda das aulas')).toBeTruthy()
+    expect(screen.getByText('Disciplinas cursando')).toBeTruthy()
     expect(screen.queryByText('Curso e ingresso')).toBeNull()
 
     fireEvent.mouseDown(screen.getByRole('tab', { name: /Curso/ }), {
@@ -118,7 +152,9 @@ describe('CourseSituationPage', () => {
     renderPage()
     await screen.findByText('MC102 — Algoritmos')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Adicionar disciplina' }))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Adicionar disciplina' }),
+    )
 
     expect(screen.getByRole('dialog')).toBeTruthy()
     expect(
@@ -131,10 +167,111 @@ describe('CourseSituationPage', () => {
     ).toBe(true)
   })
 
+  it('switches the schedule between enrolled study periods', async () => {
+    listStudentCourseAttempts.mockResolvedValue([
+      {
+        id: 1,
+        courseId: 10,
+        studyPeriodId: 20,
+        classId: 30,
+        status: 'ENROLLED',
+        grade: null,
+        course: { id: 10, code: 'MC102', name: 'Algoritmos', credits: 6 },
+        studyPeriod: { id: 20, code: '1s2026' },
+        class: { id: 30, code: 'A', professors: [] },
+      },
+      {
+        id: 2,
+        courseId: 11,
+        studyPeriodId: 19,
+        classId: 31,
+        status: 'ENROLLED',
+        grade: null,
+        course: { id: 11, code: 'MA111', name: 'Cálculo I', credits: 6 },
+        studyPeriod: { id: 19, code: '2s2025' },
+        class: { id: 31, code: 'B', professors: [] },
+      },
+    ])
+    listClassSchedulesByStudyPeriod.mockImplementation((periodId: number) =>
+      Promise.resolve(
+        periodId === 20
+          ? [
+              {
+                id: 40,
+                classId: 30,
+                classCode: 'A',
+                courseCode: 'MC102',
+                studyPeriodId: 20,
+                dayOfWeek: 'MONDAY',
+                start: '08:00',
+                end: '10:00',
+                roomCode: 'CB01',
+              },
+            ]
+          : [
+              {
+                id: 41,
+                classId: 31,
+                classCode: 'B',
+                courseCode: 'MA111',
+                studyPeriodId: 19,
+                dayOfWeek: 'TUESDAY',
+                start: '10:00',
+                end: '12:00',
+                roomCode: 'PB02',
+              },
+            ],
+      ),
+    )
+    renderPage()
+
+    expect(
+      await screen.findByLabelText('MC102, turma A, 08:00 às 10:00, sala CB01'),
+    ).toBeTruthy()
+    const periodSelect = screen.getByRole('combobox', {
+      name: 'Período da agenda',
+    })
+    fireEvent.focus(periodSelect)
+    fireEvent.click(await screen.findByRole('option', { name: '2s2025' }))
+
+    await waitFor(() =>
+      expect(listClassSchedulesByStudyPeriod).toHaveBeenCalledWith(19),
+    )
+    expect(
+      await screen.findByLabelText('MA111, turma B, 10:00 às 12:00, sala PB02'),
+    ).toBeTruthy()
+    expect(screen.queryByLabelText(/MC102, turma A/)).toBeNull()
+  })
+
+  it('warns when an enrolled course has no class', async () => {
+    listStudentCourseAttempts.mockResolvedValue([
+      {
+        id: 1,
+        courseId: 10,
+        studyPeriodId: 20,
+        classId: null,
+        status: 'ENROLLED',
+        grade: null,
+        course: { id: 10, code: 'MC102', name: 'Algoritmos', credits: 6 },
+        studyPeriod: { id: 20, code: '1s2026' },
+        class: null,
+      },
+    ])
+    listClassSchedulesByStudyPeriod.mockResolvedValue([])
+    renderPage()
+
+    expect(await screen.findByText('Agenda parcial')).toBeTruthy()
+    expect(screen.getByText(/1 disciplina ficou fora da agenda/)).toBeTruthy()
+    expect(await screen.findByText('Nenhum horário disponível')).toBeTruthy()
+    expect(screen.getByText('MC102 — Algoritmos')).toBeTruthy()
+  })
+
   it('rejects grades greater than ten before submitting', async () => {
     renderPage()
     await screen.findByText('MC102 — Algoritmos')
-    fireEvent.click(screen.getByRole('button', { name: 'Adicionar disciplina' }))
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Adicionar disciplina' }),
+    )
 
     fireEvent.change(
       screen.getByRole('textbox', { name: 'Nota (quando houver)' }),
@@ -145,7 +282,8 @@ describe('CourseSituationPage', () => {
       'Informe uma nota entre 0 e 10.',
     )
     expect(
-      screen.getByRole<HTMLButtonElement>('button', { name: 'Salvar' }).disabled,
+      screen.getByRole<HTMLButtonElement>('button', { name: 'Salvar' })
+        .disabled,
     ).toBe(true)
   })
 

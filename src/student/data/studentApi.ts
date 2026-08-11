@@ -34,6 +34,25 @@ export type StudentCourseAttemptClass = Readonly<{
   professors: ReadonlyArray<Readonly<{ id: number; name: string }>>
 }>
 
+export type StudentClassSchedule = Readonly<{
+  id: number
+  classId: number
+  classCode: string
+  courseCode: string
+  studyPeriodId: number
+  dayOfWeek:
+    | 'MONDAY'
+    | 'TUESDAY'
+    | 'WEDNESDAY'
+    | 'THURSDAY'
+    | 'FRIDAY'
+    | 'SATURDAY'
+    | 'SUNDAY'
+  start: string
+  end: string
+  roomCode: string
+}>
+
 export type StudyPeriod = Readonly<{
   id: number
   code: string
@@ -61,10 +80,14 @@ export function registerCurrentStudent(
   name: string,
   getAccessToken: () => Promise<string>,
 ) {
-  return requestJson<{ id: number; name: string }>('/students', getAccessToken, {
-    method: 'POST',
-    body: JSON.stringify({ name }),
-  })
+  return requestJson<{ id: number; name: string }>(
+    '/students',
+    getAccessToken,
+    {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    },
+  )
 }
 
 export async function ensureCurrentStudent(
@@ -111,23 +134,35 @@ export async function listStudyPeriods(): Promise<ReadonlyArray<StudyPeriod>> {
   return (await response.json()) as ReadonlyArray<StudyPeriod>
 }
 
-export async function listClassesForStudentCourseAttempt(
-  courseId: number,
-  studyPeriodId: number,
-): Promise<ReadonlyArray<StudentCourseAttemptClass>> {
-  const classes: StudentCourseAttemptClass[] = []
-  let path: string | null = `/classes?courseId=${courseId}&studyPeriodId=${studyPeriodId}&page=1&pageSize=100`
+async function listPublicPages<T>(initialPath: string) {
+  const items: Array<T> = []
+  let path: string | null = initialPath
   while (path) {
     const response = await publicApiRequest(path)
     if (!response.ok) throw new Error(`API request failed: ${response.status}`)
     const page = (await response.json()) as Readonly<{
-      data: ReadonlyArray<StudentCourseAttemptClass>
+      data: ReadonlyArray<T>
       _paths: Readonly<{ next: string | null }>
     }>
-    classes.push(...page.data)
+    items.push(...page.data)
     path = page._paths.next
   }
-  return classes
+  return items
+}
+
+export async function listClassesForStudentCourseAttempt(
+  courseId: number,
+  studyPeriodId: number,
+): Promise<ReadonlyArray<StudentCourseAttemptClass>> {
+  return listPublicPages<StudentCourseAttemptClass>(
+    `/classes?courseId=${courseId}&studyPeriodId=${studyPeriodId}&page=1&pageSize=100`,
+  )
+}
+
+export function listClassSchedulesByStudyPeriod(studyPeriodId: number) {
+  return listPublicPages<StudentClassSchedule>(
+    `/class-schedules?studyPeriodId=${studyPeriodId}&page=1&pageSize=1000`,
+  )
 }
 
 export function listStudentCourseAttempts(

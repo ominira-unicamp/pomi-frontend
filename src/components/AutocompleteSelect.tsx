@@ -84,7 +84,10 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
     visibleOptions.length,
     firstOptionIndex + visibleCount + overscan * 2,
   )
-  const renderedOptions = visibleOptions.slice(firstOptionIndex, lastOptionIndex)
+  const renderedOptions = visibleOptions.slice(
+    firstOptionIndex,
+    lastOptionIndex,
+  )
 
   useEffect(() => {
     setScrollTop(0)
@@ -103,7 +106,10 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
         placeholder={placeholder ?? emptyLabel}
         aria-label={ariaLabel}
         className="pomi-focus h-10 w-full rounded-md border-2 border-input bg-background px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
-        onFocus={() => setOpen(true)}
+        onFocus={() => {
+          setQuery('')
+          setOpen(true)
+        }}
         onValueChange={(nextQuery) => {
           setQuery(nextQuery)
           setOpen(true)
@@ -116,7 +122,10 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
             select(visibleOptions[0])
           }
         }}
-        onBlur={() => setOpen(false)}
+        onBlur={() => {
+          setQuery(selected?.label ?? '')
+          setOpen(false)
+        }}
       />
       {open && !disabled && (
         <Command.List
