@@ -1,0 +1,143 @@
+import { apiRequest, publicApiRequest } from '@/api/client'
+
+export type StudentProfile = Readonly<{
+  id: number
+  name: string
+  catalogId: number | null
+  programId: number | null
+  specializationId: number | null
+  entryYear: number | null
+  languageId: number | null
+}>
+
+export type StudentCourseAttempt = Readonly<{
+  id: number
+  courseId: number
+  studyPeriodId: number | null
+  status: 'ENROLLED' | 'COMPLETED' | 'FAILED' | 'DROPPED'
+  grade: number | null
+  course: Readonly<{ id: number; code: string; name: string; credits: number }>
+  studyPeriod: Readonly<{ id: number; code: string }> | null
+}>
+
+export type StudyPeriod = Readonly<{
+  id: number
+  code: string
+  startDate: string
+}>
+
+async function requestJson<T>(
+  path: string,
+  getAccessToken: () => Promise<string>,
+  init?: RequestInit,
+): Promise<T> {
+  const response = await apiRequest(path, getAccessToken, {
+    ...init,
+    headers: { 'Content-Type': 'application/json', ...init?.headers },
+  })
+  if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+  return (await response.json()) as T
+}
+
+export function getCurrentStudent(getAccessToken: () => Promise<string>) {
+  return requestJson<{ studentId: number | null }>('/me', getAccessToken)
+}
+
+export function registerCurrentStudent(
+  name: string,
+  getAccessToken: () => Promise<string>,
+) {
+  return requestJson<{ id: number; name: string }>('/students', getAccessToken, {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  })
+}
+
+export function getStudentProfile(
+  studentId: number,
+  getAccessToken: () => Promise<string>,
+) {
+  return requestJson<StudentProfile>(`/students/${studentId}`, getAccessToken)
+}
+
+export function patchStudentProfile(
+  studentId: number,
+  body: Partial<
+    Pick<
+      StudentProfile,
+      | 'name'
+      | 'catalogId'
+      | 'programId'
+      | 'specializationId'
+      | 'entryYear'
+      | 'languageId'
+    >
+  >,
+  getAccessToken: () => Promise<string>,
+) {
+  return requestJson<StudentProfile>(`/students/${studentId}`, getAccessToken, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  })
+}
+
+export async function listStudyPeriods(): Promise<ReadonlyArray<StudyPeriod>> {
+  const response = await publicApiRequest('/study-periods')
+  if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+  return (await response.json()) as ReadonlyArray<StudyPeriod>
+}
+
+export function listStudentCourseAttempts(
+  studentId: number,
+  getAccessToken: () => Promise<string>,
+) {
+  return requestJson<ReadonlyArray<StudentCourseAttempt>>(
+    `/student/${studentId}/course-attempts`,
+    getAccessToken,
+  )
+}
+
+export function createStudentCourseAttempt(
+  studentId: number,
+  body: Readonly<{
+    courseId: number
+    studyPeriodId?: number | null
+    status: StudentCourseAttempt['status']
+    grade?: number | null
+  }>,
+  getAccessToken: () => Promise<string>,
+) {
+  return requestJson<StudentCourseAttempt>(
+    `/student/${studentId}/course-attempts`,
+    getAccessToken,
+    { method: 'POST', body: JSON.stringify(body) },
+  )
+}
+
+export function patchStudentCourseAttempt(
+  studentId: number,
+  attemptId: number,
+  body: Partial<
+    Pick<StudentCourseAttempt, 'studyPeriodId' | 'status' | 'grade'>
+  >,
+  getAccessToken: () => Promise<string>,
+) {
+  return requestJson<StudentCourseAttempt>(
+    `/student/${studentId}/course-attempts/${attemptId}`,
+    getAccessToken,
+    { method: 'PATCH', body: JSON.stringify(body) },
+  )
+}
+
+export async function deleteStudentCourseAttempt(
+  studentId: number,
+  attemptId: number,
+  getAccessToken: () => Promise<string>,
+) {
+  const response = await apiRequest(
+    `/student/${studentId}/course-attempts/${attemptId}`,
+    getAccessToken,
+    { method: 'DELETE' },
+  )
+  if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+}

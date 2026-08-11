@@ -370,6 +370,8 @@ export type CurriculumPlannerCommand =
   | Readonly<{
       type: 'markCourseCompleted'
       courseId: CourseId
+      studyPeriodId?: number
+      grade?: number | null
     }>
   | Readonly<{
       type: 'unmarkCourseCompleted'

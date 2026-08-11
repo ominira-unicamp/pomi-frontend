@@ -9,7 +9,16 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { Download, MoreHorizontal, Pencil, Plus, RotateCcw, Save, Trash2, Upload } from 'lucide-react'
+import {
+  Download,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Save,
+  Trash2,
+  Upload,
+} from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
@@ -149,6 +158,7 @@ export function CurriculumPlannerPage({
     [planner.snapshot, planner.staticData],
   )
   const [activeDrag, setActiveDrag] = useState<PlannerDragData>()
+  const studentDefaultsApplied = useRef<string | undefined>(undefined)
   const [importError, setImportError] = useState<'parse' | 'dispatch'>()
   const [selectionError, setSelectionError] = useState(false)
   const [pendingImport, setPendingImport] = useState<ResolvedPlanningImport>()
@@ -167,6 +177,53 @@ export function CurriculumPlannerPage({
       }
     })
   const importInputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    if (!planner.snapshot || !planner.staticData || !planner.studentProfile)
+      return
+    if (planner.snapshot.selection.catalogProgramId) return
+    const planKey = String(planner.activeCurriculumId ?? 'rascunho')
+    if (studentDefaultsApplied.current === planKey) return
+    const catalogProgram = planner.staticData.catalogPrograms.find(
+      (item) =>
+        Number(item.catalog.id) === planner.studentProfile!.catalogId &&
+        Number(item.program.id) === planner.studentProfile!.programId,
+    )
+    if (!catalogProgram) return
+    studentDefaultsApplied.current = planKey
+    void (async () => {
+      await planner.dispatch({
+        type: 'selectCatalogProgram',
+        catalogProgramId: catalogProgram.id,
+      })
+      if (planner.studentProfile?.specializationId) {
+        const specialization = catalogProgram.specializations.find(
+          (item) =>
+            Number(item.id) === planner.studentProfile?.specializationId,
+        )
+        if (specialization)
+          await planner.dispatch({
+            type: 'selectSpecialization',
+            specializationId: specialization.id,
+          })
+      }
+      if (planner.studentProfile?.languageId) {
+        const language = catalogProgram.languages.find(
+          (item) => Number(item.id) === planner.studentProfile?.languageId,
+        )
+        if (language)
+          await planner.dispatch({
+            type: 'selectLanguage',
+            languageId: language.id,
+          })
+      }
+    })()
+  }, [
+    planner.activeCurriculumId,
+    planner.dispatch,
+    planner.snapshot,
+    planner.staticData,
+    planner.studentProfile,
+  ])
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 0 } }),
     useSensor(TouchSensor, {
@@ -300,10 +357,7 @@ export function CurriculumPlannerPage({
               </Button>
             )}
             {planner.isAuthenticated && (
-                <Button
-                  variant="outline"
-                  onClick={() => void createPlan()}
-                >
+              <Button variant="outline" onClick={() => void createPlan()}>
                 <Plus /> Novo planejamento
               </Button>
             )}
@@ -338,7 +392,8 @@ export function CurriculumPlannerPage({
               <Alert variant="destructive">
                 <AlertTitle>Não foi possível importar</AlertTitle>
                 <AlertDescription>
-                  O arquivo não é um currículo válido ou é incompatível com os dados atuais.
+                  O arquivo não é um currículo válido ou é incompatível com os
+                  dados atuais.
                 </AlertDescription>
               </Alert>
             )}
@@ -346,7 +401,8 @@ export function CurriculumPlannerPage({
               <Alert variant="destructive">
                 <AlertTitle>Não foi possível criar o planejamento</AlertTitle>
                 <AlertDescription>
-                  {planner.actionError ?? 'Verifique sua sessão e tente novamente.'}
+                  {planner.actionError ??
+                    'Verifique sua sessão e tente novamente.'}
                 </AlertDescription>
               </Alert>
             )}
@@ -403,7 +459,8 @@ export function CurriculumPlannerPage({
           planner.isAuthenticated
             ? planner.saveStatus === 'error'
               ? 'Não foi possível salvar'
-              : planner.saveStatus === 'saving' || planner.saveStatus === 'pending'
+              : planner.saveStatus === 'saving' ||
+                  planner.saveStatus === 'pending'
                 ? 'Salvando…'
                 : planner.activeCurriculumId
                   ? 'Salvo automaticamente'
@@ -414,10 +471,10 @@ export function CurriculumPlannerPage({
           <>
             <Button
               variant="outline"
-                  onClick={() => {
-                    planner.backToSelection()
-                    void navigate({ to: '/' })
-                  }}
+              onClick={() => {
+                planner.backToSelection()
+                void navigate({ to: '/' })
+              }}
             >
               Planejamentos
             </Button>
@@ -620,6 +677,7 @@ export function CurriculumPlannerPage({
                 year={snapshot.plan.planningStart?.year}
                 semester={snapshot.plan.planningStart?.semester}
                 semesterNumber={snapshot.plan.planningStart?.semesterNumber}
+                defaultYear={planner.studentProfile?.entryYear}
                 disabled={planner.isDispatching}
                 dispatch={planner.dispatch}
               />

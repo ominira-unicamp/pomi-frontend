@@ -2,7 +2,6 @@ import { useQuery } from '@tanstack/react-query'
 import { Sparkles } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { AutocompleteSelect } from './AutocompleteSelect'
 import type { ReactNode } from 'react'
 import type {
   CatalogProgramId,
@@ -10,6 +9,7 @@ import type {
   CurriculumPlannerStaticData,
 } from '@/planner/domain/curriculumPlanner'
 import type { PlannerDispatch } from '@/planner/types'
+import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'

@@ -1,7 +1,9 @@
 import { Link } from '@tanstack/react-router'
 import {
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
+  GraduationCap,
   LogIn,
   LogOut,
   Menu,
@@ -87,6 +89,30 @@ function Navigation({ compact = false }: { compact?: boolean }) {
         <PanelsTopLeft className="size-5 shrink-0" />
         <span className={cn(compact && 'sr-only')}>Planejamento</span>
       </Link>
+      <Link
+        to="/planejamentos-de-semestre"
+        onClick={() => setMobileOpen(false)}
+        activeProps={{ 'aria-current': 'page' }}
+        className={cn(
+          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
+          compact && 'justify-center px-0',
+        )}
+      >
+        <CalendarDays className="size-5 shrink-0" />
+        <span className={cn(compact && 'sr-only')}>Horários</span>
+      </Link>
+      <Link
+        to="/situacao-do-curso"
+        onClick={() => setMobileOpen(false)}
+        activeProps={{ 'aria-current': 'page' }}
+        className={cn(
+          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
+          compact && 'justify-center px-0',
+        )}
+      >
+        <GraduationCap className="size-5 shrink-0" />
+        <span className={cn(compact && 'sr-only')}>Situação do curso</span>
+      </Link>
     </nav>
   )
 }
@@ -163,9 +189,7 @@ function EmailVerificationDialog() {
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button onClick={() => void logout()}>
-            Sair e tentar novamente
-          </Button>
+          <Button onClick={() => void logout()}>Sair e tentar novamente</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

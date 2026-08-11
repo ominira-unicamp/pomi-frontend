@@ -3,6 +3,28 @@ import type {
   PlanningPeriodId,
 } from '@/planner/domain/curriculumPlanner'
 import { apiRequest } from '@/api/client'
+import {
+  createStudentCourseAttempt,
+  deleteStudentCourseAttempt,
+  listStudentCourseAttempts,
+} from '@/student/data/studentApi'
+
+export {
+  createStudentCourseAttempt,
+  deleteStudentCourseAttempt,
+  getCurrentStudent,
+  getStudentProfile,
+  listStudentCourseAttempts,
+  listStudyPeriods,
+  patchStudentCourseAttempt,
+  patchStudentProfile,
+  registerCurrentStudent,
+} from '@/student/data/studentApi'
+export type {
+  StudentCourseAttempt,
+  StudentProfile,
+  StudyPeriod,
+} from '@/student/data/studentApi'
 
 export type CurriculumDocument = Readonly<{
   id?: number
@@ -37,41 +59,21 @@ async function requestJson<T>(
   return (await response.json()) as T
 }
 
-export async function getCurrentStudent(
-  getAccessToken: () => Promise<string>,
-) {
-  return requestJson<{ studentId: number | null }>('/me', getAccessToken)
-}
-
-export async function registerCurrentStudent(
-  name: string,
-  getAccessToken: () => Promise<string>,
-) {
-  return requestJson<{ id: number; name: string }>(
-    '/students',
-    getAccessToken,
-    {
-      method: 'POST',
-      body: JSON.stringify({ name }),
-    },
-  )
-}
-
 export async function listCurricula(
   studentId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  const summaries = await requestJson<ReadonlyArray<Partial<CurriculumSummary>>>(
-    `/student/${studentId}/curricula`,
-    getAccessToken,
-  )
+  const summaries = await requestJson<
+    ReadonlyArray<Partial<CurriculumSummary>>
+  >(`/student/${studentId}/curricula`, getAccessToken)
   return summaries
     .filter((summary) => Number.isInteger(summary.id))
     .map((summary) => ({
       id: summary.id!,
-      name: typeof summary.name === 'string' && summary.name.trim()
-        ? summary.name
-        : `Planejamento ${summary.id!}`,
+      name:
+        typeof summary.name === 'string' && summary.name.trim()
+          ? summary.name
+          : `Planejamento ${summary.id!}`,
     }))
 }
 
@@ -116,13 +118,11 @@ export async function deleteCurriculum(
   curriculumId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  console.log('Deleting curriculum', { studentId, curriculumId });
   const response = await apiRequest(
     `/student/${studentId}/curricula/${curriculumId}`,
     getAccessToken,
     { method: 'DELETE' },
   )
-  console.log('Delete response', { status: response.status, ok: response.ok })
   if (!response.ok) throw new Error(`API request failed: ${response.status}`)
 }
 
@@ -130,11 +130,14 @@ export async function listCompletedCourses(
   studentId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  const courses = await requestJson<ReadonlyArray<{ courseId: number; status: string }>>(
-    `/student/${studentId}/courses?status=COMPLETED`,
-    getAccessToken,
-  )
-  return courses.map((course) => String(course.courseId))
+  const attempts = await listStudentCourseAttempts(studentId, getAccessToken)
+  return [
+    ...new Set(
+      attempts
+        .filter((attempt) => attempt.status === 'COMPLETED')
+        .map((attempt) => String(attempt.courseId)),
+    ),
+  ]
 }
 
 export async function setCourseCompleted(
@@ -142,18 +145,30 @@ export async function setCourseCompleted(
   courseId: string,
   completed: boolean,
   getAccessToken: () => Promise<string>,
+  completion?: Readonly<{ studyPeriodId?: number; grade?: number | null }>,
 ) {
-  const path = `/student/${studentId}/courses/${Number(courseId)}`
+  const attempts = await listStudentCourseAttempts(studentId, getAccessToken)
+  const completedAttempts = attempts.filter(
+    (attempt) =>
+      attempt.courseId === Number(courseId) && attempt.status === 'COMPLETED',
+  )
   if (!completed) {
-    const response = await apiRequest(path, getAccessToken, { method: 'DELETE' })
-    if (!response.ok && response.status !== 404)
-      throw new Error(`API request failed: ${response.status}`)
+    const latest = completedAttempts.at(0)
+    if (latest)
+      await deleteStudentCourseAttempt(studentId, latest.id, getAccessToken)
     return
   }
-  await requestJson(path, getAccessToken, {
-    method: 'PUT',
-    body: JSON.stringify({ status: 'COMPLETED' }),
-  })
+  if (completedAttempts.length) return
+  await createStudentCourseAttempt(
+    studentId,
+    {
+      courseId: Number(courseId),
+      studyPeriodId: completion?.studyPeriodId ?? null,
+      status: 'COMPLETED',
+      grade: completion?.grade ?? null,
+    },
+    getAccessToken,
+  )
 }
 
 function toCreateBody(document: CurriculumDocument) {
@@ -161,7 +176,9 @@ function toCreateBody(document: CurriculumDocument) {
     name: document.name,
     selection: {
       catalogProgramId: toNumberOrNull(document.selection.catalogProgramId),
-      catalogSpecializationId: toNumberOrNull(document.selection.specializationId),
+      catalogSpecializationId: toNumberOrNull(
+        document.selection.specializationId,
+      ),
       catalogLanguageId: toNumberOrNull(document.selection.languageId),
     },
     planningStart: document.planningStart,
@@ -190,7 +207,10 @@ export function documentFromState(
   }))
   const courses = [
     ...state.plan.periods.flatMap((period) =>
-      period.items.map((item) => ({ courseId: item.courseId, periodId: period.id })),
+      period.items.map((item) => ({
+        courseId: item.courseId,
+        periodId: period.id,
+      })),
     ),
     ...(state.plan.unallocatedCourseIds ?? []).map((courseId) => ({
       courseId,
@@ -256,18 +276,21 @@ export function stateFromDocument(
     },
     plan: {
       planningStart: document.planningStart ?? undefined,
-      currentPeriodId: document.currentPeriodId !== null
-        ? (String(document.currentPeriodId) as PlanningPeriodId)
-        : undefined,
+      currentPeriodId:
+        document.currentPeriodId !== null
+          ? (String(document.currentPeriodId) as PlanningPeriodId)
+          : undefined,
       periods: periods
         .slice()
         .sort((left, right) => left.position - right.position)
         .map((period) => ({
           id: String(period.id) as PlanningPeriodId,
-          items: (coursesByPeriod.get(String(period.id)) ?? []).map((courseId) => ({
-            type: 'course' as const,
-            courseId: courseId as never,
-          })),
+          items: (coursesByPeriod.get(String(period.id)) ?? []).map(
+            (courseId) => ({
+              type: 'course' as const,
+              courseId: courseId as never,
+            }),
+          ),
         })),
       unallocatedCourseIds: unallocatedCourseIds as never,
     },
@@ -285,7 +308,9 @@ export function patchBodyFromState(
 ) {
   const next = documentFromState(state, previous?.name)
   const previousPeriods = previous?.periods ?? []
-  const previousById = new Map(previousPeriods.map((period) => [String(period.id), period]))
+  const previousById = new Map(
+    previousPeriods.map((period) => [String(period.id), period]),
+  )
   const nextIds = new Set(next.periods.map((period) => period.id))
   const update = next.periods
     .filter((period) => previousById.has(period.id))
@@ -298,7 +323,9 @@ export function patchBodyFromState(
     .filter((period) => !nextIds.has(String(period.id)))
     .map((period) => Number(period.id))
     .filter(Number.isInteger)
-  const nextCourseIds = new Set(next.courses.map((course) => String(course.courseId)))
+  const nextCourseIds = new Set(
+    next.courses.map((course) => String(course.courseId)),
+  )
   const previousCourseIds = (previous?.courses ?? [])
     .map((course) => Number(course.courseId))
     .filter((courseId) => Number.isInteger(courseId))

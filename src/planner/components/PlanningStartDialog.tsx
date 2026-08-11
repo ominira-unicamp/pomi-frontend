@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
-import { AutocompleteSelect } from './AutocompleteSelect'
 import type { PlannerDispatch } from '@/planner/types'
+import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -23,19 +23,26 @@ export function PlanningStartDialog({
   year: savedYear,
   semester: savedSemester,
   semesterNumber: savedSemesterNumber,
+  defaultYear,
   disabled,
   dispatch,
 }: {
   year?: number
   semester?: 1 | 2
   semesterNumber?: number
+  defaultYear?: number | null
   disabled: boolean
   dispatch: PlannerDispatch
 }) {
   const [open, setOpen] = useState(false)
-  const [year, setYear] = useState(savedYear ?? new Date().getFullYear())
+  const [year, setYear] = useState(
+    savedYear ?? defaultYear ?? new Date().getFullYear(),
+  )
   const [semester, setSemester] = useState(String(savedSemester ?? 1))
   const [semesterNumber, setSemesterNumber] = useState(savedSemesterNumber ?? 1)
+  useEffect(() => {
+    if (!savedYear && defaultYear) setYear(defaultYear)
+  }, [defaultYear, savedYear])
   const submit = async () => {
     const succeeded = await dispatch({
       type: 'setPlanningStart',

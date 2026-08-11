@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 
-import { AutocompleteSelect } from './AutocompleteSelect'
 import type {
   CurriculumPlannerSnapshot,
   CurriculumPlannerStaticData,
 } from '@/planner/domain/curriculumPlanner'
 import type { PlannerDispatch } from '@/planner/types'
+import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 

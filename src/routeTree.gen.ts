@@ -9,10 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SituacaoDoCursoRouteImport } from './routes/situacao-do-curso'
 import { Route as DesignSystemRouteImport } from './routes/[_]design-system'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PlanejamentosDeSemestreIndexRouteImport } from './routes/planejamentos-de-semestre.index'
 import { Route as PlanejamentosPlanejamentoIdRouteImport } from './routes/planejamentos.$planejamentoId'
+import { Route as PlanejamentosDeSemestrePlanejamentoIdRouteImport } from './routes/planejamentos-de-semestre.$planejamentoId'
 
+const SituacaoDoCursoRoute = SituacaoDoCursoRouteImport.update({
+  id: '/situacao-do-curso',
+  path: '/situacao-do-curso',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
   id: '/_design-system',
   path: '/_design-system',
@@ -23,45 +31,95 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlanejamentosDeSemestreIndexRoute =
+  PlanejamentosDeSemestreIndexRouteImport.update({
+    id: '/planejamentos-de-semestre/',
+    path: '/planejamentos-de-semestre/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const PlanejamentosPlanejamentoIdRoute =
   PlanejamentosPlanejamentoIdRouteImport.update({
     id: '/planejamentos/$planejamentoId',
     path: '/planejamentos/$planejamentoId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const PlanejamentosDeSemestrePlanejamentoIdRoute =
+  PlanejamentosDeSemestrePlanejamentoIdRouteImport.update({
+    id: '/planejamentos-de-semestre/$planejamentoId',
+    path: '/planejamentos-de-semestre/$planejamentoId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/situacao-do-curso': typeof SituacaoDoCursoRoute
+  '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   '/planejamentos/$planejamentoId': typeof PlanejamentosPlanejamentoIdRoute
+  '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/situacao-do-curso': typeof SituacaoDoCursoRoute
+  '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   '/planejamentos/$planejamentoId': typeof PlanejamentosPlanejamentoIdRoute
+  '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/situacao-do-curso': typeof SituacaoDoCursoRoute
+  '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   '/planejamentos/$planejamentoId': typeof PlanejamentosPlanejamentoIdRoute
+  '/planejamentos-de-semestre/': typeof PlanejamentosDeSemestreIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/_design-system' | '/planejamentos/$planejamentoId'
+  fullPaths:
+    | '/'
+    | '/_design-system'
+    | '/situacao-do-curso'
+    | '/planejamentos-de-semestre/$planejamentoId'
+    | '/planejamentos/$planejamentoId'
+    | '/planejamentos-de-semestre'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/_design-system' | '/planejamentos/$planejamentoId'
-  id: '__root__' | '/' | '/_design-system' | '/planejamentos/$planejamentoId'
+  to:
+    | '/'
+    | '/_design-system'
+    | '/situacao-do-curso'
+    | '/planejamentos-de-semestre/$planejamentoId'
+    | '/planejamentos/$planejamentoId'
+    | '/planejamentos-de-semestre'
+  id:
+    | '__root__'
+    | '/'
+    | '/_design-system'
+    | '/situacao-do-curso'
+    | '/planejamentos-de-semestre/$planejamentoId'
+    | '/planejamentos/$planejamentoId'
+    | '/planejamentos-de-semestre/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignSystemRoute: typeof DesignSystemRoute
+  SituacaoDoCursoRoute: typeof SituacaoDoCursoRoute
+  PlanejamentosDeSemestrePlanejamentoIdRoute: typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   PlanejamentosPlanejamentoIdRoute: typeof PlanejamentosPlanejamentoIdRoute
+  PlanejamentosDeSemestreIndexRoute: typeof PlanejamentosDeSemestreIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/situacao-do-curso': {
+      id: '/situacao-do-curso'
+      path: '/situacao-do-curso'
+      fullPath: '/situacao-do-curso'
+      preLoaderRoute: typeof SituacaoDoCursoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_design-system': {
       id: '/_design-system'
       path: '/_design-system'
@@ -76,11 +134,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/planejamentos-de-semestre/': {
+      id: '/planejamentos-de-semestre/'
+      path: '/planejamentos-de-semestre'
+      fullPath: '/planejamentos-de-semestre'
+      preLoaderRoute: typeof PlanejamentosDeSemestreIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/planejamentos/$planejamentoId': {
       id: '/planejamentos/$planejamentoId'
       path: '/planejamentos/$planejamentoId'
       fullPath: '/planejamentos/$planejamentoId'
       preLoaderRoute: typeof PlanejamentosPlanejamentoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planejamentos-de-semestre/$planejamentoId': {
+      id: '/planejamentos-de-semestre/$planejamentoId'
+      path: '/planejamentos-de-semestre/$planejamentoId'
+      fullPath: '/planejamentos-de-semestre/$planejamentoId'
+      preLoaderRoute: typeof PlanejamentosDeSemestrePlanejamentoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -89,7 +161,11 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignSystemRoute: DesignSystemRoute,
+  SituacaoDoCursoRoute: SituacaoDoCursoRoute,
+  PlanejamentosDeSemestrePlanejamentoIdRoute:
+    PlanejamentosDeSemestrePlanejamentoIdRoute,
   PlanejamentosPlanejamentoIdRoute: PlanejamentosPlanejamentoIdRoute,
+  PlanejamentosDeSemestreIndexRoute: PlanejamentosDeSemestreIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { CurriculumPlannerPage } from '@/planner/CurriculumPlannerPage'
+import { CurriculumPlannerProvider } from '@/planner/CurriculumPlannerProvider'
 
 export const Route = createFileRoute('/planejamentos/$planejamentoId')({
   component: PlanningRoute,
@@ -8,5 +9,9 @@ export const Route = createFileRoute('/planejamentos/$planejamentoId')({
 
 function PlanningRoute() {
   const { planejamentoId } = Route.useParams()
-  return <CurriculumPlannerPage curriculumId={planejamentoId} />
+  return (
+    <CurriculumPlannerProvider>
+      <CurriculumPlannerPage curriculumId={planejamentoId} />
+    </CurriculumPlannerProvider>
+  )
 }

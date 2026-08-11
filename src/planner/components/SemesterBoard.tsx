@@ -2,7 +2,6 @@ import { useDroppable } from '@dnd-kit/core'
 import { GripVertical, Plus, Trash2 } from 'lucide-react'
 import { memo, useState } from 'react'
 
-import { AutocompleteSelect } from './AutocompleteSelect'
 import { CompactCourseCard } from './CourseCard'
 import type {
   Course,
@@ -11,6 +10,7 @@ import type {
 } from '@/planner/domain/curriculumPlanner'
 import type { PlannerDispatch } from '@/planner/types'
 import type { CourseOption, SemesterViewModel } from '@/planner/viewModel'
+import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
