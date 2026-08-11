@@ -158,7 +158,14 @@ export type PersistedSemesterPlanning = Readonly<{
   studyPeriodId: number
   studyPeriodCode: string
   curriculumId: number | null
-  classes: ReadonlyArray<Readonly<{ id: number }>>
+  classes: ReadonlyArray<
+    Readonly<{
+      id: number
+      code: string
+      courseCode: string
+      courseCredits: number
+    }>
+  >
   guide: Readonly<{
     mode: 'CURRICULUM' | 'PROGRAM' | 'NONE'
     curriculumSource: 'SAVED' | 'SUGGESTION' | null

@@ -20,27 +20,24 @@ import type {
 } from '@/planner/domain/curriculumPlanner'
 import type {
   CurriculumDocument,
-  StudentProfile,
+  CurriculumSummary,
 } from '@/planner/data/curriculumPersistenceApi'
+import type { StudentProfile } from '@/student/data/studentApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import { createApiCurriculumPlannerStaticDataSource } from '@/planner/data/curriculumPlannerApi'
+import { createCurriculumCatalogDataSource } from '@/catalog/data/curriculumCatalogApi'
 import {
   createCurriculum,
   deleteCurriculum,
-  documentFromState,
-  getCurriculum,
-  listCompletedCourses,
-  listCurricula,
-  patchBodyFromState,
   patchCurriculum,
-  setCourseCompleted,
   stateFromDocument,
 } from '@/planner/data/curriculumPersistenceApi'
+import { persistCurriculumState } from '@/planner/data/curriculumPersistenceAdapter'
 import {
   getCurrentStudent,
-  getStudentProfile,
   registerCurrentStudent,
+  setCourseCompleted,
 } from '@/student/data/studentApi'
+import { useCurriculumRemoteData } from '@/planner/hooks/useCurriculumRemoteData'
 import { suggestionOnboardingPreferenceKey } from '@/planner/data/curriculumSuggestionApi'
 import { createInMemoryCurriculumPlanner } from '@/planner/domain/inMemoryCurriculumPlanner'
 
@@ -75,7 +72,7 @@ export type CurriculumPlannerContextValue = Readonly<{
   dispatch: (command: CurriculumPlannerCommand) => Promise<boolean>
   retry: () => Promise<void>
   resetLocalPlan: () => Promise<void>
-  curricula: ReadonlyArray<{ id: number; name: string }>
+  curricula: ReadonlyArray<CurriculumSummary>
   activeCurriculumId?: number
   selectCurriculum: (id: number) => void
   createCurriculumPlan: (name?: string) => Promise<number | undefined>
@@ -101,7 +98,7 @@ function createDefaultPlanner(
   >[0]['initialState'],
 ) {
   return createInMemoryCurriculumPlanner({
-    staticDataSource: createApiCurriculumPlannerStaticDataSource(),
+    staticDataSource: createCurriculumCatalogDataSource(),
     initialState: initialState ?? {
       revision: crypto.randomUUID() as PlannerRevision,
       selection: {},
@@ -134,87 +131,13 @@ export function CurriculumPlannerProvider({
   const saveQueue = useRef(Promise.resolve())
   const remoteDocument = useRef<CurriculumDocument | undefined>(undefined)
 
-  const remoteQuery = useQuery({
-    queryKey: [
-      'curriculum-planner',
-      'remote',
-      auth.isAuthenticated,
-      generation,
-      activeCurriculumId ?? 'first',
-    ],
-    enabled: auth.initialized && auth.isAuthenticated && !injectedPlanner,
-    queryFn: async () => {
-      const me = await getCurrentStudent(auth.getAccessToken)
-      if (!me.studentId)
-        return {
-          studentId: undefined,
-          summaries: [],
-          document: undefined,
-          completed: [] as Array<string>,
-        }
-      const summaries = await listCurricula(me.studentId, auth.getAccessToken)
-      if (summaries.length === 0) {
-        const completed = await listCompletedCourses(
-          me.studentId,
-          auth.getAccessToken,
-        )
-        return {
-          studentId: me.studentId,
-          summaries,
-          document: undefined,
-          completed,
-        }
-      }
-      if (activeCurriculumId === undefined) {
-        const completed = await listCompletedCourses(
-          me.studentId,
-          auth.getAccessToken,
-        )
-        return {
-          studentId: me.studentId,
-          summaries,
-          document: undefined,
-          completed,
-        }
-      }
-      const summary = summaries.find((item) => item.id === activeCurriculumId)
-      if (!summary) {
-        const completed = await listCompletedCourses(
-          me.studentId,
-          auth.getAccessToken,
-        )
-        return {
-          studentId: me.studentId,
-          summaries,
-          document: undefined,
-          completed,
-        }
-      }
-      const document = await getCurriculum(
-        me.studentId,
-        summary.id,
-        auth.getAccessToken,
-      )
-      const completed = await listCompletedCourses(
-        me.studentId,
-        auth.getAccessToken,
-      )
-      return { studentId: me.studentId, summaries, document, completed }
-    },
-    retry: false,
-  })
-  const studentProfileQuery = useQuery({
-    queryKey: [
-      'curriculum-planner',
-      'student-profile',
-      remoteQuery.data?.studentId,
-    ],
-    queryFn: () =>
-      getStudentProfile(remoteQuery.data!.studentId!, auth.getAccessToken),
-    enabled: Boolean(
-      auth.isAuthenticated && remoteQuery.data?.studentId && !injectedPlanner,
-    ),
-    staleTime: 5 * 60_000,
+  const { remoteQuery, studentProfileQuery } = useCurriculumRemoteData({
+    isAuthenticated: auth.isAuthenticated,
+    authInitialized: auth.initialized,
+    injected: Boolean(injectedPlanner),
+    generation,
+    activeCurriculumId,
+    getAccessToken: auth.getAccessToken,
   })
   useEffect(() => {
     const summaries = remoteQuery.data?.summaries
@@ -280,66 +203,21 @@ export function CurriculumPlannerProvider({
         plan: snapshot.plan,
         academicRecord: snapshot.academicRecord,
       }
-      if (!remoteDocument.current) {
-        const draft = documentFromState(state, name)
-        const created = await createCurriculum(
-          studentId,
-          draft,
-          auth.getAccessToken,
-        )
-        const byPosition = new Map(
-          created.periods.map((period) => [period.position, String(period.id)]),
-        )
-        const courses = draft.courses.map((course) => {
-          const period = draft.periods.find(
-            (item) => item.id === course.periodId,
-          )
-          return {
-            courseId: Number(course.courseId),
-            periodId: period ? Number(byPosition.get(period.position)) : null,
-          }
-        })
-        remoteDocument.current = await patchCurriculum(
-          studentId,
-          created.id!,
-          { courses: { upsert: courses } },
-          auth.getAccessToken,
-        )
-        setActiveCurriculumId(created.id)
-        return
-      }
-      const previous = remoteDocument.current
-      const response = await patchCurriculum(
+      const document = await persistCurriculumState({
         studentId,
-        remoteDocument.current.id!,
-        patchBodyFromState(previous, state),
-        auth.getAccessToken,
-      )
-      remoteDocument.current = response
-      const byPosition = new Map(
-        response.periods.map((period) => [period.position, String(period.id)]),
-      )
-      const nextDocument = documentFromState(state, previous.name)
-      const courses = nextDocument.courses.map((course) => {
-        const period = nextDocument.periods.find(
-          (item) => item.id === course.periodId,
-        )
-        return {
-          courseId: Number(course.courseId),
-          periodId: period ? Number(byPosition.get(period.position)) : null,
-        }
+        current: remoteDocument.current,
+        state,
+        name,
+        getAccessToken: auth.getAccessToken,
       })
-      await patchCurriculum(
-        studentId,
-        response.id!,
-        { courses: { upsert: courses } },
-        auth.getAccessToken,
-      )
+      remoteDocument.current = document
+      if (!activeCurriculumId) setActiveCurriculumId(document.id)
     },
     [
       auth.getAccessToken,
       auth.isAuthenticated,
       injectedPlanner,
+      activeCurriculumId,
       remoteQuery.data?.studentId,
     ],
   )

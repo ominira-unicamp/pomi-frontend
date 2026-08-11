@@ -1,7 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { Plus } from 'lucide-react'
+import {
+  ArrowRight,
+  BookOpen,
+  CalendarDays,
+  GraduationCap,
+  Plus,
+} from 'lucide-react'
 
+import type { PersistedSemesterPlanning } from '@/semester-planner/data/semesterPlanningApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
   EmptyState,
@@ -9,8 +16,22 @@ import {
   PageContainer,
   PageHeader,
 } from '@/components/PageLayout'
+import { Card } from '@/components/ui/card'
 import { getCurrentStudent } from '@/student/data/studentApi'
 import { listSemesterPlannings } from '@/semester-planner/data/semesterPlanningApi'
+
+function guideLabel(plan: PersistedSemesterPlanning) {
+  if (plan.guide.mode === 'CURRICULUM') return 'Guia por currículo'
+  if (plan.guide.mode === 'PROGRAM') return 'Guia por programa'
+  return 'Seleção livre'
+}
+
+function totalCredits(plan: PersistedSemesterPlanning) {
+  return plan.classes.reduce(
+    (total, classItem) => total + classItem.courseCredits,
+    0,
+  )
+}
 
 export function SemesterPlanningSelectionPage() {
   const auth = useOptionalAuth()
@@ -46,7 +67,7 @@ export function SemesterPlanningSelectionPage() {
           <Link
             to="/planejamentos-de-semestre/$planejamentoId"
             params={{ planejamentoId: 'rascunho' }}
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground"
+            className="pomi-focus inline-flex h-10 items-center gap-2 rounded-md border-2 border-primary bg-primary px-4 text-sm font-bold text-primary-foreground shadow-[3px_3px_0_var(--strong-border)] transition-[transform,box-shadow] hover:-translate-x-px hover:-translate-y-px hover:shadow-[5px_5px_0_var(--strong-border)]"
           >
             <Plus className="size-4" />
             Novo planejamento
@@ -66,24 +87,70 @@ export function SemesterPlanningSelectionPage() {
         />
       )}
       {auth.isAuthenticated && (plansQuery.data?.length ?? 0) > 0 && (
-        <div className="space-y-3">
-          {plansQuery.data!.map((plan) => (
-            <Link
-              key={plan.id}
-              to="/planejamentos-de-semestre/$planejamentoId"
-              params={{ planejamentoId: String(plan.id) }}
-              className="block rounded-lg border-2 border-strong-border bg-card p-4 transition-colors hover:border-primary"
-            >
-              <p className="font-extrabold">
-                {plan.name || `Planejamento ${plan.id}`}
-              </p>
+        <section aria-labelledby="semester-plans-title">
+          <div className="mb-4 flex items-end justify-between gap-4">
+            <div>
+              <h2 id="semester-plans-title" className="text-xl font-extrabold">
+                Suas alternativas
+              </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                {plan.studyPeriodCode} · {plan.classes.length} turma
-                {plan.classes.length === 1 ? '' : 's'}
+                Compare turmas e horários para decidir o próximo período.
               </p>
-            </Link>
-          ))}
-        </div>
+            </div>
+            <span className="shrink-0 text-sm font-bold text-muted-foreground">
+              {plansQuery.data!.length} salva
+              {plansQuery.data!.length === 1 ? '' : 's'}
+            </span>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            {plansQuery.data!.map((plan) => (
+              <Link
+                key={plan.id}
+                to="/planejamentos-de-semestre/$planejamentoId"
+                params={{ planejamentoId: String(plan.id) }}
+                className="pomi-focus block"
+              >
+                <Card className="min-h-44 overflow-hidden p-5 transition-colors hover:border-primary">
+                  <div className="flex items-start justify-between gap-4">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-md bg-secondary text-secondary-foreground">
+                      <CalendarDays className="size-5" />
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-sm font-bold text-primary">
+                      Abrir <ArrowRight className="size-4" />
+                    </span>
+                  </div>
+                  <h3 className="mt-5 text-lg font-extrabold">
+                    {plan.name || `Planejamento ${plan.id}`}
+                  </h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {guideLabel(plan)}
+                  </p>
+                  <div className="mt-5 flex items-center justify-between gap-3 border-t border-strong-border/30 pt-4 text-xs font-semibold text-muted-foreground">
+                    <span className="inline-flex items-center gap-1.5">
+                      <BookOpen className="size-3.5" />
+                      {plan.studyPeriodCode}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 text-right">
+                      <GraduationCap className="size-3.5" />
+                      {totalCredits(plan)} crédito
+                      {totalCredits(plan) === 1 ? '' : 's'}
+                    </span>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {plan.classes.map((classItem) => (
+                      <span
+                        key={classItem.id}
+                        className="rounded-sm border border-strong-border/40 bg-muted px-2 py-1 text-xs font-bold"
+                      >
+                        {classItem.courseCode} · {classItem.code}
+                      </span>
+                    ))}
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </section>
       )}
     </PageContainer>
   )

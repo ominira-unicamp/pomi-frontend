@@ -13,6 +13,11 @@ import { createInMemoryCurriculumPlanner } from '@/planner/domain/inMemoryCurric
 import { CurriculumPlannerPage } from '@/planner/CurriculumPlannerPage'
 import { CurriculumPlannerProvider } from '@/planner/CurriculumPlannerProvider'
 
+vi.mock('@tanstack/react-router', async (importOriginal) => {
+  const actual = await importOriginal()
+  return Object.assign({}, actual, { useNavigate: () => vi.fn() })
+})
+
 const staticData: CurriculumPlannerStaticData = {
   courses: [
     {

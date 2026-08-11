@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { EmptyState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
-import { createApiCurriculumPlannerStaticDataSource } from '@/catalog/data/curriculumCatalogApi'
+import { createCurriculumCatalogDataSource } from '@/catalog/data/curriculumCatalogApi'
 import {
   createStudentCourseAttempt,
   deleteStudentCourseAttempt,
@@ -27,7 +27,7 @@ import {
   CourseProfilePanel,
 } from '@/student/components/CourseProfilePanel'
 
-const staticSource = createApiCurriculumPlannerStaticDataSource()
+const staticSource = createCurriculumCatalogDataSource()
 const statuses = [
   ['ENROLLED', 'Cursando'],
   ['COMPLETED', 'Concluída'],

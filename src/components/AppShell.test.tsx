@@ -64,6 +64,10 @@ describe('AppShell', () => {
     expect(
       await screen.findByRole('link', { name: 'Planejamento' }),
     ).toBeTruthy()
+    expect(screen.getByRole('contentinfo')).toBeTruthy()
+    expect(
+      screen.getByRole('link', { name: 'Ominira' }).getAttribute('href'),
+    ).toBe('https://github.com/ominira-unicamp/')
     fireEvent.click(screen.getByRole('button', { name: 'Entrar' }))
     expect(login).toHaveBeenCalledOnce()
   })
@@ -74,6 +78,27 @@ describe('AppShell', () => {
 
     expect(await screen.findByRole('dialog')).toBeTruthy()
     expect(screen.getByText('Navegação do POMI')).toBeTruthy()
+  })
+
+  it('places the footer after a full-viewport main beside the sidebar', async () => {
+    const { container } = renderShell()
+    const main = await screen.findByRole('main')
+    const footer = screen.getByRole('contentinfo')
+    const sidebar = container.querySelector('aside')
+
+    expect(main.className).toContain('min-h-[calc(100svh-4.5rem)]')
+    expect(main.nextElementSibling).toBe(footer)
+    expect(sidebar?.parentElement).toBe(main.parentElement?.parentElement)
+  })
+
+  it('keeps the header and sidebar fixed while the content scrolls', async () => {
+    const { container } = renderShell()
+    const header = await screen.findByRole('banner')
+    const sidebar = container.querySelector('aside')
+
+    expect(header.className).toContain('sticky top-0')
+    expect(sidebar?.className).toContain('sticky top-18')
+    expect(sidebar?.className).toContain('h-[calc(100svh-4.5rem)]')
   })
 
   it('starts collapsed and persists the desktop navigation preference', async () => {

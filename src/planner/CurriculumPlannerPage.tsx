@@ -10,7 +10,10 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import {
+  ArrowRight,
+  Clock3,
   Download,
+  GraduationCap,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -24,7 +27,11 @@ import { useNavigate } from '@tanstack/react-router'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 
 import type { PlannerDragData } from '@/planner/components/CourseCard'
-import type { PlannerError } from '@/planner/domain/curriculumPlanner'
+import type { CurriculumSummary } from '@/planner/data/curriculumPersistenceApi'
+import type {
+  CurriculumPlannerStaticData,
+  PlannerError,
+} from '@/planner/domain/curriculumPlanner'
 import type { ResolvedPlanningImport } from '@/planner/domain/planningTransfer'
 import {
   EmptyState,
@@ -108,6 +115,47 @@ function errorText(error: PlannerError | string) {
 
 function curriculumName(name: string | undefined, id?: number) {
   return name?.trim() || (id ? `Planejamento ${id}` : 'Planejamento sem nome')
+}
+
+function curriculumDetails(
+  summary: CurriculumSummary,
+  catalogPrograms: CurriculumPlannerStaticData['catalogPrograms'],
+) {
+  const catalogProgram = catalogPrograms.find(
+    (item) => Number(item.id) === summary.selection.catalogProgramId,
+  )
+  if (!catalogProgram) return []
+  const specialization = catalogProgram.specializations.find(
+    (item) => Number(item.id) === summary.selection.catalogSpecializationId,
+  )
+  const language = catalogProgram.languages.find(
+    (item) => Number(item.id) === summary.selection.catalogLanguageId,
+  )
+  return [
+    { label: 'Catálogo', value: `Catálogo ${catalogProgram.catalog.year}` },
+    {
+      label: 'Curso',
+      value: `${catalogProgram.program.code} · ${catalogProgram.program.name}`,
+    },
+    ...(specialization
+      ? [
+          {
+            label: 'Habilitação',
+            value: `${specialization.code} · ${specialization.name}`,
+          },
+        ]
+      : []),
+    ...(language ? [{ label: 'Língua', value: language.name }] : []),
+  ]
+}
+
+function updatedAtLabel(value?: string) {
+  if (!value) return 'Sem data de atualização'
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return 'Sem data de atualização'
+  return `Atualizado em ${new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'medium',
+  }).format(date)}`
 }
 
 export function CurriculumPlannerPage({
@@ -307,107 +355,162 @@ export function CurriculumPlannerPage({
       <PageContainer>
         <PageHeader
           eyebrow="Planejamento acadêmico"
-          title="Selecione um planejamento"
+          title="Planejamentos de currículo"
           description={
             planner.isAuthenticated
-              ? 'Escolha um planejamento existente ou crie um novo para começar.'
+              ? 'Organize sua trajetória acadêmica, período a período.'
               : 'Comece um rascunho nesta sessão ou importe um currículo existente.'
           }
-        />
-        <Card className="shadow-none">
-          <CardContent className="space-y-4 p-5">
-            {planner.isAuthenticated ? (
-              planner.curricula.length ? (
-                <div className="space-y-2">
-                  <p className="text-sm font-bold">Seus planejamentos</p>
-                  <div className="grid gap-2">
-                    {planner.curricula.map((curriculum) => (
-                      <Button
-                        key={curriculum.id}
-                        variant="outline"
-                        className="justify-start"
-                        onClick={() =>
-                          void navigate({
-                            to: '/planejamentos/$planejamentoId',
-                            params: { planejamentoId: String(curriculum.id) },
-                          })
-                        }
-                      >
-                        {curriculum.name}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
+          actions={
+            <>
+              {planner.isAuthenticated ? (
+                <Button onClick={() => void createPlan()}>
+                  <Plus /> Novo planejamento
+                </Button>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Você ainda não possui planejamentos salvos.
-                </p>
-              )
-            ) : (
+                <Button
+                  onClick={() => {
+                    planner.openAnonymousDraft()
+                    void navigate({
+                      to: '/planejamentos/$planejamentoId',
+                      params: { planejamentoId: 'rascunho' },
+                    })
+                  }}
+                >
+                  <Plus /> Novo rascunho
+                </Button>
+              )}
               <Button
+                variant="outline"
                 onClick={() => {
-                  planner.openAnonymousDraft()
-                  void navigate({
-                    to: '/planejamentos/$planejamentoId',
-                    params: { planejamentoId: 'rascunho' },
-                  })
+                  setSelectionError(false)
+                  importInputRef.current?.click()
                 }}
               >
-                <Plus /> Novo rascunho
+                <Upload /> Importar currículo
               </Button>
-            )}
-            {planner.isAuthenticated && (
-              <Button variant="outline" onClick={() => void createPlan()}>
-                <Plus /> Novo planejamento
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSelectionError(false)
-                importInputRef.current?.click()
-              }}
-            >
-              <Upload /> Importar currículo
-            </Button>
-            <input
-              ref={importInputRef}
-              className="hidden"
-              type="file"
-              accept="application/json"
-              onChange={(event) => {
-                void importPlanning(event.target.files?.[0])
-                event.target.value = ''
-              }}
-            />
-            <PlanningImportReviewDialog
-              disabled={planner.isDispatching}
-              importResult={pendingImport}
-              onConfirm={() => void confirmImport()}
-              onOpenChange={(open) => {
-                if (!open) setPendingImport(undefined)
-              }}
-            />
-            {importError && (
-              <Alert variant="destructive">
-                <AlertTitle>Não foi possível importar</AlertTitle>
-                <AlertDescription>
-                  O arquivo não é um currículo válido ou é incompatível com os
-                  dados atuais.
-                </AlertDescription>
-              </Alert>
-            )}
-            {selectionError && (
-              <Alert variant="destructive">
-                <AlertTitle>Não foi possível criar o planejamento</AlertTitle>
-                <AlertDescription>
-                  {planner.actionError ??
-                    'Verifique sua sessão e tente novamente.'}
-                </AlertDescription>
-              </Alert>
-            )}
-          </CardContent>
-        </Card>
+            </>
+          }
+        />
+        {planner.isAuthenticated && planner.curricula.length > 0 && (
+          <section aria-labelledby="curricula-title">
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <div>
+                <h2 id="curricula-title" className="text-xl font-extrabold">
+                  Seus planejamentos
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Retome um planejamento ou acompanhe sua configuração atual.
+                </p>
+              </div>
+              <span className="shrink-0 text-sm font-bold text-muted-foreground">
+                {planner.curricula.length} salvo
+                {planner.curricula.length === 1 ? '' : 's'}
+              </span>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              {planner.curricula.map((curriculum) => {
+                const details = curriculumDetails(
+                  curriculum,
+                  planner.staticData?.catalogPrograms ?? [],
+                )
+                return (
+                  <Card
+                    key={curriculum.id}
+                    className="overflow-hidden transition-colors hover:border-primary"
+                  >
+                    <button
+                      className="pomi-focus flex h-full min-h-44 w-full flex-col p-5 text-left"
+                      onClick={() =>
+                        void navigate({
+                          to: '/planejamentos/$planejamentoId',
+                          params: { planejamentoId: String(curriculum.id) },
+                        })
+                      }
+                    >
+                      <div className="flex items-start justify-between gap-4">
+                        <span className="grid size-10 shrink-0 place-items-center rounded-md bg-secondary text-secondary-foreground">
+                          <GraduationCap className="size-5" />
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-sm font-bold text-primary">
+                          Abrir <ArrowRight className="size-4" />
+                        </span>
+                      </div>
+                      <h3 className="mt-5 text-lg font-extrabold">
+                        {curriculum.name}
+                      </h3>
+                      {details.length > 0 && (
+                        <dl className="mt-4 flex flex-wrap gap-x-6 gap-y-3 text-sm">
+                          {details.map((detail) => (
+                            <div key={detail.label} className="min-w-32">
+                              <dt className="text-xs font-bold tracking-[0.08em] text-muted-foreground uppercase">
+                                {detail.label}
+                              </dt>
+                              <dd className="mt-0.5 font-semibold">
+                                {detail.value}
+                              </dd>
+                            </div>
+                          ))}
+                        </dl>
+                      )}
+                      <div className="mt-auto flex items-center gap-1.5 border-t border-strong-border/30 pt-4 text-xs font-semibold text-muted-foreground">
+                        <Clock3 className="size-3.5" />
+                        {updatedAtLabel(curriculum.updatedAt)}
+                      </div>
+                    </button>
+                  </Card>
+                )
+              })}
+            </div>
+          </section>
+        )}
+        {planner.isAuthenticated && planner.curricula.length === 0 && (
+          <EmptyState
+            title="Nenhum planejamento salvo"
+            description="Crie seu primeiro planejamento de currículo para organizar os próximos semestres."
+          />
+        )}
+        {!planner.isAuthenticated && (
+          <EmptyState
+            title="Comece um rascunho"
+            description="Você pode planejar nesta sessão ou importar um currículo para retomar o trabalho depois."
+          />
+        )}
+        <input
+          ref={importInputRef}
+          className="hidden"
+          type="file"
+          accept="application/json"
+          onChange={(event) => {
+            void importPlanning(event.target.files?.[0])
+            event.target.value = ''
+          }}
+        />
+        <PlanningImportReviewDialog
+          disabled={planner.isDispatching}
+          importResult={pendingImport}
+          onConfirm={() => void confirmImport()}
+          onOpenChange={(open) => {
+            if (!open) setPendingImport(undefined)
+          }}
+        />
+        {importError && (
+          <Alert className="mt-6" variant="destructive">
+            <AlertTitle>Não foi possível importar</AlertTitle>
+            <AlertDescription>
+              O arquivo não é um currículo válido ou é incompatível com os dados
+              atuais.
+            </AlertDescription>
+          </Alert>
+        )}
+        {selectionError && (
+          <Alert className="mt-6" variant="destructive">
+            <AlertTitle>Não foi possível criar o planejamento</AlertTitle>
+            <AlertDescription>
+              {planner.actionError ?? 'Verifique sua sessão e tente novamente.'}
+            </AlertDescription>
+          </Alert>
+        )}
       </PageContainer>
     )
   }

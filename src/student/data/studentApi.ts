@@ -97,6 +97,20 @@ export function listStudentCourseAttempts(
   )
 }
 
+export async function listCompletedCourseIds(
+  studentId: number,
+  getAccessToken: () => Promise<string>,
+) {
+  const attempts = await listStudentCourseAttempts(studentId, getAccessToken)
+  return [
+    ...new Set(
+      attempts
+        .filter((attempt) => attempt.status === 'COMPLETED')
+        .map((attempt) => String(attempt.courseId)),
+    ),
+  ]
+}
+
 export function createStudentCourseAttempt(
   studentId: number,
   body: Readonly<{
@@ -140,4 +154,35 @@ export async function deleteStudentCourseAttempt(
     { method: 'DELETE' },
   )
   if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+}
+
+export async function setCourseCompleted(
+  studentId: number,
+  courseId: string,
+  completed: boolean,
+  getAccessToken: () => Promise<string>,
+  completion?: Readonly<{ studyPeriodId?: number; grade?: number | null }>,
+) {
+  const attempts = await listStudentCourseAttempts(studentId, getAccessToken)
+  const completedAttempts = attempts.filter(
+    (attempt) =>
+      attempt.courseId === Number(courseId) && attempt.status === 'COMPLETED',
+  )
+  if (!completed) {
+    const latest = completedAttempts.at(0)
+    if (latest)
+      await deleteStudentCourseAttempt(studentId, latest.id, getAccessToken)
+    return
+  }
+  if (completedAttempts.length) return
+  await createStudentCourseAttempt(
+    studentId,
+    {
+      courseId: Number(courseId),
+      studyPeriodId: completion?.studyPeriodId ?? null,
+      status: 'COMPLETED',
+      grade: completion?.grade ?? null,
+    },
+    getAccessToken,
+  )
 }

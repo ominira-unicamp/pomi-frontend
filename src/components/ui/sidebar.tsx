@@ -61,7 +61,7 @@ export function Sidebar({
     <aside
       data-collapsed={collapsed}
       className={cn(
-        'hidden min-h-0 shrink-0 border-r-2 border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 md:flex md:w-64 md:flex-col data-[collapsed=true]:md:w-20',
+        'sticky top-18 hidden h-[calc(100svh-4.5rem)] min-h-0 shrink-0 self-start border-r-2 border-sidebar-border bg-sidebar text-sidebar-foreground transition-[width] duration-200 md:flex md:w-64 md:flex-col data-[collapsed=true]:md:w-20',
         className,
       )}
       {...props}

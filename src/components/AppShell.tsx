@@ -14,6 +14,7 @@ import type { ReactNode } from 'react'
 
 import { useAuth } from '@/auth/AuthProvider'
 import { Brand } from '@/components/Brand'
+import { SiteFooter } from '@/components/SiteFooter'
 import { ThemeMenu } from '@/components/ThemeMenu'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -199,7 +200,7 @@ function EmailVerificationDialog() {
 function AppHeader() {
   const { collapsed, mobileOpen, setMobileOpen, toggle } = useSidebar()
   return (
-    <header className="z-40 flex h-18 shrink-0 items-center border-b-4 border-primary bg-sidebar px-4 text-sidebar-foreground sm:px-6">
+    <header className="sticky top-0 z-40 flex h-18 shrink-0 items-center border-b-4 border-primary bg-sidebar px-4 text-sidebar-foreground sm:px-6">
       <Button
         variant="ghost"
         size="icon"
@@ -277,11 +278,17 @@ function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-svh flex-col">
       <AppHeader />
-      <div className="flex min-h-0 flex-1">
+      <div className="flex min-h-0 flex-1 items-stretch">
         <AppSidebar />
-        <main id="main-content" className="min-w-0 flex-1 overflow-x-hidden">
-          {children}
-        </main>
+        <div className="min-w-0 flex-1">
+          <main
+            id="main-content"
+            className="min-h-[calc(100svh-4.5rem)] overflow-x-hidden"
+          >
+            {children}
+          </main>
+          <SiteFooter />
+        </div>
       </div>
       <EmailVerificationDialog />
     </div>

@@ -3,28 +3,6 @@ import type {
   PlanningPeriodId,
 } from '@/planner/domain/curriculumPlanner'
 import { apiRequest } from '@/api/client'
-import {
-  createStudentCourseAttempt,
-  deleteStudentCourseAttempt,
-  listStudentCourseAttempts,
-} from '@/student/data/studentApi'
-
-export {
-  createStudentCourseAttempt,
-  deleteStudentCourseAttempt,
-  getCurrentStudent,
-  getStudentProfile,
-  listStudentCourseAttempts,
-  listStudyPeriods,
-  patchStudentCourseAttempt,
-  patchStudentProfile,
-  registerCurrentStudent,
-} from '@/student/data/studentApi'
-export type {
-  StudentCourseAttempt,
-  StudentProfile,
-  StudyPeriod,
-} from '@/student/data/studentApi'
 
 export type CurriculumDocument = Readonly<{
   id?: number
@@ -44,7 +22,17 @@ export type CurriculumDocument = Readonly<{
   courses: ReadonlyArray<{ courseId: string; periodId: string | null }>
 }>
 
-export type CurriculumSummary = Readonly<{ id: number; name: string }>
+export type CurriculumSummary = Readonly<{
+  id: number
+  name: string
+  selection: Readonly<{
+    catalogProgramId: number | null
+    catalogSpecializationId: number | null
+    catalogLanguageId: number | null
+  }>
+  createdAt?: string
+  updatedAt?: string
+}>
 
 async function requestJson<T>(
   path: string,
@@ -73,7 +61,25 @@ export async function listCurricula(
       name:
         typeof summary.name === 'string' && summary.name.trim()
           ? summary.name
-          : `Planejamento ${summary.id!}`,
+          : 'Currículo sem nome',
+      selection: {
+        catalogProgramId:
+          typeof summary.selection?.catalogProgramId === 'number'
+            ? summary.selection.catalogProgramId
+            : null,
+        catalogSpecializationId:
+          typeof summary.selection?.catalogSpecializationId === 'number'
+            ? summary.selection.catalogSpecializationId
+            : null,
+        catalogLanguageId:
+          typeof summary.selection?.catalogLanguageId === 'number'
+            ? summary.selection.catalogLanguageId
+            : null,
+      },
+      createdAt:
+        typeof summary.createdAt === 'string' ? summary.createdAt : undefined,
+      updatedAt:
+        typeof summary.updatedAt === 'string' ? summary.updatedAt : undefined,
     }))
 }
 
@@ -124,51 +130,6 @@ export async function deleteCurriculum(
     { method: 'DELETE' },
   )
   if (!response.ok) throw new Error(`API request failed: ${response.status}`)
-}
-
-export async function listCompletedCourses(
-  studentId: number,
-  getAccessToken: () => Promise<string>,
-) {
-  const attempts = await listStudentCourseAttempts(studentId, getAccessToken)
-  return [
-    ...new Set(
-      attempts
-        .filter((attempt) => attempt.status === 'COMPLETED')
-        .map((attempt) => String(attempt.courseId)),
-    ),
-  ]
-}
-
-export async function setCourseCompleted(
-  studentId: number,
-  courseId: string,
-  completed: boolean,
-  getAccessToken: () => Promise<string>,
-  completion?: Readonly<{ studyPeriodId?: number; grade?: number | null }>,
-) {
-  const attempts = await listStudentCourseAttempts(studentId, getAccessToken)
-  const completedAttempts = attempts.filter(
-    (attempt) =>
-      attempt.courseId === Number(courseId) && attempt.status === 'COMPLETED',
-  )
-  if (!completed) {
-    const latest = completedAttempts.at(0)
-    if (latest)
-      await deleteStudentCourseAttempt(studentId, latest.id, getAccessToken)
-    return
-  }
-  if (completedAttempts.length) return
-  await createStudentCourseAttempt(
-    studentId,
-    {
-      courseId: Number(courseId),
-      studyPeriodId: completion?.studyPeriodId ?? null,
-      status: 'COMPLETED',
-      grade: completion?.grade ?? null,
-    },
-    getAccessToken,
-  )
 }
 
 function toCreateBody(document: CurriculumDocument) {
