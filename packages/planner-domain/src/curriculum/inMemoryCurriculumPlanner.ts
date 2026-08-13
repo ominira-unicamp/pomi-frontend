@@ -25,11 +25,6 @@ export type InMemoryCurriculumPlannerOptions = Readonly<{
   generateId?: () => string
 }>
 
-export type LocalStorageCurriculumPlannerStateStoreOptions = Readonly<{
-  key: string
-  storage?: Storage
-}>
-
 type MutableState = {
   revision: PlannerRevision
   selection: CurriculumPlannerState['selection']
@@ -502,13 +497,14 @@ function executeCommand(
           (item) => item.courseId !== command.courseId,
         ),
       }))
-      const alreadyUnallocated = (next.plan.unallocatedCourseIds ?? []).includes(
-        command.courseId,
-      )
+      const alreadyUnallocated = (
+        next.plan.unallocatedCourseIds ?? []
+      ).includes(command.courseId)
       const existsInPlan = next.plan.periods.some((period) =>
         period.items.some((item) => item.courseId === command.courseId),
       )
-      if (!existsInPlan && !alreadyUnallocated) return notFound('course', command.courseId)
+      if (!existsInPlan && !alreadyUnallocated)
+        return notFound('course', command.courseId)
       next.plan = {
         ...next.plan,
         periods,
@@ -524,7 +520,8 @@ function executeCommand(
       if (
         next.plan.periods.some((period) =>
           period.items.some((item) => item.courseId === command.courseId),
-        ) || (next.plan.unallocatedCourseIds ?? []).includes(command.courseId)
+        ) ||
+        (next.plan.unallocatedCourseIds ?? []).includes(command.courseId)
       )
         return fail({
           code: 'duplicateCourse',
@@ -582,7 +579,9 @@ function isCurriculumPlannerImport(value: unknown): boolean {
         value.currentPeriodPosition < 1)) ||
     (value.unallocatedCourses !== undefined &&
       (!Array.isArray(value.unallocatedCourses) ||
-        !value.unallocatedCourses.every((courseId) => typeof courseId === 'string')))
+        !value.unallocatedCourses.every(
+          (courseId) => typeof courseId === 'string',
+        )))
   )
     return false
   if (value.planningStart !== undefined) {
@@ -722,31 +721,12 @@ function normalizeState(state: CurriculumPlannerState): CurriculumPlannerState {
   }
 }
 
-export function createLocalStorageCurriculumPlannerStateStore({
-  key,
-  storage = window.localStorage,
-}: LocalStorageCurriculumPlannerStateStoreOptions): CurriculumPlannerStateStore {
-  return {
-    read() {
-      const raw = storage.getItem(key)
-      return Promise.resolve(raw === null ? null : JSON.parse(raw))
-    },
-    write(state) {
-      storage.setItem(key, JSON.stringify(state))
-      return Promise.resolve()
-    },
-    clear() {
-      storage.removeItem(key)
-      return Promise.resolve()
-    },
-  }
-}
-
 export function createInMemoryCurriculumPlanner({
   staticDataSource,
   initialState,
   store,
-  generateId = () => crypto.randomUUID(),
+  generateId = () =>
+    `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`,
 }: InMemoryCurriculumPlannerOptions): CurriculumPlanner {
   let staticDataPromise:
     | Promise<PlannerResult<CurriculumPlannerStaticData>>

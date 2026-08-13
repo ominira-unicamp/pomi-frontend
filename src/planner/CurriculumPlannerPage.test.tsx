@@ -2,14 +2,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { createInMemoryCurriculumPlanner } from '@pomi/planner-domain/curriculum'
 import type {
   CatalogProgramId,
   CourseId,
   CurriculumPlannerStaticData,
   PlannerRevision,
   PlanningPeriodId,
-} from '@/planner/domain/curriculumPlanner'
-import { createInMemoryCurriculumPlanner } from '@/planner/domain/inMemoryCurriculumPlanner'
+} from '@pomi/planner-domain/curriculum'
 import { CurriculumPlannerPage } from '@/planner/CurriculumPlannerPage'
 import { CurriculumPlannerProvider } from '@/planner/CurriculumPlannerProvider'
 

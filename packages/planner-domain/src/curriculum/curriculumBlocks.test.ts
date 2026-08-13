@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
+import { buildCurriculumGroups } from './curriculumBlocks'
 import type {
   CatalogProgramId,
   CourseId,
@@ -7,8 +8,7 @@ import type {
   CurriculumPlannerStaticData,
   PlannerRevision,
   PlanningPeriodId,
-} from '@/planner/domain/curriculumPlanner'
-import { buildCurriculumGroups } from '@/planner/domain/curriculumBlocks'
+} from './curriculumPlanner'
 
 const course = (id: string, code: string, prefix: string) => ({
   id: id as CourseId,

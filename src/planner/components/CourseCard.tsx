@@ -2,15 +2,16 @@ import { useDraggable } from '@dnd-kit/core'
 import { useQuery } from '@tanstack/react-query'
 import { CircleCheck, Trash2 } from 'lucide-react'
 import { memo, useEffect, useState } from 'react'
+import { periodReference } from '@pomi/planner-domain/curriculum'
 import type { ReactNode } from 'react'
 
 import type {
   Course,
+  CurriculumCourseState,
   CurriculumPlannerSnapshot,
   PlanningPeriod,
   PlanningPeriodId,
-} from '@/planner/domain/curriculumPlanner'
-import type { CurriculumCourseState } from '@/planner/domain/curriculumBlocks'
+} from '@pomi/planner-domain/curriculum'
 import type { PlannerDispatch } from '@/planner/types'
 import {
   DropdownMenu,
@@ -34,7 +35,6 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { periodReference } from '@/planner/domain/planningPeriods'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { listStudyPeriods } from '@/student/data/studentApi'
 import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'

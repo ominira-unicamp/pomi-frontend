@@ -7,7 +7,7 @@ import type {
   CurriculumPlannerStaticData,
   PlannerRevision,
   PlanningPeriodId,
-} from './domain/curriculumPlanner'
+} from '@pomi/planner-domain/curriculum'
 
 const staticData = {
   courses: [

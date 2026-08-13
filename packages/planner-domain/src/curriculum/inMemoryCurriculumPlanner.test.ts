@@ -1,13 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 
-import {
-  createInMemoryCurriculumPlanner,
-  createLocalStorageCurriculumPlannerStateStore,
-} from './inMemoryCurriculumPlanner'
+import { createInMemoryCurriculumPlanner } from './inMemoryCurriculumPlanner'
 import type {
   CatalogProgramId,
   CourseId,
   CurriculumPlannerState,
+  CurriculumPlannerStateStore,
   CurriculumPlannerStaticData,
   PlannerRevision,
 } from './curriculumPlanner'
@@ -55,14 +53,27 @@ const initialState: CurriculumPlannerState = {
   academicRecord: { completedCourses: [] },
 }
 
+function createTestStore(): CurriculumPlannerStateStore {
+  let state: unknown | null = null
+  return {
+    read: () => Promise.resolve(state),
+    write: (next) => {
+      state = structuredClone(next)
+      return Promise.resolve()
+    },
+    clear: () => {
+      state = null
+      return Promise.resolve()
+    },
+  }
+}
+
 describe('createInMemoryCurriculumPlanner', () => {
   it('derives curriculum and persists mutations', async () => {
     const source = {
       load: vi.fn().mockResolvedValue({ ok: true, value: staticData }),
     }
-    const store = createLocalStorageCurriculumPlannerStateStore({
-      key: 'planner-test',
-    })
+    const store = createTestStore()
     const ids = ['revision-2', 'period-1', 'revision-3']
     const planner = createInMemoryCurriculumPlanner({
       staticDataSource: source,

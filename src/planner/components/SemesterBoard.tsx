@@ -2,12 +2,13 @@ import { useDroppable } from '@dnd-kit/core'
 import { GripVertical, Plus, Trash2 } from 'lucide-react'
 import { memo, useState } from 'react'
 
+import { insertCourseInPeriod } from '@pomi/planner-domain/curriculum'
 import { CompactCourseCard } from './CourseCard'
 import type {
   Course,
   CurriculumPlannerSnapshot,
   PlanningPeriod,
-} from '@/planner/domain/curriculumPlanner'
+} from '@pomi/planner-domain/curriculum'
 import type { PlannerDispatch } from '@/planner/types'
 import type { CourseOption, SemesterViewModel } from '@/planner/viewModel'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
@@ -30,7 +31,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import { insertCourseInPeriod } from '@/planner/domain/planningPeriods'
 
 type Dispatch = PlannerDispatch
 

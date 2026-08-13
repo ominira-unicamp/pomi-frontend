@@ -9,25 +9,38 @@ import {
   Upload,
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  buildGuideClassContext,
+  createInMemorySemesterPlanner,
+  scheduleDays as days,
+  emptyGuide,
+  scheduleEndHour as endHour,
+  scheduleRowCount as gridRowCount,
+  guideFromApi,
+  scheduleMinutes as minutes,
+  numericId,
+  programGuideBlocks,
+  scheduleCourseColor,
+  selectionFromScheduleFilters,
+  selectorLabel,
+  scheduleStartHour as startHour,
+} from '@pomi/planner-domain/semester'
+import {
+  parseSemesterPlanning,
+  resolveSemesterPlanningImport,
+  serializeSemesterPlanning,
+} from '@pomi/planner-domain/transfer'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 
 import type {
+  GridSelection,
+  GuideChanges,
+  GuideMode,
   SemesterCourse,
   SemesterPlanningDocument,
   SemesterPlanningGuide,
-} from '@/semester-planner/domain/semesterPlanner'
-import type { GuideChanges, GuideMode } from '@/semester-planner/domain/guide'
-import type { GridSelection } from '@/semester-planner/domain/scheduleGrid'
+} from '@pomi/planner-domain/semester'
 import type { SemesterDraftBootstrap } from '@/planner/data/planningDraftBootstrap'
-import {
-  scheduleDays as days,
-  scheduleEndHour as endHour,
-  scheduleRowCount as gridRowCount,
-  scheduleMinutes as minutes,
-  scheduleCourseColor,
-  selectionFromScheduleFilters,
-  scheduleStartHour as startHour,
-} from '@/semester-planner/domain/scheduleGrid'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -51,22 +64,8 @@ import {
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { deleteSemesterPlanning } from '@/semester-planner/data/semesterPlanningApi'
 import { createApiSemesterPlanner } from '@/semester-planner/data/apiSemesterPlanner'
-import { createInMemorySemesterPlanner } from '@/semester-planner/domain/inMemorySemesterPlanner'
-import {
-  downloadSemesterPlanning,
-  parseSemesterPlanning,
-  resolveSemesterPlanningImport,
-  serializeSemesterPlanning,
-} from '@/semester-planner/domain/semesterPlanningTransfer'
+import { downloadSemesterPlanning } from '@/planner/data/planningPlatform'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
-import {
-  buildGuideClassContext,
-  emptyGuide,
-  guideFromApi,
-  numericId,
-  programGuideBlocks,
-  selectorLabel,
-} from '@/semester-planner/domain/guide'
 import { useSemesterPlannerQueries } from '@/semester-planner/hooks/useSemesterPlannerQueries'
 import { ClassesGuidePanel } from '@/semester-planner/components/ClassesGuidePanel'
 import { semesterDraftBootstrapKey } from '@/planner/data/planningDraftBootstrap'

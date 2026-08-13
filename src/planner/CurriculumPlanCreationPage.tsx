@@ -3,6 +3,11 @@ import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Upload } from 'lucide-react'
 
+import { planningFromSuggestion } from '@pomi/planner-domain/curriculum'
+import {
+  parsePlanning,
+  resolvePlanningImport,
+} from '@pomi/planner-domain/transfer'
 import type {
   CatalogProgramId,
   CurriculumPlannerImport,
@@ -10,7 +15,7 @@ import type {
   CurriculumPlannerStaticData,
   PlannerRevision,
   PlanningPeriodId,
-} from '@/planner/domain/curriculumPlanner'
+} from '@pomi/planner-domain/curriculum'
 import type { InitialAcademicSelection } from '@/planner/components/InitialAcademicSelectionFields'
 import type { CurriculumDraftBootstrap } from '@/planner/data/planningDraftBootstrap'
 import { useOptionalAuth } from '@/auth/AuthProvider'
@@ -29,11 +34,6 @@ import { InitialAcademicSelectionFields } from '@/planner/components/InitialAcad
 import { persistCurriculumState } from '@/planner/data/curriculumPersistenceAdapter'
 import { curriculumDraftBootstrapKey } from '@/planner/data/planningDraftBootstrap'
 import { loadCurriculumSuggestions } from '@/planner/data/curriculumSuggestionApi'
-import { planningFromSuggestion } from '@/planner/domain/suggestionPlanning'
-import {
-  parsePlanning,
-  resolvePlanningImport,
-} from '@/planner/domain/planningTransfer'
 import { ensureCurrentStudent } from '@/student/data/studentApi'
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
 

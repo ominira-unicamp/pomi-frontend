@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 
-import type { CatalogProgramOption } from '@/planner/domain/curriculumPlanner'
+import type { CatalogProgramOption } from '@pomi/planner-domain/curriculum'
 import type { StudentProfile } from '@/student/data/studentApi'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'

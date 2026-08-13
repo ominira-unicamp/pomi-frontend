@@ -37,14 +37,19 @@ export function selectionFromScheduleFilters(
     .map((day) => scheduleDays.findIndex(([value]) => value === day))
     .filter((index) => index >= 0)
   const startRow = start
-    ? clamp(scheduleMinutes(start) / 60 - scheduleStartHour, scheduleRowCount - 1)
+    ? clamp(
+        scheduleMinutes(start) / 60 - scheduleStartHour,
+        scheduleRowCount - 1,
+      )
     : 0
   const endRow = end
     ? clamp(scheduleMinutes(end) / 60 - scheduleStartHour, scheduleRowCount)
     : scheduleRowCount
   return {
     startDay: dayIndexes.length ? Math.min(...dayIndexes) : 0,
-    endDay: dayIndexes.length ? Math.max(...dayIndexes) : scheduleDays.length - 1,
+    endDay: dayIndexes.length
+      ? Math.max(...dayIndexes)
+      : scheduleDays.length - 1,
     startRow: Math.min(startRow, endRow),
     endRow: Math.max(startRow + 1, endRow),
   }

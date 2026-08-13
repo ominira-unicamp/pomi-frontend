@@ -2,16 +2,22 @@
   "name": "pomi-frontend",
   "private": true,
   "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "vite --port 5174 --strictPort",
-    "build": "vite build && tsc",
+    "build": "npm run domain:check && vite build && tsc",
     "preview": "vite preview",
     "test": "vitest run",
+    "domain:check": "node scripts/check-domain-boundaries.mjs && npm run check --workspace @pomi/planner-domain",
+    "domain:test": "vitest run packages/planner-domain/src",
     "lint": "eslint",
     "format": "prettier",
     "check": "prettier --write . && eslint --fix"
   },
   "dependencies": {
+    "@pomi/planner-domain": "workspace:*",
     "@dnd-kit/core": "^6.3.1",
     "@fontsource-variable/outfit": "^5.3.0",
     "@radix-ui/react-avatar": "^1.2.6",

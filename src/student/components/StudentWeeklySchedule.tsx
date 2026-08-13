@@ -1,12 +1,11 @@
-import type { StudentClassSchedule } from '@/student/data/studentApi'
-
 import {
   scheduleCourseColor,
   scheduleDays,
   scheduleEndHour,
   scheduleMinutes,
   scheduleStartHour,
-} from '@/semester-planner/domain/scheduleGrid'
+} from '@pomi/planner-domain/semester'
+import type { StudentClassSchedule } from '@/student/data/studentApi'
 
 type StudentWeeklyScheduleProps = Readonly<{
   meetings: ReadonlyArray<StudentClassSchedule>

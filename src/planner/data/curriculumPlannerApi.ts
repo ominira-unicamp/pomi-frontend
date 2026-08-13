@@ -13,7 +13,7 @@ import type {
   ProgramId,
   RequirementSource,
   SpecializationId,
-} from '@/planner/domain/curriculumPlanner'
+} from '@pomi/planner-domain/curriculum'
 
 import { publicApiRequest } from '@/api/client'
 

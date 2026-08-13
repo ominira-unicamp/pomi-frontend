@@ -1,4 +1,4 @@
-import type { CurriculumPlannerCommand } from './domain/curriculumPlanner'
+import type { CurriculumPlannerCommand } from '@pomi/planner-domain/curriculum'
 
 export type PlannerDispatch = (
   command: CurriculumPlannerCommand,

@@ -3,7 +3,7 @@ import type {
   SemesterPlanner,
   SemesterPlannerCommand,
   SemesterPlannerResult,
-} from '@/semester-planner/domain/semesterPlanner'
+} from '@pomi/planner-domain/semester'
 
 export function createApiSemesterPlanner({
   planner,

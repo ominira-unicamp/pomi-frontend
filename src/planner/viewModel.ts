@@ -1,10 +1,10 @@
 import type {
   Course,
+  CurriculumCourseState,
   CurriculumPlannerSnapshot,
   CurriculumPlannerStaticData,
   PlanningPeriod,
-} from './domain/curriculumPlanner'
-import type { CurriculumCourseState } from './domain/curriculumBlocks'
+} from '@pomi/planner-domain/curriculum'
 
 export type CourseOption = Readonly<{
   value: string

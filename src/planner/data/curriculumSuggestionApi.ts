@@ -1,45 +1,17 @@
 import type {
   CatalogProgramId,
   CourseId,
+  CurriculumSuggestion,
+  CurriculumSuggestionType,
   SpecializationId,
-} from '@/planner/domain/curriculumPlanner'
+} from '@pomi/planner-domain/curriculum'
 
 import { publicApiRequest } from '@/api/client'
 
 export const suggestionOnboardingPreferenceKey =
   'pomi.curriculum-planner.suggestion-onboarding-dismissed'
 
-export type CurriculumSuggestionType =
-  | 'GENERAL'
-  | 'SPECIALIZATION'
-  | 'PRE_OPTION'
-
-export type CurriculumSuggestion = Readonly<{
-  id: string
-  catalogProgramId: CatalogProgramId
-  code: string
-  name: string
-  type: CurriculumSuggestionType
-  specialization?: Readonly<{
-    id: SpecializationId
-    code: string
-    name: string
-  }>
-  semesters: ReadonlyArray<
-    Readonly<{
-      semester: number
-      electiveCredits: number
-      courses: ReadonlyArray<
-        Readonly<{
-          id: CourseId
-          code: string
-          name: string
-          credits: number
-        }>
-      >
-    }>
-  >
-}>
+export type { CurriculumSuggestion, CurriculumSuggestionType }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)

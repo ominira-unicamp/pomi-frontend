@@ -1,4 +1,4 @@
-import type { CurriculumPlannerState } from '@/planner/domain/curriculumPlanner'
+import type { CurriculumPlannerState } from '@pomi/planner-domain/curriculum'
 import type { CurriculumDocument } from '@/planner/data/curriculumPersistenceApi'
 import {
   createCurriculum,

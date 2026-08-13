@@ -2,12 +2,12 @@ import type {
   CatalogProgramOption,
   CourseSelector,
   CurriculumBlocks,
-} from '@/planner/domain/curriculumPlanner'
+} from '../curriculum/curriculumPlanner'
 import type {
   SemesterClass,
   SemesterCourse,
   SemesterPlanningGuide,
-} from '@/semester-planner/domain/semesterPlanner'
+} from './semesterPlanner'
 
 export type GuideMode = 'curriculum' | 'program' | 'none'
 

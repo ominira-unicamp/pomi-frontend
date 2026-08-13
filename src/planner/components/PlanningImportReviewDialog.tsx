@@ -1,4 +1,4 @@
-import type { ResolvedPlanningImport } from '@/planner/domain/planningTransfer'
+import type { ResolvedPlanningImport } from '@pomi/planner-domain/transfer'
 import { Button } from '@/components/ui/button'
 import { ActionTooltip } from '@/planner/components/ActionTooltip'
 import {

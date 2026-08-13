@@ -2,12 +2,16 @@ import { useQuery } from '@tanstack/react-query'
 import { Sparkles } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import {
+  planningFromSuggestion,
+  suggestionTypeLabel,
+} from '@pomi/planner-domain/curriculum'
 import type { ReactNode } from 'react'
 import type {
   CatalogProgramId,
   CurriculumPlannerSnapshot,
   CurriculumPlannerStaticData,
-} from '@/planner/domain/curriculumPlanner'
+} from '@pomi/planner-domain/curriculum'
 import type { PlannerDispatch } from '@/planner/types'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -24,10 +28,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { loadCurriculumSuggestions } from '@/planner/data/curriculumSuggestionApi'
-import {
-  planningFromSuggestion,
-  suggestionTypeLabel,
-} from '@/planner/domain/suggestionPlanning'
 
 type Dispatch = PlannerDispatch
 

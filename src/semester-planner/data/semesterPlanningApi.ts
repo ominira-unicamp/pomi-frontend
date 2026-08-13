@@ -5,7 +5,7 @@ import type {
   SemesterPlannerStaticData,
   SemesterPlanningGuide,
   StudyPeriod,
-} from '@/semester-planner/domain/semesterPlanner'
+} from '@pomi/planner-domain/semester'
 
 import { apiRequest, publicApiRequest } from '@/api/client'
 

@@ -1,20 +1,22 @@
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { memo, useMemo, useState } from 'react'
 
+import {
+  buildCurriculumGroups,
+  calculateElectiveCreditsBalances,
+  orderedPeriods,
+} from '@pomi/planner-domain/curriculum'
 import { CompactCourseCard } from './CourseCard'
 import type {
+  CurriculumBlockView,
   CurriculumPlannerSnapshot,
   CurriculumPlannerStaticData,
   PlanningPeriod,
-} from '@/planner/domain/curriculumPlanner'
-import type { CurriculumBlockView } from '@/planner/domain/curriculumBlocks'
+} from '@pomi/planner-domain/curriculum'
 import type { PlannerDispatch } from '@/planner/types'
 import { Button } from '@/components/ui/button'
 import { ActionTooltip } from '@/planner/components/ActionTooltip'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { buildCurriculumGroups } from '@/planner/domain/curriculumBlocks'
-import { calculateElectiveCreditsBalances } from '@/planner/domain/electiveCredits'
-import { orderedPeriods } from '@/planner/domain/planningPeriods'
 
 function CurriculumBlock({
   block,

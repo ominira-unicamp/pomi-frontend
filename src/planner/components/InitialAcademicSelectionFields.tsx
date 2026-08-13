@@ -1,4 +1,4 @@
-import type { CurriculumPlannerStaticData } from '@/planner/domain/curriculumPlanner'
+import type { CurriculumPlannerStaticData } from '@pomi/planner-domain/curriculum'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 
 export type InitialAcademicSelection = Readonly<{

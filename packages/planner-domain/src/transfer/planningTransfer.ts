@@ -7,7 +7,7 @@ import type {
   CurriculumPlannerStaticData,
   LanguageId,
   SpecializationId,
-} from './curriculumPlanner'
+} from '../curriculum/curriculumPlanner'
 
 export const planningFileFormat = 'pomi-curriculum-planner'
 export const planningFileVersion = 1
@@ -107,7 +107,7 @@ export function serializePlanning(
         : undefined
       return {
         courseId: numericId(course.id),
-        periodId: period ? periodIds.get(period.id) ?? null : null,
+        periodId: period ? (periodIds.get(period.id) ?? null) : null,
         periodPosition,
         code: course.code,
         name: course.name,
@@ -138,7 +138,7 @@ export function serializePlanning(
         ? numericId(snapshot.plan.currentPeriodId)
         : null,
       currentPeriodPosition: snapshot.plan.currentPeriodId
-        ? positions.get(snapshot.plan.currentPeriodId) ?? null
+        ? (positions.get(snapshot.plan.currentPeriodId) ?? null)
         : null,
       periods: snapshot.plan.periods.map((period, index) => ({
         id: numericId(period.id),
@@ -154,12 +154,16 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isNullableInteger(value: unknown) {
-  return value === null || (typeof value === 'number' && Number.isInteger(value))
+  return (
+    value === null || (typeof value === 'number' && Number.isInteger(value))
+  )
 }
 
 function isNullablePositiveInteger(value: unknown) {
-  return value === null ||
+  return (
+    value === null ||
     (typeof value === 'number' && Number.isInteger(value) && value > 0)
+  )
 }
 
 function isNullableString(value: unknown) {
@@ -167,7 +171,11 @@ function isNullableString(value: unknown) {
 }
 
 export function parsePlanning(value: unknown): PlanningFileV1 | undefined {
-  if (!isRecord(value) || value.format !== planningFileFormat || value.version !== 1)
+  if (
+    !isRecord(value) ||
+    value.format !== planningFileFormat ||
+    value.version !== 1
+  )
     return undefined
   if (
     typeof value.exportedAt !== 'string' ||
@@ -177,7 +185,11 @@ export function parsePlanning(value: unknown): PlanningFileV1 | undefined {
     return undefined
   const curriculum = value.curriculum
   const selection = curriculum.selection
-  if (!isRecord(selection) || !Array.isArray(curriculum.periods) || !Array.isArray(curriculum.courses))
+  if (
+    !isRecord(selection) ||
+    !Array.isArray(curriculum.periods) ||
+    !Array.isArray(curriculum.courses)
+  )
     return undefined
   if (curriculum.periods.length > 100 || curriculum.courses.length > 5000)
     return undefined
@@ -225,7 +237,10 @@ export function parsePlanning(value: unknown): PlanningFileV1 | undefined {
     )
   )
     return undefined
-  if (curriculum.name !== undefined && (typeof curriculum.name !== 'string' || curriculum.name.length > 120))
+  if (
+    curriculum.name !== undefined &&
+    (typeof curriculum.name !== 'string' || curriculum.name.length > 120)
+  )
     return undefined
   if (curriculum.planningStart !== null) {
     const start = curriculum.planningStart
@@ -248,9 +263,10 @@ function resolveCourse(reference: CourseV1, courses: ReadonlyArray<Course>) {
     (course) => normalized(course.code) === normalized(reference.code),
   )
   if (byCode) return { course: byCode, fallback: false }
-  const byId = reference.courseId === null
-    ? undefined
-    : courses.find((course) => numericId(course.id) === reference.courseId)
+  const byId =
+    reference.courseId === null
+      ? undefined
+      : courses.find((course) => numericId(course.id) === reference.courseId)
   if (
     byId &&
     normalized(byId.name) === normalized(reference.name) &&
@@ -272,16 +288,18 @@ export function resolvePlanningImport(
       selection.programCode !== null &&
       normalized(item.program.code) === normalized(selection.programCode),
   )
-  const idProgram = selection.catalogProgramId === null
-    ? undefined
-    : staticData.catalogPrograms.find(
-        (item) =>
-          numericId(item.id) === selection.catalogProgramId &&
-          (selection.catalogYear === null ||
-            item.catalog.year === selection.catalogYear) &&
-          (selection.programName === null ||
-            normalized(item.program.name) === normalized(selection.programName)),
-      )
+  const idProgram =
+    selection.catalogProgramId === null
+      ? undefined
+      : staticData.catalogPrograms.find(
+          (item) =>
+            numericId(item.id) === selection.catalogProgramId &&
+            (selection.catalogYear === null ||
+              item.catalog.year === selection.catalogYear) &&
+            (selection.programName === null ||
+              normalized(item.program.name) ===
+                normalized(selection.programName)),
+        )
   const program = semanticProgram ?? idProgram
   const resolvedSelection: {
     catalogProgramId?: CatalogProgramId
@@ -291,58 +309,93 @@ export function resolvePlanningImport(
   if (program) {
     resolvedSelection.catalogProgramId = program.id
     if (!semanticProgram && idProgram)
-      issues.push({ type: 'fallback', message: 'Catálogo e programa foram resolvidos pelo ID de origem.' })
-    const specialization = program.specializations.find(
-      (item) =>
-        selection.specializationCode !== null &&
-        normalized(item.code) === normalized(selection.specializationCode),
-    ) ?? program.specializations.find(
-      (item) =>
-        numericId(item.id) === selection.catalogSpecializationId &&
-        selection.specializationName !== null &&
-        normalized(item.name) === normalized(selection.specializationName),
-    )
+      issues.push({
+        type: 'fallback',
+        message: 'Catálogo e programa foram resolvidos pelo ID de origem.',
+      })
+    const specialization =
+      program.specializations.find(
+        (item) =>
+          selection.specializationCode !== null &&
+          normalized(item.code) === normalized(selection.specializationCode),
+      ) ??
+      program.specializations.find(
+        (item) =>
+          numericId(item.id) === selection.catalogSpecializationId &&
+          selection.specializationName !== null &&
+          normalized(item.name) === normalized(selection.specializationName),
+      )
     if (specialization) resolvedSelection.specializationId = specialization.id
     else if (selection.specializationCode !== null)
-      issues.push({ type: 'selection', message: `Habilitação ${selection.specializationCode} não encontrada.` })
-    const language = program.languages.find(
-      (item) =>
-        selection.languageName !== null &&
-        normalized(item.name) === normalized(selection.languageName),
-    ) ?? program.languages.find(
-      (item) => numericId(item.id) === selection.catalogLanguageId,
-    )
+      issues.push({
+        type: 'selection',
+        message: `Habilitação ${selection.specializationCode} não encontrada.`,
+      })
+    const language =
+      program.languages.find(
+        (item) =>
+          selection.languageName !== null &&
+          normalized(item.name) === normalized(selection.languageName),
+      ) ??
+      program.languages.find(
+        (item) => numericId(item.id) === selection.catalogLanguageId,
+      )
     if (language) resolvedSelection.languageId = language.id
     else if (selection.languageName !== null)
-      issues.push({ type: 'selection', message: `Língua ${selection.languageName} não encontrada.` })
+      issues.push({
+        type: 'selection',
+        message: `Língua ${selection.languageName} não encontrada.`,
+      })
   } else if (selection.catalogYear !== null || selection.programCode !== null) {
-    issues.push({ type: 'selection', message: 'Catálogo e programa do arquivo não foram encontrados.' })
+    issues.push({
+      type: 'selection',
+      message: 'Catálogo e programa do arquivo não foram encontrados.',
+    })
   }
-  const periodPositions = [...new Set(file.curriculum.periods.map((period) => period.position))]
-    .sort((left, right) => left - right)
+  const periodPositions = [
+    ...new Set(file.curriculum.periods.map((period) => period.position)),
+  ].sort((left, right) => left - right)
   if (periodPositions.length !== file.curriculum.periods.length)
-    issues.push({ type: 'duplicate', message: 'Períodos repetidos foram consolidados pela posição.' })
+    issues.push({
+      type: 'duplicate',
+      message: 'Períodos repetidos foram consolidados pela posição.',
+    })
   const coursesByPosition = new Map<number, Array<CourseId>>()
   const unallocated: Array<CourseId> = []
   const placed = new Set<CourseId>()
   for (const reference of file.curriculum.courses) {
     const resolved = resolveCourse(reference, staticData.courses)
     if (!resolved) {
-      issues.push({ type: 'course', message: `Disciplina ${reference.code} não encontrada.` })
+      issues.push({
+        type: 'course',
+        message: `Disciplina ${reference.code} não encontrada.`,
+      })
       continue
     }
     if (placed.has(resolved.course.id)) {
-      issues.push({ type: 'duplicate', message: `Disciplina ${reference.code} repetida foi mantida apenas uma vez.` })
+      issues.push({
+        type: 'duplicate',
+        message: `Disciplina ${reference.code} repetida foi mantida apenas uma vez.`,
+      })
       continue
     }
     if (resolved.fallback)
-      issues.push({ type: 'fallback', message: `Disciplina ${reference.code} foi resolvida pelo ID de origem.` })
+      issues.push({
+        type: 'fallback',
+        message: `Disciplina ${reference.code} foi resolvida pelo ID de origem.`,
+      })
     if (reference.periodPosition !== null && reference.periodId !== null) {
       const referencedPeriod = file.curriculum.periods.find(
         (period) => period.position === reference.periodPosition,
       )
-      if (referencedPeriod?.id !== null && referencedPeriod?.id !== reference.periodId)
-        issues.push({ type: 'period', message: `Disciplina ${reference.code} possui ID e posição de período inconsistentes; a posição foi usada.` })
+      if (
+        referencedPeriod?.id !== null &&
+        referencedPeriod?.id !== reference.periodId
+      )
+        issues.push({
+          type: 'period',
+          message: `Disciplina ${reference.code} possui ID e posição de período inconsistentes; a posição foi usada.`,
+        })
     }
     if (reference.periodPosition === null) unallocated.push(resolved.course.id)
     else if (periodPositions.includes(reference.periodPosition)) {
@@ -350,7 +403,10 @@ export function resolvePlanningImport(
       items.push(resolved.course.id)
       coursesByPosition.set(reference.periodPosition, items)
     } else {
-      issues.push({ type: 'period', message: `Disciplina ${reference.code} referencia um período inexistente e foi ignorada.` })
+      issues.push({
+        type: 'period',
+        message: `Disciplina ${reference.code} referencia um período inexistente e foi ignorada.`,
+      })
       continue
     }
     placed.add(resolved.course.id)
@@ -363,19 +419,35 @@ export function resolvePlanningImport(
     const currentPeriod = file.curriculum.periods.find(
       (period) => period.position === currentPeriodPosition,
     )
-    if (currentPeriod?.id !== null && currentPeriod?.id !== file.curriculum.currentPeriodId)
-      issues.push({ type: 'period', message: 'O ID e a posição do semestre atual são inconsistentes; a posição foi usada.' })
+    if (
+      currentPeriod?.id !== null &&
+      currentPeriod?.id !== file.curriculum.currentPeriodId
+    )
+      issues.push({
+        type: 'period',
+        message:
+          'O ID e a posição do semestre atual são inconsistentes; a posição foi usada.',
+      })
   }
-  if (currentPeriodPosition !== null && !periodPositions.includes(currentPeriodPosition))
-    issues.push({ type: 'period', message: 'O semestre atual do arquivo não existe e foi desmarcado.' })
+  if (
+    currentPeriodPosition !== null &&
+    !periodPositions.includes(currentPeriodPosition)
+  )
+    issues.push({
+      type: 'period',
+      message: 'O semestre atual do arquivo não existe e foi desmarcado.',
+    })
   return {
-    ...(file.curriculum.name?.trim() ? { name: file.curriculum.name.trim() } : {}),
+    ...(file.curriculum.name?.trim()
+      ? { name: file.curriculum.name.trim() }
+      : {}),
     issues,
     data: {
       selection: resolvedSelection,
       planningStart: file.curriculum.planningStart ?? undefined,
       currentPeriodPosition:
-        currentPeriodPosition !== null && periodPositions.includes(currentPeriodPosition)
+        currentPeriodPosition !== null &&
+        periodPositions.includes(currentPeriodPosition)
           ? periodPositions.indexOf(currentPeriodPosition) + 1
           : undefined,
       periods: periodPositions.map((position) => ({
@@ -384,21 +456,4 @@ export function resolvePlanningImport(
       unallocatedCourses: unallocated,
     },
   }
-}
-
-export function downloadPlanning(
-  snapshot: CurriculumPlannerSnapshot,
-  staticData: CurriculumPlannerStaticData,
-  name?: string,
-) {
-  const blob = new Blob(
-    [JSON.stringify(serializePlanning(snapshot, staticData, { name }), null, 2)],
-    { type: 'application/json' },
-  )
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = 'curriculo-pomi.json'
-  link.click()
-  URL.revokeObjectURL(url)
 }

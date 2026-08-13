@@ -2,7 +2,7 @@ import type {
   SemesterPlannerStaticData,
   SemesterPlanningDocument,
   SemesterPlanningGuide,
-} from './semesterPlanner'
+} from '../semester/semesterPlanner'
 
 export const semesterPlanningFileFormat = 'pomi-semester-planner'
 export const semesterPlanningFileVersion = 2
@@ -160,16 +160,4 @@ export function resolveSemesterPlanningImport(
     },
     issues,
   }
-}
-
-export function downloadSemesterPlanning(file: SemesterPlanningFileV2) {
-  const blob = new Blob([JSON.stringify(file, null, 2)], {
-    type: 'application/json',
-  })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `pomi-planejamento-de-semestre-${file.semesterPlanning.studyPeriod.code}.json`
-  link.click()
-  URL.revokeObjectURL(url)
 }

@@ -3,10 +3,14 @@ import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 import { Upload } from 'lucide-react'
 
-import type { CatalogProgramId } from '@/planner/domain/curriculumPlanner'
+import {
+  parseSemesterPlanning,
+  resolveSemesterPlanningImport,
+} from '@pomi/planner-domain/transfer'
+import type { CatalogProgramId } from '@pomi/planner-domain/curriculum'
 import type { InitialAcademicSelection } from '@/planner/components/InitialAcademicSelectionFields'
 import type { SemesterDraftBootstrap } from '@/planner/data/planningDraftBootstrap'
-import type { SemesterPlanningDocument } from '@/semester-planner/domain/semesterPlanner'
+import type { SemesterPlanningDocument } from '@pomi/planner-domain/semester'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { loadCurriculumCatalog } from '@/catalog/data/curriculumCatalogApi'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
@@ -23,10 +27,6 @@ import { InitialAcademicSelectionFields } from '@/planner/components/InitialAcad
 import { listCurricula } from '@/planner/data/curriculumPersistenceApi'
 import { semesterDraftBootstrapKey } from '@/planner/data/planningDraftBootstrap'
 import { loadCurriculumSuggestions } from '@/planner/data/curriculumSuggestionApi'
-import {
-  parseSemesterPlanning,
-  resolveSemesterPlanningImport,
-} from '@/semester-planner/domain/semesterPlanningTransfer'
 import {
   createSemesterPlanning,
   loadSemesterPlannerStaticData,

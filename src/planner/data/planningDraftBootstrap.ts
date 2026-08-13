@@ -1,5 +1,5 @@
-import type { CurriculumPlannerState } from '@/planner/domain/curriculumPlanner'
-import type { SemesterPlanningDocument } from '@/semester-planner/domain/semesterPlanner'
+import type { CurriculumPlannerState } from '@pomi/planner-domain/curriculum'
+import type { SemesterPlanningDocument } from '@pomi/planner-domain/semester'
 
 export const curriculumDraftBootstrapKey = [
   'curriculum-planner',

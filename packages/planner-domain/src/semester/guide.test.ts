@@ -4,7 +4,7 @@ import {
   buildGuideClassContext,
   matchesGuideClass,
   selectorLabel,
-} from '@/semester-planner/domain/guide'
+} from './guide'
 
 describe('semester planning guide', () => {
   it('matches manual courses and elective prefixes in the program guide', () => {

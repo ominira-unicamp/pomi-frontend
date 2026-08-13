@@ -1,7 +1,7 @@
 import type {
   CurriculumPlannerState,
   PlanningPeriodId,
-} from '@/planner/domain/curriculumPlanner'
+} from '@pomi/planner-domain/curriculum'
 import { apiRequest } from '@/api/client'
 
 export type CurriculumDocument = Readonly<{

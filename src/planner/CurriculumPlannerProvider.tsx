@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'react'
+import { createInMemoryCurriculumPlanner } from '@pomi/planner-domain/curriculum'
 import type { ReactNode } from 'react'
 
 import type {
@@ -17,7 +18,7 @@ import type {
   CurriculumPlannerStaticData,
   PlannerError,
   PlannerRevision,
-} from '@/planner/domain/curriculumPlanner'
+} from '@pomi/planner-domain/curriculum'
 import type {
   CurriculumDocument,
   CurriculumSummary,
@@ -41,7 +42,6 @@ import {
 } from '@/student/data/studentApi'
 import { useCurriculumRemoteData } from '@/planner/hooks/useCurriculumRemoteData'
 import { suggestionOnboardingPreferenceKey } from '@/planner/data/curriculumSuggestionApi'
-import { createInMemoryCurriculumPlanner } from '@/planner/domain/inMemoryCurriculumPlanner'
 
 const staticDataKey = ['curriculum-planner', 'static-data'] as const
 const snapshotKey = ['curriculum-planner', 'snapshot'] as const

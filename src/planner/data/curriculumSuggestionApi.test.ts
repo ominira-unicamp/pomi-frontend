@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { loadCurriculumSuggestions } from './curriculumSuggestionApi'
-import type { CatalogProgramId } from '@/planner/domain/curriculumPlanner'
+import type { CatalogProgramId } from '@pomi/planner-domain/curriculum'
 
 describe('loadCurriculumSuggestions', () => {
   afterEach(() => vi.unstubAllGlobals())
@@ -38,7 +38,8 @@ describe('loadCurriculumSuggestions', () => {
       type: 'GENERAL',
       semesters: [{ courses: [{ id: '9' }] }],
     })
-    const [url] = fetchMock.mock.calls[0] as [URL]
+    const [request] = fetchMock.mock.calls[0] as [string]
+    const url = new URL(request)
     expect(url.pathname).toBe('/curriculum-suggestions')
     expect(url.searchParams.get('catalogProgramId')).toBe('3')
   })

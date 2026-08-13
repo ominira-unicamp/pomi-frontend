@@ -12,7 +12,7 @@ import type {
   CurriculumPlannerStaticData,
   PlannerRevision,
   PlanningPeriodId,
-} from './curriculumPlanner'
+} from '../curriculum/curriculumPlanner'
 
 const catalogProgramId = '15' as CatalogProgramId
 const courseId = '123' as CourseId
@@ -28,9 +28,7 @@ const staticData: CurriculumPlannerStaticData = {
       languages: [],
     },
   ],
-  courses: [
-    { id: courseId, code: 'MA111', name: 'Cálculo I', credits: 6 },
-  ],
+  courses: [{ id: courseId, code: 'MA111', name: 'Cálculo I', credits: 6 }],
 }
 const snapshot = {
   revision: 'revision' as PlannerRevision,
@@ -73,7 +71,9 @@ describe('planning transfer', () => {
     const file = serializePlanning(snapshot, staticData)
     const targetData: CurriculumPlannerStaticData = {
       ...staticData,
-      catalogPrograms: [{ ...staticData.catalogPrograms[0], id: '99' as never }],
+      catalogPrograms: [
+        { ...staticData.catalogPrograms[0], id: '99' as never },
+      ],
       courses: [{ ...staticData.courses[0], id: '999' as never }],
     }
     const resolved = resolvePlanningImport(file, targetData)

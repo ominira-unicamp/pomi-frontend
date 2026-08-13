@@ -5,7 +5,7 @@ import type {
   Course,
   CourseId,
   PlanningPeriodId,
-} from './domain/curriculumPlanner'
+} from '@pomi/planner-domain/curriculum'
 import type { PlannerDragData } from './components/CourseCard'
 
 const course = {

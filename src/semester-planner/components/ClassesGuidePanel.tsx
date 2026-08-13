@@ -1,9 +1,19 @@
 import { useEffect, useState } from 'react'
 
-import type { ClassMeeting, SemesterClass, SemesterCourse, SemesterPlannerCommand } from '@/semester-planner/domain/semesterPlanner'
-import type { GuideClassContext } from '@/semester-planner/domain/guide'
-import { matchesGuideClass } from '@/semester-planner/domain/guide'
-import { scheduleDays as days, scheduleEndHour as endHour, scheduleMinutes as minutes, scheduleStartHour as startHour } from '@/semester-planner/domain/scheduleGrid'
+import {
+  scheduleDays as days,
+  scheduleEndHour as endHour,
+  matchesGuideClass,
+  scheduleMinutes as minutes,
+  scheduleStartHour as startHour,
+} from '@pomi/planner-domain/semester'
+import type {
+  ClassMeeting,
+  GuideClassContext,
+  SemesterClass,
+  SemesterCourse,
+  SemesterPlannerCommand,
+} from '@pomi/planner-domain/semester'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'
 

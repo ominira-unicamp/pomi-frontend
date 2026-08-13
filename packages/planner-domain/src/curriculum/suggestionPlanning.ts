@@ -1,8 +1,42 @@
-import type { CurriculumSuggestion } from '@/planner/data/curriculumSuggestionApi'
 import type {
+  CatalogProgramId,
+  CourseId,
   CurriculumPlannerImport,
   CurriculumPlannerSnapshot,
+  SpecializationId,
 } from './curriculumPlanner'
+
+export type CurriculumSuggestionType =
+  | 'GENERAL'
+  | 'SPECIALIZATION'
+  | 'PRE_OPTION'
+
+export type CurriculumSuggestion = Readonly<{
+  id: string
+  catalogProgramId: CatalogProgramId
+  code: string
+  name: string
+  type: CurriculumSuggestionType
+  specialization?: Readonly<{
+    id: SpecializationId
+    code: string
+    name: string
+  }>
+  semesters: ReadonlyArray<
+    Readonly<{
+      semester: number
+      electiveCredits: number
+      courses: ReadonlyArray<
+        Readonly<{
+          id: CourseId
+          code: string
+          name: string
+          credits: number
+        }>
+      >
+    }>
+  >
+}>
 
 export function compatibleSuggestions(
   suggestions: ReadonlyArray<CurriculumSuggestion>,

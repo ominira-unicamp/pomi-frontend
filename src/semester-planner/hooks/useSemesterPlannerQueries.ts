@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-import type { CatalogProgramId } from '@/planner/domain/curriculumPlanner'
+import type { CatalogProgramId } from '@pomi/planner-domain/curriculum'
 import { loadCurriculumCatalog } from '@/catalog/data/curriculumCatalogApi'
 import { getCurriculum, listCurricula } from '@/planner/data/curriculumPersistenceApi'
 import { loadCurriculumSuggestions } from '@/planner/data/curriculumSuggestionApi'

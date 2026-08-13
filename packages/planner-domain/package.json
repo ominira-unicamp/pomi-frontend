@@ -1,0 +1,14 @@
+{
+  "name": "@pomi/planner-domain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./curriculum": "./src/curriculum/index.ts",
+    "./semester": "./src/semester/index.ts",
+    "./transfer": "./src/transfer/index.ts"
+  },
+  "scripts": {
+    "check": "tsc --noEmit -p tsconfig.json"
+  }
+}

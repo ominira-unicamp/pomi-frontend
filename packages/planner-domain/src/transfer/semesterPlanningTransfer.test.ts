@@ -5,7 +5,7 @@ import {
   resolveSemesterPlanningImport,
   serializeSemesterPlanning,
 } from './semesterPlanningTransfer'
-import type { SemesterPlannerStaticData } from './semesterPlanner'
+import type { SemesterPlannerStaticData } from '../semester/semesterPlanner'
 
 const data: SemesterPlannerStaticData = {
   studyPeriods: [

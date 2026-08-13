@@ -25,6 +25,11 @@ import {
 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
+import { periodTitle } from '@pomi/planner-domain/curriculum'
+import {
+  parsePlanning,
+  resolvePlanningImport,
+} from '@pomi/planner-domain/transfer'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 
 import type { PlannerDragData } from '@/planner/components/CourseCard'
@@ -32,8 +37,8 @@ import type { CurriculumSummary } from '@/planner/data/curriculumPersistenceApi'
 import type {
   CurriculumPlannerStaticData,
   PlannerError,
-} from '@/planner/domain/curriculumPlanner'
-import type { ResolvedPlanningImport } from '@/planner/domain/planningTransfer'
+} from '@pomi/planner-domain/curriculum'
+import type { ResolvedPlanningImport } from '@pomi/planner-domain/transfer'
 import {
   EmptyState,
   ErrorState,
@@ -75,12 +80,7 @@ import { suggestionOnboardingPreferenceKey } from '@/planner/data/curriculumSugg
 import { useCurriculumPlanner } from '@/planner/CurriculumPlannerProvider'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { saveDraftHandoff } from '@/planner/data/planningDraftHandoff'
-import { periodTitle } from '@/planner/domain/planningPeriods'
-import {
-  downloadPlanning,
-  parsePlanning,
-  resolvePlanningImport,
-} from '@/planner/domain/planningTransfer'
+import { downloadPlanning } from '@/planner/data/planningPlatform'
 import { buildPlannerViewModel } from '@/planner/viewModel'
 import { commandForCourseDrop } from '@/planner/dnd'
 
@@ -936,9 +936,7 @@ export function CurriculumPlannerPage({
         <SaveDraftDialog
           open={saveDraftDialogOpen}
           onOpenChange={setSaveDraftDialogOpen}
-          onExport={() =>
-            downloadPlanning(snapshot, staticData, planningName)
-          }
+          onExport={() => downloadPlanning(snapshot, staticData, planningName)}
           onLogin={() => {
             saveDraftHandoff({
               version: 1,

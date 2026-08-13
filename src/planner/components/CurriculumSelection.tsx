@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import type {
   CurriculumPlannerSnapshot,
   CurriculumPlannerStaticData,
-} from '@/planner/domain/curriculumPlanner'
+} from '@pomi/planner-domain/curriculum'
 import type { PlannerDispatch } from '@/planner/types'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Card, CardContent } from '@/components/ui/card'

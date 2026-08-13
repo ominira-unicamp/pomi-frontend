@@ -8,7 +8,7 @@ import type {
   CurriculumPlannerStaticData,
   ElectiveCreditsRequirement,
   PlanningPeriodId,
-} from '@/planner/domain/curriculumPlanner'
+} from './curriculumPlanner'
 
 export type CurriculumCourseState = Readonly<{
   course: Course
