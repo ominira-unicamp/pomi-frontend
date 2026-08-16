@@ -2,7 +2,41 @@ import type {
   CurriculumPlannerState,
   PlanningPeriodId,
 } from '@pomi/planner-domain/curriculum'
-import { apiRequest } from '@/api/client'
+import { appApiRequest } from '@/api/client'
+import { expectApiResponse } from '@/api/errors'
+
+type CurriculumApiEntity = Readonly<{
+  id: number
+  studentId: number
+  name: string
+  isFavorite: boolean
+  selection: Readonly<{
+    catalogProgramId: number | null
+    catalogSpecializationId: number | null
+    catalogLanguageId: number | null
+  }>
+  planningStart: CurriculumDocument['planningStart']
+  currentPeriodId: number | null
+  periods: ReadonlyArray<{ id: number; position: number }>
+  courses: ReadonlyArray<{
+    courseId: number
+    periodId: number | null
+    code: string
+    name: string
+    credits: number
+  }>
+  createdAt: string
+  updatedAt: string
+}>
+
+type CurriculumSummaryApiEntity = Readonly<{
+  id: number
+  name: string
+  isFavorite: boolean
+  selection: CurriculumApiEntity['selection']
+  createdAt: string
+  updatedAt: string
+}>
 
 export type CurriculumDocument = Readonly<{
   id?: number
@@ -41,25 +75,50 @@ async function requestJson<T>(
   getAccessToken: () => Promise<string>,
   init?: RequestInit,
 ): Promise<T> {
-  const response = await apiRequest(path, getAccessToken, {
+  const response = await appApiRequest(path, getAccessToken, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...init?.headers },
   })
-  if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+  await expectApiResponse(response)
   return (await response.json()) as T
+}
+
+function documentFromApi(entity: CurriculumApiEntity): CurriculumDocument {
+  return {
+    id: entity.id,
+    name: entity.name,
+    isFavorite: entity.isFavorite,
+    selection: {
+      catalogProgramId: toStringOrNull(entity.selection.catalogProgramId),
+      specializationId: toStringOrNull(
+        entity.selection.catalogSpecializationId,
+      ),
+      languageId: toStringOrNull(entity.selection.catalogLanguageId),
+    },
+    planningStart: entity.planningStart,
+    currentPeriodId: toStringOrNull(entity.currentPeriodId),
+    periods: entity.periods.map((period) => ({
+      id: String(period.id),
+      position: period.position,
+    })),
+    courses: entity.courses.map((course) => ({
+      courseId: String(course.courseId),
+      periodId: toStringOrNull(course.periodId),
+    })),
+  }
 }
 
 export async function listCurricula(
   studentId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  const summaries = await requestJson<
-    ReadonlyArray<Partial<CurriculumSummary>>
-  >(`/student/${studentId}/curricula`, getAccessToken)
+  const summaries = await requestJson<ReadonlyArray<CurriculumSummaryApiEntity>>(
+    `/student/${studentId}/curricula`,
+    getAccessToken,
+  )
   return summaries
-    .filter((summary) => Number.isInteger(summary.id))
     .map((summary) => ({
-      id: summary.id!,
+      id: summary.id,
       name:
         typeof summary.name === 'string' && summary.name.trim()
           ? summary.name
@@ -67,15 +126,15 @@ export async function listCurricula(
       isFavorite: summary.isFavorite === true,
       selection: {
         catalogProgramId:
-          typeof summary.selection?.catalogProgramId === 'number'
+          typeof summary.selection.catalogProgramId === 'number'
             ? summary.selection.catalogProgramId
             : null,
         catalogSpecializationId:
-          typeof summary.selection?.catalogSpecializationId === 'number'
+          typeof summary.selection.catalogSpecializationId === 'number'
             ? summary.selection.catalogSpecializationId
             : null,
         catalogLanguageId:
-          typeof summary.selection?.catalogLanguageId === 'number'
+          typeof summary.selection.catalogLanguageId === 'number'
             ? summary.selection.catalogLanguageId
             : null,
       },
@@ -91,10 +150,11 @@ export async function getCurriculum(
   curriculumId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  return requestJson<CurriculumDocument>(
+  const entity = await requestJson<CurriculumApiEntity>(
     `/student/${studentId}/curricula/${curriculumId}`,
     getAccessToken,
   )
+  return documentFromApi(entity)
 }
 
 export async function createCurriculum(
@@ -102,11 +162,12 @@ export async function createCurriculum(
   document: CurriculumDocument,
   getAccessToken: () => Promise<string>,
 ) {
-  return requestJson<CurriculumDocument>(
+  const entity = await requestJson<CurriculumApiEntity>(
     `/student/${studentId}/curricula`,
     getAccessToken,
     { method: 'POST', body: JSON.stringify(toCreateBody(document)) },
   )
+  return documentFromApi(entity)
 }
 
 export async function patchCurriculum(
@@ -115,11 +176,12 @@ export async function patchCurriculum(
   body: Record<string, unknown>,
   getAccessToken: () => Promise<string>,
 ) {
-  return requestJson<CurriculumDocument>(
+  const entity = await requestJson<CurriculumApiEntity>(
     `/student/${studentId}/curricula/${curriculumId}`,
     getAccessToken,
     { method: 'PATCH', body: JSON.stringify(body) },
   )
+  return documentFromApi(entity)
 }
 
 export async function deleteCurriculum(
@@ -127,12 +189,12 @@ export async function deleteCurriculum(
   curriculumId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  const response = await apiRequest(
+  const response = await appApiRequest(
     `/student/${studentId}/curricula/${curriculumId}`,
     getAccessToken,
     { method: 'DELETE' },
   )
-  if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+  await expectApiResponse(response)
 }
 
 function toCreateBody(document: CurriculumDocument) {
@@ -159,6 +221,10 @@ function toNumberOrNull(value: string | null | undefined) {
   if (value === null || value === undefined) return null
   const number = Number(value)
   return Number.isInteger(number) ? number : null
+}
+
+function toStringOrNull(value: number | null | undefined) {
+  return value === null || value === undefined ? null : String(value)
 }
 
 export function documentFromState(

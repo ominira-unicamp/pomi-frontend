@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 
-import { publicApiUrl } from '@/api/client'
+import { dataApiUrlFor } from '@/api/client'
 import { PageContainer, PageHeader } from '@/components/PageLayout'
 import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
@@ -105,7 +105,7 @@ export function AboutPage() {
             </p>
             <div className="grid gap-2 text-sm">
               <a
-                href={publicApiUrl('/public-docs')}
+                href={dataApiUrlFor('/public-docs')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="pomi-focus rounded-md bg-primary px-3 py-2 font-bold text-primary-foreground hover:opacity-90"

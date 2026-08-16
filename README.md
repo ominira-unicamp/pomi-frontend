@@ -11,6 +11,10 @@ npm run dev
 
 Copie `.env.example` para `.env`. O client `pomi-frontend` usa Authorization Code com PKCE S256; access e refresh tokens permanecem somente em memória.
 
+Em desenvolvimento, `VITE_DATA_API_URL` aponta para `http://localhost:3000` e
+`VITE_APP_API_URL` para `http://localhost:3001`. A primeira atende dados
+acadêmicos públicos; a segunda atende recursos autenticados do estudante.
+
 Com o servidor local ativo, `/_design-system` apresenta os tokens, variantes, estados e composições disponíveis. Essa rota renderiza a página de não encontrado em builds de produção.
 
 ## Design system

@@ -15,7 +15,8 @@ import type {
   SpecializationId,
 } from '@pomi/planner-domain/curriculum'
 
-import { publicApiRequest } from '@/api/client'
+import { dataApiRequest } from '@/api/client'
+import { ApiError, expectApiResponse } from '@/api/errors'
 
 type ApiCourseRequirement = Readonly<{
   type: 'any' | 'prefix' | 'specific'
@@ -71,12 +72,6 @@ type ApiCoursesPage = Readonly<{
   data: ReadonlyArray<ApiCourse>
   _paths: Readonly<{ next: string | null }>
 }>
-
-class ApiResponseError extends Error {
-  constructor(readonly status: number) {
-    super(`Unexpected API response: ${status}`)
-  }
-}
 
 const ok = <T>(value: T): PlannerResult<T> => ({ ok: true, value })
 const unavailable = <T = never>(): PlannerResult<T> => ({
@@ -229,8 +224,8 @@ function blocksFromApi(
 }
 
 async function getJson(path: string) {
-  const response = await publicApiRequest(path)
-  if (!response.ok) throw new ApiResponseError(response.status)
+  const response = await dataApiRequest(path)
+  await expectApiResponse(response)
   return response.json() as Promise<unknown>
 }
 
@@ -314,7 +309,7 @@ async function loadStaticData(): Promise<PlannerResult<CurriculumPlannerStaticDa
             .sort((left, right) => left.id.localeCompare(right.id)),
         })
   } catch (error) {
-    if (error instanceof ApiResponseError && error.status < 500)
+    if (error instanceof ApiError && error.status < 500)
       return unexpected()
     if (error instanceof TypeError) return unexpected()
     return unavailable()

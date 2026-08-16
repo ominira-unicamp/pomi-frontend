@@ -7,7 +7,8 @@ import type {
   StudyPeriod,
 } from '@pomi/planner-domain/semester'
 
-import { apiRequest, publicApiRequest } from '@/api/client'
+import { appApiRequest, dataApiRequest } from '@/api/client'
+import { expectApiResponse } from '@/api/errors'
 
 type ApiPage<T> = Readonly<{
   data: ReadonlyArray<T>
@@ -47,8 +48,8 @@ const meetingsLoadByStudyPeriod = new Map<
 >()
 
 async function requestJson<T>(path: string): Promise<T> {
-  const response = await publicApiRequest(path)
-  if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+  const response = await dataApiRequest(path)
+  await expectApiResponse(response)
   return response.json() as Promise<T>
 }
 
@@ -206,11 +207,11 @@ async function authenticatedJson<T>(
   getAccessToken: () => Promise<string>,
   init: RequestInit = {},
 ): Promise<T> {
-  const response = await apiRequest(path, getAccessToken, {
+  const response = await appApiRequest(path, getAccessToken, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...init.headers },
   })
-  if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+  await expectApiResponse(response)
   return response.json() as Promise<T>
 }
 
@@ -282,10 +283,10 @@ export async function deleteSemesterPlanning(
   planId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  const response = await apiRequest(
+  const response = await appApiRequest(
     `/student/${studentId}/period-plannings/${planId}`,
     getAccessToken,
     { method: 'DELETE' },
   )
-  if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+  await expectApiResponse(response)
 }

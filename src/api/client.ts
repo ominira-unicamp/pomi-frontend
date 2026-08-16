@@ -1,20 +1,24 @@
-const configuredApiUrl = import.meta.env.VITE_API_URL?.trim()
+const configuredDataApiUrl = import.meta.env.VITE_DATA_API_URL?.trim()
+const configuredAppApiUrl = import.meta.env.VITE_APP_API_URL?.trim()
 
-if (import.meta.env.PROD && !configuredApiUrl) {
-  throw new Error('VITE_API_URL é obrigatória em produção.')
+if (import.meta.env.PROD && (!configuredDataApiUrl || !configuredAppApiUrl)) {
+  throw new Error(
+    'VITE_DATA_API_URL e VITE_APP_API_URL são obrigatórias em produção.',
+  )
 }
 
-const apiUrl = configuredApiUrl || 'http://localhost:3000'
+const dataApiUrl = configuredDataApiUrl || 'http://localhost:3000'
+const appApiUrl = configuredAppApiUrl || 'http://localhost:3001'
 
-export function publicApiUrl(path: string) {
-  return new URL(path, apiUrl).href
+export function dataApiUrlFor(path: string) {
+  return new URL(path, dataApiUrl).href
 }
 
-export function publicApiRequest(path: string, init: RequestInit = {}) {
-  return fetch(publicApiUrl(path), init)
+export function dataApiRequest(path: string, init: RequestInit = {}) {
+  return fetch(dataApiUrlFor(path), init)
 }
 
-export async function apiRequest(
+export async function appApiRequest(
   path: string,
   getAccessToken: () => Promise<string>,
   init: RequestInit = {},
@@ -23,7 +27,7 @@ export async function apiRequest(
   const headers = new Headers(init.headers)
   headers.set('Authorization', `Bearer ${token}`)
 
-  return fetch(publicApiUrl(path), {
+  return fetch(new URL(path, appApiUrl).href, {
     ...init,
     headers,
     cache: 'no-store',

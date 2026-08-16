@@ -1,4 +1,5 @@
-import { apiRequest, publicApiRequest } from '@/api/client'
+import { appApiRequest, dataApiRequest } from '@/api/client'
+import { expectApiResponse } from '@/api/errors'
 
 export type StudentProfile = Readonly<{
   id: number
@@ -64,11 +65,11 @@ async function requestJson<T>(
   getAccessToken: () => Promise<string>,
   init?: RequestInit,
 ): Promise<T> {
-  const response = await apiRequest(path, getAccessToken, {
+  const response = await appApiRequest(path, getAccessToken, {
     ...init,
     headers: { 'Content-Type': 'application/json', ...init?.headers },
   })
-  if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+  await expectApiResponse(response)
   return (await response.json()) as T
 }
 
@@ -129,8 +130,8 @@ export function patchStudentProfile(
 }
 
 export async function listStudyPeriods(): Promise<ReadonlyArray<StudyPeriod>> {
-  const response = await publicApiRequest('/study-periods')
-  if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+  const response = await dataApiRequest('/study-periods')
+  await expectApiResponse(response)
   return (await response.json()) as ReadonlyArray<StudyPeriod>
 }
 
@@ -138,8 +139,8 @@ async function listPublicPages<T>(initialPath: string) {
   const items: Array<T> = []
   let path: string | null = initialPath
   while (path) {
-    const response = await publicApiRequest(path)
-    if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+    const response = await dataApiRequest(path)
+    await expectApiResponse(response)
     const page = (await response.json()) as Readonly<{
       data: ReadonlyArray<T>
       _paths: Readonly<{ next: string | null }>
@@ -227,12 +228,12 @@ export async function deleteStudentCourseAttempt(
   attemptId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  const response = await apiRequest(
+  const response = await appApiRequest(
     `/student/${studentId}/course-attempts/${attemptId}`,
     getAccessToken,
     { method: 'DELETE' },
   )
-  if (!response.ok) throw new Error(`API request failed: ${response.status}`)
+  await expectApiResponse(response)
 }
 
 export async function setCourseCompleted(

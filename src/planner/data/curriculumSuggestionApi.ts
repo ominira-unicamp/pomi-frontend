@@ -6,7 +6,8 @@ import type {
   SpecializationId,
 } from '@pomi/planner-domain/curriculum'
 
-import { publicApiRequest } from '@/api/client'
+import { dataApiRequest } from '@/api/client'
+import { expectApiResponse } from '@/api/errors'
 
 export const suggestionOnboardingPreferenceKey =
   'pomi.curriculum-planner.suggestion-onboarding-dismissed'
@@ -93,9 +94,8 @@ export async function loadCurriculumSuggestions(
   catalogProgramId: CatalogProgramId,
 ) {
   const query = new URLSearchParams({ catalogProgramId })
-  const response = await publicApiRequest(`/curriculum-suggestions?${query}`)
-  if (!response.ok)
-    throw new Error(`Unexpected API response: ${response.status}`)
+  const response = await dataApiRequest(`/curriculum-suggestions?${query}`)
+  await expectApiResponse(response)
   const value: unknown = await response.json()
   if (!Array.isArray(value)) throw new TypeError('Expected suggestions')
   return value
