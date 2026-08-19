@@ -65,8 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setEmailVerificationRequired(
       Boolean(
         keycloak.authenticated &&
-          keycloak.tokenParsed &&
-          keycloak.tokenParsed.email_verified !== true,
+        keycloak.tokenParsed &&
+        keycloak.tokenParsed.email_verified !== true &&
+        false // desativado verificacao de email temporariamente
+
       ),
     )
   }, [])
