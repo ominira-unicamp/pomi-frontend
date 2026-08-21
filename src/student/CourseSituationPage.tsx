@@ -46,6 +46,8 @@ import { CourseProfilePanel } from '@/student/components/CourseProfilePanel'
 import { Card } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { StudentWeeklySchedule } from '@/student/components/StudentWeeklySchedule'
+import { StudentAbsencePanel } from '@/student/absences/StudentAbsencePanel'
+import { useStudentAbsences } from '@/student/absences/useStudentAbsences'
 
 const staticSource = createCurriculumCatalogDataSource()
 const statuses = [
@@ -83,6 +85,7 @@ export function CourseSituationPage() {
   const [status, setStatus] = useState<Status | ''>('')
   const [grade, setGrade] = useState('')
   const [attemptError, setAttemptError] = useState<string>()
+  const [absenceAttemptId, setAbsenceAttemptId] = useState<number>()
 
   const { studentId, profileQuery } = useStudentProfile()
   const attemptsQuery = useQuery({
@@ -119,6 +122,17 @@ export function CourseSituationPage() {
 
   const programs = staticQuery.data?.catalogPrograms ?? []
   const attempts = attemptsQuery.data ?? []
+  const absenceController = useStudentAbsences(
+    studentId ?? undefined,
+    auth.getAccessToken,
+    attempts.some((attempt) => attempt.status === 'ENROLLED'),
+  )
+  const absenceAttempt = attempts.find(
+    (attempt) => attempt.id === absenceAttemptId,
+  )
+  const absencePeriodStartDate = periodsQuery.data?.find(
+    (period) => period.id === absenceAttempt?.studyPeriodId,
+  )?.startDate
   const enrolledAttempts = attempts.filter(
     (attempt) => attempt.status === 'ENROLLED',
   )
@@ -287,6 +301,9 @@ export function CourseSituationPage() {
   }
 
   function renderAttempt(attempt: (typeof attempts)[number]) {
+    const absenceCount = absenceController.absences.filter(
+      (absence) => absence.studentCourseAttemptId === attempt.id,
+    ).length
     return (
       <article
         key={attempt.id}
@@ -303,9 +320,22 @@ export function CourseSituationPage() {
             {attempt.class?.professors.length
               ? ` · ${attempt.class.professors.map((professor) => professor.name).join(', ')}`
               : ''}
+            {attempt.status === 'ENROLLED'
+              ? ` · ${absenceCount} ${absenceCount === 1 ? 'falta' : 'faltas'}`
+              : ''}
           </p>
         </div>
-        <div className="flex w-full gap-2 sm:w-auto">
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto">
+          {attempt.status === 'ENROLLED' && (
+            <Button
+              className="flex-1 sm:flex-none"
+              size="sm"
+              variant="outline"
+              onClick={() => setAbsenceAttemptId(attempt.id)}
+            >
+              <CalendarDays /> Aulas e faltas
+            </Button>
+          )}
           <Button
             className="flex-1 sm:flex-none"
             size="sm"
@@ -583,6 +613,17 @@ export function CourseSituationPage() {
           )}
         </TabsContent>
       </Tabs>
+      {absenceAttempt && (
+        <StudentAbsencePanel
+          open
+          onOpenChange={(open) => {
+            if (!open) setAbsenceAttemptId(undefined)
+          }}
+          attempt={absenceAttempt}
+          periodStartDate={absencePeriodStartDate}
+          controller={absenceController}
+        />
+      )}
       <Dialog open={attemptDialogOpen} onOpenChange={setAttemptDialogOpen}>
         <DialogContent>
           <DialogHeader>

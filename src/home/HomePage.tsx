@@ -36,6 +36,7 @@ import { useStudentProfile } from '@/student/hooks/useStudentProfile'
 import { cn } from '@/lib/utils'
 import { TodayClassesPanel } from '@/home/TodayClassesPanel'
 import { currentStudyPeriodCode } from '@/home/todayClasses'
+import { useStudentAbsences } from '@/student/absences/useStudentAbsences'
 
 const staticSource = createApiCurriculumPlannerStaticDataSource()
 
@@ -110,7 +111,10 @@ function AnonymousHome() {
             title="Planejar minha graduação"
             description="Distribua disciplinas pelos semestres e acompanhe os blocos do currículo."
             action={
-              <Link to="/planejamentos-de-curriculo/novo" className={linkClass()}>
+              <Link
+                to="/planejamentos-de-curriculo/novo"
+                className={linkClass()}
+              >
                 Criar rascunho <ArrowRight />
               </Link>
             }
@@ -120,7 +124,10 @@ function AnonymousHome() {
             title="Montar meu horário"
             description="Compare turmas e organize os horários de um período letivo."
             action={
-              <Link to="/planejamentos-de-semestre/novo" className={linkClass()}>
+              <Link
+                to="/planejamentos-de-semestre/novo"
+                className={linkClass()}
+              >
                 Criar rascunho <ArrowRight />
               </Link>
             }
@@ -162,7 +169,9 @@ function RecentSemesterPlan({ plan }: { plan: PersistedSemesterPlanning }) {
             Abrir <ArrowRight />
           </span>
         </div>
-        <h3 className="mt-4 font-extrabold">{plan.name || `Horário ${plan.id}`}</h3>
+        <h3 className="mt-4 font-extrabold">
+          {plan.name || `Horário ${plan.id}`}
+        </h3>
         <p className="mt-1 text-sm text-muted-foreground">
           {plan.studyPeriodCode} · {plan.classes.length} turma
           {plan.classes.length === 1 ? '' : 's'} · {credits} créditos
@@ -223,6 +232,11 @@ function AuthenticatedHome() {
   const enrolledAttempts = attempts.filter(
     (attempt) => attempt.status === 'ENROLLED',
   )
+  const absenceController = useStudentAbsences(
+    studentId ?? undefined,
+    auth.getAccessToken,
+    enrolledAttempts.length > 0,
+  )
   const academicPeriodCode = currentStudyPeriodCode()
   const currentPeriodAttempt = enrolledAttempts.find(
     (attempt) =>
@@ -252,11 +266,16 @@ function AuthenticatedHome() {
   )
   const curriculumCourseIds = [
     ...new Set(
-      (featuredCurriculumQuery.data?.courses ?? []).map((course) => course.courseId),
+      (featuredCurriculumQuery.data?.courses ?? []).map(
+        (course) => course.courseId,
+      ),
     ),
   ]
   const creditsByCourse = new Map(
-    (staticQuery.data?.courses ?? []).map((course) => [String(course.id), course.credits]),
+    (staticQuery.data?.courses ?? []).map((course) => [
+      String(course.id),
+      course.credits,
+    ]),
   )
   const curriculumCredits = curriculumCourseIds.reduce(
     (total, courseId) => total + (creditsByCourse.get(String(courseId)) ?? 0),
@@ -271,25 +290,30 @@ function AuthenticatedHome() {
   )
   const profileIncomplete = Boolean(
     studentId &&
-      (!profile?.catalogId ||
-        !profile.programId ||
-        !profile.entryYear ||
-        (selectedProgram?.specializations.length && !profile.specializationId) ||
-        (selectedProgram?.languages.length && !profile.languageId)),
+    (!profile?.catalogId ||
+      !profile.programId ||
+      !profile.entryYear ||
+      (selectedProgram?.specializations.length && !profile.specializationId) ||
+      (selectedProgram?.languages.length && !profile.languageId)),
   )
   const resumeSemester = Boolean(
     latestSemesterPlan &&
-      (!featuredCurriculum?.updatedAt ||
-        new Date(latestSemesterPlan.updatedAt).getTime() >
-          new Date(featuredCurriculum.updatedAt).getTime()),
+    (!featuredCurriculum?.updatedAt ||
+      new Date(latestSemesterPlan.updatedAt).getTime() >
+        new Date(featuredCurriculum.updatedAt).getTime()),
   )
 
   async function openSituation() {
     setSituationError(false)
     try {
       if (!studentId) {
-        await ensureCurrentStudent(accountName(auth.profile), auth.getAccessToken)
-        await queryClient.invalidateQueries({ queryKey: ['student', 'current'] })
+        await ensureCurrentStudent(
+          accountName(auth.profile),
+          auth.getAccessToken,
+        )
+        await queryClient.invalidateQueries({
+          queryKey: ['student', 'current'],
+        })
       }
       await navigate({ to: '/situacao-do-curso' })
     } catch {
@@ -300,70 +324,74 @@ function AuthenticatedHome() {
   const recommendation = !studentId
     ? {
         title: 'Complete seus dados acadêmicos',
-        description: 'Informe seu curso e ano de ingresso para preencher os planejadores.',
+        description:
+          'Informe seu curso e ano de ingresso para preencher os planejadores.',
         action: openSituation,
         label: 'Completar dados',
       }
     : profileIncomplete
       ? {
           title: 'Complete seus dados acadêmicos',
-          description: 'Ainda faltam informações do seu curso para orientar os planejamentos.',
+          description:
+            'Ainda faltam informações do seu curso para orientar os planejamentos.',
           action: openSituation,
           label: 'Completar dados',
         }
-      : !curriculaQuery.data ||
-          !attemptsQuery.data ||
-          !semesterPlansQuery.data
+      : !curriculaQuery.data || !attemptsQuery.data || !semesterPlansQuery.data
         ? {
             title: 'Preparando seu próximo passo',
             description: 'Carregando seus dados acadêmicos e planejamentos.',
             to: '/planejamentos-de-curriculo' as const,
             label: 'Ver planejamentos',
           }
-      : curriculaQuery.data.length === 0
-        ? {
-            title: 'Crie seu planejamento de currículo',
-            description: 'Organize as disciplinas que ainda pretende cursar.',
-            to: '/planejamentos-de-curriculo/novo' as const,
-            label: 'Criar planejamento',
-          }
-        : attemptsQuery.data.length === 0
+        : curriculaQuery.data.length === 0
           ? {
-              title: 'Registre sua situação atual',
-              description: 'Adicione disciplinas cursando e tentativas anteriores.',
-              action: openSituation,
-              label: 'Atualizar situação',
+              title: 'Crie seu planejamento de currículo',
+              description: 'Organize as disciplinas que ainda pretende cursar.',
+              to: '/planejamentos-de-curriculo/novo' as const,
+              label: 'Criar planejamento',
             }
-          : semesterPlansQuery.data.length === 0
+          : attemptsQuery.data.length === 0
             ? {
-                title: 'Monte o horário do próximo período',
-                description: 'Escolha turmas e confira conflitos de horário.',
-                to: '/planejamentos-de-semestre/novo' as const,
-                label: 'Montar horário',
+                title: 'Registre sua situação atual',
+                description:
+                  'Adicione disciplinas cursando e tentativas anteriores.',
+                action: openSituation,
+                label: 'Atualizar situação',
               }
-            : featuredCurriculum?.isFavorite
+            : semesterPlansQuery.data.length === 0
               ? {
-                  title: 'Seu planejamento favorito',
-                  description: 'Retome o currículo que você escolheu como principal.',
-                  to: '/planejamentos-de-curriculo/$planejamentoId' as const,
-                  params: { planejamentoId: String(featuredCurriculum.id) },
-                  label: 'Abrir favorito',
+                  title: 'Monte o horário do próximo período',
+                  description: 'Escolha turmas e confira conflitos de horário.',
+                  to: '/planejamentos-de-semestre/novo' as const,
+                  label: 'Montar horário',
                 }
-              : {
-                  title: 'Continue de onde parou',
-                  description: resumeSemester
-                  ? 'Retome o planejamento de semestre atualizado mais recentemente.'
-                  : 'Retome o planejamento de currículo atualizado mais recentemente.',
-                to: resumeSemester
-                  ? ('/planejamentos-de-semestre/$planejamentoId' as const)
-                  : ('/planejamentos-de-curriculo/$planejamentoId' as const),
-                params: {
-                  planejamentoId: String(
-                    resumeSemester ? latestSemesterPlan!.id : featuredCurriculum!.id,
-                  ),
-                },
-                label: 'Retomar planejamento',
-              }
+              : featuredCurriculum?.isFavorite
+                ? {
+                    title: 'Seu planejamento favorito',
+                    description:
+                      'Retome o currículo que você escolheu como principal.',
+                    to: '/planejamentos-de-curriculo/$planejamentoId' as const,
+                    params: { planejamentoId: String(featuredCurriculum.id) },
+                    label: 'Abrir favorito',
+                  }
+                : {
+                    title: 'Continue de onde parou',
+                    description: resumeSemester
+                      ? 'Retome o planejamento de semestre atualizado mais recentemente.'
+                      : 'Retome o planejamento de currículo atualizado mais recentemente.',
+                    to: resumeSemester
+                      ? ('/planejamentos-de-semestre/$planejamentoId' as const)
+                      : ('/planejamentos-de-curriculo/$planejamentoId' as const),
+                    params: {
+                      planejamentoId: String(
+                        resumeSemester
+                          ? latestSemesterPlan!.id
+                          : featuredCurriculum!.id,
+                      ),
+                    },
+                    label: 'Retomar planejamento',
+                  }
 
   const loading =
     studentQuery.isLoading ||
@@ -398,7 +426,8 @@ function AuthenticatedHome() {
             <Alert variant="destructive">
               <AlertTitle>Parte do resumo não está disponível</AlertTitle>
               <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-                Os atalhos continuam disponíveis. Tente carregar novamente os dados que falharam.
+                Os atalhos continuam disponíveis. Tente carregar novamente os
+                dados que falharam.
                 <button
                   className={buttonVariants({ variant: 'outline', size: 'sm' })}
                   onClick={() => {
@@ -412,12 +441,21 @@ function AuthenticatedHome() {
             </Alert>
           )}
 
-          <section className="rounded-lg border-2 border-strong-border bg-card p-5" aria-labelledby="next-step-title">
-            <p className="text-xs font-black tracking-[0.14em] text-primary uppercase">Próximo passo</p>
+          <section
+            className="rounded-lg border-2 border-strong-border bg-card p-5"
+            aria-labelledby="next-step-title"
+          >
+            <p className="text-xs font-black tracking-[0.14em] text-primary uppercase">
+              Próximo passo
+            </p>
             <div className="mt-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
               <div>
-                <h2 id="next-step-title" className="text-xl font-extrabold">{recommendation.title}</h2>
-                <p className="mt-1 text-sm text-muted-foreground">{recommendation.description}</p>
+                <h2 id="next-step-title" className="text-xl font-extrabold">
+                  {recommendation.title}
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {recommendation.description}
+                </p>
               </div>
               {'action' in recommendation && recommendation.action ? (
                 <button
@@ -429,7 +467,11 @@ function AuthenticatedHome() {
               ) : (
                 <Link
                   to={recommendation.to}
-                  params={'params' in recommendation ? recommendation.params : undefined}
+                  params={
+                    'params' in recommendation
+                      ? recommendation.params
+                      : undefined
+                  }
                   className={linkClass()}
                 >
                   {recommendation.label} <ArrowRight />
@@ -447,29 +489,53 @@ function AuthenticatedHome() {
               isLoading={todayScheduleQuery.isLoading}
               isError={todayScheduleQuery.isError}
               scheduleLoaded={todayScheduleQuery.isSuccess}
+              absenceController={absenceController}
             />
           )}
 
           <section aria-labelledby="objectives-title">
-            <h2 id="objectives-title" className="mb-4 text-xl font-extrabold">O que você quer organizar?</h2>
+            <h2 id="objectives-title" className="mb-4 text-xl font-extrabold">
+              O que você quer organizar?
+            </h2>
             <div className="grid gap-4 md:grid-cols-3">
               <ObjectiveCard
                 icon={<GraduationCap className="size-5" />}
                 title="Situação do curso"
                 description="Atualize curso, disciplinas cursando e seu histórico."
-                action={<button className={linkClass(true)} onClick={() => void openSituation()}>Abrir situação <ArrowRight /></button>}
+                action={
+                  <button
+                    className={linkClass(true)}
+                    onClick={() => void openSituation()}
+                  >
+                    Abrir situação <ArrowRight />
+                  </button>
+                }
               />
               <ObjectiveCard
                 icon={<BookOpen className="size-5" />}
                 title="Planejamento de currículo"
                 description="Organize sua trajetória e acompanhe os blocos da grade."
-                action={<Link to="/planejamentos-de-curriculo" className={linkClass(true)}>Ver currículos <ArrowRight /></Link>}
+                action={
+                  <Link
+                    to="/planejamentos-de-curriculo"
+                    className={linkClass(true)}
+                  >
+                    Ver currículos <ArrowRight />
+                  </Link>
+                }
               />
               <ObjectiveCard
                 icon={<CalendarDays className="size-5" />}
                 title="Planejamento de semestre"
                 description="Escolha turmas e monte alternativas de horário."
-                action={<Link to="/planejamentos-de-semestre" className={linkClass(true)}>Ver horários <ArrowRight /></Link>}
+                action={
+                  <Link
+                    to="/planejamentos-de-semestre"
+                    className={linkClass(true)}
+                  >
+                    Ver horários <ArrowRight />
+                  </Link>
+                }
               />
             </div>
           </section>
@@ -477,7 +543,9 @@ function AuthenticatedHome() {
           {(featuredCurriculum || latestSemesterPlan) && (
             <section aria-labelledby="recent-title">
               <div className="mb-4 flex items-end justify-between gap-4">
-                <h2 id="recent-title" className="text-xl font-extrabold">Retomar planejamentos</h2>
+                <h2 id="recent-title" className="text-xl font-extrabold">
+                  Retomar planejamentos
+                </h2>
                 <CheckCircle2 className="size-5 text-muted-foreground" />
               </div>
               <div className="grid gap-4 md:grid-cols-2">
@@ -490,21 +558,38 @@ function AuthenticatedHome() {
                     <Card className="h-full p-5 transition-colors hover:border-primary">
                       <div className="flex items-start justify-between gap-4">
                         <BookOpen className="size-5 text-primary" />
-                        <span className="inline-flex items-center gap-1 text-sm font-bold text-primary">Abrir <ArrowRight /></span>
+                        <span className="inline-flex items-center gap-1 text-sm font-bold text-primary">
+                          Abrir <ArrowRight />
+                        </span>
                       </div>
                       <h3 className="mt-4 font-extrabold">
                         {featuredCurriculum.name}
                         {featuredCurriculum.isFavorite ? ' · Favorito' : ''}
                       </h3>
-                      <p className="mt-1 text-sm text-muted-foreground">{curriculumCourseIds.length} disciplinas · {curriculumCredits} créditos</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {curriculumCourseIds.length} disciplinas ·{' '}
+                        {curriculumCredits} créditos
+                      </p>
                     </Card>
                   </Link>
                 )}
-                {latestSemesterPlan && <RecentSemesterPlan plan={latestSemesterPlan} />}
+                {latestSemesterPlan && (
+                  <RecentSemesterPlan plan={latestSemesterPlan} />
+                )}
               </div>
               <div className="mt-4 flex flex-wrap gap-4 text-sm font-bold">
-                <Link to="/planejamentos-de-curriculo" className="pomi-focus rounded-sm underline underline-offset-4">Ver todos os currículos</Link>
-                <Link to="/planejamentos-de-semestre" className="pomi-focus rounded-sm underline underline-offset-4">Ver todos os horários</Link>
+                <Link
+                  to="/planejamentos-de-curriculo"
+                  className="pomi-focus rounded-sm underline underline-offset-4"
+                >
+                  Ver todos os currículos
+                </Link>
+                <Link
+                  to="/planejamentos-de-semestre"
+                  className="pomi-focus rounded-sm underline underline-offset-4"
+                >
+                  Ver todos os horários
+                </Link>
               </div>
             </section>
           )}

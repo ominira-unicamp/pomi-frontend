@@ -9,11 +9,13 @@ const {
   listClassesForStudentCourseAttempt,
   listClassSchedulesByStudyPeriod,
   listStudyPeriods,
+  listStudentAbsences,
 } = vi.hoisted(() => ({
   listStudentCourseAttempts: vi.fn(),
   listClassesForStudentCourseAttempt: vi.fn(),
   listClassSchedulesByStudyPeriod: vi.fn(),
   listStudyPeriods: vi.fn(),
+  listStudentAbsences: vi.fn(),
 }))
 const login = vi.fn()
 const authState = {
@@ -53,6 +55,12 @@ vi.mock('@/student/data/studentApi', () => ({
   deleteStudentCourseAttempt: vi.fn(),
   patchStudentCourseAttempt: vi.fn(),
   patchStudentProfile: vi.fn(),
+}))
+
+vi.mock('@/student/data/studentAbsenceApi', () => ({
+  listStudentAbsences,
+  createStudentAbsence: vi.fn(),
+  deleteStudentAbsence: vi.fn(),
 }))
 
 vi.mock('@/student/components/CourseProfilePanel', () => ({
@@ -119,6 +127,7 @@ describe('CourseSituationPage', () => {
         class: null,
       },
     ])
+    listStudentAbsences.mockResolvedValue([])
   })
 
   it('starts in Cursando and separates course data from history', async () => {
@@ -165,6 +174,17 @@ describe('CourseSituationPage', () => {
       screen.getByRole<HTMLButtonElement>('button', { name: 'Salvar' })
         .disabled,
     ).toBe(true)
+  })
+
+  it('opens recent classes for absence control from an enrolled course', async () => {
+    renderPage()
+    await screen.findByText('MC102 — Algoritmos')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Aulas e faltas' }))
+
+    expect(await screen.findByText('Aulas recentes')).toBeTruthy()
+    expect(screen.getByText('0 faltas registradas')).toBeTruthy()
+    expect(screen.getAllByRole('button', { name: 'Eu faltei' }).length).toBe(8)
   })
 
   it('switches the schedule between enrolled study periods', async () => {

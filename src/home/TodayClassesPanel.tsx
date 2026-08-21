@@ -1,12 +1,22 @@
-import { AlertCircle, ArrowRight, CalendarClock, LoaderCircle } from 'lucide-react'
+import {
+  AlertCircle,
+  ArrowRight,
+  CalendarClock,
+  LoaderCircle,
+} from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { useState } from 'react'
 import type {
   StudentClassSchedule,
   StudentCourseAttempt,
 } from '@/student/data/studentApi'
 import type { TodayClassStatus } from '@/home/todayClasses'
+import type { StudentAbsence } from '@/student/data/studentAbsenceApi'
 
+import type { ClassOccurrence } from '@/student/absences/studentAbsences'
+import type { StudentAbsenceController } from '@/student/absences/useStudentAbsences'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
   currentScheduleDay,
@@ -14,6 +24,12 @@ import {
   sortTodayMeetings,
   statusForTodayMeeting,
 } from '@/home/todayClasses'
+import { StudentAbsenceAction } from '@/student/absences/StudentAbsenceAction'
+import {
+  academicDateKey,
+  findOccurrenceAbsence,
+  occurrenceFromMeeting,
+} from '@/student/absences/studentAbsences'
 
 type TodayClassesPanelProps = Readonly<{
   currentPeriodId: number | null
@@ -23,6 +39,7 @@ type TodayClassesPanelProps = Readonly<{
   isLoading: boolean
   isError: boolean
   scheduleLoaded: boolean
+  absenceController: StudentAbsenceController
   now?: Date
 }>
 
@@ -41,8 +58,14 @@ export function TodayClassesPanel({
   isLoading,
   isError,
   scheduleLoaded,
+  absenceController,
   now = new Date(),
 }: TodayClassesPanelProps) {
+  const [lastRegistered, setLastRegistered] = useState<{
+    absence: StudentAbsence
+    occurrence: ClassOccurrence
+  }>()
+  const [noticeError, setNoticeError] = useState<string>()
   const periodAttempts = attempts.filter(
     (attempt) =>
       attempt.status === 'ENROLLED' &&
@@ -60,9 +83,7 @@ export function TodayClassesPanel({
       (scheduleLoaded && !scheduledClassIds.has(attempt.classId)),
   ).length
   const todayMeetings = sortTodayMeetings(
-    meetings.filter(
-      (meeting) => meeting.dayOfWeek === currentScheduleDay(now),
-    ),
+    meetings.filter((meeting) => meeting.dayOfWeek === currentScheduleDay(now)),
   )
 
   return (
@@ -92,7 +113,10 @@ export function TodayClassesPanel({
           </p>
         </Card>
       ) : isLoading ? (
-        <Card className="flex min-h-24 items-center justify-center gap-3 p-4" role="status">
+        <Card
+          className="flex min-h-24 items-center justify-center gap-3 p-4"
+          role="status"
+        >
           <LoaderCircle className="size-5 animate-spin text-primary" />
           <span className="font-bold">Carregando aulas de hoje</span>
         </Card>
@@ -115,14 +139,31 @@ export function TodayClassesPanel({
             <ol className="divide-y divide-strong-border/30">
               {todayMeetings.map((meeting) => {
                 const attempt = attemptsByClass.get(meeting.classId)
-                const status = statusForTodayMeeting(meeting, todayMeetings, now)
+                const status = statusForTodayMeeting(
+                  meeting,
+                  todayMeetings,
+                  now,
+                )
+                const occurrence = attempt
+                  ? occurrenceFromMeeting(
+                      attempt,
+                      meeting,
+                      academicDateKey(now),
+                    )
+                  : undefined
+                const absence = occurrence
+                  ? findOccurrenceAbsence(
+                      absenceController.absences,
+                      occurrence,
+                    )
+                  : undefined
                 const professors = attempt?.class?.professors
                   .map((professor) => professor.name)
                   .join(', ')
                 return (
                   <li
                     key={meeting.id}
-                    className="grid gap-2 px-4 py-3 sm:grid-cols-[7rem_minmax(0,1fr)_auto] sm:items-center sm:gap-4"
+                    className="grid gap-2 px-4 py-3 sm:grid-cols-[7rem_minmax(0,1fr)_auto_auto] sm:items-center sm:gap-4"
                   >
                     <div>
                       <strong className="block tabular-nums">
@@ -135,7 +176,9 @@ export function TodayClassesPanel({
                     <div className="min-w-0">
                       <p className="font-extrabold">
                         {meeting.courseCode}
-                        {attempt?.course.name ? ` — ${attempt.course.name}` : ''}
+                        {attempt?.course.name
+                          ? ` — ${attempt.course.name}`
+                          : ''}
                       </p>
                       {professors && (
                         <p className="truncate text-sm text-muted-foreground">
@@ -149,6 +192,31 @@ export function TodayClassesPanel({
                         {meeting.roomCode || 'Sala não informada'}
                       </p>
                     </div>
+                    {occurrence && (
+                      <StudentAbsenceAction
+                        occurrence={occurrence}
+                        absence={absence}
+                        controller={absenceController}
+                        disabled={
+                          absenceController.isLoading ||
+                          absenceController.isError ||
+                          (status !== 'now' &&
+                            status !== 'finished' &&
+                            !absence)
+                        }
+                        onRegistered={(created, registeredOccurrence) => {
+                          setNoticeError(undefined)
+                          setLastRegistered({
+                            absence: created,
+                            occurrence: registeredOccurrence,
+                          })
+                        }}
+                        onRemoved={() => {
+                          setNoticeError(undefined)
+                          setLastRegistered(undefined)
+                        }}
+                      />
+                    )}
                   </li>
                 )
               })}
@@ -157,9 +225,63 @@ export function TodayClassesPanel({
           {incompleteAttempts > 0 && (
             <p className="border-t border-strong-border/30 px-4 py-2 text-xs text-muted-foreground">
               Agenda parcial: {incompleteAttempts}{' '}
-              {incompleteAttempts === 1 ? 'disciplina não possui' : 'disciplinas não possuem'}{' '}
+              {incompleteAttempts === 1
+                ? 'disciplina não possui'
+                : 'disciplinas não possuem'}{' '}
               turma ou horário cadastrado.
             </p>
+          )}
+          {absenceController.isError && (
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-strong-border/30 px-4 py-3 text-sm">
+              <p className="text-muted-foreground">
+                Não foi possível carregar o controle de faltas.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void absenceController.refetch()}
+              >
+                Tentar novamente
+              </Button>
+            </div>
+          )}
+          {lastRegistered && (
+            <div
+              className="flex flex-wrap items-center justify-between gap-2 border-t border-strong-border/30 bg-secondary/30 px-4 py-3 text-sm"
+              aria-live="polite"
+            >
+              <p className="font-bold">
+                Falta registrada em {lastRegistered.occurrence.courseCode}.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={absenceController.isPending(
+                  lastRegistered.occurrence,
+                )}
+                onClick={async () => {
+                  try {
+                    await absenceController.removeAbsence(
+                      lastRegistered.absence,
+                    )
+                    setNoticeError(undefined)
+                    setLastRegistered(undefined)
+                  } catch {
+                    setNoticeError('Não foi possível desfazer a falta.')
+                  }
+                }}
+              >
+                Desfazer
+              </Button>
+              {noticeError && (
+                <p
+                  className="w-full text-xs font-semibold text-destructive"
+                  role="alert"
+                >
+                  {noticeError}
+                </p>
+              )}
+            </div>
           )}
         </Card>
       )}
