@@ -23,25 +23,68 @@ export function CourseProfilePanel({
   catalogPrograms: ReadonlyArray<CatalogProgramOption>
   onSave: (value: CourseProfileValues) => Promise<void>
 }) {
-  const [catalogProgramId, setCatalogProgramId] = useState('')
+  const [catalogId, setCatalogId] = useState('')
+  const [programId, setProgramId] = useState('')
   const [specializationId, setSpecializationId] = useState('')
   const [languageId, setLanguageId] = useState('')
   const [entryYear, setEntryYear] = useState('')
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(false)
 
+  const catalogOptions = useMemo(
+    () =>
+      [...catalogPrograms]
+        .sort((left, right) => right.catalog.year - left.catalog.year)
+        .filter(
+          (item, index, items) =>
+            items.findIndex(
+              (candidate) => candidate.catalog.id === item.catalog.id,
+            ) === index,
+        )
+        .map((item) => ({
+          value: item.catalog.id,
+          label: `Catálogo ${item.catalog.year}`,
+        })),
+    [catalogPrograms],
+  )
+  const programOptions = useMemo(
+    () =>
+      catalogPrograms
+        .filter((item) => item.catalog.id === catalogId)
+        .sort((left, right) =>
+          left.program.name.localeCompare(right.program.name, 'pt-BR'),
+        )
+        .filter(
+          (item, index, items) =>
+            items.findIndex(
+              (candidate) => candidate.program.id === item.program.id,
+            ) === index,
+        )
+        .map((item) => ({
+          value: item.program.id,
+          label: `${item.program.code} — ${item.program.name}`,
+        })),
+    [catalogId, catalogPrograms],
+  )
   const selectedProgram = useMemo(
-    () => catalogPrograms.find((item) => item.id === catalogProgramId),
-    [catalogProgramId, catalogPrograms],
+    () =>
+      catalogPrograms.find(
+        (item) =>
+          item.catalog.id === catalogId && item.program.id === programId,
+      ),
+    [catalogId, catalogPrograms, programId],
   )
 
   useEffect(() => {
-    const current = catalogPrograms.find(
-      (item) =>
-        Number(item.catalog.id) === profile?.catalogId &&
-        Number(item.program.id) === profile.programId,
-    )
-    setCatalogProgramId(current?.id ?? '')
+    setCatalogId(profile?.catalogId ? String(profile.catalogId) : '')
+    const current = profile
+      ? catalogPrograms.find(
+          (item) =>
+            Number(item.catalog.id) === profile.catalogId &&
+            Number(item.program.id) === profile.programId,
+        )
+      : undefined
+    setProgramId(current ? String(current.program.id) : '')
     setSpecializationId(
       profile?.specializationId ? String(profile.specializationId) : '',
     )
@@ -50,10 +93,11 @@ export function CourseProfilePanel({
   }, [catalogPrograms, profile])
 
   const values: CourseProfileValues = {
-    catalogId: selectedProgram ? Number(selectedProgram.catalog.id) : null,
+    catalogId: catalogId ? Number(catalogId) : null,
     programId: selectedProgram ? Number(selectedProgram.program.id) : null,
-    specializationId: specializationId ? Number(specializationId) : null,
-    languageId: languageId ? Number(languageId) : null,
+    specializationId:
+      selectedProgram && specializationId ? Number(specializationId) : null,
+    languageId: selectedProgram && languageId ? Number(languageId) : null,
     entryYear: entryYear ? Number(entryYear) : null,
   }
   const hasChanges =
@@ -94,20 +138,32 @@ export function CourseProfilePanel({
       <CardContent className="border-t-2 border-strong-border p-4">
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block space-y-2 text-sm font-bold">
-            <span>Catálogo e programa</span>
+            <span>Catálogo</span>
             <AutocompleteSelect
-              ariaLabel="Catálogo e programa"
-              value={catalogProgramId}
-              options={[...catalogPrograms]
-                .sort((left, right) => right.catalog.year - left.catalog.year)
-                .map((item) => ({
-                  value: item.id,
-                  label: `Catálogo ${item.catalog.year} — ${item.program.code} ${item.program.name}`,
-                }))}
-              placeholder="Escolha catálogo e programa"
+              ariaLabel="Catálogo"
+              value={catalogId}
+              options={catalogOptions}
+              placeholder="Escolha o catálogo"
               onValueChange={(value) => {
                 setSaveError(false)
-                setCatalogProgramId(value)
+                setCatalogId(value)
+                setProgramId('')
+                setSpecializationId('')
+                setLanguageId('')
+              }}
+            />
+          </label>
+          <label className="block space-y-2 text-sm font-bold">
+            <span>Programa</span>
+            <AutocompleteSelect
+              ariaLabel="Programa"
+              value={programId}
+              options={programOptions}
+              disabled={!catalogId}
+              placeholder="Escolha o programa"
+              onValueChange={(value) => {
+                setSaveError(false)
+                setProgramId(value)
                 setSpecializationId('')
                 setLanguageId('')
               }}
@@ -163,12 +219,18 @@ export function CourseProfilePanel({
           </label>
         </div>
         {!entryYearValid && (
-          <p className="mt-3 text-sm font-semibold text-destructive" role="alert">
+          <p
+            className="mt-3 text-sm font-semibold text-destructive"
+            role="alert"
+          >
             Informe um ano de ingresso entre 1900 e 9999.
           </p>
         )}
         {saveError && (
-          <p className="mt-3 text-sm font-semibold text-destructive" role="alert">
+          <p
+            className="mt-3 text-sm font-semibold text-destructive"
+            role="alert"
+          >
             Não foi possível salvar as informações do curso.
           </p>
         )}

@@ -1,37 +1,44 @@
+import { useQuery } from '@tanstack/react-query'
 import {
   AlertCircle,
-  ArrowRight,
   CalendarClock,
+  ChevronLeft,
+  ChevronRight,
   LoaderCircle,
+  Utensils,
 } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
 import { useState } from 'react'
+
 import type {
   StudentClassSchedule,
   StudentCourseAttempt,
 } from '@/student/data/studentApi'
-import type { TodayClassStatus } from '@/home/todayClasses'
 import type { StudentAbsence } from '@/student/data/studentAbsenceApi'
-
 import type { ClassOccurrence } from '@/student/absences/studentAbsences'
 import type { StudentAbsenceController } from '@/student/absences/useStudentAbsences'
+import type { DailyMeal } from '@/home/dailyMenuApi'
+import type { TodayClassStatus } from '@/home/todayClasses'
+import { ApiError } from '@/api/errors'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import {
-  currentScheduleDay,
-  formatAcademicDate,
-  sortTodayMeetings,
-  statusForTodayMeeting,
-} from '@/home/todayClasses'
 import { StudentAbsenceAction } from '@/student/absences/StudentAbsenceAction'
 import {
   academicDateKey,
   findOccurrenceAbsence,
   occurrenceFromMeeting,
 } from '@/student/absences/studentAbsences'
+import { listDailyMenus } from '@/home/dailyMenuApi'
+import {
+  currentScheduleDay,
+  dateFromAcademicDateKey,
+  formatAcademicDate,
+  shiftAcademicDate,
+  sortTodayMeetings,
+  statusForTodayMeeting,
+} from '@/home/todayClasses'
 
-type TodayClassesPanelProps = Readonly<{
+type AgendaPanelProps = Readonly<{
   currentPeriodId: number | null
   currentPeriodCode: string
   attempts: ReadonlyArray<StudentCourseAttempt>
@@ -43,14 +50,84 @@ type TodayClassesPanelProps = Readonly<{
   now?: Date
 }>
 
-const statusLabels: Readonly<Record<TodayClassStatus, string>> = {
+type AgendaClassStatus = TodayClassStatus | 'scheduled'
+
+const statusLabels: Readonly<Record<AgendaClassStatus, string>> = {
   finished: 'Encerrada',
   now: 'Agora',
   next: 'Próxima',
   later: 'Mais tarde',
+  scheduled: 'Agendada',
 }
 
-export function TodayClassesPanel({
+const mealLabels: Readonly<
+  Record<DailyMeal['period'], Record<DailyMeal['diet'], string>>
+> = {
+  LUNCH: { TRADITIONAL: 'Almoço', VEGAN: 'Almoço vegano' },
+  DINNER: { TRADITIONAL: 'Jantar', VEGAN: 'Jantar vegano' },
+}
+
+function classStatus(
+  selectedDate: string,
+  today: string,
+  meeting: StudentClassSchedule,
+  meetings: ReadonlyArray<StudentClassSchedule>,
+  now: Date,
+): AgendaClassStatus {
+  if (selectedDate < today) return 'finished'
+  if (selectedDate > today) return 'scheduled'
+  return statusForTodayMeeting(meeting, meetings, now)
+}
+
+function MealSummary({ date }: { date: string }) {
+  const menuQuery = useQuery({
+    queryKey: ['daily-menus', date],
+    queryFn: () => listDailyMenus(date),
+    staleTime: 1000 * 60 * 5,
+  })
+  const menu = menuQuery.data?.find((item) => item.date === date)
+  const meals = menu?.meals.filter((meal) => meal.status === 'AVAILABLE') ?? []
+
+  return (
+    <Card className="p-4" aria-labelledby="agenda-meals-title">
+      <div className="flex items-center gap-2">
+        <Utensils className="size-5 text-primary" />
+        <h3 id="agenda-meals-title" className="font-extrabold">
+          Refeições do dia
+        </h3>
+      </div>
+      {menuQuery.isLoading ? (
+        <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+          <LoaderCircle className="size-4 animate-spin" />
+          Carregando cardápio
+        </div>
+      ) : menuQuery.isError ? (
+        <p className="mt-4 text-sm text-muted-foreground">
+          Não foi possível carregar o cardápio.
+        </p>
+      ) : meals.length === 0 ? (
+        <p className="mt-4 text-sm text-muted-foreground">
+          Cardápio não disponível para esta data.
+        </p>
+      ) : (
+        <ul className="mt-4 space-y-3">
+          {meals.map((meal) => (
+            <li key={meal.id}>
+              <p className="text-xs font-black tracking-[0.12em] text-primary uppercase">
+                {mealLabels[meal.period][meal.diet]}
+              </p>
+              <p className="mt-1 text-sm font-bold">
+                {meal.mainDish ?? 'Prato principal não informado'}
+              </p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  )
+}
+
+export function AgendaPanel({
   currentPeriodId,
   currentPeriodCode,
   attempts,
@@ -60,12 +137,15 @@ export function TodayClassesPanel({
   scheduleLoaded,
   absenceController,
   now = new Date(),
-}: TodayClassesPanelProps) {
+}: AgendaPanelProps) {
+  const today = academicDateKey(now)
+  const [selectedDate, setSelectedDate] = useState(today)
   const [lastRegistered, setLastRegistered] = useState<{
     absence: StudentAbsence
     occurrence: ClassOccurrence
   }>()
   const [noticeError, setNoticeError] = useState<string>()
+  const selectedDateValue = dateFromAcademicDateKey(selectedDate)
   const periodAttempts = attempts.filter(
     (attempt) =>
       attempt.status === 'ENROLLED' &&
@@ -82,74 +162,103 @@ export function TodayClassesPanel({
       !attempt.classId ||
       (scheduleLoaded && !scheduledClassIds.has(attempt.classId)),
   ).length
-  const todayMeetings = sortTodayMeetings(
-    meetings.filter((meeting) => meeting.dayOfWeek === currentScheduleDay(now)),
+  const agendaMeetings = sortTodayMeetings(
+    meetings.filter(
+      (meeting) => meeting.dayOfWeek === currentScheduleDay(selectedDateValue),
+    ),
   )
 
+  function changeDate(days: number) {
+    setSelectedDate((date) => shiftAcademicDate(date, days))
+    setLastRegistered(undefined)
+    setNoticeError(undefined)
+  }
+
+  function resetToToday() {
+    setSelectedDate(today)
+    setLastRegistered(undefined)
+    setNoticeError(undefined)
+  }
+
   return (
-    <section aria-labelledby="today-classes-title">
+    <section aria-labelledby="agenda-title">
       <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="text-xs font-black tracking-[0.14em] text-primary uppercase">
-            {formatAcademicDate(now)}
+            {formatAcademicDate(selectedDateValue)}
           </p>
-          <h2 id="today-classes-title" className="mt-1 text-xl font-extrabold">
-            Aulas de hoje
+          <h2 id="agenda-title" className="mt-1 text-xl font-extrabold">
+            Agenda
           </h2>
         </div>
-        <Link
-          to="/situacao-do-curso"
-          className="pomi-focus inline-flex items-center gap-1 rounded-sm text-sm font-bold underline underline-offset-4"
-        >
-          Ver agenda completa <ArrowRight className="size-4" />
-        </Link>
+        <div className="flex items-center gap-2">
+          <Button
+            size="icon"
+            variant="outline"
+            aria-label="Dia anterior"
+            onClick={() => changeDate(-1)}
+          >
+            <ChevronLeft />
+          </Button>
+          {selectedDate !== today && (
+            <Button size="sm" variant="outline" onClick={resetToToday}>
+              Hoje
+            </Button>
+          )}
+          <Button
+            size="icon"
+            variant="outline"
+            aria-label="Próximo dia"
+            onClick={() => changeDate(1)}
+          >
+            <ChevronRight />
+          </Button>
+        </div>
       </div>
 
-      {periodAttempts.length === 0 ? (
-        <Card className="flex items-center gap-3 p-4">
-          <CalendarClock className="size-5 shrink-0 text-muted-foreground" />
-          <p className="text-sm text-muted-foreground">
-            Você não possui disciplinas cursando em {currentPeriodCode}.
-          </p>
-        </Card>
-      ) : isLoading ? (
-        <Card
-          className="flex min-h-24 items-center justify-center gap-3 p-4"
-          role="status"
-        >
-          <LoaderCircle className="size-5 animate-spin text-primary" />
-          <span className="font-bold">Carregando aulas de hoje</span>
-        </Card>
-      ) : isError ? (
-        <Alert variant="destructive">
-          <AlertCircle />
-          <AlertTitle>Não foi possível carregar as aulas de hoje</AlertTitle>
-          <AlertDescription>
-            Sua situação acadêmica e os demais atalhos continuam disponíveis.
-          </AlertDescription>
-        </Alert>
-      ) : (
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
         <Card className="overflow-hidden">
-          {todayMeetings.length === 0 ? (
+          {isLoading ? (
+            <div
+              className="flex min-h-24 items-center justify-center gap-3 p-4"
+              role="status"
+            >
+              <LoaderCircle className="size-5 animate-spin text-primary" />
+              <span className="font-bold">Carregando aulas</span>
+            </div>
+          ) : isError ? (
+            <Alert variant="destructive" className="m-4">
+              <AlertCircle />
+              <AlertTitle>Não foi possível carregar as aulas</AlertTitle>
+              <AlertDescription>
+                As demais informações da Agenda continuam disponíveis.
+              </AlertDescription>
+            </Alert>
+          ) : periodAttempts.length === 0 ? (
             <div className="flex min-h-24 items-center gap-3 p-4">
               <CalendarClock className="size-5 shrink-0 text-muted-foreground" />
-              <p className="font-bold">Você não tem aulas hoje.</p>
+              <p className="text-sm text-muted-foreground">
+                Você não possui disciplinas cursando em {currentPeriodCode}.
+              </p>
+            </div>
+          ) : agendaMeetings.length === 0 ? (
+            <div className="flex min-h-24 items-center gap-3 p-4">
+              <CalendarClock className="size-5 shrink-0 text-muted-foreground" />
+              <p className="font-bold">Você não tem aulas nesta data.</p>
             </div>
           ) : (
             <ol className="divide-y divide-strong-border/30">
-              {todayMeetings.map((meeting) => {
+              {agendaMeetings.map((meeting) => {
                 const attempt = attemptsByClass.get(meeting.classId)
-                const status = statusForTodayMeeting(
+                const status = classStatus(
+                  selectedDate,
+                  today,
                   meeting,
-                  todayMeetings,
+                  agendaMeetings,
                   now,
                 )
                 const occurrence = attempt
-                  ? occurrenceFromMeeting(
-                      attempt,
-                      meeting,
-                      academicDateKey(now),
-                    )
+                  ? occurrenceFromMeeting(attempt, meeting, selectedDate)
                   : undefined
                 const absence = occurrence
                   ? findOccurrenceAbsence(
@@ -167,7 +276,7 @@ export function TodayClassesPanel({
                   >
                     <div>
                       <strong className="block tabular-nums">
-                        {meeting.start}–{meeting.end}
+                        {meeting.start}-{meeting.end}
                       </strong>
                       <span className="text-xs font-bold text-primary">
                         {statusLabels[status]}
@@ -177,7 +286,7 @@ export function TodayClassesPanel({
                       <p className="font-extrabold">
                         {meeting.courseCode}
                         {attempt?.course.name
-                          ? ` — ${attempt.course.name}`
+                          ? ` - ${attempt.course.name}`
                           : ''}
                       </p>
                       {professors && (
@@ -199,10 +308,7 @@ export function TodayClassesPanel({
                         controller={absenceController}
                         disabled={
                           absenceController.isLoading ||
-                          absenceController.isError ||
-                          (status !== 'now' &&
-                            status !== 'finished' &&
-                            !absence)
+                          absenceController.isError
                         }
                         onRegistered={(created, registeredOccurrence) => {
                           setNoticeError(undefined)
@@ -266,7 +372,13 @@ export function TodayClassesPanel({
                     )
                     setNoticeError(undefined)
                     setLastRegistered(undefined)
-                  } catch {
+                  } catch (caught) {
+                    if (caught instanceof ApiError && caught.status === 404) {
+                      await absenceController.refetch()
+                      setLastRegistered(undefined)
+                      setNoticeError(undefined)
+                      return
+                    }
                     setNoticeError('Não foi possível desfazer a falta.')
                   }
                 }}
@@ -284,7 +396,9 @@ export function TodayClassesPanel({
             </div>
           )}
         </Card>
-      )}
+
+        <MealSummary date={selectedDate} />
+      </div>
     </section>
   )
 }

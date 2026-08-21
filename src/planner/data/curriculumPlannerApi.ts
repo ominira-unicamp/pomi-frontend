@@ -17,6 +17,7 @@ import type {
 
 import { dataApiRequest } from '@/api/client'
 import { ApiError, expectApiResponse } from '@/api/errors'
+import { publicStaticDataCache } from '@/lib/publicStaticDataCache'
 
 type ApiCourseRequirement = Readonly<{
   type: 'any' | 'prefix' | 'specific'
@@ -84,7 +85,13 @@ const unexpected = <T = never>(): PlannerResult<T> => ({
 })
 
 let cachedStaticData: CurriculumPlannerStaticData | undefined
-let staticDataLoad: Promise<PlannerResult<CurriculumPlannerStaticData>> | undefined
+let staticDataLoad:
+  | Promise<PlannerResult<CurriculumPlannerStaticData>>
+  | undefined
+let staticDataCacheLoaded = false
+let staticDataRefreshed = false
+
+const staticDataCacheKey = 'curriculum-planner:static-data'
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -232,85 +239,104 @@ async function getJson(path: string) {
 export function createApiCurriculumPlannerStaticDataSource(): CurriculumPlannerStaticDataSource {
   return {
     async load() {
-      if (cachedStaticData) return ok(cachedStaticData)
-      if (staticDataLoad) return staticDataLoad
-      staticDataLoad = loadStaticData()
-      try {
-        const result = await staticDataLoad
-        if (result.ok) cachedStaticData = result.value
-        return result
-      } finally {
-        staticDataLoad = undefined
+      if (!staticDataCacheLoaded) {
+        staticDataCacheLoaded = true
+        const cached =
+          await publicStaticDataCache.read<CurriculumPlannerStaticData>(
+            staticDataCacheKey,
+          )
+        if (cached) cachedStaticData = cached
       }
+      if (cachedStaticData) {
+        if (!staticDataRefreshed) void refreshStaticData()
+        return ok(cachedStaticData)
+      }
+      return refreshStaticData()
     },
   }
 }
 
-async function loadStaticData(): Promise<PlannerResult<CurriculumPlannerStaticData>> {
+async function refreshStaticData() {
+  staticDataRefreshed = true
+  if (staticDataLoad) return staticDataLoad
+  staticDataLoad = loadStaticData()
+    .then(async (result) => {
+      if (result.ok) {
+        cachedStaticData = result.value
+        await publicStaticDataCache.write(staticDataCacheKey, result.value)
+      }
+      return result
+    })
+    .finally(() => {
+      staticDataLoad = undefined
+    })
+  return staticDataLoad
+}
+
+async function loadStaticData(): Promise<
+  PlannerResult<CurriculumPlannerStaticData>
+> {
   try {
-        const [rawPrograms, coursesPage] = await Promise.all([
-          getJson('/catalog-program'),
-          getJson('/courses'),
-        ])
-        const programs = expectArray(rawPrograms).map(parseCatalogProgram)
-        const courses = parseCoursesPage(coursesPage).data
-        return ok({
-          catalogPrograms: programs
-            .map((program) => ({
-              id: String(program.id) as CatalogProgramId,
-              title: program.title,
-              catalog: {
-                id: String(program.catalogId) as CatalogId,
-                year: program.catalogYear,
-              },
-              program: {
-                id: String(program.programId) as ProgramId,
-                code: String(program.programCode),
-                name: program.programName,
-              },
-              baseBlocks: blocksFromApi(program.base, { type: 'base' }),
-              specializations: program.modalities
-                .map((specialization) => ({
-                  id: String(
-                    specialization.specializationId,
-                  ) as SpecializationId,
-                  code: specialization.code,
-                  name: specialization.name,
-                  blocks: blocksFromApi(specialization.blocks, {
-                    type: 'specialization',
-                    specializationId: String(
-                      specialization.specializationId,
-                    ) as SpecializationId,
-                  }),
-                }))
-                .sort((left, right) => left.id.localeCompare(right.id)),
-              languages: program.languages
-                .map((language) => ({
-                  id: String(language.languageId) as LanguageId,
-                  name: language.name,
-                  blocks: blocksFromApi(language.blocks, {
-                    type: 'language',
-                    languageId: String(language.languageId) as LanguageId,
-                  }),
-                }))
-                .sort((left, right) => left.id.localeCompare(right.id)),
+    const [rawPrograms, coursesPage] = await Promise.all([
+      getJson('/catalog-program'),
+      getJson('/courses'),
+    ])
+    const programs = expectArray(rawPrograms).map(parseCatalogProgram)
+    const courses = parseCoursesPage(coursesPage).data
+    return ok({
+      catalogPrograms: programs
+        .map((program) => ({
+          id: String(program.id) as CatalogProgramId,
+          title: program.title,
+          catalog: {
+            id: String(program.catalogId) as CatalogId,
+            year: program.catalogYear,
+          },
+          program: {
+            id: String(program.programId) as ProgramId,
+            code: String(program.programCode),
+            name: program.programName,
+          },
+          baseBlocks: blocksFromApi(program.base, { type: 'base' }),
+          specializations: program.modalities
+            .map((specialization) => ({
+              id: String(specialization.specializationId) as SpecializationId,
+              code: specialization.code,
+              name: specialization.name,
+              blocks: blocksFromApi(specialization.blocks, {
+                type: 'specialization',
+                specializationId: String(
+                  specialization.specializationId,
+                ) as SpecializationId,
+              }),
             }))
             .sort((left, right) => left.id.localeCompare(right.id)),
-          courses: courses
-            .map((course) => ({
-              id: String(course.id) as CourseId,
-              code: course.code,
-              name: course.name,
-              credits: course.credits,
-              prefix: (course.prefix ?? course.code.slice(0, 2))
-                .trim()
-                .toUpperCase(),
+          languages: program.languages
+            .map((language) => ({
+              id: String(language.languageId) as LanguageId,
+              name: language.name,
+              blocks: blocksFromApi(language.blocks, {
+                type: 'language',
+                languageId: String(language.languageId) as LanguageId,
+              }),
             }))
             .sort((left, right) => left.id.localeCompare(right.id)),
-        })
+        }))
+        .sort((left, right) => left.id.localeCompare(right.id)),
+      courses: courses
+        .map((course) => ({
+          id: String(course.id) as CourseId,
+          code: course.code,
+          name: course.name,
+          credits: course.credits,
+          prefix: (course.prefix ?? course.code.slice(0, 2))
+            .trim()
+            .toUpperCase(),
+        }))
+        .sort((left, right) => left.id.localeCompare(right.id)),
+    })
   } catch (error) {
-    if (error instanceof ApiError && error.status < 500)
-      return unexpected()
+    if (error instanceof ApiError && error.status < 500) return unexpected()
     if (error instanceof TypeError) return unexpected()
     return unavailable()
   }

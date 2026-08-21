@@ -82,9 +82,10 @@ describe('CourseSituationPage', () => {
   beforeEach(() => {
     authState.isAuthenticated = true
     login.mockReset()
+    listClassesForStudentCourseAttempt.mockResolvedValue([])
     listStudyPeriods.mockResolvedValue([
-      { id: 20, code: '1s2026', startDate: '2026-02-01' },
-      { id: 19, code: '2s2025', startDate: '2025-08-01' },
+      { id: 20, code: '1s2026', startDate: '2026-02-01T00:00:00.000Z' },
+      { id: 19, code: '2s2025', startDate: '2025-08-01T00:00:00.000Z' },
     ])
     listClassSchedulesByStudyPeriod.mockResolvedValue([
       {
@@ -176,15 +177,55 @@ describe('CourseSituationPage', () => {
     ).toBe(true)
   })
 
-  it('opens recent classes for absence control from an enrolled course', async () => {
+  it('opens an existing attempt without focusing a selector', async () => {
+    renderPage()
+    await screen.findByText('MC102 — Algoritmos')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Editar' }))
+
+    expect(await screen.findByText('Editar tentativa')).toBeTruthy()
+    expect(document.activeElement).not.toBe(
+      screen.getByRole('combobox', { name: 'Situação' }),
+    )
+  })
+
+  it('opens registered absences for an enrolled course', async () => {
+    listStudentAbsences.mockResolvedValue([
+      {
+        id: 3,
+        studentCourseAttemptId: 1,
+        classScheduleId: 40,
+        date: '2026-08-17',
+        createdAt: '2026-08-17T12:00:00.000Z',
+        updatedAt: '2026-08-17T12:00:00.000Z',
+        studyPeriodId: 20,
+        studyPeriodCode: '1s2026',
+        courseId: 10,
+        courseCode: 'MC102',
+        classId: 30,
+        classCode: 'A',
+        dayOfWeek: 'MONDAY',
+        start: '08:00',
+        end: '10:00',
+        _paths: {},
+      },
+    ])
     renderPage()
     await screen.findByText('MC102 — Algoritmos')
 
     fireEvent.click(screen.getByRole('button', { name: 'Aulas e faltas' }))
 
-    expect(await screen.findByText('Aulas recentes')).toBeTruthy()
-    expect(screen.getByText('0 faltas registradas')).toBeTruthy()
-    expect(screen.getAllByRole('button', { name: 'Eu faltei' }).length).toBe(8)
+    expect(await screen.findByText('Faltas registradas')).toBeTruthy()
+    expect(screen.getByText('2 horas faltadas')).toBeTruthy()
+    expect(screen.getByText('segunda-feira, 17/08/2026')).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Desmarcar falta' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Registrar falta' })).toBeTruthy()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Registrar falta' }))
+    expect(
+      screen.getByRole('combobox', { name: 'Semana da falta' }),
+    ).toBeTruthy()
+    expect(screen.getByRole('combobox', { name: 'Aula da falta' })).toBeTruthy()
   })
 
   it('switches the schedule between enrolled study periods', async () => {

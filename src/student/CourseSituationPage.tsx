@@ -625,7 +625,7 @@ export function CourseSituationPage() {
         />
       )}
       <Dialog open={attemptDialogOpen} onOpenChange={setAttemptDialogOpen}>
-        <DialogContent>
+        <DialogContent onOpenAutoFocus={(event) => event.preventDefault()}>
           <DialogHeader>
             <DialogTitle>
               {editingAttemptId ? 'Editar tentativa' : 'Adicionar disciplina'}

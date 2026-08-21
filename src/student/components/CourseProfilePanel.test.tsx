@@ -49,13 +49,19 @@ describe('CourseProfilePanel', () => {
     )
 
     expect(
-      await screen.findByRole('combobox', { name: 'Catálogo e programa' }),
+      await screen.findByRole('combobox', { name: 'Catálogo' }),
     ).toBeTruthy()
+    expect(screen.getByRole('combobox', { name: 'Programa' })).toBeTruthy()
     expect(screen.getByRole('combobox', { name: 'Habilitação' })).toBeTruthy()
     expect(screen.getByRole('combobox', { name: 'Língua' })).toBeTruthy()
     expect(
       screen
-        .getAllByText('Catálogo e programa')
+        .getAllByText('Catálogo')
+        .some((element) => element.tagName === 'SPAN'),
+    ).toBe(true)
+    expect(
+      screen
+        .getAllByText('Programa')
         .some((element) => element.tagName === 'SPAN'),
     ).toBe(true)
     expect(screen.queryByRole('button', { name: 'Configurar' })).toBeNull()

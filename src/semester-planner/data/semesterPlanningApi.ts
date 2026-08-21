@@ -9,6 +9,7 @@ import type {
 
 import { appApiRequest, dataApiRequest } from '@/api/client'
 import { expectApiResponse } from '@/api/errors'
+import { publicStaticDataCache } from '@/lib/publicStaticDataCache'
 
 type ApiPage<T> = Readonly<{
   data: ReadonlyArray<T>
@@ -34,18 +35,32 @@ type ApiMeeting = Readonly<{
 
 let cachedStudyPeriods: ReadonlyArray<StudyPeriod> | undefined
 let studyPeriodsLoad: Promise<ReadonlyArray<StudyPeriod>> | undefined
+let studyPeriodsCacheLoaded = false
+let studyPeriodsRefreshed = false
 let cachedCourses: ReadonlyArray<SemesterCourse> | undefined
 let coursesLoad: Promise<ReadonlyArray<SemesterCourse>> | undefined
+let coursesCacheLoaded = false
+let coursesRefreshed = false
 const classesByStudyPeriod = new Map<number, ReadonlyArray<ApiClass>>()
 const classesLoadByStudyPeriod = new Map<
   number,
   Promise<ReadonlyArray<ApiClass>>
 >()
+const classesCacheLoadedByStudyPeriod = new Set<number>()
+const refreshedClassStudyPeriods = new Set<number>()
 const meetingsByStudyPeriod = new Map<number, ReadonlyArray<ApiMeeting>>()
 const meetingsLoadByStudyPeriod = new Map<
   number,
   Promise<ReadonlyArray<ApiMeeting>>
 >()
+const meetingsCacheLoadedByStudyPeriod = new Set<number>()
+const refreshedMeetingStudyPeriods = new Set<number>()
+
+const studyPeriodsCacheKey = 'semester-planner:study-periods'
+const coursesCacheKey = 'semester-planner:courses'
+const classesCachePrefix = 'semester-planner:classes:'
+const meetingsCachePrefix = 'semester-planner:meetings:'
+const cachedStudyPeriodLimit = 2
 
 async function requestJson<T>(path: string): Promise<T> {
   const response = await dataApiRequest(path)
@@ -53,81 +68,197 @@ async function requestJson<T>(path: string): Promise<T> {
   return response.json() as Promise<T>
 }
 
+function pagePath(path: string, page: number) {
+  const url = new URL(path, 'https://data.pomi.local')
+  url.searchParams.set('page', String(page))
+  return `${url.pathname}${url.search}`
+}
+
 async function listAllPages<T>(path: string): Promise<ReadonlyArray<T>> {
   const data: Array<T> = []
+  let pageNumber = 1
   let page = await requestJson<ApiPage<T>>(path)
   data.push(...page.data)
   while (page._paths?.next) {
-    page = await requestJson<ApiPage<T>>(page._paths.next)
+    pageNumber += 1
+    page = await requestJson<ApiPage<T>>(pagePath(path, pageNumber))
     data.push(...page.data)
   }
   return data
 }
 
-async function loadCachedStudyPeriods() {
-  if (cachedStudyPeriods) return cachedStudyPeriods
+function refreshInBackground(operation: Promise<unknown>) {
+  void operation.catch(() => undefined)
+}
+
+async function refreshStudyPeriods() {
+  studyPeriodsRefreshed = true
   if (!studyPeriodsLoad) {
     studyPeriodsLoad = requestJson<ReadonlyArray<StudyPeriod>>('/study-periods')
+      .then(async (studyPeriods) => {
+        cachedStudyPeriods = studyPeriods
+        await publicStaticDataCache.write(studyPeriodsCacheKey, studyPeriods)
+        return studyPeriods
+      })
+      .finally(() => {
+        studyPeriodsLoad = undefined
+      })
   }
-  try {
-    cachedStudyPeriods = await studyPeriodsLoad
+  return studyPeriodsLoad
+}
+
+async function loadCachedStudyPeriods() {
+  if (cachedStudyPeriods) {
+    if (!studyPeriodsRefreshed) refreshInBackground(refreshStudyPeriods())
     return cachedStudyPeriods
-  } finally {
-    studyPeriodsLoad = undefined
   }
+  if (!studyPeriodsCacheLoaded) {
+    studyPeriodsCacheLoaded = true
+    const cached =
+      await publicStaticDataCache.read<ReadonlyArray<StudyPeriod>>(
+        studyPeriodsCacheKey,
+      )
+    if (cached) {
+      cachedStudyPeriods = cached
+      if (!studyPeriodsRefreshed) refreshInBackground(refreshStudyPeriods())
+      return cached
+    }
+  }
+  return refreshStudyPeriods()
+}
+
+async function refreshCourses() {
+  coursesRefreshed = true
+  if (!coursesLoad) {
+    coursesLoad = listAllPages<SemesterCourse>('/courses?page=1&pageSize=1000')
+      .then(async (courses) => {
+        cachedCourses = courses
+        await publicStaticDataCache.write(coursesCacheKey, courses)
+        return courses
+      })
+      .finally(() => {
+        coursesLoad = undefined
+      })
+  }
+  return coursesLoad
 }
 
 async function loadCachedCourses() {
-  if (cachedCourses) return cachedCourses
-  if (!coursesLoad) {
-    coursesLoad = requestJson<ApiPage<SemesterCourse>>('/courses').then(
-      (page) => page.data,
-    )
-  }
-  try {
-    cachedCourses = await coursesLoad
+  if (cachedCourses) {
+    if (!coursesRefreshed) refreshInBackground(refreshCourses())
     return cachedCourses
-  } finally {
-    coursesLoad = undefined
   }
+  if (!coursesCacheLoaded) {
+    coursesCacheLoaded = true
+    const cached =
+      await publicStaticDataCache.read<ReadonlyArray<SemesterCourse>>(
+        coursesCacheKey,
+      )
+    if (cached) {
+      cachedCourses = cached
+      if (!coursesRefreshed) refreshInBackground(refreshCourses())
+      return cached
+    }
+  }
+  return refreshCourses()
 }
 
-async function loadCachedClasses(studyPeriodId: number) {
-  const cached = classesByStudyPeriod.get(studyPeriodId)
-  if (cached) return cached
+async function refreshClasses(studyPeriodId: number) {
+  refreshedClassStudyPeriods.add(studyPeriodId)
   let loading = classesLoadByStudyPeriod.get(studyPeriodId)
   if (!loading) {
     loading = listAllPages<ApiClass>(
       `/classes?studyPeriodId=${studyPeriodId}&page=1&pageSize=1000`,
-    )
+    ).then(async (classes) => {
+      classesByStudyPeriod.set(studyPeriodId, classes)
+      await publicStaticDataCache.write(
+        `${classesCachePrefix}${studyPeriodId}`,
+        classes,
+      )
+      await publicStaticDataCache.prune(
+        classesCachePrefix,
+        cachedStudyPeriodLimit,
+      )
+      return classes
+    })
     classesLoadByStudyPeriod.set(studyPeriodId, loading)
   }
   try {
-    const classes = await loading
-    classesByStudyPeriod.set(studyPeriodId, classes)
-    return classes
+    return await loading
   } finally {
     classesLoadByStudyPeriod.delete(studyPeriodId)
   }
 }
 
-async function loadCachedMeetings(studyPeriodId: number) {
-  const cached = meetingsByStudyPeriod.get(studyPeriodId)
-  if (cached) return cached
+async function loadCachedClasses(studyPeriodId: number) {
+  const cached = classesByStudyPeriod.get(studyPeriodId)
+  if (cached) {
+    if (!refreshedClassStudyPeriods.has(studyPeriodId))
+      refreshInBackground(refreshClasses(studyPeriodId))
+    return cached
+  }
+  if (!classesCacheLoadedByStudyPeriod.has(studyPeriodId)) {
+    classesCacheLoadedByStudyPeriod.add(studyPeriodId)
+    const persisted = await publicStaticDataCache.read<ReadonlyArray<ApiClass>>(
+      `${classesCachePrefix}${studyPeriodId}`,
+    )
+    if (persisted) {
+      classesByStudyPeriod.set(studyPeriodId, persisted)
+      if (!refreshedClassStudyPeriods.has(studyPeriodId))
+        refreshInBackground(refreshClasses(studyPeriodId))
+      return persisted
+    }
+  }
+  return refreshClasses(studyPeriodId)
+}
+
+async function refreshMeetings(studyPeriodId: number) {
+  refreshedMeetingStudyPeriods.add(studyPeriodId)
   let loading = meetingsLoadByStudyPeriod.get(studyPeriodId)
   if (!loading) {
     loading = listAllPages<ApiMeeting>(
       `/class-schedules?studyPeriodId=${studyPeriodId}&page=1&pageSize=1000`,
-    )
+    ).then(async (meetings) => {
+      meetingsByStudyPeriod.set(studyPeriodId, meetings)
+      await publicStaticDataCache.write(
+        `${meetingsCachePrefix}${studyPeriodId}`,
+        meetings,
+      )
+      await publicStaticDataCache.prune(
+        meetingsCachePrefix,
+        cachedStudyPeriodLimit,
+      )
+      return meetings
+    })
     meetingsLoadByStudyPeriod.set(studyPeriodId, loading)
   }
   try {
-    const meetings = await loading
-    meetingsByStudyPeriod.set(studyPeriodId, meetings)
-    return meetings
+    return await loading
   } finally {
     meetingsLoadByStudyPeriod.delete(studyPeriodId)
   }
+}
+
+async function loadCachedMeetings(studyPeriodId: number) {
+  const cached = meetingsByStudyPeriod.get(studyPeriodId)
+  if (cached) {
+    if (!refreshedMeetingStudyPeriods.has(studyPeriodId))
+      refreshInBackground(refreshMeetings(studyPeriodId))
+    return cached
+  }
+  if (!meetingsCacheLoadedByStudyPeriod.has(studyPeriodId)) {
+    meetingsCacheLoadedByStudyPeriod.add(studyPeriodId)
+    const persisted = await publicStaticDataCache.read<
+      ReadonlyArray<ApiMeeting>
+    >(`${meetingsCachePrefix}${studyPeriodId}`)
+    if (persisted) {
+      meetingsByStudyPeriod.set(studyPeriodId, persisted)
+      if (!refreshedMeetingStudyPeriods.has(studyPeriodId))
+        refreshInBackground(refreshMeetings(studyPeriodId))
+      return persisted
+    }
+  }
+  return refreshMeetings(studyPeriodId)
 }
 
 export async function loadSemesterPlannerStaticData(

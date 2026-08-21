@@ -7,6 +7,9 @@ import type {
   StudentClassSchedule,
   StudentCourseAttempt,
 } from '@/student/data/studentApi'
+import type { StudentAbsence } from '@/student/data/studentAbsenceApi'
+import { ApiError } from '@/api/errors'
+import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -23,13 +26,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import { StudentAbsenceAction } from '@/student/absences/StudentAbsenceAction'
 import {
   academicDateKey,
-  findOccurrenceAbsence,
   formatOccurrenceDate,
-  occurrencesForDate,
-  recentClassOccurrences,
+  occurrenceFromMeeting,
 } from '@/student/absences/studentAbsences'
 import { listClassSchedulesByStudyPeriod } from '@/student/data/studentApi'
 
@@ -41,6 +41,88 @@ type StudentAbsencePanelProps = Readonly<{
   controller: StudentAbsenceController
   today?: string
 }>
+
+const weekdayLabels: Record<StudentClassSchedule['dayOfWeek'], string> = {
+  MONDAY: 'Segunda-feira',
+  TUESDAY: 'Terça-feira',
+  WEDNESDAY: 'Quarta-feira',
+  THURSDAY: 'Quinta-feira',
+  FRIDAY: 'Sexta-feira',
+  SATURDAY: 'Sábado',
+  SUNDAY: 'Domingo',
+}
+
+const weekdayOffsets: Record<StudentClassSchedule['dayOfWeek'], number> = {
+  MONDAY: 0,
+  TUESDAY: 1,
+  WEDNESDAY: 2,
+  THURSDAY: 3,
+  FRIDAY: 4,
+  SATURDAY: 5,
+  SUNDAY: 6,
+}
+
+function parseDateKey(value: string) {
+  return new Date(`${value.slice(0, 10)}T12:00:00.000Z`)
+}
+
+function dateKey(value: Date) {
+  return [
+    value.getUTCFullYear(),
+    String(value.getUTCMonth() + 1).padStart(2, '0'),
+    String(value.getUTCDate()).padStart(2, '0'),
+  ].join('-')
+}
+
+function addDays(value: string, days: number) {
+  const date = parseDateKey(value)
+  date.setUTCDate(date.getUTCDate() + days)
+  return dateKey(date)
+}
+
+function weekStart(value: string) {
+  const date = parseDateKey(value)
+  const offset = (date.getUTCDay() + 6) % 7
+  date.setUTCDate(date.getUTCDate() - offset)
+  return dateKey(date)
+}
+
+function formatWeekLabel(start: string) {
+  const end = addDays(start, 6)
+  const formatter = new Intl.DateTimeFormat('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    timeZone: 'UTC',
+  })
+  return `${formatter.format(parseDateKey(start))} a ${formatter.format(parseDateKey(end))}`
+}
+
+function availableWeeks(periodStartDate: string | undefined, today: string) {
+  const fallbackStart = addDays(today, -180)
+  const earliest = weekStart(periodStartDate ?? fallbackStart)
+  const current = weekStart(today)
+  const weeks: Array<{ value: string; label: string }> = []
+
+  for (let cursor = current; cursor >= earliest; cursor = addDays(cursor, -7)) {
+    weeks.push({ value: cursor, label: formatWeekLabel(cursor) })
+  }
+
+  return weeks
+}
+
+function durationMinutes(start: string, end: string) {
+  const [startHour, startMinute] = start.split(':').map(Number)
+  const [endHour, endMinute] = end.split(':').map(Number)
+  return Math.max(0, endHour * 60 + endMinute - (startHour * 60 + startMinute))
+}
+
+function formatMissedHours(minutes: number) {
+  const hours = Math.floor(minutes / 60)
+  const remainder = minutes % 60
+  if (!minutes) return 'Nenhuma hora faltada'
+  if (!remainder) return `${hours} ${hours === 1 ? 'hora' : 'horas'} faltadas`
+  return `${hours}h${String(remainder).padStart(2, '0')} faltadas`
+}
 
 function useDesktopLayout() {
   const [desktop, setDesktop] = useState(
@@ -57,30 +139,76 @@ function useDesktopLayout() {
   return desktop
 }
 
-function OccurrenceRow({
-  occurrence,
+function absenceErrorMessage(error: unknown, action: 'registrar' | 'remover') {
+  if (error instanceof ApiError) {
+    if (error.status === 409) return 'Essa falta já está registrada.'
+    if (error.status === 404)
+      return action === 'remover'
+        ? 'Essa falta já havia sido removida.'
+        : 'A aula selecionada não foi encontrada.'
+    return error.problem?.detail ?? `Não foi possível ${action} a falta.`
+  }
+  return `Não foi possível ${action} a falta.`
+}
+
+function AbsenceRow({
+  absence,
+  roomCode,
   controller,
+  onError,
 }: {
-  occurrence: ReturnType<typeof recentClassOccurrences>[number]
+  absence: StudentAbsence
+  roomCode?: string
   controller: StudentAbsenceController
+  onError: (message: string) => void
 }) {
-  const absence = findOccurrenceAbsence(controller.absences, occurrence)
+  const occurrence = {
+    courseAttemptId: absence.studentCourseAttemptId,
+    classScheduleId: absence.classScheduleId,
+    date: absence.date,
+  }
+  const pending = controller.isPending({
+    ...occurrence,
+    courseCode: absence.courseCode,
+    courseName: '',
+    classCode: absence.classCode,
+    start: absence.start,
+    end: absence.end,
+    roomCode: roomCode ?? '',
+  })
+
+  async function remove() {
+    onError('')
+    try {
+      await controller.removeAbsence(absence)
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 404) {
+        await controller.refetch()
+      }
+      onError(absenceErrorMessage(error, 'remover'))
+    }
+  }
+
   return (
     <li className="flex flex-col gap-3 border-b border-strong-border/30 py-3 last:border-0 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <p className="font-extrabold capitalize">
-          {formatOccurrenceDate(occurrence.date)}
+          {formatOccurrenceDate(absence.date)}
         </p>
         <p className="text-sm text-muted-foreground">
-          {occurrence.start} - {occurrence.end}
-          {occurrence.roomCode ? ` - ${occurrence.roomCode}` : ''}
+          {absence.start} - {absence.end}
+          {roomCode ? ` - ${roomCode}` : ''}
         </p>
       </div>
-      <StudentAbsenceAction
-        occurrence={occurrence}
-        absence={absence}
-        controller={controller}
-      />
+      <Button
+        size="sm"
+        variant="outline"
+        disabled={pending}
+        onClick={() => void remove()}
+      >
+        {pending ? <LoaderCircle className="animate-spin" /> : null}
+        {pending ? 'Removendo...' : 'Desmarcar falta'}
+      </Button>
     </li>
   )
 }
@@ -102,136 +230,187 @@ function AbsencePanelBody({
   schedulesError: boolean
   today: string
 }) {
-  const [visibleCount, setVisibleCount] = useState(8)
-  const [manualDateOpen, setManualDateOpen] = useState(false)
-  const [manualDate, setManualDate] = useState(today)
-  const occurrences = useMemo(
-    () =>
-      recentClassOccurrences({
-        attempt,
-        meetings,
-        periodStartDate,
-        today,
-      }),
-    [attempt, meetings, periodStartDate, today],
+  const [formOpen, setFormOpen] = useState(false)
+  const weeks = useMemo(
+    () => availableWeeks(periodStartDate, today),
+    [periodStartDate, today],
   )
-  const manualOccurrences = useMemo(
-    () => occurrencesForDate(attempt, meetings, manualDate),
-    [attempt, meetings, manualDate],
+  const [selectedWeek, setSelectedWeek] = useState('')
+  const [selectedScheduleId, setSelectedScheduleId] = useState('')
+  const [error, setError] = useState('')
+  const absences = controller.absences
+    .filter((absence) => absence.studentCourseAttemptId === attempt.id)
+    .sort(
+      (left, right) =>
+        right.date.localeCompare(left.date) || right.id - left.id,
+    )
+  const meetingById = useMemo(
+    () => new Map(meetings.map((meeting) => [meeting.id, meeting])),
+    [meetings],
   )
-  const absenceCount = controller.absences.filter(
-    (absence) => absence.studentCourseAttemptId === attempt.id,
-  ).length
+  const missedMinutes = absences.reduce(
+    (total, absence) => total + durationMinutes(absence.start, absence.end),
+    0,
+  )
+  const selectedMeeting = meetings.find(
+    (meeting) => String(meeting.id) === selectedScheduleId,
+  )
+  const selectedOccurrence =
+    selectedWeek && selectedMeeting
+      ? occurrenceFromMeeting(
+          attempt,
+          selectedMeeting,
+          addDays(selectedWeek, weekdayOffsets[selectedMeeting.dayOfWeek]),
+        )
+      : undefined
+  const scheduleOptions = meetings
+    .map((meeting) => ({
+      value: String(meeting.id),
+      label: `${weekdayLabels[meeting.dayOfWeek]} - ${meeting.start} - ${meeting.end}${meeting.roomCode ? ` - ${meeting.roomCode}` : ''}`,
+    }))
+    .sort((left, right) => left.label.localeCompare(right.label, 'pt-BR'))
 
-  if (schedulesLoading || controller.isLoading)
+  function openForm() {
+    setError('')
+    setSelectedWeek(weeks[0]?.value ?? '')
+    setSelectedScheduleId('')
+    setFormOpen(true)
+  }
+
+  async function register() {
+    if (!selectedOccurrence) return
+    setError('')
+    try {
+      await controller.markAbsent(selectedOccurrence)
+      setFormOpen(false)
+    } catch (caught) {
+      if (caught instanceof ApiError && caught.status === 409) {
+        await controller.refetch()
+      }
+      setError(absenceErrorMessage(caught, 'registrar'))
+    }
+  }
+
+  if (controller.isLoading)
     return (
       <div
         className="flex min-h-48 items-center justify-center gap-3"
         role="status"
       >
         <LoaderCircle className="size-5 animate-spin text-primary" />
-        <span className="font-bold">Carregando aulas e faltas</span>
+        <span className="font-bold">Carregando faltas</span>
       </div>
     )
 
-  if (schedulesError || controller.isError)
+  if (controller.isError)
     return (
       <Alert variant="destructive">
         <AlertCircle />
-        <AlertTitle>Não foi possível carregar as aulas e faltas</AlertTitle>
+        <AlertTitle>Não foi possível carregar as faltas</AlertTitle>
         <AlertDescription>
           Tente abrir este painel novamente em alguns instantes.
         </AlertDescription>
       </Alert>
     )
 
-  if (!attempt.classId || !attempt.studyPeriodId || meetings.length === 0)
-    return (
-      <Card className="flex min-h-40 items-center gap-3 p-5">
-        <CalendarX2 className="size-6 shrink-0 text-muted-foreground" />
-        <div>
-          <p className="font-extrabold">Horários não disponíveis</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Informe o período e uma turma com horários cadastrados para
-            controlar as faltas.
-          </p>
-        </div>
-      </Card>
-    )
+  const canRegister = Boolean(
+    attempt.classId &&
+    attempt.studyPeriodId &&
+    meetings.length &&
+    !schedulesError,
+  )
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto px-5 pb-5">
       <div className="mb-3 flex items-center justify-between gap-3 border-b border-strong-border/30 py-3">
-        <p className="text-sm font-bold">
-          {absenceCount}{' '}
-          {absenceCount === 1 ? 'falta registrada' : 'faltas registradas'}
-        </p>
+        <p className="text-sm font-bold">{formatMissedHours(missedMinutes)}</p>
         <Button
           size="sm"
           variant="outline"
-          onClick={() => setManualDateOpen((current) => !current)}
+          disabled={!canRegister || schedulesLoading}
+          onClick={openForm}
         >
-          Escolher outra data
+          {schedulesLoading ? <LoaderCircle className="animate-spin" /> : null}
+          Registrar falta
         </Button>
       </div>
 
-      {manualDateOpen && (
+      {!canRegister && !schedulesLoading && (
+        <Card className="mb-4 flex items-center gap-3 p-4">
+          <CalendarX2 className="size-5 shrink-0 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            Horários não disponíveis para registrar uma nova falta nesta turma.
+          </p>
+        </Card>
+      )}
+
+      {formOpen && (
         <section className="mb-4 rounded-md border-2 border-strong-border bg-secondary/30 p-3">
-          <label className="block text-sm font-bold">
-            Data da aula
-            <input
-              type="date"
-              value={manualDate}
-              min={periodStartDate}
-              max={today}
-              onChange={(event) => setManualDate(event.target.value)}
-              className="mt-1 h-10 w-full rounded-md border-2 border-strong-border bg-background px-3"
-            />
-          </label>
-          <div className="mt-3">
-            {manualOccurrences.length ? (
-              <ul>
-                {manualOccurrences.map((occurrence) => (
-                  <OccurrenceRow
-                    key={`${occurrence.classScheduleId}:${occurrence.date}`}
-                    occurrence={occurrence}
-                    controller={controller}
-                  />
-                ))}
-              </ul>
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Esta turma não possui aula cadastrada nessa data.
-              </p>
-            )}
+          <h3 className="font-extrabold">Registrar falta</h3>
+          <div className="mt-3 grid gap-3">
+            <label className="grid gap-1 text-sm font-bold">
+              Semana
+              <AutocompleteSelect
+                ariaLabel="Semana da falta"
+                value={selectedWeek}
+                onValueChange={(value) => setSelectedWeek(value)}
+                options={weeks}
+                placeholder="Escolha a semana"
+              />
+            </label>
+            <label className="grid gap-1 text-sm font-bold">
+              Aula
+              <AutocompleteSelect
+                ariaLabel="Aula da falta"
+                value={selectedScheduleId}
+                onValueChange={setSelectedScheduleId}
+                options={scheduleOptions}
+                placeholder="Escolha a aula"
+              />
+            </label>
+          </div>
+          <div className="mt-4 flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setFormOpen(false)}>
+              Cancelar
+            </Button>
+            <Button
+              disabled={
+                !selectedOccurrence || controller.isPending(selectedOccurrence)
+              }
+              onClick={() => void register()}
+            >
+              {selectedOccurrence &&
+              controller.isPending(selectedOccurrence) ? (
+                <LoaderCircle className="animate-spin" />
+              ) : null}
+              Registrar falta
+            </Button>
           </div>
         </section>
       )}
 
-      <h3 className="font-extrabold">Aulas recentes</h3>
-      {occurrences.length ? (
+      <h3 className="font-extrabold">Faltas registradas</h3>
+      {absences.length ? (
         <ul className="mt-1">
-          {occurrences.slice(0, visibleCount).map((occurrence) => (
-            <OccurrenceRow
-              key={`${occurrence.classScheduleId}:${occurrence.date}`}
-              occurrence={occurrence}
+          {absences.map((absence) => (
+            <AbsenceRow
+              key={absence.id}
+              absence={absence}
+              roomCode={meetingById.get(absence.classScheduleId)?.roomCode}
               controller={controller}
+              onError={setError}
             />
           ))}
         </ul>
       ) : (
         <p className="mt-2 text-sm text-muted-foreground">
-          Nenhuma aula recente foi encontrada para esta turma.
+          Nenhuma falta registrada nesta disciplina.
         </p>
       )}
-      {visibleCount < occurrences.length && (
-        <Button
-          className="mt-3 w-full"
-          variant="outline"
-          onClick={() => setVisibleCount((current) => current + 8)}
-        >
-          Mostrar anteriores
-        </Button>
+      {error && (
+        <p className="mt-3 text-sm font-semibold text-destructive" role="alert">
+          {error}
+        </p>
       )}
     </div>
   )

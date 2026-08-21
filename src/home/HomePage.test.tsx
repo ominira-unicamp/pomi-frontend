@@ -11,6 +11,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type * as TodayClassesModule from '@/home/todayClasses'
 
 import { HomePage } from '@/home/HomePage'
+import { academicDateKey } from '@/student/absences/studentAbsences'
 
 vi.mock('@/home/todayClasses', async (importOriginal) => {
   const original = await importOriginal<typeof TodayClassesModule>()
@@ -117,6 +118,14 @@ const { listCurricula } = vi.hoisted(() => ({
   listCurricula: vi.fn(),
 }))
 
+const { listDailyMenus } = vi.hoisted(() => ({
+  listDailyMenus: vi.fn(),
+}))
+
+vi.mock('@/home/dailyMenuApi', () => ({
+  listDailyMenus,
+}))
+
 vi.mock('@/planner/data/curriculumPersistenceApi', () => ({
   listCurricula,
   getCurriculum: vi.fn(() =>
@@ -211,9 +220,11 @@ describe('HomePage', () => {
     ])
     listStudentCourseAttempts.mockReset()
     listClassSchedulesByStudyPeriod.mockReset()
+    listDailyMenus.mockReset()
     listStudentCourseAttempts.mockResolvedValue(attempts)
     listClassSchedulesByStudyPeriod.mockResolvedValue(schedules)
     listStudentAbsences.mockResolvedValue([])
+    listDailyMenus.mockResolvedValue([])
     createStudentAbsence.mockImplementation(
       (_studentId: number, input: Record<string, unknown>) =>
         Promise.resolve({
@@ -235,7 +246,7 @@ describe('HomePage', () => {
     expect(login).toHaveBeenCalledWith('/situacao-do-curso')
   })
 
-  it('shows progress and resumes the most recently updated plan', async () => {
+  it('shows the authenticated home without the next-step panel', async () => {
     authState.isAuthenticated = true
     authState.profile = { given_name: 'Ana' }
     studentState.studentId = 1
@@ -254,15 +265,7 @@ describe('HomePage', () => {
     renderHome()
 
     expect(await screen.findByText('Olá, Ana')).toBeTruthy()
-    expect(
-      await screen.findByText(
-        'Retome o planejamento de semestre atualizado mais recentemente.',
-      ),
-    ).toBeTruthy()
-    expect(screen.getByText('Próximo semestre')).toBeTruthy()
-    expect(screen.getByText('Aulas de hoje')).toBeTruthy()
-    expect(screen.getByText('MC102 — Algoritmos')).toBeTruthy()
-    expect(screen.getByText('Ana Silva')).toBeTruthy()
+    expect(screen.queryByText('Próximo passo')).toBeNull()
   })
 
   it('registers an absence directly from a finished class today', async () => {
@@ -332,14 +335,11 @@ describe('HomePage', () => {
 
     renderHome()
 
-    expect(await screen.findByText('Seu planejamento favorito')).toBeTruthy()
-    expect(
-      screen.getByText('Retome o currículo que você escolheu como principal.'),
-    ).toBeTruthy()
-    expect(screen.getByRole('link', { name: /Abrir favorito/ })).toBeTruthy()
+    expect(await screen.findByText('Olá, Ana')).toBeTruthy()
+    expect(screen.queryByText('Próximo passo')).toBeNull()
   })
 
-  it('keeps the daily panel hidden without enrolled courses', async () => {
+  it('keeps the agenda visible without enrolled courses', async () => {
     authState.isAuthenticated = true
     authState.profile = { given_name: 'Ana' }
     studentState.studentId = 1
@@ -353,11 +353,17 @@ describe('HomePage', () => {
     renderHome()
 
     expect(await screen.findByText('Olá, Ana')).toBeTruthy()
-    expect(screen.queryByText('Aulas de hoje')).toBeNull()
+    expect(await screen.findByText('Agenda')).toBeTruthy()
+    expect(
+      screen.getByText('Você não possui disciplinas cursando em 2026s2.'),
+    ).toBeTruthy()
+    expect(
+      await screen.findByText('Cardápio não disponível para esta data.'),
+    ).toBeTruthy()
     expect(listClassSchedulesByStudyPeriod).not.toHaveBeenCalled()
   })
 
-  it('shows an empty daily state when there are no classes today', async () => {
+  it('shows an empty agenda state when there are no classes on the selected date', async () => {
     authState.isAuthenticated = true
     authState.profile = { given_name: 'Ana' }
     studentState.studentId = 1
@@ -370,7 +376,9 @@ describe('HomePage', () => {
 
     renderHome()
 
-    expect(await screen.findByText('Você não tem aulas hoje.')).toBeTruthy()
+    expect(
+      await screen.findByText('Você não tem aulas nesta data.'),
+    ).toBeTruthy()
     expect(screen.getByText(/Agenda parcial:/)).toBeTruthy()
   })
 
@@ -388,7 +396,36 @@ describe('HomePage', () => {
     renderHome()
 
     expect(
-      await screen.findByText('Não foi possível carregar as aulas de hoje'),
+      await screen.findByText('Não foi possível carregar as aulas'),
     ).toBeTruthy()
+  })
+
+  it('shows the main dishes from the daily menu and changes dates', async () => {
+    authState.isAuthenticated = true
+    authState.profile = { given_name: 'Ana' }
+    studentState.studentId = 1
+    listDailyMenus.mockResolvedValue([
+      {
+        id: 1,
+        date: academicDateKey(),
+        meals: [
+          {
+            id: 2,
+            period: 'LUNCH',
+            diet: 'TRADITIONAL',
+            status: 'AVAILABLE',
+            mainDish: 'Arroz com feijão',
+          },
+        ],
+      },
+    ])
+
+    renderHome()
+
+    expect(await screen.findByText('Refeições do dia')).toBeTruthy()
+    expect(await screen.findByText('Arroz com feijão')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Dia anterior' }))
+    await waitFor(() => expect(listDailyMenus).toHaveBeenCalledTimes(2))
+    expect(screen.getByRole('button', { name: 'Hoje' })).toBeTruthy()
   })
 })

@@ -686,6 +686,34 @@ export function SemesterPlannerPage({
     manualCourseIds,
   )
   const manualCourseIdSet = new Set(manualCourseIds)
+  function coursesForElectiveRequirement(
+    requirement: (typeof selectedProgramBlocks)[number]['blocks']['electives'][number],
+  ) {
+    const courseIds = new Set<number>()
+    for (const selector of requirement.eligibleCourses) {
+      if (selector.type === 'specificCourse') {
+        courseIds.add(Number(selector.courseId))
+        continue
+      }
+      if (selector.type === 'prefix') {
+        const prefix = selector.prefix.toUpperCase()
+        for (const course of courseById.values()) {
+          if (course.code.toUpperCase().startsWith(prefix))
+            courseIds.add(course.id)
+        }
+      }
+    }
+    return [...courseIds]
+      .flatMap((courseId) => {
+        const course = courseById.get(courseId)
+        return course &&
+          !scheduledCourseIds.has(course.id) &&
+          !manualCourseIdSet.has(course.id)
+          ? [course]
+          : []
+      })
+      .sort((left, right) => left.code.localeCompare(right.code, 'pt-BR'))
+  }
   const visibleManualCourses = manualCourseIds.flatMap((courseId) => {
     const course = courseById.get(courseId)
     return course && !scheduledCourseIds.has(course.id)
@@ -1683,7 +1711,7 @@ export function SemesterPlannerPage({
                         ? `${group.semester}º semestre`
                         : 'Adicionadas manualmente'}
                     </h3>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(5.25rem,1fr))] gap-2">
                       {group.courses.map(({ course }) => (
                         <button
                           key={course.id}
@@ -1735,7 +1763,7 @@ export function SemesterPlannerPage({
                     <h3 className="text-xs font-black tracking-[0.12em] text-muted-foreground uppercase">
                       {group.title}
                     </h3>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="grid grid-cols-[repeat(auto-fill,minmax(5.25rem,1fr))] gap-2">
                       {group.blocks.mandatory.map((requirement, index) => {
                         const course =
                           requirement.selector.type === 'specificCourse'
@@ -1753,7 +1781,7 @@ export function SemesterPlannerPage({
                           return (
                             <button
                               key={`${group.title}-mandatory-${index}`}
-                              className={`rounded border-2 px-2 py-1 text-xs font-black ${courseColor(course.code)}`}
+                              className={`w-full rounded border-2 px-2 py-1 text-center text-xs font-black ${courseColor(course.code)}`}
                               onClick={() => {
                                 setClassFilterCourseId(String(course.id))
                                 setGuideTab('classes')
@@ -1773,17 +1801,42 @@ export function SemesterPlannerPage({
                         )
                       })}
                     </div>
-                    {group.blocks.electives.map((requirement, index) => (
-                      <p
-                        key={`${group.title}-elective-${index}`}
-                        className="rounded-md border border-strong-border bg-muted/40 p-2 text-xs font-semibold"
-                      >
-                        Eletiva: {requirement.requiredCredits} créditos ·{' '}
-                        {requirement.eligibleCourses
-                          .map((selector) => selectorLabel(selector))
-                          .join(', ')}
-                      </p>
-                    ))}
+                    {group.blocks.electives.map((requirement, index) => {
+                      const courses = coursesForElectiveRequirement(requirement)
+                      const broadSelectors = requirement.eligibleCourses.filter(
+                        (selector) => selector.type !== 'specificCourse',
+                      )
+                      return (
+                        <div
+                          key={`${group.title}-elective-${index}`}
+                          className="space-y-2 rounded-md border border-strong-border bg-muted/40 p-2"
+                        >
+                          <p className="text-xs font-semibold">
+                            Eletiva: {requirement.requiredCredits} créditos
+                            {broadSelectors.length
+                              ? ` · ${broadSelectors.map((selector) => selectorLabel(selector)).join(', ')}`
+                              : ''}
+                          </p>
+                          {courses.length > 0 && (
+                            <div className="grid grid-cols-[repeat(auto-fill,minmax(5.25rem,1fr))] gap-2">
+                              {courses.map((course) => (
+                                <button
+                                  key={course.id}
+                                  className={`w-full rounded border-2 px-2 py-1 text-center text-xs font-black ${courseColor(course.code)}`}
+                                  onClick={() => {
+                                    setClassFilterCourseId(String(course.id))
+                                    setGuideTab('classes')
+                                  }}
+                                >
+                                  {course.code} (
+                                  {String(course.credits).padStart(2, '0')})
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </section>
                 ))}
                 {!selectedProgramBlocks.length &&

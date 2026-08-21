@@ -4,15 +4,13 @@ import type { StudentClassSchedule } from '@/student/data/studentApi'
 import {
   currentScheduleDay,
   currentStudyPeriodCode,
+  dateFromAcademicDateKey,
+  shiftAcademicDate,
   sortTodayMeetings,
   statusForTodayMeeting,
 } from '@/home/todayClasses'
 
-function meeting(
-  id: number,
-  start: string,
-  end: string,
-): StudentClassSchedule {
+function meeting(id: number, start: string, end: string): StudentClassSchedule {
   return {
     id,
     classId: id,
@@ -37,8 +35,14 @@ describe('today classes', () => {
   })
 
   it('uses the academic timezone to identify the weekday', () => {
-    expect(currentScheduleDay(new Date('2026-08-11T02:00:00Z'))).toBe(
-      'MONDAY',
+    expect(currentScheduleDay(new Date('2026-08-11T02:00:00Z'))).toBe('MONDAY')
+  })
+
+  it('moves between calendar dates without timezone shifts', () => {
+    expect(shiftAcademicDate('2026-08-31', 1)).toBe('2026-09-01')
+    expect(shiftAcademicDate('2026-01-01', -1)).toBe('2025-12-31')
+    expect(currentScheduleDay(dateFromAcademicDateKey('2026-08-11'))).toBe(
+      'TUESDAY',
     )
   })
 

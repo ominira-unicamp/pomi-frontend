@@ -48,6 +48,16 @@ export function formatAcademicDate(date = new Date()) {
   }).format(date)
 }
 
+export function dateFromAcademicDateKey(date: string) {
+  return new Date(`${date}T12:00:00.000Z`)
+}
+
+export function shiftAcademicDate(date: string, days: number) {
+  const value = dateFromAcademicDateKey(date)
+  value.setUTCDate(value.getUTCDate() + days)
+  return value.toISOString().slice(0, 10)
+}
+
 function scheduleMinutes(value: string) {
   const [hours, minutes] = value.split(':').map(Number)
   return hours * 60 + minutes

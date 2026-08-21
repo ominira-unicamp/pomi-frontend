@@ -34,7 +34,7 @@ import {
 } from '@/student/data/studentApi'
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
 import { cn } from '@/lib/utils'
-import { TodayClassesPanel } from '@/home/TodayClassesPanel'
+import { AgendaPanel } from '@/home/AgendaPanel'
 import { currentStudyPeriodCode } from '@/home/todayClasses'
 import { useStudentAbsences } from '@/student/absences/useStudentAbsences'
 
@@ -186,7 +186,7 @@ function AuthenticatedHome() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [situationError, setSituationError] = useState(false)
-  const { studentId, studentQuery, profileQuery } = useStudentProfile()
+  const { studentId, studentQuery } = useStudentProfile()
   const attemptsQuery = useQuery({
     queryKey: ['course-situation', 'attempts', studentId],
     queryFn: () => listStudentCourseAttempts(studentId!, auth.getAccessToken),
@@ -282,27 +282,6 @@ function AuthenticatedHome() {
     0,
   )
   const latestSemesterPlan = semesterPlansQuery.data?.[0]
-  const profile = profileQuery.data
-  const selectedProgram = staticQuery.data?.catalogPrograms.find(
-    (item) =>
-      Number(item.catalog.id) === profile?.catalogId &&
-      Number(item.program.id) === profile.programId,
-  )
-  const profileIncomplete = Boolean(
-    studentId &&
-    (!profile?.catalogId ||
-      !profile.programId ||
-      !profile.entryYear ||
-      (selectedProgram?.specializations.length && !profile.specializationId) ||
-      (selectedProgram?.languages.length && !profile.languageId)),
-  )
-  const resumeSemester = Boolean(
-    latestSemesterPlan &&
-    (!featuredCurriculum?.updatedAt ||
-      new Date(latestSemesterPlan.updatedAt).getTime() >
-        new Date(featuredCurriculum.updatedAt).getTime()),
-  )
-
   async function openSituation() {
     setSituationError(false)
     try {
@@ -321,95 +300,19 @@ function AuthenticatedHome() {
     }
   }
 
-  const recommendation = !studentId
-    ? {
-        title: 'Complete seus dados acadêmicos',
-        description:
-          'Informe seu curso e ano de ingresso para preencher os planejadores.',
-        action: openSituation,
-        label: 'Completar dados',
-      }
-    : profileIncomplete
-      ? {
-          title: 'Complete seus dados acadêmicos',
-          description:
-            'Ainda faltam informações do seu curso para orientar os planejamentos.',
-          action: openSituation,
-          label: 'Completar dados',
-        }
-      : !curriculaQuery.data || !attemptsQuery.data || !semesterPlansQuery.data
-        ? {
-            title: 'Preparando seu próximo passo',
-            description: 'Carregando seus dados acadêmicos e planejamentos.',
-            to: '/planejamentos-de-curriculo' as const,
-            label: 'Ver planejamentos',
-          }
-        : curriculaQuery.data.length === 0
-          ? {
-              title: 'Crie seu planejamento de currículo',
-              description: 'Organize as disciplinas que ainda pretende cursar.',
-              to: '/planejamentos-de-curriculo/novo' as const,
-              label: 'Criar planejamento',
-            }
-          : attemptsQuery.data.length === 0
-            ? {
-                title: 'Registre sua situação atual',
-                description:
-                  'Adicione disciplinas cursando e tentativas anteriores.',
-                action: openSituation,
-                label: 'Atualizar situação',
-              }
-            : semesterPlansQuery.data.length === 0
-              ? {
-                  title: 'Monte o horário do próximo período',
-                  description: 'Escolha turmas e confira conflitos de horário.',
-                  to: '/planejamentos-de-semestre/novo' as const,
-                  label: 'Montar horário',
-                }
-              : featuredCurriculum?.isFavorite
-                ? {
-                    title: 'Seu planejamento favorito',
-                    description:
-                      'Retome o currículo que você escolheu como principal.',
-                    to: '/planejamentos-de-curriculo/$planejamentoId' as const,
-                    params: { planejamentoId: String(featuredCurriculum.id) },
-                    label: 'Abrir favorito',
-                  }
-                : {
-                    title: 'Continue de onde parou',
-                    description: resumeSemester
-                      ? 'Retome o planejamento de semestre atualizado mais recentemente.'
-                      : 'Retome o planejamento de currículo atualizado mais recentemente.',
-                    to: resumeSemester
-                      ? ('/planejamentos-de-semestre/$planejamentoId' as const)
-                      : ('/planejamentos-de-curriculo/$planejamentoId' as const),
-                    params: {
-                      planejamentoId: String(
-                        resumeSemester
-                          ? latestSemesterPlan!.id
-                          : featuredCurriculum!.id,
-                      ),
-                    },
-                    label: 'Retomar planejamento',
-                  }
-
   const loading =
     studentQuery.isLoading ||
     (Boolean(studentId) &&
-      (profileQuery.isLoading ||
-        attemptsQuery.isLoading ||
+      (attemptsQuery.isLoading ||
         curriculaQuery.isLoading ||
         semesterPlansQuery.isLoading ||
-        staticQuery.isLoading ||
         (Boolean(featuredCurriculum) && featuredCurriculumQuery.isLoading)))
   const hasDataError =
     studentQuery.isError ||
-    profileQuery.isError ||
     attemptsQuery.isError ||
     curriculaQuery.isError ||
     semesterPlansQuery.isError ||
-    featuredCurriculumQuery.isError ||
-    staticQuery.isError
+    featuredCurriculumQuery.isError
 
   return (
     <PageContainer>
@@ -441,57 +344,16 @@ function AuthenticatedHome() {
             </Alert>
           )}
 
-          <section
-            className="rounded-lg border-2 border-strong-border bg-card p-5"
-            aria-labelledby="next-step-title"
-          >
-            <p className="text-xs font-black tracking-[0.14em] text-primary uppercase">
-              Próximo passo
-            </p>
-            <div className="mt-2 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-              <div>
-                <h2 id="next-step-title" className="text-xl font-extrabold">
-                  {recommendation.title}
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {recommendation.description}
-                </p>
-              </div>
-              {'action' in recommendation && recommendation.action ? (
-                <button
-                  className={linkClass()}
-                  onClick={() => void recommendation.action()}
-                >
-                  {recommendation.label} <ArrowRight />
-                </button>
-              ) : (
-                <Link
-                  to={recommendation.to}
-                  params={
-                    'params' in recommendation
-                      ? recommendation.params
-                      : undefined
-                  }
-                  className={linkClass()}
-                >
-                  {recommendation.label} <ArrowRight />
-                </Link>
-              )}
-            </div>
-          </section>
-
-          {enrolledAttempts.length > 0 && (
-            <TodayClassesPanel
-              currentPeriodId={currentPeriodId}
-              currentPeriodCode={studyPeriodCode}
-              attempts={enrolledAttempts}
-              meetings={currentMeetings}
-              isLoading={todayScheduleQuery.isLoading}
-              isError={todayScheduleQuery.isError}
-              scheduleLoaded={todayScheduleQuery.isSuccess}
-              absenceController={absenceController}
-            />
-          )}
+          <AgendaPanel
+            currentPeriodId={currentPeriodId}
+            currentPeriodCode={studyPeriodCode}
+            attempts={enrolledAttempts}
+            meetings={currentMeetings}
+            isLoading={todayScheduleQuery.isLoading}
+            isError={todayScheduleQuery.isError}
+            scheduleLoaded={todayScheduleQuery.isSuccess}
+            absenceController={absenceController}
+          />
 
           <section aria-labelledby="objectives-title">
             <h2 id="objectives-title" className="mb-4 text-xl font-extrabold">
