@@ -9,12 +9,16 @@ const {
   listClassesForStudentCourseAttempt,
   listClassSchedulesByStudyPeriod,
   listStudyPeriods,
+  getCourseEvaluationForStudyPeriod,
+  getProfessorEvaluation,
   listStudentAbsences,
 } = vi.hoisted(() => ({
   listStudentCourseAttempts: vi.fn(),
   listClassesForStudentCourseAttempt: vi.fn(),
   listClassSchedulesByStudyPeriod: vi.fn(),
   listStudyPeriods: vi.fn(),
+  getCourseEvaluationForStudyPeriod: vi.fn(),
+  getProfessorEvaluation: vi.fn(),
   listStudentAbsences: vi.fn(),
 }))
 const login = vi.fn()
@@ -51,10 +55,13 @@ vi.mock('@/student/data/studentApi', () => ({
   listClassesForStudentCourseAttempt,
   listClassSchedulesByStudyPeriod,
   listStudyPeriods,
+  getCourseEvaluationForStudyPeriod,
+  getProfessorEvaluation,
   createStudentCourseAttempt: vi.fn(),
   deleteStudentCourseAttempt: vi.fn(),
   patchStudentCourseAttempt: vi.fn(),
   patchStudentProfile: vi.fn(),
+  putProfessorEvaluation: vi.fn(),
 }))
 
 vi.mock('@/student/data/studentAbsenceApi', () => ({
@@ -83,9 +90,21 @@ describe('CourseSituationPage', () => {
     authState.isAuthenticated = true
     login.mockReset()
     listClassesForStudentCourseAttempt.mockResolvedValue([])
+    getCourseEvaluationForStudyPeriod.mockResolvedValue('GRADE_AND_ATTENDANCE')
+    getProfessorEvaluation.mockResolvedValue({ eligible: true, evaluation: null })
     listStudyPeriods.mockResolvedValue([
-      { id: 20, code: '1s2026', startDate: '2026-02-01T00:00:00.000Z' },
-      { id: 19, code: '2s2025', startDate: '2025-08-01T00:00:00.000Z' },
+      {
+        id: 20,
+        year: 2026,
+        yearPeriod: 'FIRST_SEMESTER',
+        startDate: '2026-02-01T00:00:00.000Z',
+      },
+      {
+        id: 19,
+        year: 2025,
+        yearPeriod: 'SECOND_SEMESTER',
+        startDate: '2025-08-01T00:00:00.000Z',
+      },
     ])
     listClassSchedulesByStudyPeriod.mockResolvedValue([
       {
@@ -106,10 +125,11 @@ describe('CourseSituationPage', () => {
         courseId: 10,
         studyPeriodId: 20,
         classId: 30,
+        evaluationMode: 'GRADE_AND_ATTENDANCE',
         status: 'ENROLLED',
         grade: null,
         course: { code: 'MC102', name: 'Algoritmos', credits: 6 },
-        studyPeriod: { code: '1s2026' },
+        studyPeriod: { id: 20, year: 2026, yearPeriod: 'FIRST_SEMESTER' },
         class: {
           id: 30,
           code: 'A',
@@ -121,10 +141,11 @@ describe('CourseSituationPage', () => {
         courseId: 11,
         studyPeriodId: 19,
         classId: null,
-        status: 'COMPLETED',
+        evaluationMode: 'GRADE_AND_ATTENDANCE',
+        status: 'APPROVED',
         grade: 8,
         course: { code: 'MA111', name: 'Cálculo I', credits: 6 },
-        studyPeriod: { code: '2s2025' },
+        studyPeriod: { id: 19, year: 2025, yearPeriod: 'SECOND_SEMESTER' },
         class: null,
       },
     ])
@@ -154,11 +175,11 @@ describe('CourseSituationPage', () => {
       button: 0,
       ctrlKey: false,
     })
-    expect(await screen.findByText('2s2025')).toBeTruthy()
+    expect(await screen.findByText('2025s2')).toBeTruthy()
     expect(screen.getByText('MA111 — Cálculo I')).toBeTruthy()
   })
 
-  it('requires an explicit situation from the global add action', async () => {
+  it('requires an explicit evaluation mode and result from the global add action', async () => {
     renderPage()
     await screen.findByText('MC102 — Algoritmos')
 
@@ -168,8 +189,9 @@ describe('CourseSituationPage', () => {
 
     expect(screen.getByRole('dialog')).toBeTruthy()
     expect(
-      screen.getByRole<HTMLInputElement>('combobox', { name: 'Situação' })
-        .value,
+      screen.getByRole<HTMLInputElement>('combobox', {
+        name: 'Modalidade de avaliação',
+      }).value,
     ).toBe('')
     expect(
       screen.getByRole<HTMLButtonElement>('button', { name: 'Salvar' })
@@ -185,8 +207,71 @@ describe('CourseSituationPage', () => {
 
     expect(await screen.findByText('Editar tentativa')).toBeTruthy()
     expect(document.activeElement).not.toBe(
-      screen.getByRole('combobox', { name: 'Situação' }),
+      screen.getByRole('combobox', { name: 'Modalidade de avaliação' }),
     )
+  })
+
+  it('offers an evaluation for a professor from a completed class', async () => {
+    listStudentCourseAttempts.mockResolvedValue([
+      {
+        id: 2,
+        courseId: 11,
+        studyPeriodId: 19,
+        classId: 31,
+        evaluationMode: 'GRADE_AND_ATTENDANCE',
+        status: 'APPROVED',
+        grade: 8,
+        course: { code: 'MA111', name: 'Cálculo I', credits: 6 },
+        studyPeriod: { id: 19, year: 2025, yearPeriod: 'SECOND_SEMESTER' },
+        class: { id: 31, code: 'A', professors: [{ id: 3, name: 'Docente' }] },
+      },
+    ])
+    renderPage()
+
+    fireEvent.mouseDown(await screen.findByRole('tab', { name: /Histórico/ }), {
+      button: 0,
+      ctrlKey: false,
+    })
+    fireEvent.click(await screen.findByRole('button', { name: 'Avaliar Docente' }))
+
+    expect(await screen.findByRole('dialog')).toBeTruthy()
+    expect(getProfessorEvaluation).toHaveBeenCalledWith(1, 31, 3, authState.getAccessToken)
+  })
+
+  it('fixes the evaluation mode from the selected study period after the class', async () => {
+    renderPage()
+    await screen.findByText('MC102 — Algoritmos')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Editar' }))
+
+    const period = await screen.findByRole('combobox', {
+      name: 'Período letivo',
+    })
+    const classSelect = screen.getByRole('combobox', {
+      name: 'Turma (opcional)',
+    })
+    const evaluationMode = screen.getByRole<HTMLInputElement>('combobox', {
+      name: 'Modalidade de avaliação',
+    })
+    const result = screen.getByRole('combobox', {
+      name: 'Resultado da tentativa',
+    })
+
+    expect(
+      period.compareDocumentPosition(classSelect) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    expect(
+      classSelect.compareDocumentPosition(evaluationMode) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    expect(
+      evaluationMode.compareDocumentPosition(result) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+    await waitFor(() => expect(evaluationMode.value).toBe('Nota e frequência'))
+    expect(evaluationMode.disabled).toBe(true)
+    expect(getCourseEvaluationForStudyPeriod).toHaveBeenCalledWith(10, 2026)
   })
 
   it('opens registered absences for an enrolled course', async () => {
@@ -199,7 +284,8 @@ describe('CourseSituationPage', () => {
         createdAt: '2026-08-17T12:00:00.000Z',
         updatedAt: '2026-08-17T12:00:00.000Z',
         studyPeriodId: 20,
-        studyPeriodCode: '1s2026',
+        studyPeriodYear: 2026,
+        studyPeriodYearPeriod: 'FIRST_SEMESTER',
         courseId: 10,
         courseCode: 'MC102',
         classId: 30,
@@ -235,10 +321,11 @@ describe('CourseSituationPage', () => {
         courseId: 10,
         studyPeriodId: 20,
         classId: 30,
+        evaluationMode: 'GRADE_AND_ATTENDANCE',
         status: 'ENROLLED',
         grade: null,
         course: { id: 10, code: 'MC102', name: 'Algoritmos', credits: 6 },
-        studyPeriod: { id: 20, code: '1s2026' },
+        studyPeriod: { id: 20, year: 2026, yearPeriod: 'FIRST_SEMESTER' },
         class: { id: 30, code: 'A', professors: [] },
       },
       {
@@ -246,10 +333,11 @@ describe('CourseSituationPage', () => {
         courseId: 11,
         studyPeriodId: 19,
         classId: 31,
+        evaluationMode: 'GRADE_AND_ATTENDANCE',
         status: 'ENROLLED',
         grade: null,
         course: { id: 11, code: 'MA111', name: 'Cálculo I', credits: 6 },
-        studyPeriod: { id: 19, code: '2s2025' },
+        studyPeriod: { id: 19, year: 2025, yearPeriod: 'SECOND_SEMESTER' },
         class: { id: 31, code: 'B', professors: [] },
       },
     ])
@@ -293,7 +381,7 @@ describe('CourseSituationPage', () => {
       name: 'Período da agenda',
     })
     fireEvent.focus(periodSelect)
-    fireEvent.click(await screen.findByRole('option', { name: '2s2025' }))
+    fireEvent.click(await screen.findByRole('option', { name: '2025s2' }))
 
     await waitFor(() =>
       expect(listClassSchedulesByStudyPeriod).toHaveBeenCalledWith(19),
@@ -311,10 +399,11 @@ describe('CourseSituationPage', () => {
         courseId: 10,
         studyPeriodId: 20,
         classId: null,
+        evaluationMode: 'GRADE_AND_ATTENDANCE',
         status: 'ENROLLED',
         grade: null,
         course: { id: 10, code: 'MC102', name: 'Algoritmos', credits: 6 },
-        studyPeriod: { id: 20, code: '1s2026' },
+        studyPeriod: { id: 20, year: 2026, yearPeriod: 'FIRST_SEMESTER' },
         class: null,
       },
     ])
@@ -334,9 +423,24 @@ describe('CourseSituationPage', () => {
       screen.getByRole('button', { name: 'Adicionar disciplina' }),
     )
 
+    const evaluationMode = screen.getByRole('combobox', {
+      name: 'Modalidade de avaliação',
+    })
+    fireEvent.focus(evaluationMode)
+    fireEvent.click(
+      await screen.findByRole('option', { name: 'Nota e frequência' }),
+    )
+    const result = screen.getByRole('combobox', {
+      name: 'Resultado da tentativa',
+    })
+    fireEvent.focus(result)
+    fireEvent.click(await screen.findByRole('option', { name: 'Aprovada' }))
+
     fireEvent.change(
-      screen.getByRole('textbox', { name: 'Nota (quando houver)' }),
-      { target: { value: '11' } },
+      screen.getByRole('textbox', { name: 'Nota final (opcional)' }),
+      {
+      target: { value: '11' },
+      },
     )
 
     expect(screen.getByRole('alert').textContent).toContain(

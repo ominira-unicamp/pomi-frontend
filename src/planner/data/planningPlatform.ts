@@ -55,6 +55,6 @@ export function downloadPlanning(
 export function downloadSemesterPlanning(file: SemesterPlanningFileV2) {
   downloadJson(
     file,
-    `pomi-planejamento-de-semestre-${file.semesterPlanning.studyPeriod.code}.json`,
+    `pomi-planejamento-de-semestre-${file.semesterPlanning.studyPeriod.year}${file.semesterPlanning.studyPeriod.yearPeriod}.json`,
   )
 }

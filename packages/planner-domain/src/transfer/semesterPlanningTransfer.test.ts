@@ -9,7 +9,12 @@ import type { SemesterPlannerStaticData } from '../semester/semesterPlanner'
 
 const data: SemesterPlannerStaticData = {
   studyPeriods: [
-    { id: 1, code: '1s2026', startDate: '2026-02-01T00:00:00.000Z' },
+    {
+      id: 1,
+      year: 2026,
+      yearPeriod: 'FIRST_SEMESTER',
+      startDate: '2026-02-01T00:00:00.000Z',
+    },
   ],
   courses: [{ id: 10, code: 'MC102', name: 'Algoritmos', credits: 6 }],
   classes: [

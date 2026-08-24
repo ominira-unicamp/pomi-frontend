@@ -11,6 +11,7 @@ import {
   Menu,
   PanelsTopLeft,
   UserRound,
+  Users,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
 
@@ -115,6 +116,18 @@ function Navigation({ compact = false }: { compact?: boolean }) {
       >
         <CalendarDays className="size-5 shrink-0" />
         <span className={cn(compact && 'sr-only')}>Horários</span>
+      </Link>
+      <Link
+        to="/amigos"
+        onClick={() => setMobileOpen(false)}
+        activeProps={{ 'aria-current': 'page' }}
+        className={cn(
+          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
+          compact && 'justify-center px-0',
+        )}
+      >
+        <Users className="size-5 shrink-0" />
+        <span className={cn(compact && 'sr-only')}>Amigos</span>
       </Link>
       <Link
         to="/situacao-do-curso"

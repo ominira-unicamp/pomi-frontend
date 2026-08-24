@@ -7,6 +7,7 @@ import {
   orderedPeriods,
 } from '@pomi/planner-domain/curriculum'
 import { CompactCourseCard } from './CourseCard'
+import type { CoursePrerequisiteResolver } from './CourseCard'
 import type {
   CurriculumBlockView,
   CurriculumPlannerSnapshot,
@@ -26,6 +27,7 @@ function CurriculumBlock({
   remainingCredits,
   disabled,
   dispatch,
+  prerequisiteResolver,
 }: {
   block: CurriculumBlockView
   groupId: string
@@ -34,6 +36,7 @@ function CurriculumBlock({
   remainingCredits?: number
   disabled: boolean
   dispatch: PlannerDispatch
+  prerequisiteResolver?: CoursePrerequisiteResolver
 }) {
   const visibleCourses = block.courses
   return (
@@ -73,6 +76,7 @@ function CurriculumBlock({
               planningStart={planningStart}
               disabled={disabled}
               dispatch={dispatch}
+              prerequisiteResolver={prerequisiteResolver}
             />
           ))}
         </div>
@@ -90,11 +94,13 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
   snapshot,
   disabled,
   dispatch,
+  prerequisiteResolver,
 }: {
   staticData: CurriculumPlannerStaticData
   snapshot: CurriculumPlannerSnapshot
   disabled: boolean
   dispatch: PlannerDispatch
+  prerequisiteResolver?: CoursePrerequisiteResolver
 }) {
   const [collapsed, setCollapsed] = useState(false)
   const groups = useMemo(
@@ -197,6 +203,7 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
                       }
                       disabled={disabled}
                       dispatch={dispatch}
+                      prerequisiteResolver={prerequisiteResolver}
                     />
                   )}
                   {group.electives.map((block) => (
@@ -213,6 +220,7 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
                       }
                       disabled={disabled}
                       dispatch={dispatch}
+                      prerequisiteResolver={prerequisiteResolver}
                     />
                   ))}
                 </div>

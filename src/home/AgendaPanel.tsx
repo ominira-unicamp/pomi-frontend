@@ -60,12 +60,14 @@ const statusLabels: Readonly<Record<AgendaClassStatus, string>> = {
   scheduled: 'Agendada',
 }
 
-const mealLabels: Readonly<
-  Record<DailyMeal['period'], Record<DailyMeal['diet'], string>>
-> = {
-  LUNCH: { TRADITIONAL: 'Almoço', VEGAN: 'Almoço vegano' },
-  DINNER: { TRADITIONAL: 'Jantar', VEGAN: 'Jantar vegano' },
-}
+const mealSlots: ReadonlyArray<
+  readonly [DailyMeal['period'], DailyMeal['diet'], string]
+> = [
+  ['LUNCH', 'TRADITIONAL', 'Almoço'],
+  ['LUNCH', 'VEGAN', 'Almoço'],
+  ['DINNER', 'TRADITIONAL', 'Jantar'],
+  ['DINNER', 'VEGAN', 'Jantar'],
+]
 
 function classStatus(
   selectedDate: string,
@@ -79,7 +81,7 @@ function classStatus(
   return statusForTodayMeeting(meeting, meetings, now)
 }
 
-function MealSummary({ date }: { date: string }) {
+export function DailyMealsPanel({ date }: { date: string }) {
   const menuQuery = useQuery({
     queryKey: ['daily-menus', date],
     queryFn: () => listDailyMenus(date),
@@ -89,41 +91,98 @@ function MealSummary({ date }: { date: string }) {
   const meals = menu?.meals.filter((meal) => meal.status === 'AVAILABLE') ?? []
 
   return (
-    <Card className="p-4" aria-labelledby="agenda-meals-title">
-      <div className="flex items-center gap-2">
-        <Utensils className="size-5 text-primary" />
-        <h3 id="agenda-meals-title" className="font-extrabold">
-          Refeições do dia
-        </h3>
-      </div>
-      {menuQuery.isLoading ? (
-        <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-          <LoaderCircle className="size-4 animate-spin" />
-          Carregando cardápio
-        </div>
-      ) : menuQuery.isError ? (
-        <p className="mt-4 text-sm text-muted-foreground">
-          Não foi possível carregar o cardápio.
-        </p>
-      ) : meals.length === 0 ? (
-        <p className="mt-4 text-sm text-muted-foreground">
-          Cardápio não disponível para esta data.
-        </p>
-      ) : (
-        <ul className="mt-4 space-y-3">
-          {meals.map((meal) => (
-            <li key={meal.id}>
-              <p className="text-xs font-black tracking-[0.12em] text-primary uppercase">
-                {mealLabels[meal.period][meal.diet]}
+    <section className="grid gap-4 sm:grid-cols-2" aria-label="Refeições">
+      {mealSlots.map(([period, diet, title]) => {
+        const meal = meals.find(
+          (item) => item.period === period && item.diet === diet,
+        )
+
+        return (
+          <Card
+            key={`${period}-${diet}`}
+            className="p-4"
+            aria-labelledby={`agenda-${period}-${diet}`}
+          >
+            <div className="flex items-center gap-2">
+              <Utensils className="size-5 text-primary" />
+              <h3 id={`agenda-${period}-${diet}`} className="font-extrabold">
+                {title}
+              </h3>
+            </div>
+            {menuQuery.isLoading ? (
+              <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
+                <LoaderCircle className="size-4 animate-spin" />
+                Carregando cardápio
+              </div>
+            ) : menuQuery.isError ? (
+              <p className="mt-4 text-sm text-muted-foreground">
+                Não foi possível carregar o cardápio.
               </p>
-              <p className="mt-1 text-sm font-bold">
-                {meal.mainDish ?? 'Prato principal não informado'}
+            ) : !meal ? (
+              <p className="mt-4 text-sm text-muted-foreground">
+                Cardápio não disponível para esta data.
               </p>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Card>
+            ) : (
+              <div className="mt-4 space-y-4">
+                <div>
+                  <p className="text-xs font-black tracking-[0.12em] text-primary uppercase">
+                    Prato principal
+                  </p>
+                  <p className="mt-1 text-sm font-bold">
+                    {meal.mainDish ?? 'Prato principal não informado'}
+                  </p>
+                </div>
+                {meal.serviceNotes.length > 0 && (
+                  <div>
+                    <p className="text-xs font-black tracking-[0.12em] text-primary uppercase">
+                      Avisos
+                    </p>
+                    <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-muted-foreground">
+                      {meal.serviceNotes.map((note) => (
+                        <li key={note}>{note}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <details className="border-t border-strong-border/30 pt-3">
+                  <summary className="cursor-pointer text-sm font-bold text-primary">
+                    Ver cardápio completo
+                  </summary>
+                  {meal.items.length > 0 || meal.observations.length > 0 ? (
+                    <div className="mt-3 space-y-3 text-sm">
+                      {meal.items.length > 0 && (
+                        <div>
+                          <p className="font-bold">Itens</p>
+                          <ul className="mt-1 list-disc space-y-1 pl-4 text-muted-foreground">
+                            {meal.items.map((item) => (
+                              <li key={item}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {meal.observations.length > 0 && (
+                        <div>
+                          <p className="font-bold">Observações</p>
+                          <ul className="mt-1 list-disc space-y-1 pl-4 text-muted-foreground">
+                            {meal.observations.map((observation) => (
+                              <li key={observation}>{observation}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Nenhuma informação adicional.
+                    </p>
+                  )}
+                </details>
+              </div>
+            )}
+          </Card>
+        )
+      })}
+    </section>
   )
 }
 
@@ -216,7 +275,7 @@ export function AgendaPanel({
         </div>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_19rem]">
+      <div className="space-y-4">
         <Card className="overflow-hidden">
           {isLoading ? (
             <div
@@ -396,8 +455,7 @@ export function AgendaPanel({
             </div>
           )}
         </Card>
-
-        <MealSummary date={selectedDate} />
+        <DailyMealsPanel date={selectedDate} />
       </div>
     </section>
   )

@@ -72,6 +72,7 @@ import { semesterDraftBootstrapKey } from '@/planner/data/planningDraftBootstrap
 import { saveDraftHandoff } from '@/planner/data/planningDraftHandoff'
 import { SaveDraftDialog } from '@/planner/components/SaveDraftDialog'
 import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
+import { studyPeriodLabel } from '@/student/data/studyPeriod'
 
 type GuideTab = 'disciplines' | 'classes'
 
@@ -166,6 +167,7 @@ export function SemesterPlannerPage({
     studentProfileQuery,
     query,
     plansQuery,
+    professorEvaluationSummariesQuery,
     curriculaQuery,
     curriculumQuery,
     anonymousCurriculumDataQuery,
@@ -177,6 +179,17 @@ export function SemesterPlannerPage({
     guideCurriculumId,
     anonymousCatalogProgramId,
   })
+
+  const professorEvaluationSummaries = useMemo(
+    () =>
+      new Map(
+        (professorEvaluationSummariesQuery.data ?? []).map((summary) => [
+          summary.professor.id,
+          summary,
+        ]),
+      ),
+    [professorEvaluationSummariesQuery.data],
+  )
 
   useEffect(() => {
     if (draftBootstrap)
@@ -458,7 +471,10 @@ export function SemesterPlannerPage({
         studyPeriodId,
         name:
           document.name.trim() ||
-          `Planejamento ${query.data?.studyPeriods.find((period) => period.id === studyPeriodId)?.code ?? ''}`,
+          `Planejamento ${(() => {
+            const period = query.data?.studyPeriods.find((item) => item.id === studyPeriodId)
+            return period ? studyPeriodLabel(period) : ''
+          })()}`,
       },
     })
     void auth.login(window.location.href)
@@ -611,9 +627,9 @@ export function SemesterPlannerPage({
     )
   }
 
-  const studyPeriodCode = query.data.studyPeriods.find(
+  const selectedStudyPeriod = query.data.studyPeriods.find(
     (period) => period.id === studyPeriodId,
-  )?.code
+  )
   const selectedIds = new Set(document.classIds)
   const selectedClassIdsWithConflict = new Set(
     snapshot.conflicts.flatMap((conflict) => [
@@ -1160,7 +1176,9 @@ export function SemesterPlannerPage({
                 <span className="text-xs tracking-[0.08em] uppercase">
                   Período
                 </span>
-                <span className="text-foreground">{studyPeriodCode}</span>
+                <span className="text-foreground">
+                  {selectedStudyPeriod ? studyPeriodLabel(selectedStudyPeriod) : ''}
+                </span>
               </div>
             ) : (
               <select
@@ -1171,7 +1189,7 @@ export function SemesterPlannerPage({
                 {mostRecentStudyPeriodsFirst(query.data.studyPeriods).map(
                   (period) => (
                     <option key={period.id} value={period.id}>
-                      {period.code}
+                      {studyPeriodLabel(period)}
                     </option>
                   ),
                 )}
@@ -1548,6 +1566,7 @@ export function SemesterPlannerPage({
                 classFilterDays={classFilterDays}
                 guideClassContext={guideClassContext}
                 guideClassContextKey={guideClassContextKey}
+                professorEvaluationSummaries={professorEvaluationSummaries}
                 onCourseFilterChange={setClassFilterCourseId}
                 onStartChange={setClassFilterStart}
                 onEndChange={setClassFilterEnd}
@@ -1635,7 +1654,9 @@ export function SemesterPlannerPage({
                                     Turma {classItem.code}
                                   </h4>
                                   <p className="text-xs text-muted-foreground">
-                                    {classItem.professors.join(', ') ||
+                                    {classItem.professors
+                                      .map((professor) => professor.name)
+                                      .join(', ') ||
                                       'Professor não informado'}
                                   </p>
                                 </div>

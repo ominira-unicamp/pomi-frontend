@@ -7,6 +7,7 @@ import { loadCurriculumSuggestions } from '@/planner/data/curriculumSuggestionAp
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
 import {
   listSemesterPlannings,
+  loadProfessorEvaluationSummaries,
   loadSemesterPlannerStaticData,
 } from '@/semester-planner/data/semesterPlanningApi'
 
@@ -33,6 +34,12 @@ export function useSemesterPlannerQueries({
     queryKey: ['semester-planner', 'plans', studentId],
     queryFn: () => listSemesterPlannings(studentId!, getAccessToken),
     enabled: Boolean(studentId),
+    retry: false,
+  })
+  const professorEvaluationSummariesQuery = useQuery({
+    queryKey: ['semester-planner', 'professor-evaluation-summaries'],
+    queryFn: loadProfessorEvaluationSummaries,
+    staleTime: 5 * 60_000,
     retry: false,
   })
   const curriculaQuery = useQuery({
@@ -79,6 +86,7 @@ export function useSemesterPlannerQueries({
     studentProfileQuery,
     query,
     plansQuery,
+    professorEvaluationSummariesQuery,
     curriculaQuery,
     curriculumQuery,
     anonymousCurriculumDataQuery,

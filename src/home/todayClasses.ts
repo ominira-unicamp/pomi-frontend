@@ -1,4 +1,5 @@
 import type { StudentClassSchedule } from '@/student/data/studentApi'
+import type { StudyPeriodReference } from '@/student/data/studyPeriod'
 
 export const academicTimeZone = 'America/Sao_Paulo'
 
@@ -29,6 +30,14 @@ function dateParts(date: Date) {
 export function currentStudyPeriodCode(date = new Date()) {
   const { year, month } = dateParts(date)
   return `${year}s${month <= 6 ? 1 : 2}`
+}
+
+export function currentStudyPeriod(date = new Date()): StudyPeriodReference {
+  const { year, month } = dateParts(date)
+  return {
+    year,
+    yearPeriod: month <= 6 ? 'FIRST_SEMESTER' : 'SECOND_SEMESTER',
+  }
 }
 
 export function currentScheduleDay(date = new Date()) {

@@ -14,14 +14,31 @@ import {
 
 const attempt: StudentCourseAttempt = {
   id: 11,
+  studentId: 1,
   courseId: 20,
   studyPeriodId: 30,
   classId: 40,
+  evaluationMode: 'GRADE_AND_ATTENDANCE',
   status: 'ENROLLED',
   grade: null,
-  course: { id: 20, code: 'MC102', name: 'Algoritmos', credits: 6 },
-  studyPeriod: { id: 30, code: '2026s2' },
+  course: {
+    id: 20,
+    code: 'MC102',
+    name: 'Algoritmos',
+    credits: 6,
+    unit: { id: 3, code: 'IC' },
+  },
+  studyPeriod: { id: 30, year: 2026, yearPeriod: 'SECOND_SEMESTER' },
   class: { id: 40, code: 'A', professors: [] },
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
+  _paths: {
+    self: '/student/1/course-attempts/11',
+    student: '/student/1',
+    course: '/courses/20',
+    studyPeriod: '/study-periods/30',
+    class: '/classes/40',
+  },
 }
 
 const meetings: ReadonlyArray<StudentClassSchedule> = [

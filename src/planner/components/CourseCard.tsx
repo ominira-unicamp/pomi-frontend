@@ -1,12 +1,14 @@
 import { useDraggable } from '@dnd-kit/core'
 import { useQuery } from '@tanstack/react-query'
-import { CircleCheck, Trash2 } from 'lucide-react'
+import { ArrowDownUp, CircleAlert, CircleCheck, Trash2 } from 'lucide-react'
 import { memo, useEffect, useState } from 'react'
 import { periodReference } from '@pomi/planner-domain/curriculum'
 import type { ReactNode } from 'react'
 
 import type {
   Course,
+  CourseId,
+  CoursePrerequisiteEvaluation,
   CurriculumCourseState,
   CurriculumPlannerSnapshot,
   PlanningPeriod,
@@ -18,6 +20,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
@@ -38,6 +42,7 @@ import { cn } from '@/lib/utils'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { listStudyPeriods } from '@/student/data/studentApi'
 import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
+import { studyPeriodLabel } from '@/student/data/studyPeriod'
 
 export type CourseDragData = Readonly<{
   type: 'course'
@@ -47,6 +52,18 @@ export type CourseDragData = Readonly<{
 }>
 
 export type PlannerDragData = CourseDragData
+
+export type CoursePrerequisiteMenuState = Readonly<{
+  year: number
+  status: 'loading' | 'error' | 'notInCatalog' | 'ready'
+  evaluation?: CoursePrerequisiteEvaluation
+  preferredAlternativeKey?: string
+  onAlternativeChange: (courseId: CourseId, key?: string) => void
+}>
+
+export type CoursePrerequisiteResolver = (
+  courseId: CourseId,
+) => CoursePrerequisiteMenuState
 
 export function CompactVisual({
   code,
@@ -62,7 +79,7 @@ export function CompactVisual({
   return (
     <span
       className={cn(
-        'inline-grid h-8 w-[5.75rem] shrink-0 grid-cols-[5ch_1fr] items-center gap-2 rounded-sm border-2 border-strong-border bg-background px-2 font-mono text-xs font-black text-foreground shadow-[2px_2px_0_var(--strong-border)]',
+        'inline-grid h-8 w-[5.75rem] shrink-0 grid-cols-[5ch_1fr] items-center gap-2 rounded-sm border-2 border-strong-border bg-background px-2 font-mono text-xs font-black text-foreground shadow-[2px_2px_0_var(--strong-border)] transition-colors',
         planned && 'border-primary bg-primary/12',
         className,
       )}
@@ -70,6 +87,163 @@ export function CompactVisual({
       <span className="text-center">{code}</span>
       <span className="text-right">({String(credits).padStart(2, '0')})</span>
     </span>
+  )
+}
+
+function prerequisiteItemLabel(
+  item: CoursePrerequisiteEvaluation['alternatives'][number]['items'][number],
+) {
+  const target = item.item.target
+  const code =
+    item.matchedCourseCode ??
+    (target.type === 'course'
+      ? target.code
+      : target.type === 'prefix'
+        ? `${target.prefix}---`
+        : target.code)
+  return `${item.item.kind === 'PARTIAL' ? '*' : ''}${code}`
+}
+
+function prerequisiteStatusLabel(
+  status: CoursePrerequisiteEvaluation['alternatives'][number]['items'][number]['status'],
+) {
+  return {
+    completed: 'Concluída',
+    plannedBefore: 'Planejada antes',
+    samePeriod: 'No mesmo semestre',
+    plannedAfter: 'Planejada depois',
+    unallocated: 'Não alocada',
+    missing: 'Fora do planejamento',
+    unknown: 'Condição especial',
+  }[status]
+}
+
+function alternativeLabel(
+  alternative: CoursePrerequisiteEvaluation['alternatives'][number],
+) {
+  return alternative.items.map(prerequisiteItemLabel).join(' + ')
+}
+
+function PrerequisiteIssueMarkers({
+  prerequisites,
+}: {
+  prerequisites?: CoursePrerequisiteMenuState
+}) {
+  const issues = prerequisites?.evaluation?.issues ?? []
+  if (!issues.length) return null
+  return (
+    <span className="pointer-events-none absolute -top-2 -right-2 z-40 flex gap-0.5">
+      {issues.includes('missing') && (
+        <span
+          className="grid size-4 place-items-center rounded-full border border-amber-800 bg-amber-300 text-amber-950"
+          title="Pré-requisito ausente do planejamento"
+          aria-label="Pré-requisito ausente do planejamento"
+        >
+          <CircleAlert className="size-3" />
+        </span>
+      )}
+      {issues.includes('inverted') && (
+        <span
+          className="grid size-4 place-items-center rounded-full border border-destructive bg-destructive text-destructive-foreground"
+          title="Ordem de pré-requisito invertida"
+          aria-label="Ordem de pré-requisito invertida"
+        >
+          <ArrowDownUp className="size-3" />
+        </span>
+      )}
+    </span>
+  )
+}
+
+function PrerequisiteMenuSection({
+  course,
+  prerequisites,
+}: {
+  course: Course
+  prerequisites: CoursePrerequisiteMenuState
+}) {
+  const evaluation = prerequisites.evaluation
+  const selected = evaluation?.alternatives.find(
+    (alternative) => alternative.key === evaluation.selectedAlternativeKey,
+  )
+  return (
+    <div className="w-[min(22rem,calc(100vw-2rem))] px-2 py-1">
+      <p className="text-xs font-extrabold">
+        Pré-requisitos - catálogo {prerequisites.year}
+      </p>
+      {prerequisites.status === 'loading' && (
+        <p className="mt-1 text-xs text-muted-foreground">Carregando...</p>
+      )}
+      {prerequisites.status === 'error' && (
+        <p className="mt-1 text-xs text-destructive">
+          Pré-requisitos indisponíveis para {prerequisites.year}.
+        </p>
+      )}
+      {prerequisites.status === 'notInCatalog' && (
+        <p className="mt-1 text-xs text-muted-foreground">
+          {course.code} não está disponível no catálogo de {prerequisites.year}.
+        </p>
+      )}
+      {prerequisites.status === 'ready' && !evaluation && (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Sem pré-requisitos no catálogo de {prerequisites.year}.
+        </p>
+      )}
+      {selected && (
+        <ul className="mt-2 space-y-1">
+          {selected.items.map((item) => (
+            <li
+              key={`${selected.key}:${prerequisiteItemLabel(item)}`}
+              className="flex items-center justify-between gap-3 text-xs"
+            >
+              <span className="font-mono font-black">
+                {prerequisiteItemLabel(item)}
+              </span>
+              <span
+                className={cn(
+                  'text-right font-semibold text-muted-foreground',
+                  ['samePeriod', 'plannedAfter', 'missing'].includes(
+                    item.status,
+                  ) && 'text-destructive',
+                )}
+              >
+                {prerequisiteStatusLabel(item.status)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {evaluation && evaluation.alternatives.length > 1 && (
+        <div className="mt-3 border-t border-border pt-2">
+          <p className="mb-1 text-xs font-extrabold">Escolha da alternativa</p>
+          <DropdownMenuRadioGroup
+            value={prerequisites.preferredAlternativeKey ?? '__automatic__'}
+            onValueChange={(value) =>
+              prerequisites.onAlternativeChange(
+                course.id,
+                value === '__automatic__' ? undefined : value,
+              )
+            }
+          >
+            <DropdownMenuRadioItem
+              value="__automatic__"
+              onSelect={(event) => event.preventDefault()}
+            >
+              Automática
+            </DropdownMenuRadioItem>
+            {evaluation.alternatives.map((alternative) => (
+              <DropdownMenuRadioItem
+                key={alternative.key}
+                value={alternative.key}
+                onSelect={(event) => event.preventDefault()}
+              >
+                {alternativeLabel(alternative)}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -83,6 +257,7 @@ function CourseDestinationMenu({
   disabled,
   dragging,
   dispatch,
+  prerequisites,
 }: {
   children: ReactNode
   course: Course
@@ -93,6 +268,7 @@ function CourseDestinationMenu({
   disabled: boolean
   dragging?: boolean
   dispatch: PlannerDispatch
+  prerequisites?: CoursePrerequisiteMenuState
 }) {
   const [open, setOpen] = useState(false)
   const [completionDialogOpen, setCompletionDialogOpen] = useState(false)
@@ -124,7 +300,7 @@ function CourseDestinationMenu({
     studyPeriodsQuery.data ?? [],
   ).map((period) => ({
     value: String(period.id),
-    label: period.code,
+    label: studyPeriodLabel(period),
   }))
   return (
     <>
@@ -135,6 +311,13 @@ function CourseDestinationMenu({
             {course.code} — {course.name}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
+          {prerequisites && (
+            <PrerequisiteMenuSection
+              course={course}
+              prerequisites={prerequisites}
+            />
+          )}
+          {prerequisites && <DropdownMenuSeparator />}
           {completed ? (
             <>
               {periods.length ? (
@@ -335,6 +518,7 @@ export const CompactCourseCard = memo(function CompactCourseCard({
   planningStart,
   disabled,
   dispatch,
+  prerequisiteResolver,
 }: {
   dragId: string
   state: CurriculumCourseState
@@ -342,6 +526,7 @@ export const CompactCourseCard = memo(function CompactCourseCard({
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   disabled: boolean
   dispatch: PlannerDispatch
+  prerequisiteResolver?: CoursePrerequisiteResolver
 }) {
   const data: CourseDragData = {
     type: 'course',
@@ -355,7 +540,15 @@ export const CompactCourseCard = memo(function CompactCourseCard({
     disabled,
   })
   const period = periods.find((item) => item.id === state.plannedPeriodId)
-  const label = `${state.course.code}, ${state.course.name}, ${state.course.credits} créditos${state.completed ? (period ? `, concluída e planejada em ${periodReference(period, periods, planningStart)}` : ', concluída') : period ? `, planejada em ${periodReference(period, periods, planningStart)}` : ', não planejada'}`
+  const prerequisites = prerequisiteResolver?.(state.course.id)
+  const issueLabel = (prerequisites?.evaluation?.issues ?? [])
+    .map((issue) =>
+      issue === 'missing'
+        ? 'pré-requisito ausente do planejamento'
+        : 'ordem de pré-requisito invertida',
+    )
+    .join(', ')
+  const label = `${state.course.code}, ${state.course.name}, ${state.course.credits} créditos${state.completed ? (period ? `, concluída e planejada em ${periodReference(period, periods, planningStart)}` : ', concluída') : period ? `, planejada em ${periodReference(period, periods, planningStart)}` : ', não planejada'}${issueLabel ? `, ${issueLabel}` : ''}`
   return (
     <CourseDestinationMenu
       course={state.course}
@@ -366,12 +559,14 @@ export const CompactCourseCard = memo(function CompactCourseCard({
       disabled={disabled}
       dragging={isDragging}
       dispatch={dispatch}
+      prerequisites={prerequisites}
     >
       <button
         ref={setNodeRef}
         type="button"
+        data-course-id={state.course.id}
         className={cn(
-          'pomi-focus touch-none rounded-sm select-none',
+          'pomi-focus relative z-30 touch-none rounded-sm select-none [&[data-prerequisite-tree=true]>span]:bg-primary/30 [&[data-prerequisite-active=true]>span]:bg-primary/50',
           isDragging && 'opacity-30',
         )}
         aria-label={label}
@@ -384,6 +579,7 @@ export const CompactCourseCard = memo(function CompactCourseCard({
           credits={state.course.credits}
           planned={Boolean(state.plannedPeriodId) && !state.completed}
         />
+        <PrerequisiteIssueMarkers prerequisites={prerequisites} />
       </button>
     </CourseDestinationMenu>
   )

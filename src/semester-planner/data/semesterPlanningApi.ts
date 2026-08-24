@@ -21,7 +21,16 @@ type ApiClass = Readonly<{
   code: string
   courseId: number
   courseCode: string
-  professors: ReadonlyArray<Readonly<{ name: string }>>
+  professors: ReadonlyArray<Readonly<{ id: number; name: string }>>
+}>
+
+export type ProfessorEvaluationSummary = Readonly<{
+  professor: Readonly<{ id: number; name: string }>
+  responseCount: number
+  wouldTakeAgain: number
+  fairness: number
+  clarity: number
+  difficulty: number
 }>
 
 type ApiMeeting = Readonly<{
@@ -55,11 +64,21 @@ const meetingsLoadByStudyPeriod = new Map<
 >()
 const meetingsCacheLoadedByStudyPeriod = new Set<number>()
 const refreshedMeetingStudyPeriods = new Set<number>()
+let cachedProfessorEvaluationSummaries:
+  | ReadonlyArray<ProfessorEvaluationSummary>
+  | undefined
+let professorEvaluationSummariesLoad:
+  | Promise<ReadonlyArray<ProfessorEvaluationSummary>>
+  | undefined
+let professorEvaluationSummariesCacheLoaded = false
+let professorEvaluationSummariesRefreshed = false
 
 const studyPeriodsCacheKey = 'semester-planner:study-periods'
 const coursesCacheKey = 'semester-planner:courses'
-const classesCachePrefix = 'semester-planner:classes:'
+const classesCachePrefix = 'semester-planner:classes:v2:'
 const meetingsCachePrefix = 'semester-planner:meetings:'
+const professorEvaluationSummariesCacheKey =
+  'semester-planner:professor-evaluation-summaries'
 const cachedStudyPeriodLimit = 2
 
 async function requestJson<T>(path: string): Promise<T> {
@@ -261,6 +280,48 @@ async function loadCachedMeetings(studyPeriodId: number) {
   return refreshMeetings(studyPeriodId)
 }
 
+async function refreshProfessorEvaluationSummaries() {
+  professorEvaluationSummariesRefreshed = true
+  if (!professorEvaluationSummariesLoad) {
+    professorEvaluationSummariesLoad = listAllPages<ProfessorEvaluationSummary>(
+      '/professors/evaluation-summaries?page=1&pageSize=100',
+    )
+      .then(async (summaries) => {
+        cachedProfessorEvaluationSummaries = summaries
+        await publicStaticDataCache.write(
+          professorEvaluationSummariesCacheKey,
+          summaries,
+        )
+        return summaries
+      })
+      .finally(() => {
+        professorEvaluationSummariesLoad = undefined
+      })
+  }
+  return professorEvaluationSummariesLoad
+}
+
+export async function loadProfessorEvaluationSummaries() {
+  if (cachedProfessorEvaluationSummaries) {
+    if (!professorEvaluationSummariesRefreshed)
+      refreshInBackground(refreshProfessorEvaluationSummaries())
+    return cachedProfessorEvaluationSummaries
+  }
+  if (!professorEvaluationSummariesCacheLoaded) {
+    professorEvaluationSummariesCacheLoaded = true
+    const cached = await publicStaticDataCache.read<
+      ReadonlyArray<ProfessorEvaluationSummary>
+    >(professorEvaluationSummariesCacheKey)
+    if (cached) {
+      cachedProfessorEvaluationSummaries = cached
+      if (!professorEvaluationSummariesRefreshed)
+        refreshInBackground(refreshProfessorEvaluationSummaries())
+      return cached
+    }
+  }
+  return refreshProfessorEvaluationSummaries()
+}
+
 export async function loadSemesterPlannerStaticData(
   studyPeriodId?: number,
 ): Promise<SemesterPlannerStaticData> {
@@ -279,7 +340,7 @@ export async function loadSemesterPlannerStaticData(
         code: item.code,
         courseId: item.courseId,
         courseCode: item.courseCode,
-        professors: item.professors.map((professor) => professor.name),
+        professors: item.professors,
       }),
     ),
     meetings,
@@ -292,7 +353,8 @@ export type PersistedSemesterPlanning = Readonly<{
   createdAt: string
   updatedAt: string
   studyPeriodId: number
-  studyPeriodCode: string
+  studyPeriodYear: number
+  studyPeriodYearPeriod: StudyPeriod['yearPeriod']
   curriculumId: number | null
   classes: ReadonlyArray<
     Readonly<{

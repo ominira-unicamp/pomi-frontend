@@ -1,6 +1,7 @@
 type StudyPeriodOption = Readonly<{
   startDate: string
-  code: string
+  year: number
+  yearPeriod: string
 }>
 
 export function mostRecentStudyPeriodsFirst<T extends StudyPeriodOption>(
@@ -9,6 +10,6 @@ export function mostRecentStudyPeriodsFirst<T extends StudyPeriodOption>(
   return [...periods].sort(
     (left, right) =>
       right.startDate.localeCompare(left.startDate) ||
-      right.code.localeCompare(left.code),
+      right.year - left.year || right.yearPeriod.localeCompare(left.yearPeriod),
   )
 }

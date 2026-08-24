@@ -53,12 +53,16 @@ vi.mock('@/student/hooks/useStudentProfile', () => ({
 
 const {
   listClassSchedulesByStudyPeriod,
+  getProfessorEvaluation,
+  listPendingProfessorEvaluations,
   listStudentCourseAttempts,
   listStudentAbsences,
   createStudentAbsence,
   deleteStudentAbsence,
 } = vi.hoisted(() => ({
   listClassSchedulesByStudyPeriod: vi.fn(),
+  getProfessorEvaluation: vi.fn(),
+  listPendingProfessorEvaluations: vi.fn(),
   listStudentCourseAttempts: vi.fn(),
   listStudentAbsences: vi.fn(),
   createStudentAbsence: vi.fn(),
@@ -68,6 +72,8 @@ const {
 vi.mock('@/student/data/studentApi', () => ({
   ensureCurrentStudent: vi.fn(),
   listClassSchedulesByStudyPeriod,
+  getProfessorEvaluation,
+  listPendingProfessorEvaluations,
   listStudentCourseAttempts,
 }))
 
@@ -81,7 +87,8 @@ const attempts = [
   {
     id: 1,
     courseId: 10,
-    status: 'COMPLETED',
+    evaluationMode: 'GRADE_AND_ATTENDANCE',
+    status: 'APPROVED',
     course: { id: 10, code: 'MA111', name: 'Cálculo', credits: 6 },
   },
   {
@@ -89,9 +96,10 @@ const attempts = [
     courseId: 11,
     studyPeriodId: 20,
     classId: 40,
+    evaluationMode: 'GRADE_AND_ATTENDANCE',
     status: 'ENROLLED',
     course: { id: 11, code: 'MC102', name: 'Algoritmos', credits: 6 },
-    studyPeriod: { id: 20, code: '2026s2' },
+    studyPeriod: { id: 20, year: 2026, yearPeriod: 'SECOND_SEMESTER' },
     class: {
       id: 40,
       code: 'A',
@@ -144,7 +152,8 @@ vi.mock('@/semester-planner/data/semesterPlanningApi', () => ({
       {
         id: 8,
         name: 'Próximo semestre',
-        studyPeriodCode: '1s2027',
+        studyPeriodYear: 2027,
+        studyPeriodYearPeriod: 'FIRST_SEMESTER',
         updatedAt: '2026-08-02T12:00:00.000Z',
         classes: [{ id: 2, code: 'A', courseCode: 'MC102', courseCredits: 6 }],
       },
@@ -222,6 +231,8 @@ describe('HomePage', () => {
     listClassSchedulesByStudyPeriod.mockReset()
     listDailyMenus.mockReset()
     listStudentCourseAttempts.mockResolvedValue(attempts)
+    listPendingProfessorEvaluations.mockResolvedValue([])
+    getProfessorEvaluation.mockResolvedValue({ eligible: true, evaluation: null })
     listClassSchedulesByStudyPeriod.mockResolvedValue(schedules)
     listStudentAbsences.mockResolvedValue([])
     listDailyMenus.mockResolvedValue([])
@@ -238,10 +249,31 @@ describe('HomePage', () => {
   })
 
   it('guides anonymous students without presenting a marketing page', async () => {
+    listDailyMenus.mockResolvedValue([
+      {
+        id: 1,
+        date: academicDateKey(),
+        meals: [
+          {
+            id: 2,
+            period: 'LUNCH',
+            diet: 'TRADITIONAL',
+            status: 'AVAILABLE',
+            mainDish: 'Arroz com feijão',
+            serviceNotes: [],
+            items: [],
+            observations: [],
+          },
+        ],
+      },
+    ])
+
     renderHome()
 
     expect(await screen.findByText('Planejar minha graduação')).toBeTruthy()
     expect(screen.getByText('Montar meu horário')).toBeTruthy()
+    expect(await screen.findByText('Cardápio de hoje')).toBeTruthy()
+    expect(await screen.findByText('Arroz com feijão')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Entrar para acessar' }))
     expect(login).toHaveBeenCalledWith('/situacao-do-curso')
   })
@@ -266,6 +298,29 @@ describe('HomePage', () => {
 
     expect(await screen.findByText('Olá, Ana')).toBeTruthy()
     expect(screen.queryByText('Próximo passo')).toBeNull()
+  })
+
+  it('invites the student to evaluate a professor pending from the previous semester', async () => {
+    authState.isAuthenticated = true
+    authState.profile = { given_name: 'Ana' }
+    studentState.studentId = 1
+    listPendingProfessorEvaluations.mockResolvedValue([
+      {
+        attemptId: 1,
+        class: { id: 30, code: 'A' },
+        course: { id: 10, code: 'MA111', name: 'Cálculo' },
+        professor: { id: 50, name: 'Ana Silva' },
+      },
+    ])
+
+    renderHome()
+
+    expect(await screen.findByText('Avalie seus professores')).toBeTruthy()
+    expect(listPendingProfessorEvaluations).toHaveBeenCalledWith(
+      1,
+      { year: 2026, yearPeriod: 'FIRST_SEMESTER' },
+      getAccessToken,
+    )
   })
 
   it('registers an absence directly from a finished class today', async () => {
@@ -358,8 +413,8 @@ describe('HomePage', () => {
       screen.getByText('Você não possui disciplinas cursando em 2026s2.'),
     ).toBeTruthy()
     expect(
-      await screen.findByText('Cardápio não disponível para esta data.'),
-    ).toBeTruthy()
+      await screen.findAllByText('Cardápio não disponível para esta data.'),
+    ).toHaveLength(4)
     expect(listClassSchedulesByStudyPeriod).not.toHaveBeenCalled()
   })
 
@@ -415,6 +470,19 @@ describe('HomePage', () => {
             diet: 'TRADITIONAL',
             status: 'AVAILABLE',
             mainDish: 'Arroz com feijão',
+            serviceNotes: ['Servido no RU'],
+            items: ['Arroz', 'Feijão'],
+            observations: ['Contém glúten'],
+          },
+          {
+            id: 3,
+            period: 'LUNCH',
+            diet: 'VEGAN',
+            status: 'AVAILABLE',
+            mainDish: 'Abóbora assada',
+            serviceNotes: [],
+            items: [],
+            observations: [],
           },
         ],
       },
@@ -422,8 +490,18 @@ describe('HomePage', () => {
 
     renderHome()
 
-    expect(await screen.findByText('Refeições do dia')).toBeTruthy()
+    expect(await screen.findAllByText('Almoço')).toHaveLength(2)
+    expect(await screen.findAllByText('Jantar')).toHaveLength(2)
     expect(await screen.findByText('Arroz com feijão')).toBeTruthy()
+    expect(await screen.findByText('Abóbora assada')).toBeTruthy()
+    expect(await screen.findByText('Servido no RU')).toBeTruthy()
+    const summary = screen.getAllByText('Ver cardápio completo')[0]
+    const details = summary.closest('details')
+    if (!details) throw new Error('Details do cardápio não encontrado.')
+    expect(details.open).toBe(false)
+    fireEvent.click(summary)
+    expect(details.open).toBe(true)
+    expect(await screen.findByText('Contém glúten')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Dia anterior' }))
     await waitFor(() => expect(listDailyMenus).toHaveBeenCalledTimes(2))
     expect(screen.getByRole('button', { name: 'Hoje' })).toBeTruthy()

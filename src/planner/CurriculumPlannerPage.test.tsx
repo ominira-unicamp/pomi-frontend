@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { createInMemoryCurriculumPlanner } from '@pomi/planner-domain/curriculum'
@@ -108,6 +114,14 @@ describe('CurriculumPlannerPage', () => {
       '5º sem - 1s2026',
       '6º sem - 2s2026',
     ])
+    const planningBoard = screen.getByRole('region', {
+      name: 'Planejamento por semestre',
+    })
+    expect(
+      within(planningBoard)
+        .getAllByRole('heading', { level: 3 })
+        .map((heading) => heading.textContent),
+    ).toEqual(['Não alocadas', '5º sem - 1s2026', '6º sem - 2s2026'])
     const courseCard = screen.getByRole('button', {
       name: /CE738, Redes, 4 créditos/,
     })
@@ -197,6 +211,14 @@ describe('CurriculumPlannerPage', () => {
       screen.getByRole('button', { name: 'Adicionar primeiro semestre' }),
     ).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Não alocadas' })).toBeTruthy()
+    const planningBoard = screen.getByRole('region', {
+      name: 'Planejamento por semestre',
+    })
+    expect(
+      within(planningBoard).getByRole('heading', {
+        name: 'Nenhum semestre criado',
+      }),
+    ).toBeTruthy()
     fireEvent.focus(catalog)
     expect(
       screen.getByRole('listbox', { name: 'Opções de Catálogo da sugestão' }),

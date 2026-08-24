@@ -4,6 +4,7 @@ import { memo, useState } from 'react'
 
 import { insertCourseInPeriod } from '@pomi/planner-domain/curriculum'
 import { CompactCourseCard } from './CourseCard'
+import type { CoursePrerequisiteResolver } from './CourseCard'
 import type {
   Course,
   CurriculumPlannerSnapshot,
@@ -117,6 +118,7 @@ type SemesterRowProps = {
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   disabled: boolean
   dispatch: Dispatch
+  prerequisiteResolver?: CoursePrerequisiteResolver
 }
 
 export function SemesterRow(props: SemesterRowProps) {
@@ -136,6 +138,7 @@ const SemesterRowContent = memo(function SemesterRowContent({
   planningStart,
   disabled,
   dispatch,
+  prerequisiteResolver,
   isOver,
   setNodeRef,
 }: SemesterRowProps & {
@@ -147,9 +150,9 @@ const SemesterRowContent = memo(function SemesterRowContent({
   return (
     <article
       className={cn(
-        'grid overflow-hidden rounded-md border-2 border-strong-border bg-card shadow-[4px_4px_0_color-mix(in_srgb,var(--primary)_25%,transparent)] lg:grid-cols-[11rem_1fr_7rem]',
-        current && 'border-primary',
-        isOver && 'ring-4 ring-primary/40',
+        'relative grid bg-card lg:grid-cols-[11rem_1fr_7rem]',
+        current && 'bg-primary/5',
+        isOver && 'z-10 ring-4 ring-inset ring-primary/40',
       )}
     >
       <header className="flex items-center justify-between gap-2 border-b-2 border-border bg-primary/10 p-2 lg:border-r-2 lg:border-b-0">
@@ -217,12 +220,13 @@ const SemesterRowContent = memo(function SemesterRowContent({
       </header>
       <div
         ref={setNodeRef}
+        data-prerequisite-course-area
         className={cn(
-          'min-h-0 border-b-2 border-border p-2 lg:border-r-2 lg:border-b-0',
+          'min-h-0 border-b-2 border-border px-2 py-6 lg:border-r-2 lg:border-b-0',
           isOver && 'bg-primary/10',
         )}
       >
-        <div className="flex flex-wrap items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <AddCourseToSemesterDialog
             courseOptions={courseOptions}
             period={period}
@@ -246,6 +250,7 @@ const SemesterRowContent = memo(function SemesterRowContent({
                   planningStart={planningStart}
                   disabled={disabled}
                   dispatch={dispatch}
+                  prerequisiteResolver={prerequisiteResolver}
                 />
               ))}
             </>
@@ -372,6 +377,7 @@ type UnallocatedCoursesPanelProps = {
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   disabled: boolean
   dispatch: Dispatch
+  prerequisiteResolver?: CoursePrerequisiteResolver
 }
 
 export function UnallocatedCoursesPanel(props: UnallocatedCoursesPanelProps) {
@@ -394,6 +400,7 @@ const UnallocatedCoursesPanelContent = memo(
     planningStart,
     disabled,
     dispatch,
+    prerequisiteResolver,
     isOver,
     setNodeRef,
   }: UnallocatedCoursesPanelProps & {
@@ -401,7 +408,12 @@ const UnallocatedCoursesPanelContent = memo(
     setNodeRef: (node: HTMLElement | null) => void
   }) {
     return (
-      <article className="grid overflow-hidden rounded-md border-2 border-strong-border bg-card shadow-[4px_4px_0_color-mix(in_srgb,var(--primary)_25%,transparent)] lg:grid-cols-[11rem_1fr_7rem]">
+      <article
+        className={cn(
+          'relative grid bg-card lg:grid-cols-[11rem_1fr_7rem]',
+          isOver && 'z-10 ring-4 ring-inset ring-primary/40',
+        )}
+      >
         <header className="flex items-center border-b-2 border-border bg-primary/10 p-2 lg:border-r-2 lg:border-b-0">
           <div>
             <h3 className="whitespace-nowrap text-sm font-black">
@@ -411,12 +423,13 @@ const UnallocatedCoursesPanelContent = memo(
         </header>
         <div
           ref={setNodeRef}
+          data-prerequisite-course-area
           className={cn(
-            'min-h-0 border-b-2 border-border p-2 lg:border-r-2 lg:border-b-0',
+            'min-h-0 border-b-2 border-border px-2 py-6 lg:border-r-2 lg:border-b-0',
             isOver && 'bg-primary/10',
           )}
         >
-          <div className="flex flex-wrap items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
             <AddUnallocatedCourseDialog
               courseOptions={courseOptions}
               disabled={disabled}
@@ -434,6 +447,7 @@ const UnallocatedCoursesPanelContent = memo(
                 planningStart={planningStart}
                 disabled={disabled}
                 dispatch={dispatch}
+                prerequisiteResolver={prerequisiteResolver}
               />
             ))}
             {!courses.length && (

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SituacaoDoCursoRouteImport } from './routes/situacao-do-curso'
+import { Route as AmigosRouteImport } from './routes/amigos'
 import { Route as DesignSystemRouteImport } from './routes/[_]design-system'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlanejamentosDeSemestreIndexRouteImport } from './routes/planejamentos-de-semestre.index'
@@ -28,6 +29,11 @@ const SobreRoute = SobreRouteImport.update({
 const SituacaoDoCursoRoute = SituacaoDoCursoRouteImport.update({
   id: '/situacao-do-curso',
   path: '/situacao-do-curso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AmigosRoute = AmigosRouteImport.update({
+  id: '/amigos',
+  path: '/amigos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
@@ -80,6 +86,7 @@ const PlanejamentosDeCurriculoPlanejamentoIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/amigos': typeof AmigosRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
@@ -92,6 +99,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/amigos': typeof AmigosRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
@@ -105,6 +113,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/amigos': typeof AmigosRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
@@ -119,6 +128,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/_design-system'
+    | '/amigos'
     | '/situacao-do-curso'
     | '/sobre'
     | '/planejamentos-de-curriculo/$planejamentoId'
@@ -131,6 +141,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/_design-system'
+    | '/amigos'
     | '/situacao-do-curso'
     | '/sobre'
     | '/planejamentos-de-curriculo/$planejamentoId'
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_design-system'
+    | '/amigos'
     | '/situacao-do-curso'
     | '/sobre'
     | '/planejamentos-de-curriculo/$planejamentoId'
@@ -156,6 +168,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignSystemRoute: typeof DesignSystemRoute
+  AmigosRoute: typeof AmigosRoute
   SituacaoDoCursoRoute: typeof SituacaoDoCursoRoute
   SobreRoute: typeof SobreRoute
   PlanejamentosDeCurriculoPlanejamentoIdRoute: typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
@@ -180,6 +193,13 @@ declare module '@tanstack/react-router' {
       path: '/situacao-do-curso'
       fullPath: '/situacao-do-curso'
       preLoaderRoute: typeof SituacaoDoCursoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/amigos': {
+      id: '/amigos'
+      path: '/amigos'
+      fullPath: '/amigos'
+      preLoaderRoute: typeof AmigosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_design-system': {
@@ -244,6 +264,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignSystemRoute: DesignSystemRoute,
+  AmigosRoute: AmigosRoute,
   SituacaoDoCursoRoute: SituacaoDoCursoRoute,
   SobreRoute: SobreRoute,
   PlanejamentosDeCurriculoPlanejamentoIdRoute:

@@ -33,6 +33,7 @@ import {
 } from '@/semester-planner/data/semesterPlanningApi'
 import { ensureCurrentStudent } from '@/student/data/studentApi'
 import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
+import { studyPeriodLabel } from '@/student/data/studyPeriod'
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
 
 const steps = ['Identificação', 'Guia de disciplinas', 'Revisão']
@@ -252,7 +253,8 @@ export function SemesterPlanCreationPage() {
       const studyPeriod = staticQuery.data.studyPeriods.find(
         (item) =>
           item.id === parsed.semesterPlanning.studyPeriod.id ||
-          item.code === parsed.semesterPlanning.studyPeriod.code,
+          (item.year === parsed.semesterPlanning.studyPeriod.year &&
+            item.yearPeriod === parsed.semesterPlanning.studyPeriod.yearPeriod),
       )
       if (!studyPeriod) throw new Error('study-period')
       const data = await loadSemesterPlannerStaticData(studyPeriod.id)
@@ -364,7 +366,7 @@ export function SemesterPlanCreationPage() {
                 value={studyPeriodId}
                 options={mostRecentStudyPeriodsFirst(
                   staticQuery.data.studyPeriods,
-                ).map((item) => ({ value: String(item.id), label: item.code }))}
+                ).map((item) => ({ value: String(item.id), label: studyPeriodLabel(item) }))}
                 placeholder="Escolha o período"
                 onValueChange={setStudyPeriodId}
               />
@@ -503,7 +505,7 @@ export function SemesterPlanCreationPage() {
             />
             <dl className="divide-y divide-strong-border/20">
               <ReviewRow label="Nome" value={name} />
-              <ReviewRow label="Período" value={selectedPeriod?.code ?? ''} />
+              <ReviewRow label="Período" value={selectedPeriod ? studyPeriodLabel(selectedPeriod) : ''} />
               <ReviewRow
                 label="Guia"
                 value={

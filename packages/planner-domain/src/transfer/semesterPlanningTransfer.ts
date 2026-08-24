@@ -4,6 +4,18 @@ import type {
   SemesterPlanningGuide,
 } from '../semester/semesterPlanner'
 
+function periodCode(period: {
+  year: number
+  yearPeriod: 'FIRST_SEMESTER' | 'SECOND_SEMESTER' | 'SUMMER' | 'WINTER'
+}) {
+  return `${period.year}${({
+    FIRST_SEMESTER: 's1',
+    SECOND_SEMESTER: 's2',
+    SUMMER: 'v',
+    WINTER: 'i',
+  } as const)[period.yearPeriod]}`
+}
+
 export const semesterPlanningFileFormat = 'pomi-semester-planner'
 export const semesterPlanningFileVersion = 2
 
@@ -13,7 +25,11 @@ export type SemesterPlanningFileV2 = Readonly<{
   exportedAt: string
   semesterPlanning: Readonly<{
     name: string
-    studyPeriod: Readonly<{ id: number | null; code: string }>
+    studyPeriod: Readonly<{
+      id: number | null
+      year: number
+      yearPeriod: 'FIRST_SEMESTER' | 'SECOND_SEMESTER' | 'SUMMER' | 'WINTER'
+    }>
     curriculumId: number | null
     guide: SemesterPlanningGuide
     classes: ReadonlyArray<
@@ -52,7 +68,11 @@ export function serializeSemesterPlanning(
     exportedAt: new Date().toISOString(),
     semesterPlanning: {
       name: document.name,
-      studyPeriod: { id: studyPeriod.id, code: studyPeriod.code },
+      studyPeriod: {
+        id: studyPeriod.id,
+        year: studyPeriod.year,
+        yearPeriod: studyPeriod.yearPeriod,
+      },
       curriculumId: document.curriculumId,
       guide: document.guide,
       classes: document.classIds.flatMap((classId) => {
@@ -87,7 +107,9 @@ export function parseSemesterPlanning(
   if (
     !rawPlanning.studyPeriod ||
     typeof rawPlanning.studyPeriod !== 'object' ||
-    typeof (rawPlanning.studyPeriod as Record<string, unknown>).code !==
+    typeof (rawPlanning.studyPeriod as Record<string, unknown>).year !==
+      'number' ||
+    typeof (rawPlanning.studyPeriod as Record<string, unknown>).yearPeriod !==
       'string' ||
     !Array.isArray(rawPlanning.classes)
   )
@@ -103,10 +125,13 @@ export function resolveSemesterPlanningImport(
     staticData.studyPeriods.find(
       (item) =>
         item.id === file.semesterPlanning.studyPeriod.id &&
-        item.code === file.semesterPlanning.studyPeriod.code,
+        item.year === file.semesterPlanning.studyPeriod.year &&
+        item.yearPeriod === file.semesterPlanning.studyPeriod.yearPeriod,
     ) ??
     staticData.studyPeriods.find(
-      (item) => item.code === file.semesterPlanning.studyPeriod.code,
+      (item) =>
+        item.year === file.semesterPlanning.studyPeriod.year &&
+        item.yearPeriod === file.semesterPlanning.studyPeriod.yearPeriod,
     )
   if (!studyPeriod) return undefined
   const issues: Array<string> = []
@@ -152,7 +177,8 @@ export function resolveSemesterPlanningImport(
   return {
     document: {
       name:
-        file.semesterPlanning.name.trim() || `Planejamento ${studyPeriod.code}`,
+        file.semesterPlanning.name.trim() ||
+        `Planejamento ${periodCode(studyPeriod)}`,
       studyPeriodId: studyPeriod.id,
       curriculumId: file.semesterPlanning.curriculumId,
       classIds: [...new Set(classIds)],

@@ -11,7 +11,8 @@ export type SemesterPlannerError =
 
 export type StudyPeriod = Readonly<{
   id: number
-  code: string
+  year: number
+  yearPeriod: 'FIRST_SEMESTER' | 'SECOND_SEMESTER' | 'SUMMER' | 'WINTER'
   startDate: string
 }>
 
@@ -43,7 +44,7 @@ export type SemesterClass = Readonly<{
   code: string
   courseId: number
   courseCode: string
-  professors: ReadonlyArray<string>
+  professors: ReadonlyArray<Readonly<{ id: number; name: string }>>
 }>
 
 export type SemesterPlannerStaticData = Readonly<{

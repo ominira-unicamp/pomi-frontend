@@ -7,10 +7,12 @@ import {
   CheckCircle2,
   GraduationCap,
   LogIn,
+  MessageSquareHeart,
 } from 'lucide-react'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type { PersistedSemesterPlanning } from '@/semester-planner/data/semesterPlanningApi'
+import type { ProfessorEvaluationTarget } from '@/student/components/ProfessorEvaluationDialog'
 
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
@@ -30,13 +32,21 @@ import { listSemesterPlannings } from '@/semester-planner/data/semesterPlanningA
 import {
   ensureCurrentStudent,
   listClassSchedulesByStudyPeriod,
+  listPendingProfessorEvaluations,
   listStudentCourseAttempts,
 } from '@/student/data/studentApi'
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
 import { cn } from '@/lib/utils'
-import { AgendaPanel } from '@/home/AgendaPanel'
+import { AgendaPanel, DailyMealsPanel } from '@/home/AgendaPanel'
 import { currentStudyPeriodCode } from '@/home/todayClasses'
+import {
+  previousSemester,
+  studyPeriodFromCode,
+  studyPeriodLabel,
+} from '@/student/data/studyPeriod'
+import { ProfessorEvaluationDialog } from '@/student/components/ProfessorEvaluationDialog'
 import { useStudentAbsences } from '@/student/absences/useStudentAbsences'
+import { academicDateKey } from '@/student/absences/studentAbsences'
 
 const staticSource = createApiCurriculumPlannerStaticDataSource()
 
@@ -147,6 +157,12 @@ function AnonymousHome() {
           />
         </div>
       </section>
+      <section className="mt-8" aria-labelledby="daily-menu-title">
+        <h2 id="daily-menu-title" className="mb-4 text-xl font-extrabold">
+          Cardápio de hoje
+        </h2>
+        <DailyMealsPanel date={academicDateKey()} />
+      </section>
     </PageContainer>
   )
 }
@@ -173,7 +189,7 @@ function RecentSemesterPlan({ plan }: { plan: PersistedSemesterPlanning }) {
           {plan.name || `Horário ${plan.id}`}
         </h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          {plan.studyPeriodCode} · {plan.classes.length} turma
+          {studyPeriodLabel({ year: plan.studyPeriodYear, yearPeriod: plan.studyPeriodYearPeriod })} · {plan.classes.length} turma
           {plan.classes.length === 1 ? '' : 's'} · {credits} créditos
         </p>
       </Card>
@@ -186,6 +202,8 @@ function AuthenticatedHome() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [situationError, setSituationError] = useState(false)
+  const [evaluationTarget, setEvaluationTarget] =
+    useState<ProfessorEvaluationTarget>()
   const { studentId, studentQuery } = useStudentProfile()
   const attemptsQuery = useQuery({
     queryKey: ['course-situation', 'attempts', studentId],
@@ -237,13 +255,34 @@ function AuthenticatedHome() {
     auth.getAccessToken,
     enrolledAttempts.length > 0,
   )
-  const academicPeriodCode = currentStudyPeriodCode()
+  const academicPeriod = studyPeriodFromCode(currentStudyPeriodCode())
+  const priorSemester = academicPeriod ? previousSemester(academicPeriod) : null
+  const pendingEvaluationsQuery = useQuery({
+    queryKey: [
+      'professor-evaluations',
+      'pending',
+      studentId,
+      priorSemester?.year,
+      priorSemester?.yearPeriod,
+    ],
+    queryFn: () =>
+      listPendingProfessorEvaluations(
+        studentId!,
+        priorSemester as NonNullable<typeof priorSemester>,
+        auth.getAccessToken,
+      ),
+    enabled: Boolean(studentId && priorSemester),
+    retry: false,
+  })
   const currentPeriodAttempt = enrolledAttempts.find(
     (attempt) =>
-      attempt.studyPeriod?.code.toLocaleLowerCase() === academicPeriodCode,
+      academicPeriod !== null &&
+      attempt.studyPeriod !== null &&
+      attempt.studyPeriod.year === academicPeriod.year &&
+      attempt.studyPeriod.yearPeriod === academicPeriod.yearPeriod,
   )
   const currentPeriodId = currentPeriodAttempt?.studyPeriodId ?? null
-  const studyPeriodCode = academicPeriodCode
+  const studyPeriodCode = academicPeriod ? studyPeriodLabel(academicPeriod) : ''
   const todayScheduleQuery = useQuery({
     queryKey: [
       'course-situation',
@@ -282,6 +321,7 @@ function AuthenticatedHome() {
     0,
   )
   const latestSemesterPlan = semesterPlansQuery.data?.[0]
+  const pendingEvaluation = pendingEvaluationsQuery.data?.[0]
   async function openSituation() {
     setSituationError(false)
     try {
@@ -325,6 +365,38 @@ function AuthenticatedHome() {
         <LoadingState label="Preparando seu resumo" />
       ) : (
         <div className="space-y-8">
+          {pendingEvaluation && (
+            <Card className="border-primary bg-primary/5 p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex gap-3">
+                  <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
+                    <MessageSquareHeart className="size-5" />
+                  </span>
+                  <div>
+                    <h2 className="font-extrabold">Avalie seus professores</h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Sua experiência ajuda outros alunos a escolher turmas.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  className={linkClass()}
+                  onClick={() =>
+                    setEvaluationTarget({
+                      classId: pendingEvaluation.class.id,
+                      classCode: pendingEvaluation.class.code,
+                      courseCode: pendingEvaluation.course.code,
+                      courseName: pendingEvaluation.course.name,
+                      professorId: pendingEvaluation.professor.id,
+                      professorName: pendingEvaluation.professor.name,
+                    })
+                  }
+                >
+                  Avaliar agora <ArrowRight />
+                </button>
+              </div>
+            </Card>
+          )}
           {(hasDataError || situationError) && (
             <Alert variant="destructive">
               <AlertTitle>Parte do resumo não está disponível</AlertTitle>
@@ -455,6 +527,19 @@ function AuthenticatedHome() {
               </div>
             </section>
           )}
+          <ProfessorEvaluationDialog
+            open={Boolean(evaluationTarget)}
+            onOpenChange={(open) => {
+              if (!open) setEvaluationTarget(undefined)
+            }}
+            studentId={studentId ?? undefined}
+            target={evaluationTarget}
+            onSaved={() =>
+              void queryClient.invalidateQueries({
+                queryKey: ['professor-evaluations', 'pending', studentId],
+              })
+            }
+          />
         </div>
       )}
     </PageContainer>

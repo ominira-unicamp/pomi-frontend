@@ -1,3 +1,4 @@
+import type { StudyPeriodYearPeriod } from '@/student/data/studyPeriod'
 import type { StudentClassSchedule } from '@/student/data/studentApi'
 import { appApiRequest } from '@/api/client'
 import { expectApiResponse } from '@/api/errors'
@@ -10,7 +11,8 @@ export type StudentAbsence = Readonly<{
   createdAt: string
   updatedAt: string
   studyPeriodId: number
-  studyPeriodCode: string
+  studyPeriodYear: number
+  studyPeriodYearPeriod: StudyPeriodYearPeriod
   courseId: number
   courseCode: string
   classId: number

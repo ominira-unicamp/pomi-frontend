@@ -13,6 +13,12 @@ import {
 import { useEffect, useMemo, useState } from 'react'
 
 import type { CourseProfileValues } from '@/student/components/CourseProfilePanel'
+import type { StudyPeriodYearPeriod } from '@/student/data/studyPeriod'
+import type {
+  StudentCourseAttemptStatus,
+  StudentCourseEvaluationMode,
+} from '@/student/data/studentApi'
+import type { ProfessorEvaluationTarget } from '@/student/components/ProfessorEvaluationDialog'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { Button } from '@/components/ui/button'
 import {
@@ -33,6 +39,7 @@ import { createCurriculumCatalogDataSource } from '@/catalog/data/curriculumCata
 import {
   createStudentCourseAttempt,
   deleteStudentCourseAttempt,
+  getCourseEvaluationForStudyPeriod,
   listClassSchedulesByStudyPeriod,
   listClassesForStudentCourseAttempt,
   listStudentCourseAttempts,
@@ -42,26 +49,57 @@ import {
 } from '@/student/data/studentApi'
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
 import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
+import { studyPeriodLabel } from '@/student/data/studyPeriod'
 import { CourseProfilePanel } from '@/student/components/CourseProfilePanel'
 import { Card } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { StudentWeeklySchedule } from '@/student/components/StudentWeeklySchedule'
 import { StudentAbsencePanel } from '@/student/absences/StudentAbsencePanel'
 import { useStudentAbsences } from '@/student/absences/useStudentAbsences'
+import { ProfessorEvaluationDialog } from '@/student/components/ProfessorEvaluationDialog'
 
 const staticSource = createCurriculumCatalogDataSource()
-const statuses = [
-  ['ENROLLED', 'Cursando'],
-  ['COMPLETED', 'Concluída'],
-  ['FAILED', 'Reprovada'],
-  ['DROPPED', 'Desistida'],
-] as const
+const evaluationModes = [
+  ['GRADE_AND_ATTENDANCE', 'Nota e frequência'],
+  ['ATTENDANCE', 'Frequência'],
+  ['CONCEPT', 'Conceito'],
+] as const satisfies ReadonlyArray<
+  readonly [StudentCourseEvaluationMode, string]
+>
 
-type Status = (typeof statuses)[number][0]
+const statusesByEvaluationMode = {
+  GRADE_AND_ATTENDANCE: [
+    ['ENROLLED', 'Cursando'],
+    ['DROPPED', 'Desistida'],
+    ['APPROVED', 'Aprovada'],
+    ['FAILED_BY_GRADE', 'Reprovada por nota'],
+    ['FAILED_BY_ATTENDANCE', 'Reprovada por frequência'],
+  ],
+  ATTENDANCE: [
+    ['ENROLLED', 'Cursando'],
+    ['DROPPED', 'Desistida'],
+    ['APPROVED_BY_ATTENDANCE', 'Aprovada por frequência'],
+    ['FAILED_BY_ATTENDANCE', 'Reprovada por frequência'],
+  ],
+  CONCEPT: [
+    ['ENROLLED', 'Cursando'],
+    ['DROPPED', 'Desistida'],
+    ['SUFFICIENT', 'Suficiente'],
+    ['INSUFFICIENT', 'Insuficiente'],
+  ],
+} as const satisfies Record<
+  StudentCourseEvaluationMode,
+  ReadonlyArray<readonly [StudentCourseAttemptStatus, string]>
+>
+
 type SituationTab = 'course' | 'enrolled' | 'history'
 
-function labelForStatus(status: Status) {
-  return statuses.find(([value]) => value === status)?.[1] ?? status
+function labelForStatus(status: StudentCourseAttemptStatus) {
+  return (
+    Object.values(statusesByEvaluationMode)
+      .flat()
+      .find(([value]) => value === status)?.[1] ?? status
+  )
 }
 
 function TabCount({ value }: { value: number }) {
@@ -82,10 +120,14 @@ export function CourseSituationPage() {
   const [courseId, setCourseId] = useState('')
   const [studyPeriodId, setStudyPeriodId] = useState('')
   const [classId, setClassId] = useState('')
-  const [status, setStatus] = useState<Status | ''>('')
+  const [evaluationMode, setEvaluationMode] = useState<
+    StudentCourseEvaluationMode | ''
+  >('')
+  const [status, setStatus] = useState<StudentCourseAttemptStatus | ''>('')
   const [grade, setGrade] = useState('')
   const [attemptError, setAttemptError] = useState<string>()
   const [absenceAttemptId, setAbsenceAttemptId] = useState<number>()
+  const [evaluationTarget, setEvaluationTarget] = useState<ProfessorEvaluationTarget>()
 
   const { studentId, profileQuery } = useStudentProfile()
   const attemptsQuery = useQuery({
@@ -119,6 +161,33 @@ export function CourseSituationPage() {
     enabled: attemptDialogOpen && Boolean(courseId && studyPeriodId),
     staleTime: 5 * 60_000,
   })
+  const selectedAttemptPeriod = periodsQuery.data?.find(
+    (period) => String(period.id) === studyPeriodId,
+  )
+  const evaluationModeQuery = useQuery({
+    queryKey: [
+      'course-situation',
+      'course-evaluation',
+      courseId,
+      selectedAttemptPeriod?.year,
+    ],
+    queryFn: () =>
+      getCourseEvaluationForStudyPeriod(
+        Number(courseId),
+        selectedAttemptPeriod!.year,
+      ),
+    enabled: attemptDialogOpen && Boolean(courseId && selectedAttemptPeriod),
+    staleTime: Infinity,
+  })
+
+  useEffect(() => {
+    if (!studyPeriodId) return
+    if (evaluationModeQuery.isSuccess) {
+      setEvaluationMode(evaluationModeQuery.data ?? '')
+      setStatus('')
+      setGrade('')
+    }
+  }, [evaluationModeQuery.data, evaluationModeQuery.isSuccess, studyPeriodId])
 
   const programs = staticQuery.data?.catalogPrograms ?? []
   const attempts = attemptsQuery.data ?? []
@@ -142,7 +211,12 @@ export function CourseSituationPage() {
     )
     const periods = new Map<
       number,
-      { id: number; code: string; startDate: string }
+      {
+        id: number
+        year: number
+        yearPeriod: StudyPeriodYearPeriod
+        startDate: string
+      }
     >()
     for (const attempt of attempts) {
       if (attempt.status !== 'ENROLLED' || !attempt.studyPeriodId) continue
@@ -150,7 +224,8 @@ export function CourseSituationPage() {
         attempt.studyPeriodId,
         availablePeriods.get(attempt.studyPeriodId) ?? {
           id: attempt.studyPeriodId,
-          code: attempt.studyPeriod?.code ?? String(attempt.studyPeriodId),
+          year: attempt.studyPeriod?.year ?? 0,
+          yearPeriod: attempt.studyPeriod?.yearPeriod ?? 'FIRST_SEMESTER',
           startDate: '',
         },
       )
@@ -207,13 +282,19 @@ export function CourseSituationPage() {
     for (const attempt of attempts.filter(
       (item) => item.status !== 'ENROLLED',
     )) {
-      const label = attempt.studyPeriod?.code ?? 'Período não informado'
+      const label = attempt.studyPeriod
+        ? studyPeriodLabel(attempt.studyPeriod)
+        : 'Período não informado'
       entries.set(label, [...(entries.get(label) ?? []), attempt])
     }
     return [...entries.entries()]
   }, [attempts])
   const normalizedGrade = grade.trim().replace(',', '.')
   const numericGrade = normalizedGrade ? Number(normalizedGrade) : null
+  const availableStatuses = evaluationMode
+    ? statusesByEvaluationMode[evaluationMode]
+    : []
+  const acceptsGrade = evaluationMode === 'GRADE_AND_ATTENDANCE'
   const gradeError =
     numericGrade !== null &&
     (!Number.isFinite(numericGrade) || numericGrade < 0 || numericGrade > 10)
@@ -225,6 +306,7 @@ export function CourseSituationPage() {
     setCourseId('')
     setStudyPeriodId('')
     setClassId('')
+    setEvaluationMode('')
     setStatus('')
     setGrade('')
     setAttemptError(undefined)
@@ -235,24 +317,32 @@ export function CourseSituationPage() {
     setCourseId(String(attempt.courseId))
     setStudyPeriodId(attempt.studyPeriodId ? String(attempt.studyPeriodId) : '')
     setClassId(attempt.classId ? String(attempt.classId) : '')
+    setEvaluationMode(attempt.evaluationMode)
     setStatus(attempt.status)
     setGrade(attempt.grade === null ? '' : String(attempt.grade))
     setAttemptDialogOpen(true)
   }
 
-  function openNewAttempt(initialStatus?: Status) {
+  function openNewAttempt(initialStatus?: StudentCourseAttemptStatus) {
     resetAttempt()
     setStatus(initialStatus ?? '')
     setAttemptDialogOpen(true)
   }
 
   async function saveAttempt() {
-    if (!studentId || !status || gradeError) return
+    if (
+      !studentId ||
+      !status ||
+      !evaluationMode ||
+      gradeError
+    )
+      return
     const body = {
       studyPeriodId: studyPeriodId ? Number(studyPeriodId) : null,
       classId: classId ? Number(classId) : null,
+      evaluationMode,
       status,
-      grade: numericGrade,
+      grade: acceptsGrade ? numericGrade : null,
     }
     setAttemptError(undefined)
     try {
@@ -336,6 +426,26 @@ export function CourseSituationPage() {
               <CalendarDays /> Aulas e faltas
             </Button>
           )}
+          {attempt.status !== 'ENROLLED' &&
+            attempt.class?.professors.map((professor) => (
+              <Button
+                key={professor.id}
+                className="flex-1 sm:flex-none"
+                size="sm"
+                onClick={() =>
+                  setEvaluationTarget({
+                    classId: attempt.class!.id,
+                    classCode: attempt.class!.code,
+                    courseCode: attempt.course.code,
+                    courseName: attempt.course.name,
+                    professorId: professor.id,
+                    professorName: professor.name,
+                  })
+                }
+              >
+                Avaliar {professor.name}
+              </Button>
+            ))}
           <Button
             className="flex-1 sm:flex-none"
             size="sm"
@@ -489,7 +599,7 @@ export function CourseSituationPage() {
                         value={selectedSchedulePeriodId}
                         options={enrolledPeriods.map((period) => ({
                           value: String(period.id),
-                          label: period.code,
+                          label: studyPeriodLabel(period),
                         }))}
                         placeholder="Escolha o período"
                         onValueChange={setSelectedSchedulePeriodId}
@@ -498,7 +608,7 @@ export function CourseSituationPage() {
                   ) : (
                     enrolledPeriods[0] && (
                       <p className="rounded-md border-2 border-strong-border bg-card px-3 py-2 text-sm font-bold">
-                        {enrolledPeriods[0].code}
+                        {studyPeriodLabel(enrolledPeriods[0])}
                       </p>
                     )
                   )}
@@ -607,7 +717,7 @@ export function CourseSituationPage() {
               description="Registre disciplinas concluídas, reprovadas ou desistidas."
               action={{
                 label: 'Registrar tentativa anterior',
-                onClick: () => openNewAttempt('COMPLETED'),
+                onClick: () => openNewAttempt(),
               }}
             />
           )}
@@ -633,11 +743,22 @@ export function CourseSituationPage() {
           </DialogHeader>
           <div className="space-y-3">
             <AutocompleteSelect
-              ariaLabel="Situação"
-              value={status}
-              options={statuses.map(([value, label]) => ({ value, label }))}
-              placeholder="Escolha a situação"
-              onValueChange={(value) => setStatus(value as Status)}
+              ariaLabel="Período letivo"
+              value={studyPeriodId}
+              options={mostRecentStudyPeriodsFirst(periodsQuery.data ?? []).map(
+                (period) => ({
+                  value: String(period.id),
+                  label: studyPeriodLabel(period),
+                }),
+              )}
+              placeholder="Escolha o período (opcional)"
+              onValueChange={(value) => {
+                setStudyPeriodId(value)
+                setClassId('')
+                setEvaluationMode('')
+                setStatus('')
+                setGrade('')
+              }}
             />
             {!editingAttemptId && (
               <AutocompleteSelect
@@ -651,24 +772,14 @@ export function CourseSituationPage() {
                 onValueChange={(value) => {
                   setCourseId(value)
                   setClassId('')
+                  if (studyPeriodId) {
+                    setEvaluationMode('')
+                    setStatus('')
+                    setGrade('')
+                  }
                 }}
               />
             )}
-            <AutocompleteSelect
-              ariaLabel="Período letivo"
-              value={studyPeriodId}
-              options={mostRecentStudyPeriodsFirst(periodsQuery.data ?? []).map(
-                (period) => ({
-                  value: String(period.id),
-                  label: period.code,
-                }),
-              )}
-              placeholder="Escolha o período (opcional)"
-              onValueChange={(value) => {
-                setStudyPeriodId(value)
-                setClassId('')
-              }}
-            />
             <AutocompleteSelect
               ariaLabel="Turma (opcional)"
               value={classId}
@@ -685,19 +796,68 @@ export function CourseSituationPage() {
               disabled={!courseId || !studyPeriodId || classesQuery.isLoading}
               onValueChange={setClassId}
             />
-            <label className="block text-sm font-bold">
-              Nota (quando houver)
-              <input
-                value={grade}
-                onChange={(event) => {
-                  setGrade(event.target.value)
-                  setAttemptError(undefined)
-                }}
-                inputMode="decimal"
-                aria-invalid={Boolean(gradeError)}
-                className="mt-1 h-10 w-full rounded-md border-2 border-strong-border bg-background px-3"
-              />
-            </label>
+            <AutocompleteSelect
+              ariaLabel="Modalidade de avaliação"
+              value={evaluationMode}
+              options={evaluationModes.map(([value, label]) => ({
+                value,
+                label,
+              }))}
+              placeholder={
+                evaluationModeQuery.isLoading
+                  ? 'Carregando modalidade do catálogo'
+                  : studyPeriodId
+                    ? 'Modalidade não encontrada no catálogo'
+                    : 'Escolha a modalidade de avaliação'
+              }
+              disabled={Boolean(studyPeriodId) || evaluationModeQuery.isLoading}
+              onValueChange={(value) => {
+                setEvaluationMode(value as StudentCourseEvaluationMode)
+                setStatus('')
+                setGrade('')
+              }}
+            />
+            {studyPeriodId &&
+              !evaluationModeQuery.isLoading &&
+              !evaluationMode && (
+                <p className="text-sm text-muted-foreground">
+                  Não há modalidade de avaliação cadastrada para esta disciplina
+                  no catálogo do período escolhido.
+                </p>
+              )}
+            <AutocompleteSelect
+              ariaLabel="Resultado da tentativa"
+              value={status}
+              options={availableStatuses.map(([value, label]) => ({
+                value,
+                label,
+              }))}
+              placeholder={
+                evaluationMode
+                  ? 'Escolha o resultado'
+                  : 'Aguarde a modalidade de avaliação'
+              }
+              disabled={!evaluationMode}
+              onValueChange={(value) => {
+                setStatus(value as StudentCourseAttemptStatus)
+                if (!acceptsGrade) setGrade('')
+              }}
+            />
+            {acceptsGrade && (
+              <label className="block text-sm font-bold">
+                Nota final (opcional)
+                <input
+                  value={grade}
+                  onChange={(event) => {
+                    setGrade(event.target.value)
+                    setAttemptError(undefined)
+                  }}
+                  inputMode="decimal"
+                  aria-invalid={Boolean(gradeError)}
+                  className="mt-1 h-10 w-full rounded-md border-2 border-strong-border bg-background px-3"
+                />
+              </label>
+            )}
             {gradeError && (
               <p
                 className="text-sm font-semibold text-destructive"
@@ -718,6 +878,7 @@ export function CourseSituationPage() {
               className="w-full"
               disabled={
                 !status ||
+                !evaluationMode ||
                 Boolean(gradeError) ||
                 (!editingAttemptId && !courseId)
               }
@@ -728,6 +889,14 @@ export function CourseSituationPage() {
           </div>
         </DialogContent>
       </Dialog>
+      <ProfessorEvaluationDialog
+        open={Boolean(evaluationTarget)}
+        onOpenChange={(open) => {
+          if (!open) setEvaluationTarget(undefined)
+        }}
+        studentId={studentId}
+        target={evaluationTarget}
+      />
     </PageContainer>
   )
 }

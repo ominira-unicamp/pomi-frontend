@@ -23,18 +23,26 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { periodTitle } from '@pomi/planner-domain/curriculum'
+import { useQuery } from '@tanstack/react-query'
+import {
+  evaluatePrerequisites,
+  periodTitle,
+} from '@pomi/planner-domain/curriculum'
 import {
   parsePlanning,
   resolvePlanningImport,
 } from '@pomi/planner-domain/transfer'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 
-import type { PlannerDragData } from '@/planner/components/CourseCard'
+import type {
+  CoursePrerequisiteResolver,
+  PlannerDragData,
+} from '@/planner/components/CourseCard'
 import type { CurriculumSummary } from '@/planner/data/curriculumPersistenceApi'
 import type {
+  CourseId,
   CurriculumPlannerStaticData,
   PlannerError,
 } from '@pomi/planner-domain/curriculum'
@@ -76,6 +84,7 @@ import {
   UnallocatedCoursesPanel,
 } from '@/planner/components/SemesterBoard'
 import { CompactVisual } from '@/planner/components/CourseCard'
+import { PrerequisiteGraph } from '@/planner/components/PrerequisiteGraph'
 import { suggestionOnboardingPreferenceKey } from '@/planner/data/curriculumSuggestionApi'
 import { useCurriculumPlanner } from '@/planner/CurriculumPlannerProvider'
 import { useOptionalAuth } from '@/auth/AuthProvider'
@@ -83,6 +92,11 @@ import { saveDraftHandoff } from '@/planner/data/planningDraftHandoff'
 import { downloadPlanning } from '@/planner/data/planningPlatform'
 import { buildPlannerViewModel } from '@/planner/viewModel'
 import { commandForCourseDrop } from '@/planner/dnd'
+import {
+  CurrentCatalogUnavailableError,
+  currentCatalogYear,
+  loadCurrentYearPrerequisites,
+} from '@/planner/data/curriculumPrerequisiteApi'
 
 const dragMeasuring = {
   droppable: { strategy: MeasuringStrategy.BeforeDragging },
@@ -210,6 +224,76 @@ export function CurriculumPlannerPage({
     [planner.snapshot, planner.staticData],
   )
   const [activeDrag, setActiveDrag] = useState<PlannerDragData>()
+  const prerequisiteBoardRef = useRef<HTMLDivElement>(null)
+  const [showPrerequisiteRelations, setShowPrerequisiteRelations] =
+    useState(true)
+  const [
+    preferredPrerequisiteAlternatives,
+    setPreferredPrerequisiteAlternatives,
+  ] = useState<ReadonlyMap<CourseId, string>>(() => new Map())
+  const prerequisiteYear = currentCatalogYear()
+  const prerequisitesQuery = useQuery({
+    queryKey: ['curriculum-planner', 'prerequisites', prerequisiteYear],
+    queryFn: () => loadCurrentYearPrerequisites(),
+    enabled: Boolean(planner.snapshot && planner.staticData),
+    staleTime: Infinity,
+  })
+  const prerequisiteEvaluation = useMemo(
+    () =>
+      planner.snapshot && planner.staticData && prerequisitesQuery.data
+        ? evaluatePrerequisites({
+            snapshot: planner.snapshot,
+            courses: planner.staticData.courses,
+            rules: prerequisitesQuery.data.rules,
+            preferredAlternatives: preferredPrerequisiteAlternatives,
+          })
+        : undefined,
+    [
+      planner.snapshot,
+      planner.staticData,
+      preferredPrerequisiteAlternatives,
+      prerequisitesQuery.data,
+    ],
+  )
+  const currentCatalogCourseIds = useMemo(
+    () => new Set(prerequisitesQuery.data?.courseIds ?? []),
+    [prerequisitesQuery.data?.courseIds],
+  )
+  const changePrerequisiteAlternative = useCallback(
+    (courseId: CourseId, key?: string) => {
+      setPreferredPrerequisiteAlternatives((current) => {
+        const next = new Map(current)
+        if (key) next.set(courseId, key)
+        else next.delete(courseId)
+        return next
+      })
+    },
+    [],
+  )
+  const prerequisiteResolver = useCallback<CoursePrerequisiteResolver>(
+    (courseId) => ({
+      year: prerequisiteYear,
+      status: prerequisitesQuery.isPending
+        ? 'loading'
+        : prerequisitesQuery.isError
+          ? 'error'
+          : currentCatalogCourseIds.has(courseId)
+            ? 'ready'
+            : 'notInCatalog',
+      evaluation: prerequisiteEvaluation?.courses.get(courseId),
+      preferredAlternativeKey: preferredPrerequisiteAlternatives.get(courseId),
+      onAlternativeChange: changePrerequisiteAlternative,
+    }),
+    [
+      changePrerequisiteAlternative,
+      currentCatalogCourseIds,
+      preferredPrerequisiteAlternatives,
+      prerequisiteEvaluation,
+      prerequisiteYear,
+      prerequisitesQuery.isError,
+      prerequisitesQuery.isPending,
+    ],
+  )
   const studentDefaultsApplied = useRef<string | undefined>(undefined)
   const [importError, setImportError] = useState<'parse' | 'dispatch'>()
   const [selectionError, setSelectionError] = useState(false)
@@ -230,6 +314,9 @@ export function CurriculumPlannerPage({
       }
     })
   const importInputRef = useRef<HTMLInputElement>(null)
+  useEffect(() => {
+    setPreferredPrerequisiteAlternatives(new Map())
+  }, [planner.activeCurriculumId])
   useEffect(() => {
     if (!planner.snapshot || !planner.staticData || !planner.studentProfile)
       return
@@ -816,6 +903,18 @@ export function CurriculumPlannerPage({
           <AlertDescription>{errorText(planner.error)}</AlertDescription>
         </Alert>
       )}
+      {prerequisitesQuery.isError && (
+        <Alert className="mb-6">
+          <AlertTitle>
+            Pré-requisitos indisponíveis para {prerequisiteYear}
+          </AlertTitle>
+          <AlertDescription>
+            {prerequisitesQuery.error instanceof CurrentCatalogUnavailableError
+              ? `O catálogo de ${prerequisiteYear} ainda não está disponível.`
+              : 'Não foi possível carregar as relações agora. O planejamento continua disponível.'}
+          </AlertDescription>
+        </Alert>
+      )}
       <DndContext
         sensors={sensors}
         measuring={dragMeasuring}
@@ -845,6 +944,20 @@ export function CurriculumPlannerPage({
               Semestres
             </h2>
             <div className="flex flex-wrap justify-end gap-2">
+              <ActionTooltip content="Mostre ou oculte as relações de pré-requisito entre as disciplinas planejadas.">
+                <Button
+                  variant="outline"
+                  aria-pressed={showPrerequisiteRelations}
+                  disabled={!prerequisiteEvaluation?.links.length}
+                  onClick={() =>
+                    setShowPrerequisiteRelations((current) => !current)
+                  }
+                >
+                  {showPrerequisiteRelations
+                    ? 'Ocultar relações'
+                    : 'Mostrar relações'}
+                </Button>
+              </ActionTooltip>
               <PlanningStartDialog
                 year={snapshot.plan.planningStart?.year}
                 semester={snapshot.plan.planningStart?.semester}
@@ -864,39 +977,58 @@ export function CurriculumPlannerPage({
               </ActionTooltip>
             </div>
           </div>
-          <div className="space-y-4">
-            <UnallocatedCoursesPanel
-              courses={plannerView.completedCourses}
-              credits={plannerView.completedCredits}
-              courseOptions={plannerView.courseOptions}
-              periods={periods}
-              planningStart={snapshot.plan.planningStart}
-              disabled={planner.isDispatching}
-              dispatch={planner.dispatch}
+          <div ref={prerequisiteBoardRef} className="relative">
+            <PrerequisiteGraph
+              rootRef={prerequisiteBoardRef}
+              links={prerequisiteEvaluation?.links ?? []}
+              visible={showPrerequisiteRelations && !activeDrag}
             />
-            {periods.length ? (
-              plannerView.semesters.map((semester, index) => (
-                <SemesterRow
-                  key={semester.period.id}
-                  semester={semester}
-                  title={periodTitle(index, snapshot.plan.planningStart)}
-                  periods={periods}
-                  courseOptions={plannerView.courseOptions}
-                  planningStart={snapshot.plan.planningStart}
-                  disabled={planner.isDispatching}
-                  dispatch={planner.dispatch}
-                />
-              ))
-            ) : (
-              <EmptyState
-                title="Nenhum semestre criado"
-                description="Adicione o primeiro semestre para começar a distribuir as disciplinas."
-                action={{
-                  label: 'Adicionar primeiro semestre',
-                  onClick: addSemester,
-                }}
+            <div
+              role="region"
+              aria-label="Planejamento por semestre"
+              className="divide-y-2 divide-strong-border overflow-hidden rounded-md border-2 border-strong-border bg-card shadow-[4px_4px_0_color-mix(in_srgb,var(--primary)_25%,transparent)]"
+            >
+              <UnallocatedCoursesPanel
+                courses={plannerView.completedCourses}
+                credits={plannerView.completedCredits}
+                courseOptions={plannerView.courseOptions}
+                periods={periods}
+                planningStart={snapshot.plan.planningStart}
+                disabled={planner.isDispatching}
+                dispatch={planner.dispatch}
+                prerequisiteResolver={prerequisiteResolver}
               />
-            )}
+              {periods.length ? (
+                plannerView.semesters.map((semester, index) => (
+                  <SemesterRow
+                    key={semester.period.id}
+                    semester={semester}
+                    title={periodTitle(index, snapshot.plan.planningStart)}
+                    periods={periods}
+                    courseOptions={plannerView.courseOptions}
+                    planningStart={snapshot.plan.planningStart}
+                    disabled={planner.isDispatching}
+                    dispatch={planner.dispatch}
+                    prerequisiteResolver={prerequisiteResolver}
+                  />
+                ))
+              ) : (
+                <section className="grid min-h-32 place-items-center px-6 py-8 text-center">
+                  <div>
+                    <h3 className="text-base font-extrabold">
+                      Nenhum semestre criado
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Adicione o primeiro semestre para começar a distribuir as
+                      disciplinas.
+                    </p>
+                    <Button className="mt-4" onClick={addSemester}>
+                      <Plus /> Adicionar primeiro semestre
+                    </Button>
+                  </div>
+                </section>
+              )}
+            </div>
           </div>
         </section>
         {!showSuggestionOnboarding && (
@@ -913,6 +1045,7 @@ export function CurriculumPlannerPage({
             snapshot={snapshot}
             disabled={planner.isDispatching}
             dispatch={planner.dispatch}
+            prerequisiteResolver={prerequisiteResolver}
           />
         ) : (
           <Card className="mb-7 border-dashed shadow-none">

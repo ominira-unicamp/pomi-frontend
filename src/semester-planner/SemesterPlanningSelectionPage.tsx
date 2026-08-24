@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 
 import type { PersistedSemesterPlanning } from '@/semester-planner/data/semesterPlanningApi'
+import { studyPeriodLabel } from '@/student/data/studyPeriod'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
   EmptyState,
@@ -125,7 +126,7 @@ export function SemesterPlanningSelectionPage() {
                   <div className="mt-5 flex items-center justify-between gap-3 border-t border-strong-border/30 pt-4 text-xs font-semibold text-muted-foreground">
                     <span className="inline-flex items-center gap-1.5">
                       <BookOpen className="size-3.5" />
-                      {plan.studyPeriodCode}
+                      {studyPeriodLabel({ year: plan.studyPeriodYear, yearPeriod: plan.studyPeriodYearPeriod })}
                     </span>
                     <span className="inline-flex items-center gap-1.5 text-right">
                       <GraduationCap className="size-3.5" />

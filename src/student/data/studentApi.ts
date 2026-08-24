@@ -1,3 +1,4 @@
+import type { StudyPeriodYearPeriod } from '@/student/data/studyPeriod'
 import { appApiRequest, dataApiRequest } from '@/api/client'
 import { expectApiResponse } from '@/api/errors'
 
@@ -13,25 +14,95 @@ export type StudentProfile = Readonly<{
 
 export type StudentCourseAttempt = Readonly<{
   id: number
+  studentId: number
   courseId: number
   studyPeriodId: number | null
   classId: number | null
-  status: 'ENROLLED' | 'COMPLETED' | 'FAILED' | 'DROPPED'
+  evaluationMode: StudentCourseEvaluationMode
+  status: StudentCourseAttemptStatus
   grade: number | null
-  course: Readonly<{ id: number; code: string; name: string; credits: number }>
-  studyPeriod: Readonly<{ id: number; code: string }> | null
+  createdAt: string
+  updatedAt: string
+  course: Readonly<{
+    id: number
+    code: string
+    name: string
+    credits: number
+    unit: Readonly<{ id: number; code: string }> | null
+  }>
+  studyPeriod: Readonly<{
+    id: number
+    year: number
+    yearPeriod: StudyPeriodYearPeriod
+  }> | null
   class: Readonly<{
     id: number
     code: string
     professors: ReadonlyArray<Readonly<{ id: number; name: string }>>
   }> | null
+  _paths: Readonly<{
+    self: string
+    student: string
+    course: string
+    studyPeriod: string | null
+    class: string | null
+  }>
 }>
+
+export type StudentCourseEvaluationMode =
+  | 'GRADE_AND_ATTENDANCE'
+  | 'ATTENDANCE'
+  | 'CONCEPT'
+
+export type StudentCourseAttemptStatus =
+  | 'ENROLLED'
+  | 'DROPPED'
+  | 'APPROVED'
+  | 'FAILED_BY_GRADE'
+  | 'APPROVED_BY_ATTENDANCE'
+  | 'FAILED_BY_ATTENDANCE'
+  | 'SUFFICIENT'
+  | 'INSUFFICIENT'
+
+export type ProfessorEvaluation = Readonly<{
+  id: number
+  studentId: number
+  classId: number
+  professorId: number
+  wouldTakeAgain: number
+  fairness: number
+  clarity: number
+  difficulty: number
+  createdAt: string
+  updatedAt: string
+}>
+
+export type ProfessorEvaluationEligibility = Readonly<{
+  eligible: boolean
+  evaluation: ProfessorEvaluation | null
+}>
+
+export type PendingProfessorEvaluation = Readonly<{
+  attemptId: number
+  class: Readonly<{ id: number; code: string }>
+  course: Readonly<{ id: number; code: string; name: string }>
+  professor: Readonly<{ id: number; name: string }>
+}>
+
+export function isApprovedStudentCourseAttempt(
+  attempt: Pick<StudentCourseAttempt, 'status'>,
+) {
+  return ['APPROVED', 'APPROVED_BY_ATTENDANCE', 'SUFFICIENT'].includes(
+    attempt.status,
+  )
+}
 
 export type StudentCourseAttemptClass = Readonly<{
   id: number
   code: string
   courseId: number
   studyPeriodId: number
+  studyPeriodYear: number
   professors: ReadonlyArray<Readonly<{ id: number; name: string }>>
 }>
 
@@ -56,8 +127,18 @@ export type StudentClassSchedule = Readonly<{
 
 export type StudyPeriod = Readonly<{
   id: number
-  code: string
+  year: number
+  yearPeriod: StudyPeriodYearPeriod
   startDate: string
+}>
+
+type ApiPage<T> = Readonly<{
+  data: ReadonlyArray<T>
+  _paths: Readonly<{ next: string | null }>
+}>
+
+type CatalogCourseEvaluation = Readonly<{
+  evaluation: StudentCourseEvaluationMode | null
 }>
 
 async function requestJson<T>(
@@ -151,6 +232,18 @@ async function listPublicPages<T>(initialPath: string) {
   return items
 }
 
+export async function getCourseEvaluationForStudyPeriod(
+  courseId: number,
+  year: number,
+): Promise<StudentCourseEvaluationMode | null> {
+  const response = await dataApiRequest(
+    `/catalog-courses?courseId=${courseId}&catalogYear=${year}&page=1&pageSize=1`,
+  )
+  await expectApiResponse(response)
+  const page = (await response.json()) as ApiPage<CatalogCourseEvaluation>
+  return page.data[0]?.evaluation ?? null
+}
+
 export async function listClassesForStudentCourseAttempt(
   courseId: number,
   studyPeriodId: number,
@@ -176,6 +269,49 @@ export function listStudentCourseAttempts(
   )
 }
 
+export function getProfessorEvaluation(
+  studentId: number,
+  classId: number,
+  professorId: number,
+  getAccessToken: () => Promise<string>,
+) {
+  return requestJson<ProfessorEvaluationEligibility>(
+    `/student/${studentId}/classes/${classId}/professors/${professorId}/evaluation`,
+    getAccessToken,
+  )
+}
+
+export function putProfessorEvaluation(
+  studentId: number,
+  classId: number,
+  professorId: number,
+  body: Pick<
+    ProfessorEvaluation,
+    'wouldTakeAgain' | 'fairness' | 'clarity' | 'difficulty'
+  >,
+  getAccessToken: () => Promise<string>,
+) {
+  return requestJson<ProfessorEvaluation>(
+    `/student/${studentId}/classes/${classId}/professors/${professorId}/evaluation`,
+    getAccessToken,
+    { method: 'PUT', body: JSON.stringify(body) },
+  )
+}
+
+export function listPendingProfessorEvaluations(
+  studentId: number,
+  period: Readonly<{
+    year: number
+    yearPeriod: 'FIRST_SEMESTER' | 'SECOND_SEMESTER'
+  }>,
+  getAccessToken: () => Promise<string>,
+) {
+  return requestJson<ReadonlyArray<PendingProfessorEvaluation>>(
+    `/student/${studentId}/professor-evaluations/pending?year=${period.year}&yearPeriod=${period.yearPeriod}`,
+    getAccessToken,
+  )
+}
+
 export async function listCompletedCourseIds(
   studentId: number,
   getAccessToken: () => Promise<string>,
@@ -184,7 +320,7 @@ export async function listCompletedCourseIds(
   return [
     ...new Set(
       attempts
-        .filter((attempt) => attempt.status === 'COMPLETED')
+        .filter(isApprovedStudentCourseAttempt)
         .map((attempt) => String(attempt.courseId)),
     ),
   ]
@@ -196,6 +332,7 @@ export function createStudentCourseAttempt(
     courseId: number
     studyPeriodId?: number | null
     classId?: number | null
+    evaluationMode?: StudentCourseEvaluationMode
     status: StudentCourseAttempt['status']
     grade?: number | null
   }>,
@@ -212,7 +349,10 @@ export function patchStudentCourseAttempt(
   studentId: number,
   attemptId: number,
   body: Partial<
-    Pick<StudentCourseAttempt, 'studyPeriodId' | 'classId' | 'status' | 'grade'>
+    Pick<
+      StudentCourseAttempt,
+      'studyPeriodId' | 'classId' | 'evaluationMode' | 'status' | 'grade'
+    >
   >,
   getAccessToken: () => Promise<string>,
 ) {
@@ -246,7 +386,8 @@ export async function setCourseCompleted(
   const attempts = await listStudentCourseAttempts(studentId, getAccessToken)
   const completedAttempts = attempts.filter(
     (attempt) =>
-      attempt.courseId === Number(courseId) && attempt.status === 'COMPLETED',
+      attempt.courseId === Number(courseId) &&
+      isApprovedStudentCourseAttempt(attempt),
   )
   if (!completed) {
     const latest = completedAttempts.at(0)
@@ -260,7 +401,9 @@ export async function setCourseCompleted(
     {
       courseId: Number(courseId),
       studyPeriodId: completion?.studyPeriodId ?? null,
-      status: 'COMPLETED',
+      evaluationMode:
+        completion?.grade == null ? 'ATTENDANCE' : 'GRADE_AND_ATTENDANCE',
+      status: completion?.grade == null ? 'APPROVED_BY_ATTENDANCE' : 'APPROVED',
       grade: completion?.grade ?? null,
     },
     getAccessToken,

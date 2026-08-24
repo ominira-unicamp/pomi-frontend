@@ -14,6 +14,7 @@ import type {
   SemesterCourse,
   SemesterPlannerCommand,
 } from '@pomi/planner-domain/semester'
+import type { ProfessorEvaluationSummary } from '@/semester-planner/data/semesterPlanningApi'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'
 
@@ -32,6 +33,7 @@ export function ClassesGuidePanel({
   onDaysChange,
   guideClassContext,
   guideClassContextKey,
+  professorEvaluationSummaries,
   onDispatch,
   onPreview,
 }: {
@@ -49,6 +51,10 @@ export function ClassesGuidePanel({
   onDaysChange: (day: string) => void
   guideClassContext: GuideClassContext
   guideClassContextKey: string
+  professorEvaluationSummaries: ReadonlyMap<
+    number,
+    ProfessorEvaluationSummary
+  >
   onDispatch: (command: SemesterPlannerCommand) => void
   onPreview: (classId: number | undefined) => void
 }) {
@@ -248,9 +254,35 @@ export function ClassesGuidePanel({
                   {course?.code ?? classItem.courseCode} · Turma{' '}
                   {classItem.code}
                 </h3>
-                <p className="text-xs text-muted-foreground">
-                  {classItem.professors.join(', ') || 'Professor não informado'}
-                </p>
+                {classItem.professors.length ? (
+                  <div className="mt-1 space-y-2">
+                    {classItem.professors.map((professor) => {
+                      const summary = professorEvaluationSummaries.get(
+                        professor.id,
+                      )
+                      return (
+                        <div key={professor.id} className="text-xs">
+                          <p className="text-muted-foreground">
+                            {professor.name}
+                          </p>
+                          {summary && (
+                            <p className="mt-1 text-foreground">
+                              {summary.responseCount} avaliações · Voltaria{' '}
+                              {summary.wouldTakeAgain.toFixed(1)} · Justiça{' '}
+                              {summary.fairness.toFixed(1)} · Clareza{' '}
+                              {summary.clarity.toFixed(1)} · Dificuldade{' '}
+                              {summary.difficulty.toFixed(1)}
+                            </p>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-xs text-muted-foreground">
+                    Professor não informado
+                  </p>
+                )}
               </div>
               <Button
                 size="sm"
