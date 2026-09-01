@@ -143,6 +143,7 @@ export function CurriculumPlannerProvider({
   const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const saveQueue = useRef(Promise.resolve())
   const remoteDocument = useRef<CurriculumDocument | undefined>(undefined)
+  const persistedPeriodIds = useRef(new Map<string, number>())
 
   const { remoteQuery, studentProfileQuery } = useCurriculumRemoteData({
     isAuthenticated: auth.isAuthenticated,
@@ -224,9 +225,23 @@ export function CurriculumPlannerProvider({
         studentId,
         current: remoteDocument.current,
         state,
+        periodIds: persistedPeriodIds.current,
         name,
         getAccessToken: auth.getAccessToken,
       })
+      const mappedIds = new Set(persistedPeriodIds.current.values())
+      for (const [index, period] of state.plan.periods.entries()) {
+        if (persistedPeriodIds.current.has(period.id)) continue
+        const persisted = document.periods.find(
+          (candidate) =>
+            candidate.position === index + 1 &&
+            !mappedIds.has(Number(candidate.id)),
+        )
+        if (!persisted) continue
+        const persistedId = Number(persisted.id)
+        persistedPeriodIds.current.set(period.id, persistedId)
+        mappedIds.add(persistedId)
+      }
       remoteDocument.current = document
       if (!activeCurriculumId) setActiveCurriculumId(document.id)
     },

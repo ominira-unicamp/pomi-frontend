@@ -2,9 +2,10 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { persistCurriculumState } from './curriculumPersistenceAdapter'
 
-const { createCurriculum, patchCurriculum } = vi.hoisted(() => ({
+const { createCurriculum, patchCurriculum, patchBodyFromState } = vi.hoisted(() => ({
   createCurriculum: vi.fn(),
   patchCurriculum: vi.fn(),
+  patchBodyFromState: vi.fn(() => ({ periods: { upsert: [] } })),
 }))
 
 vi.mock('@/planner/data/curriculumPersistenceApi', () => ({
@@ -44,7 +45,7 @@ vi.mock('@/planner/data/curriculumPersistenceApi', () => ({
       })),
     ],
   }),
-  patchBodyFromState: vi.fn(() => ({ periods: { upsert: [] } })),
+  patchBodyFromState,
 }))
 
 describe('persistCurriculumState', () => {
@@ -87,6 +88,61 @@ describe('persistCurriculumState', () => {
             { courseId: 101, periodId: 50 },
             { courseId: 102, periodId: 51 },
             { courseId: 103, periodId: null },
+          ],
+        },
+      },
+      expect.any(Function),
+    )
+  })
+
+  it('keeps local periods linked to their persisted IDs on later saves', async () => {
+    const current = {
+      id: 10,
+      name: 'Meu planejamento',
+      periods: [{ id: '50', position: 1 }],
+      courses: [{ courseId: '101', periodId: '50' }],
+    }
+    patchCurriculum.mockResolvedValue(current)
+
+    await persistCurriculumState({
+      studentId: 1,
+      current,
+      state: {
+        revision: 0,
+        selection: {},
+        plan: {
+          periods: [
+            {
+              id: 'local-period',
+              items: [
+                { courseId: '101' },
+                { courseId: '102' },
+              ],
+            },
+          ],
+        },
+        academicRecord: { completedCourseIds: [] },
+      } as never,
+      periodIds: new Map([['local-period', 50]]),
+      getAccessToken: () => Promise.resolve('token'),
+    })
+
+    expect(patchBodyFromState).toHaveBeenCalledWith(
+      current,
+      expect.objectContaining({
+        plan: expect.objectContaining({
+          periods: [expect.objectContaining({ id: '50' })],
+        }),
+      }),
+    )
+    expect(patchCurriculum).toHaveBeenLastCalledWith(
+      1,
+      10,
+      {
+        courses: {
+          upsert: [
+            { courseId: 101, periodId: 50 },
+            { courseId: 102, periodId: 50 },
           ],
         },
       },

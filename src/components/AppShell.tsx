@@ -9,6 +9,7 @@ import {
   LogIn,
   LogOut,
   Menu,
+  MessageSquarePlus,
   PanelsTopLeft,
   UserRound,
   Users,
@@ -58,6 +59,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
+import { useFeedbackReport } from '@/feedback/FeedbackReportProvider'
 
 function displayName(profile: ReturnType<typeof useAuth>['profile']) {
   return String(
@@ -226,6 +228,7 @@ function EmailVerificationDialog() {
 
 function AppHeader() {
   const { collapsed, mobileOpen, setMobileOpen, toggle } = useSidebar()
+  const { openFeedback } = useFeedbackReport()
   return (
     <header className="sticky top-0 z-40 flex h-18 shrink-0 items-center border-b-4 border-primary bg-sidebar px-4 text-sidebar-foreground sm:px-6">
       <Button
@@ -257,6 +260,15 @@ function AppHeader() {
         </TooltipContent>
       </Tooltip>
       <div className="ml-auto flex items-center gap-1">
+        <Button
+          variant="ghost"
+          className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          aria-label="Enviar feedback"
+          onClick={() => openFeedback()}
+        >
+          <MessageSquarePlus className="size-4" />
+          <span className="hidden text-sm font-bold sm:inline">Feedback</span>
+        </Button>
         <Link
           to="/sobre"
           aria-label="Sobre nós"

@@ -18,6 +18,13 @@ export function dataApiRequest(path: string, init: RequestInit = {}) {
   return fetch(dataApiUrlFor(path), init)
 }
 
+export function appApiPublicRequest(path: string, init: RequestInit = {}) {
+  return fetch(new URL(path, appApiUrl).href, {
+    ...init,
+    cache: 'no-store',
+  })
+}
+
 export async function appApiRequest(
   path: string,
   getAccessToken: () => Promise<string>,

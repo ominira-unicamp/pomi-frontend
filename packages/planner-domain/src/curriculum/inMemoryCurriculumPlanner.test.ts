@@ -294,6 +294,34 @@ describe('createInMemoryCurriculumPlanner', () => {
     ).toEqual([{ type: 'course', courseId }])
   })
 
+  it('removes a course from the plan instead of leaving it unallocated', async () => {
+    const planner = createInMemoryCurriculumPlanner({
+      staticDataSource: {
+        load: () => Promise.resolve({ ok: true as const, value: staticData }),
+      },
+      initialState: {
+        ...initialState,
+        plan: {
+          periods: [
+            { id: 'period-1' as never, items: [{ type: 'course', courseId }] },
+          ],
+          unallocatedCourseIds: [],
+        },
+      },
+    })
+
+    await expect(
+      planner.dispatch(
+        { type: 'removeCourseFromPlan', courseId },
+        { expectedRevision: initialRevision },
+      ),
+    ).resolves.toEqual({ ok: true, value: undefined })
+
+    const snapshot = await planner.getSnapshot()
+    expect(snapshot.ok && snapshot.value.plan.periods[0]?.items).toEqual([])
+    expect(snapshot.ok && snapshot.value.plan.unallocatedCourseIds).toEqual([])
+  })
+
   it('preserves corrupt stored data and reports unexpected', async () => {
     const planner = createInMemoryCurriculumPlanner({
       staticDataSource: {

@@ -33,6 +33,13 @@ const staticData: CurriculumPlannerStaticData = {
       credits: 4,
       prefix: 'CE',
     },
+    {
+      id: 'second-course' as CourseId,
+      code: 'CE739',
+      name: 'Sistemas',
+      credits: 4,
+      prefix: 'CE',
+    },
   ],
   catalogPrograms: [
     {
@@ -65,6 +72,60 @@ const staticData: CurriculumPlannerStaticData = {
 
 describe('CurriculumPlannerPage', () => {
   afterEach(() => vi.unstubAllGlobals())
+
+  it('adds multiple courses to the same semester', async () => {
+    const planner = createInMemoryCurriculumPlanner({
+      staticDataSource: {
+        load: () => Promise.resolve({ ok: true, value: staticData }),
+      },
+      initialState: {
+        revision: 'revision' as PlannerRevision,
+        selection: {},
+        plan: {
+          periods: [{ id: 'period-1' as PlanningPeriodId, items: [] }],
+        },
+        academicRecord: { completedCourses: [] },
+      },
+    })
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <CurriculumPlannerProvider planner={planner}>
+          <CurriculumPlannerPage />
+        </CurriculumPlannerProvider>
+      </QueryClientProvider>,
+    )
+
+    await screen.findByRole('heading', { name: 'Semestres' })
+    for (const course of ['CE738', 'CE739']) {
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: 'Adicionar disciplina a 1º sem',
+        }),
+      )
+      const input = await screen.findByRole('combobox', {
+        name: 'Disciplina para 1º sem',
+      })
+      fireEvent.focus(input)
+      fireEvent.change(input, { target: { value: course } })
+      fireEvent.click(await screen.findByText(new RegExp(`^${course}`)))
+      fireEvent.click(screen.getByRole('button', { name: 'Adicionar' }))
+      await waitFor(() =>
+        expect(
+          screen.queryByRole('dialog', { name: 'Adicionar disciplina' }),
+        ).toBeNull(),
+      )
+    }
+
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole('button', { name: /planejada em/ }),
+      ).toHaveLength(2),
+    )
+  })
 
   it('renders compact curriculum cards and vertical semesters without authentication', async () => {
     const planner = createInMemoryCurriculumPlanner({
@@ -156,10 +217,11 @@ describe('CurriculumPlannerPage', () => {
       await screen.findByRole('menuitem', { name: 'Desmarcar como atual' }),
     )
     await waitFor(() => expect(screen.queryByText('Atual')).toBeNull())
-    fireEvent.pointerDown(courseCard, { button: 0, ctrlKey: false })
+    fireEvent.click(courseCard)
     fireEvent.click(
-      await screen.findByRole('menuitem', { name: 'Marcar como concluída' }),
+      await screen.findByRole('button', { name: 'Marcar como concluída' }),
     )
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }))
     await waitFor(() =>
       expect(
         screen.queryByRole('button', {

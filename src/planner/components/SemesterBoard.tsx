@@ -1,12 +1,14 @@
 import { useDroppable } from '@dnd-kit/core'
-import { GripVertical, Plus, Trash2 } from 'lucide-react'
-import { memo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { CheckCheck, GripVertical, Plus, Trash2 } from 'lucide-react'
+import { memo, useEffect, useMemo, useState } from 'react'
 
 import { insertCourseInPeriod } from '@pomi/planner-domain/curriculum'
 import { CompactCourseCard } from './CourseCard'
 import type { CoursePrerequisiteResolver } from './CourseCard'
 import type {
   Course,
+  CourseId,
   CurriculumPlannerSnapshot,
   PlanningPeriod,
 } from '@pomi/planner-domain/curriculum'
@@ -32,6 +34,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { listStudyPeriods } from '@/student/data/studentApi'
+import { studyPeriodLabel } from '@/student/data/studyPeriod'
+import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
 
 type Dispatch = PlannerDispatch
 
@@ -110,14 +115,134 @@ function AddCourseToSemesterDialog({
   )
 }
 
+function plannedStudyPeriodReference(
+  planningStart: CurriculumPlannerSnapshot['plan']['planningStart'],
+  semesterIndex: number,
+) {
+  if (!planningStart) return undefined
+  const semesterOffset = planningStart.semester - 1 + semesterIndex
+  return {
+    year: planningStart.year + Math.floor(semesterOffset / 2),
+    yearPeriod: semesterOffset % 2 === 0 ? 'FIRST_SEMESTER' : 'SECOND_SEMESTER',
+  } as const
+}
+
+function CompleteSemesterDialog({
+  courses,
+  title,
+  planningStart,
+  semesterIndex,
+  disabled,
+  dispatch,
+  open,
+  onOpenChange,
+}: {
+  courses: SemesterViewModel['courses']
+  title: string
+  planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
+  semesterIndex: number
+  disabled: boolean
+  dispatch: Dispatch
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  const [studyPeriodId, setStudyPeriodId] = useState('')
+  const studyPeriodsQuery = useQuery({
+    queryKey: ['curriculum-planner', 'study-periods'],
+    queryFn: listStudyPeriods,
+    staleTime: Infinity,
+    enabled: open,
+  })
+  const plannedStudyPeriod = plannedStudyPeriodReference(
+    planningStart,
+    semesterIndex,
+  )
+  const defaultStudyPeriodId = useMemo(
+    () =>
+      studyPeriodsQuery.data?.find(
+        (period) =>
+          period.year === plannedStudyPeriod?.year &&
+          period.yearPeriod === plannedStudyPeriod.yearPeriod,
+      )?.id,
+    [plannedStudyPeriod, studyPeriodsQuery.data],
+  )
+  const incompleteCourses = courses.filter((course) => !course.completed)
+  const studyPeriodOptions = mostRecentStudyPeriodsFirst(
+    studyPeriodsQuery.data ?? [],
+  ).map((period) => ({
+    value: String(period.id),
+    label: studyPeriodLabel(period),
+  }))
+
+  useEffect(() => {
+    if (open)
+      setStudyPeriodId(defaultStudyPeriodId ? String(defaultStudyPeriodId) : '')
+  }, [defaultStudyPeriodId, open])
+
+  const completeCourses = async () => {
+    for (const course of incompleteCourses) {
+      const succeeded = await dispatch({
+        type: 'markCourseCompleted',
+        courseId: course.course.id,
+        studyPeriodId: studyPeriodId ? Number(studyPeriodId) : undefined,
+      })
+      if (!succeeded) return
+    }
+    onOpenChange(false)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent onOpenAutoFocus={(event) => event.preventDefault()}>
+        <DialogHeader>
+          <DialogTitle>Concluir disciplinas de {title}?</DialogTitle>
+          <DialogDescription>
+            {incompleteCourses.length === 1
+              ? 'A disciplina planejada neste semestre será marcada como concluída.'
+              : `${incompleteCourses.length} disciplinas planejadas neste semestre serão marcadas como concluídas.`}
+          </DialogDescription>
+        </DialogHeader>
+        <label className="block space-y-2 text-sm font-bold">
+          <span>Período em que foram concluídas</span>
+          <AutocompleteSelect
+            ariaLabel={`Período de conclusão de ${title}`}
+            value={studyPeriodId}
+            onValueChange={setStudyPeriodId}
+            options={studyPeriodOptions}
+            placeholder="Não informar período"
+            emptyLabel={
+              studyPeriodsQuery.isLoading
+                ? 'Carregando períodos...'
+                : 'Não informar período'
+            }
+          />
+        </label>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline">Cancelar</Button>
+          </DialogClose>
+          <Button
+            disabled={disabled || incompleteCourses.length === 0}
+            onClick={() => void completeCourses()}
+          >
+            <CheckCheck /> Marcar concluídas
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 type SemesterRowProps = {
   semester: SemesterViewModel
+  semesterIndex: number
   title: string
   periods: ReadonlyArray<PlanningPeriod>
   courseOptions: ReadonlyArray<CourseOption>
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   disabled: boolean
   dispatch: Dispatch
+  onOpenCourseDetails: (courseId: CourseId) => void
   prerequisiteResolver?: CoursePrerequisiteResolver
 }
 
@@ -132,12 +257,14 @@ export function SemesterRow(props: SemesterRowProps) {
 
 const SemesterRowContent = memo(function SemesterRowContent({
   semester,
+  semesterIndex,
   title,
   periods,
   courseOptions,
   planningStart,
   disabled,
   dispatch,
+  onOpenCourseDetails,
   prerequisiteResolver,
   isOver,
   setNodeRef,
@@ -146,6 +273,7 @@ const SemesterRowContent = memo(function SemesterRowContent({
   setNodeRef: (node: HTMLElement | null) => void
 }) {
   const [removeOpen, setRemoveOpen] = useState(false)
+  const [completeOpen, setCompleteOpen] = useState(false)
   const { period, courses, credits, current } = semester
   return (
     <article
@@ -206,6 +334,15 @@ const SemesterRowContent = memo(function SemesterRowContent({
                 </ActionTooltip>
               )}
               <DropdownMenuSeparator />
+              <DropdownMenuItem
+                disabled={
+                  disabled || !courses.some((course) => !course.completed)
+                }
+                onSelect={() => setCompleteOpen(true)}
+              >
+                <CheckCheck /> Marcar disciplinas como concluídas
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <ActionTooltip content="Remova este semestre e suas alocações do currículo.">
                 <DropdownMenuItem
                   className="text-destructive"
@@ -249,7 +386,7 @@ const SemesterRowContent = memo(function SemesterRowContent({
                   periods={periods}
                   planningStart={planningStart}
                   disabled={disabled}
-                  dispatch={dispatch}
+                  onOpenDetails={onOpenCourseDetails}
                   prerequisiteResolver={prerequisiteResolver}
                 />
               ))}
@@ -295,6 +432,16 @@ const SemesterRowContent = memo(function SemesterRowContent({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <CompleteSemesterDialog
+        courses={courses}
+        title={title}
+        planningStart={planningStart}
+        semesterIndex={semesterIndex}
+        disabled={disabled}
+        dispatch={dispatch}
+        open={completeOpen}
+        onOpenChange={setCompleteOpen}
+      />
     </article>
   )
 })
@@ -377,6 +524,7 @@ type UnallocatedCoursesPanelProps = {
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   disabled: boolean
   dispatch: Dispatch
+  onOpenCourseDetails: (courseId: CourseId) => void
   prerequisiteResolver?: CoursePrerequisiteResolver
 }
 
@@ -400,6 +548,7 @@ const UnallocatedCoursesPanelContent = memo(
     planningStart,
     disabled,
     dispatch,
+    onOpenCourseDetails,
     prerequisiteResolver,
     isOver,
     setNodeRef,
@@ -446,7 +595,7 @@ const UnallocatedCoursesPanelContent = memo(
                 periods={periods}
                 planningStart={planningStart}
                 disabled={disabled}
-                dispatch={dispatch}
+                onOpenDetails={onOpenCourseDetails}
                 prerequisiteResolver={prerequisiteResolver}
               />
             ))}

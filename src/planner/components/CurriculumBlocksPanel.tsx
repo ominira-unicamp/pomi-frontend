@@ -9,12 +9,12 @@ import {
 import { CompactCourseCard } from './CourseCard'
 import type { CoursePrerequisiteResolver } from './CourseCard'
 import type {
+  CourseId,
   CurriculumBlockView,
   CurriculumPlannerSnapshot,
   CurriculumPlannerStaticData,
   PlanningPeriod,
 } from '@pomi/planner-domain/curriculum'
-import type { PlannerDispatch } from '@/planner/types'
 import { Button } from '@/components/ui/button'
 import { ActionTooltip } from '@/planner/components/ActionTooltip'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -26,7 +26,7 @@ function CurriculumBlock({
   planningStart,
   remainingCredits,
   disabled,
-  dispatch,
+  onOpenCourseDetails,
   prerequisiteResolver,
 }: {
   block: CurriculumBlockView
@@ -35,7 +35,7 @@ function CurriculumBlock({
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   remainingCredits?: number
   disabled: boolean
-  dispatch: PlannerDispatch
+  onOpenCourseDetails: (courseId: CourseId) => void
   prerequisiteResolver?: CoursePrerequisiteResolver
 }) {
   const visibleCourses = block.courses
@@ -75,7 +75,7 @@ function CurriculumBlock({
               periods={periods}
               planningStart={planningStart}
               disabled={disabled}
-              dispatch={dispatch}
+              onOpenDetails={onOpenCourseDetails}
               prerequisiteResolver={prerequisiteResolver}
             />
           ))}
@@ -93,13 +93,13 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
   staticData,
   snapshot,
   disabled,
-  dispatch,
+  onOpenCourseDetails,
   prerequisiteResolver,
 }: {
   staticData: CurriculumPlannerStaticData
   snapshot: CurriculumPlannerSnapshot
   disabled: boolean
-  dispatch: PlannerDispatch
+  onOpenCourseDetails: (courseId: CourseId) => void
   prerequisiteResolver?: CoursePrerequisiteResolver
 }) {
   const [collapsed, setCollapsed] = useState(false)
@@ -202,7 +202,7 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
                           : undefined
                       }
                       disabled={disabled}
-                      dispatch={dispatch}
+                      onOpenCourseDetails={onOpenCourseDetails}
                       prerequisiteResolver={prerequisiteResolver}
                     />
                   )}
@@ -219,7 +219,7 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
                           : undefined
                       }
                       disabled={disabled}
-                      dispatch={dispatch}
+                      onOpenCourseDetails={onOpenCourseDetails}
                       prerequisiteResolver={prerequisiteResolver}
                     />
                   ))}

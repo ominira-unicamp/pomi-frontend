@@ -23,16 +23,40 @@ function coursesForDocument(
   })
 }
 
+function withPersistedPeriodIds(
+  state: CurriculumPlannerState,
+  periodIds: ReadonlyMap<string, number> | undefined,
+): CurriculumPlannerState {
+  if (!periodIds?.size) return state
+  const persistedId = (periodId: string) =>
+    String(periodIds.get(periodId) ?? periodId)
+  return {
+    ...state,
+    plan: {
+      ...state.plan,
+      currentPeriodId: state.plan.currentPeriodId
+        ? (persistedId(state.plan.currentPeriodId) as never)
+        : undefined,
+      periods: state.plan.periods.map((period) => ({
+        ...period,
+        id: persistedId(period.id) as never,
+      })),
+    },
+  }
+}
+
 export async function persistCurriculumState({
   studentId,
   current,
   state,
+  periodIds,
   name,
   getAccessToken,
 }: {
   studentId: number
   current?: CurriculumDocument
   state: CurriculumPlannerState
+  periodIds?: ReadonlyMap<string, number>
   name?: string
   getAccessToken: () => Promise<string>
 }): Promise<CurriculumDocument> {
@@ -46,13 +70,14 @@ export async function persistCurriculumState({
       getAccessToken,
     )
   }
+  const persistedState = withPersistedPeriodIds(state, periodIds)
   const updated = await patchCurriculum(
     studentId,
     current.id!,
-    patchBodyFromState(current, state),
+    patchBodyFromState(current, persistedState),
     getAccessToken,
   )
-  const document = documentFromState(state, current.name)
+  const document = documentFromState(persistedState, current.name)
   return patchCurriculum(
     studentId,
     updated.id!,

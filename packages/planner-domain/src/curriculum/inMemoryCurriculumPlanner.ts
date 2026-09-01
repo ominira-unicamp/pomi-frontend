@@ -457,36 +457,22 @@ function executeCommand(
       return ok(next)
     }
     case 'removeCourseFromPlan': {
-      const sourceIndex = next.plan.periods.findIndex((period) =>
-        period.items.some((item) => item.courseId === command.courseId),
-      )
-      if (sourceIndex === -1) {
-        if (!(next.plan.unallocatedCourseIds ?? []).includes(command.courseId))
-          return notFound('course', command.courseId)
-        next.plan = {
-          ...next.plan,
-          unallocatedCourseIds: next.plan.unallocatedCourseIds!.filter(
-            (id) => id !== command.courseId,
-          ),
-        }
-        return ok(next)
-      }
-      const periods = [...next.plan.periods]
-      periods[sourceIndex] = {
-        ...periods[sourceIndex],
-        items: periods[sourceIndex].items.filter(
-          (item) => item.courseId !== command.courseId,
-        ),
-      }
+      const planned =
+        next.plan.periods.some((period) =>
+          period.items.some((item) => item.courseId === command.courseId),
+        ) || (next.plan.unallocatedCourseIds ?? []).includes(command.courseId)
+      if (!planned) return notFound('course', command.courseId)
       next.plan = {
         ...next.plan,
-        periods,
-        unallocatedCourseIds: [
-          ...(next.plan.unallocatedCourseIds ?? []).filter(
-            (id) => id !== command.courseId,
+        periods: next.plan.periods.map((period) => ({
+          ...period,
+          items: period.items.filter(
+            (item) => item.courseId !== command.courseId,
           ),
-          command.courseId,
-        ],
+        })),
+        unallocatedCourseIds: (next.plan.unallocatedCourseIds ?? []).filter(
+          (id) => id !== command.courseId,
+        ),
       }
       return ok(next)
     }

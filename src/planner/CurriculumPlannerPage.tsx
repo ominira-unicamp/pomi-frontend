@@ -65,6 +65,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { CurriculumBlocksPanel } from '@/planner/components/CurriculumBlocksPanel'
+import { CourseDetailsDialog } from '@/planner/components/CourseDetailsDialog'
 import { ClearPlanningDialog } from '@/planner/components/ClearPlanningDialog'
 import { ActionTooltip } from '@/planner/components/ActionTooltip'
 import { SaveDraftDialog } from '@/planner/components/SaveDraftDialog'
@@ -224,6 +225,7 @@ export function CurriculumPlannerPage({
     [planner.snapshot, planner.staticData],
   )
   const [activeDrag, setActiveDrag] = useState<PlannerDragData>()
+  const [selectedCourseId, setSelectedCourseId] = useState<CourseId>()
   const prerequisiteBoardRef = useRef<HTMLDivElement>(null)
   const [showPrerequisiteRelations, setShowPrerequisiteRelations] =
     useState(true)
@@ -293,6 +295,22 @@ export function CurriculumPlannerPage({
       prerequisitesQuery.isError,
       prerequisitesQuery.isPending,
     ],
+  )
+  const selectedCourse = planner.staticData?.courses.find(
+    (course) => course.id === selectedCourseId,
+  )
+  const selectedCoursePeriodId = planner.snapshot?.plan.periods.find((period) =>
+    period.items.some((item) => item.courseId === selectedCourseId),
+  )?.id
+  const selectedCourseUnallocated = Boolean(
+    selectedCourseId &&
+    planner.snapshot?.plan.unallocatedCourseIds?.includes(selectedCourseId),
+  )
+  const selectedCourseCompleted = Boolean(
+    selectedCourseId &&
+    planner.snapshot?.academicRecord.completedCourses.some(
+      (course) => course.courseId === selectedCourseId,
+    ),
   )
   const studentDefaultsApplied = useRef<string | undefined>(undefined)
   const [importError, setImportError] = useState<'parse' | 'dispatch'>()
@@ -996,6 +1014,7 @@ export function CurriculumPlannerPage({
                 planningStart={snapshot.plan.planningStart}
                 disabled={planner.isDispatching}
                 dispatch={planner.dispatch}
+                onOpenCourseDetails={setSelectedCourseId}
                 prerequisiteResolver={prerequisiteResolver}
               />
               {periods.length ? (
@@ -1003,12 +1022,14 @@ export function CurriculumPlannerPage({
                   <SemesterRow
                     key={semester.period.id}
                     semester={semester}
+                    semesterIndex={index}
                     title={periodTitle(index, snapshot.plan.planningStart)}
                     periods={periods}
                     courseOptions={plannerView.courseOptions}
                     planningStart={snapshot.plan.planningStart}
                     disabled={planner.isDispatching}
                     dispatch={planner.dispatch}
+                    onOpenCourseDetails={setSelectedCourseId}
                     prerequisiteResolver={prerequisiteResolver}
                   />
                 ))
@@ -1044,7 +1065,7 @@ export function CurriculumPlannerPage({
             staticData={staticData}
             snapshot={snapshot}
             disabled={planner.isDispatching}
-            dispatch={planner.dispatch}
+            onOpenCourseDetails={setSelectedCourseId}
             prerequisiteResolver={prerequisiteResolver}
           />
         ) : (
@@ -1066,6 +1087,27 @@ export function CurriculumPlannerPage({
             />
           ) : null}
         </DragOverlay>
+        <CourseDetailsDialog
+          open={Boolean(selectedCourse)}
+          onOpenChange={(open) => {
+            if (!open) setSelectedCourseId(undefined)
+          }}
+          course={selectedCourse}
+          plannedPeriodId={selectedCoursePeriodId}
+          unallocated={selectedCourseUnallocated}
+          completed={selectedCourseCompleted}
+          periods={periods}
+          planningStart={snapshot.plan.planningStart}
+          disabled={planner.isDispatching}
+          dispatch={planner.dispatch}
+          prerequisites={
+            selectedCourseId
+              ? prerequisiteResolver(selectedCourseId)
+              : undefined
+          }
+          catalogYear={prerequisiteYear}
+          onRemoved={() => setSelectedCourseId(undefined)}
+        />
         <SaveDraftDialog
           open={saveDraftDialogOpen}
           onOpenChange={setSaveDraftDialogOpen}
