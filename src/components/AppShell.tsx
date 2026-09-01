@@ -3,6 +3,7 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  FileSearch,
   GraduationCap,
   House,
   Info,
@@ -142,6 +143,18 @@ function Navigation({ compact = false }: { compact?: boolean }) {
       >
         <GraduationCap className="size-5 shrink-0" />
         <span className={cn(compact && 'sr-only')}>Situação do curso</span>
+      </Link>
+      <Link
+        to="/editais-de-intercambio"
+        onClick={() => setMobileOpen(false)}
+        activeProps={{ 'aria-current': 'page' }}
+        className={cn(
+          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
+          compact && 'justify-center px-0',
+        )}
+      >
+        <FileSearch className="size-5 shrink-0" />
+        <span className={cn(compact && 'sr-only')}>Intercâmbio</span>
       </Link>
     </nav>
   )

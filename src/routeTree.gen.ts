@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SituacaoDoCursoRouteImport } from './routes/situacao-do-curso'
+import { Route as EditaisDeIntercambioRouteImport } from './routes/editais-de-intercambio'
 import { Route as AmigosRouteImport } from './routes/amigos'
 import { Route as DesignSystemRouteImport } from './routes/[_]design-system'
 import { Route as IndexRouteImport } from './routes/index'
@@ -29,6 +30,11 @@ const SobreRoute = SobreRouteImport.update({
 const SituacaoDoCursoRoute = SituacaoDoCursoRouteImport.update({
   id: '/situacao-do-curso',
   path: '/situacao-do-curso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditaisDeIntercambioRoute = EditaisDeIntercambioRouteImport.update({
+  id: '/editais-de-intercambio',
+  path: '/editais-de-intercambio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AmigosRoute = AmigosRouteImport.update({
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
   '/amigos': typeof AmigosRoute
+  '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
@@ -100,6 +107,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
   '/amigos': typeof AmigosRoute
+  '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
@@ -114,6 +122,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
   '/amigos': typeof AmigosRoute
+  '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
@@ -129,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_design-system'
     | '/amigos'
+    | '/editais-de-intercambio'
     | '/situacao-do-curso'
     | '/sobre'
     | '/planejamentos-de-curriculo/$planejamentoId'
@@ -142,6 +152,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_design-system'
     | '/amigos'
+    | '/editais-de-intercambio'
     | '/situacao-do-curso'
     | '/sobre'
     | '/planejamentos-de-curriculo/$planejamentoId'
@@ -155,6 +166,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_design-system'
     | '/amigos'
+    | '/editais-de-intercambio'
     | '/situacao-do-curso'
     | '/sobre'
     | '/planejamentos-de-curriculo/$planejamentoId'
@@ -169,6 +181,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignSystemRoute: typeof DesignSystemRoute
   AmigosRoute: typeof AmigosRoute
+  EditaisDeIntercambioRoute: typeof EditaisDeIntercambioRoute
   SituacaoDoCursoRoute: typeof SituacaoDoCursoRoute
   SobreRoute: typeof SobreRoute
   PlanejamentosDeCurriculoPlanejamentoIdRoute: typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
@@ -193,6 +206,13 @@ declare module '@tanstack/react-router' {
       path: '/situacao-do-curso'
       fullPath: '/situacao-do-curso'
       preLoaderRoute: typeof SituacaoDoCursoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editais-de-intercambio': {
+      id: '/editais-de-intercambio'
+      path: '/editais-de-intercambio'
+      fullPath: '/editais-de-intercambio'
+      preLoaderRoute: typeof EditaisDeIntercambioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/amigos': {
@@ -265,6 +285,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignSystemRoute: DesignSystemRoute,
   AmigosRoute: AmigosRoute,
+  EditaisDeIntercambioRoute: EditaisDeIntercambioRoute,
   SituacaoDoCursoRoute: SituacaoDoCursoRoute,
   SobreRoute: SobreRoute,
   PlanejamentosDeCurriculoPlanejamentoIdRoute:

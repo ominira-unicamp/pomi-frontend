@@ -61,10 +61,9 @@ describe('AppShell', () => {
   it('renders the main navigation and starts login', async () => {
     renderShell()
 
-    expect(
-      await screen.findByRole('link', { name: 'Início' }),
-    ).toBeTruthy()
+    expect(await screen.findByRole('link', { name: 'Início' })).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Currículo' })).toBeTruthy()
+    expect(screen.getByRole('link', { name: 'Intercâmbio' })).toBeTruthy()
     expect(screen.getAllByRole('link', { name: 'Sobre nós' })).toHaveLength(2)
     expect(screen.getByRole('contentinfo')).toBeTruthy()
     expect(
