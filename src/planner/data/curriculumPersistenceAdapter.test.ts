@@ -53,6 +53,14 @@ describe('persistCurriculumState', () => {
     createCurriculum.mockResolvedValue({
       id: 10,
       name: 'Meu planejamento',
+      isFavorite: false,
+      selection: {
+        catalogProgramId: null,
+        specializationId: null,
+        languageId: null,
+      },
+      planningStart: null,
+      currentPeriodId: null,
       periods: [
         { id: '50', position: 1 },
         { id: '51', position: 2 },
@@ -99,6 +107,14 @@ describe('persistCurriculumState', () => {
     const current = {
       id: 10,
       name: 'Meu planejamento',
+      isFavorite: false,
+      selection: {
+        catalogProgramId: null,
+        specializationId: null,
+        languageId: null,
+      },
+      planningStart: null,
+      currentPeriodId: null,
       periods: [{ id: '50', position: 1 }],
       courses: [{ courseId: '101', periodId: '50' }],
     }
