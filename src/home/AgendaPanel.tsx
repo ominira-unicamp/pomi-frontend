@@ -29,6 +29,7 @@ import {
   occurrenceFromMeeting,
 } from '@/student/absences/studentAbsences'
 import { listDailyMenus } from '@/home/dailyMenuApi'
+import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import {
   currentScheduleDay,
   dateFromAcademicDateKey,
@@ -83,7 +84,7 @@ function classStatus(
 
 export function DailyMealsPanel({ date }: { date: string }) {
   const menuQuery = useQuery({
-    queryKey: ['daily-menus', date],
+    queryKey: publicQueryKeys.dailyMenus(date),
     queryFn: () => listDailyMenus(date),
     staleTime: 1000 * 60 * 5,
   })

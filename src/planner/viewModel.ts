@@ -6,11 +6,6 @@ import type {
   PlanningPeriod,
 } from '@pomi/planner-domain/curriculum'
 
-export type CourseOption = Readonly<{
-  value: string
-  label: string
-}>
-
 export type SemesterViewModel = Readonly<{
   period: PlanningPeriod
   courses: ReadonlyArray<CurriculumCourseState>
@@ -23,7 +18,6 @@ export type PlannerViewModel = Readonly<{
   semesters: ReadonlyArray<SemesterViewModel>
   completedCourses: ReadonlyArray<Course>
   completedCredits: number
-  courseOptions: ReadonlyArray<CourseOption>
 }>
 
 export function buildPlannerViewModel(
@@ -78,9 +72,5 @@ export function buildPlannerViewModel(
       (total, course) => total + course.credits,
       0,
     ),
-    courseOptions: staticData.courses.map((course) => ({
-      value: course.id,
-      label: `${course.code} — ${course.name} (${String(course.credits).padStart(2, '0')} créditos)`,
-    })),
   }
 }

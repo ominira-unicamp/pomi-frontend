@@ -15,6 +15,7 @@ import {
   getProfessorEvaluation,
   putProfessorEvaluation,
 } from '@/student/data/studentApi'
+import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 export type ProfessorEvaluationTarget = Readonly<{
   classId: number
@@ -40,10 +41,20 @@ const initialScores: Scores = {
 }
 
 const questions = [
-  ['wouldTakeAgain', 'Você cursaria novamente com este professor?', 'Não cursaria', 'Cursaria novamente'],
+  [
+    'wouldTakeAgain',
+    'Você cursaria novamente com este professor?',
+    'Não cursaria',
+    'Cursaria novamente',
+  ],
   ['fairness', 'As avaliações foram justas?', 'Nada justas', 'Muito justas'],
   ['clarity', 'As explicações foram claras?', 'Nada claras', 'Muito claras'],
-  ['difficulty', 'Como foi a dificuldade de cursar com este professor?', 'Muito baixa', 'Muito alta'],
+  [
+    'difficulty',
+    'Como foi a dificuldade de cursar com este professor?',
+    'Muito baixa',
+    'Muito alta',
+  ],
 ] as const satisfies ReadonlyArray<
   readonly [keyof Scores, string, string, string]
 >
@@ -62,17 +73,18 @@ export function ProfessorEvaluationDialog({
   onSaved?: () => void
 }) {
   const auth = useOptionalAuth()
+  const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const queryClient = useQueryClient()
   const [scores, setScores] = useState<Scores>(initialScores)
   const [error, setError] = useState<string>()
   const [saving, setSaving] = useState(false)
   const evaluationQuery = useQuery({
-    queryKey: [
-      'professor-evaluation',
+    queryKey: privateQueryKeys.professorEvaluation(
+      sessionSubject,
       studentId,
       target?.classId,
       target?.professorId,
-    ],
+    ),
     queryFn: () =>
       getProfessorEvaluation(
         studentId!,
@@ -120,12 +132,12 @@ export function ProfessorEvaluationDialog({
         auth.getAccessToken,
       )
       await queryClient.invalidateQueries({
-        queryKey: [
-          'professor-evaluation',
+        queryKey: privateQueryKeys.professorEvaluation(
+          sessionSubject,
           studentId,
           target.classId,
           target.professorId,
-        ],
+        ),
       })
       onOpenChange(false)
       onSaved?.()
@@ -149,7 +161,8 @@ export function ProfessorEvaluationDialog({
         </DialogHeader>
         {evaluationQuery.isLoading ? (
           <p className="text-sm text-muted-foreground">Carregando avaliação.</p>
-        ) : evaluationQuery.isError || evaluationQuery.data?.eligible === false ? (
+        ) : evaluationQuery.isError ||
+          evaluationQuery.data?.eligible === false ? (
           <p className="text-sm text-destructive">
             Esta avaliação não está disponível para esta turma.
           </p>
@@ -158,7 +171,11 @@ export function ProfessorEvaluationDialog({
             {questions.map(([key, label, low, high]) => (
               <fieldset key={key}>
                 <legend className="font-bold">{label}</legend>
-                <div className="mt-2 flex gap-2" role="radiogroup" aria-label={label}>
+                <div
+                  className="mt-2 flex gap-2"
+                  role="radiogroup"
+                  aria-label={label}
+                >
                   {[1, 2, 3, 4, 5].map((score) => (
                     <Button
                       key={score}
@@ -166,7 +183,9 @@ export function ProfessorEvaluationDialog({
                       size="sm"
                       variant={scores[key] === score ? 'default' : 'outline'}
                       aria-pressed={scores[key] === score}
-                      onClick={() => setScores((current) => ({ ...current, [key]: score }))}
+                      onClick={() =>
+                        setScores((current) => ({ ...current, [key]: score }))
+                      }
                     >
                       {score}
                     </Button>
@@ -184,7 +203,12 @@ export function ProfessorEvaluationDialog({
         <DialogFooter>
           <Button
             onClick={() => void save()}
-            disabled={!complete || saving || evaluationQuery.isLoading || evaluationQuery.data?.eligible === false}
+            disabled={
+              !complete ||
+              saving ||
+              evaluationQuery.isLoading ||
+              evaluationQuery.data?.eligible === false
+            }
           >
             {saving ? 'Salvando' : 'Salvar avaliação'}
           </Button>

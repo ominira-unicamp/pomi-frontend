@@ -88,6 +88,7 @@ import { CompactVisual } from '@/planner/components/CourseCard'
 import { PrerequisiteGraph } from '@/planner/components/PrerequisiteGraph'
 import { suggestionOnboardingPreferenceKey } from '@/planner/data/curriculumSuggestionApi'
 import { useCurriculumPlanner } from '@/planner/CurriculumPlannerProvider'
+import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { saveDraftHandoff } from '@/planner/data/planningDraftHandoff'
 import { downloadPlanning } from '@/planner/data/planningPlatform'
@@ -180,49 +181,26 @@ function updatedAtLabel(value?: string) {
 
 export function CurriculumPlannerPage({
   curriculumId,
-  showSelection = false,
 }: {
   curriculumId?: string
-  showSelection?: boolean
 } = {}) {
   const planner = useCurriculumPlanner()
   const auth = useOptionalAuth()
   const navigate = useNavigate()
-  useEffect(() => {
-    if (showSelection) {
-      if (!planner.isAuthenticationReady) return
-      if (!planner.isAuthenticated) {
-        void navigate({
-          to: '/planejamentos-de-curriculo/novo',
-          replace: true,
-        })
-        return
-      }
-      planner.backToSelection()
-      return
-    }
-    if (!curriculumId) return
-    if (curriculumId === 'rascunho') planner.openAnonymousDraft()
-    else {
-      const id = Number(curriculumId)
-      if (Number.isInteger(id)) planner.selectCurriculum(id)
-    }
-  }, [
-    curriculumId,
-    planner.backToSelection,
-    planner.isAuthenticated,
-    planner.isAuthenticationReady,
-    planner.openAnonymousDraft,
-    planner.selectCurriculum,
-    navigate,
-    showSelection,
-  ])
   const viewModel = useMemo(
     () =>
       planner.staticData && planner.snapshot
         ? buildPlannerViewModel(planner.staticData, planner.snapshot)
         : undefined,
     [planner.snapshot, planner.staticData],
+  )
+  const getCourseOptions = useCallback(
+    () =>
+      planner.staticData?.courses.map((course) => ({
+        value: course.id,
+        label: `${course.code} — ${course.name} (${String(course.credits).padStart(2, '0')} créditos)`,
+      })) ?? [],
+    [planner.staticData?.courses],
   )
   const [activeDrag, setActiveDrag] = useState<PlannerDragData>()
   const [selectedCourseId, setSelectedCourseId] = useState<CourseId>()
@@ -234,10 +212,14 @@ export function CurriculumPlannerPage({
     setPreferredPrerequisiteAlternatives,
   ] = useState<ReadonlyMap<CourseId, string>>(() => new Map())
   const prerequisiteYear = currentCatalogYear()
+  const shouldLoadPrerequisites =
+    showPrerequisiteRelations || selectedCourseId !== undefined
   const prerequisitesQuery = useQuery({
-    queryKey: ['curriculum-planner', 'prerequisites', prerequisiteYear],
+    queryKey: publicQueryKeys.curriculumPrerequisites(prerequisiteYear),
     queryFn: () => loadCurrentYearPrerequisites(),
-    enabled: Boolean(planner.snapshot && planner.staticData),
+    enabled: Boolean(
+      planner.snapshot && planner.staticData && shouldLoadPrerequisites,
+    ),
     staleTime: Infinity,
   })
   const prerequisiteEvaluation = useMemo(
@@ -248,10 +230,21 @@ export function CurriculumPlannerPage({
             courses: planner.staticData.courses,
             rules: prerequisitesQuery.data.rules,
             preferredAlternatives: preferredPrerequisiteAlternatives,
+            courseIds: new Set([
+              ...planner.snapshot.academicRecord.completedCourses.map(
+                (course) => course.courseId,
+              ),
+              ...(planner.snapshot.plan.unallocatedCourseIds ?? []),
+              ...planner.snapshot.plan.periods.flatMap((period) =>
+                period.items.map((item) => item.courseId),
+              ),
+              ...(selectedCourseId ? [selectedCourseId] : []),
+            ]),
           })
         : undefined,
     [
       planner.snapshot,
+      selectedCourseId,
       planner.staticData,
       preferredPrerequisiteAlternatives,
       prerequisitesQuery.data,
@@ -279,9 +272,11 @@ export function CurriculumPlannerPage({
         ? 'loading'
         : prerequisitesQuery.isError
           ? 'error'
-          : currentCatalogCourseIds.has(courseId)
-            ? 'ready'
-            : 'notInCatalog',
+          : !shouldLoadPrerequisites
+            ? 'loading'
+            : currentCatalogCourseIds.has(courseId)
+              ? 'ready'
+              : 'notInCatalog',
       evaluation: prerequisiteEvaluation?.courses.get(courseId),
       preferredAlternativeKey: preferredPrerequisiteAlternatives.get(courseId),
       onAlternativeChange: changePrerequisiteAlternative,
@@ -294,6 +289,7 @@ export function CurriculumPlannerPage({
       prerequisiteYear,
       prerequisitesQuery.isError,
       prerequisitesQuery.isPending,
+      shouldLoadPrerequisites,
     ],
   )
   const selectedCourse = planner.staticData?.courses.find(
@@ -966,7 +962,13 @@ export function CurriculumPlannerPage({
                 <Button
                   variant="outline"
                   aria-pressed={showPrerequisiteRelations}
-                  disabled={!prerequisiteEvaluation?.links.length}
+                  disabled={
+                    (shouldLoadPrerequisites && prerequisitesQuery.isPending) ||
+                    Boolean(
+                      prerequisiteEvaluation &&
+                      !prerequisiteEvaluation.links.length,
+                    )
+                  }
                   onClick={() =>
                     setShowPrerequisiteRelations((current) => !current)
                   }
@@ -1009,7 +1011,7 @@ export function CurriculumPlannerPage({
               <UnallocatedCoursesPanel
                 courses={plannerView.completedCourses}
                 credits={plannerView.completedCredits}
-                courseOptions={plannerView.courseOptions}
+                getCourseOptions={getCourseOptions}
                 periods={periods}
                 planningStart={snapshot.plan.planningStart}
                 disabled={planner.isDispatching}
@@ -1025,7 +1027,7 @@ export function CurriculumPlannerPage({
                     semesterIndex={index}
                     title={periodTitle(index, snapshot.plan.planningStart)}
                     periods={periods}
-                    courseOptions={plannerView.courseOptions}
+                    getCourseOptions={getCourseOptions}
                     planningStart={snapshot.plan.planningStart}
                     disabled={planner.isDispatching}
                     dispatch={planner.dispatch}
@@ -1066,7 +1068,6 @@ export function CurriculumPlannerPage({
             snapshot={snapshot}
             disabled={planner.isDispatching}
             onOpenCourseDetails={setSelectedCourseId}
-            prerequisiteResolver={prerequisiteResolver}
           />
         ) : (
           <Card className="mb-7 border-dashed shadow-none">

@@ -197,4 +197,20 @@ describe('evaluatePrerequisites', () => {
     expect(item?.matchedCourseId).toBe('2')
     expect(item?.status).toBe('completed')
   })
+
+  it('limits evaluation to courses that are currently relevant to the screen', () => {
+    const ignoredRule: CoursePrerequisiteRule = {
+      courseId: '3' as CourseId,
+      alternatives: [secondAlternative],
+    }
+    const result = evaluatePrerequisites({
+      snapshot,
+      courses,
+      rules: [rule, ignoredRule],
+      courseIds: new Set(['4' as CourseId]),
+    })
+
+    expect(result.courses.has('4' as CourseId)).toBe(true)
+    expect(result.courses.has('3' as CourseId)).toBe(false)
+  })
 })

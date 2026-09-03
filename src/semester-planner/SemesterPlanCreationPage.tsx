@@ -35,11 +35,16 @@ import { ensureCurrentStudent } from '@/student/data/studentApi'
 import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
 import { studyPeriodLabel } from '@/student/data/studyPeriod'
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
+import {
+  privateQueryKeys,
+  publicQueryKeys,
+} from '@/integrations/tanstack-query/queryKeys'
 
 const steps = ['Identificação', 'Guia de disciplinas', 'Revisão']
 
 export function SemesterPlanCreationPage() {
   const auth = useOptionalAuth()
+  const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { studentId, profileQuery } = useStudentProfile()
@@ -66,12 +71,12 @@ export function SemesterPlanCreationPage() {
     useState<SemesterPlanningDocument>()
   const importInputRef = useRef<HTMLInputElement>(null)
   const staticQuery = useQuery({
-    queryKey: ['semester-planner', 'creation-static-data'],
+    queryKey: publicQueryKeys.semesterPlannerCreationStaticData(),
     queryFn: () => loadSemesterPlannerStaticData(),
     staleTime: Infinity,
   })
   const catalogQuery = useQuery({
-    queryKey: ['semester-planner', 'creation-catalog'],
+    queryKey: publicQueryKeys.curriculumCatalog(),
     queryFn: async () => {
       const result = await loadCurriculumCatalog()
       if (!result.ok) throw new Error(result.error.code)
@@ -80,17 +85,15 @@ export function SemesterPlanCreationPage() {
     staleTime: Infinity,
   })
   const curriculaQuery = useQuery({
-    queryKey: ['semester-planner', 'creation-curricula', studentId],
+    queryKey: privateQueryKeys.curricula(sessionSubject, studentId),
     queryFn: () => listCurricula(studentId!, auth.getAccessToken),
     enabled: Boolean(studentId),
     retry: false,
   })
   const suggestionsQuery = useQuery({
-    queryKey: [
-      'semester-planner',
-      'creation-suggestions',
+    queryKey: publicQueryKeys.semesterPlannerCreationSuggestions(
       selection.catalogProgramId,
-    ],
+    ),
     queryFn: () =>
       loadCurriculumSuggestions(selection.catalogProgramId as CatalogProgramId),
     enabled:
@@ -366,7 +369,10 @@ export function SemesterPlanCreationPage() {
                 value={studyPeriodId}
                 options={mostRecentStudyPeriodsFirst(
                   staticQuery.data.studyPeriods,
-                ).map((item) => ({ value: String(item.id), label: studyPeriodLabel(item) }))}
+                ).map((item) => ({
+                  value: String(item.id),
+                  label: studyPeriodLabel(item),
+                }))}
                 placeholder="Escolha o período"
                 onValueChange={setStudyPeriodId}
               />
@@ -505,7 +511,10 @@ export function SemesterPlanCreationPage() {
             />
             <dl className="divide-y divide-strong-border/20">
               <ReviewRow label="Nome" value={name} />
-              <ReviewRow label="Período" value={selectedPeriod ? studyPeriodLabel(selectedPeriod) : ''} />
+              <ReviewRow
+                label="Período"
+                value={selectedPeriod ? studyPeriodLabel(selectedPeriod) : ''}
+              />
               <ReviewRow
                 label="Guia"
                 value={

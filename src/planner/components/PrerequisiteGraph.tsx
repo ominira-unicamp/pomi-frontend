@@ -1,4 +1,4 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import type { RefObject } from 'react'
 
 import type { PrerequisiteLink } from '@pomi/planner-domain/curriculum'
@@ -320,79 +320,83 @@ export function PrerequisiteGraph({
     }
   }, [rootRef, visible])
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const root = rootRef.current
     if (!root || !visible) {
       setPaths([])
       return
     }
-    let frame = 0
+    let firstFrame = 0
+    let measureFrame = 0
     const measure = () => {
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => {
-        const rootRect = root.getBoundingClientRect()
-        const cardsById = new Map<string, DOMRect>()
-        const obstacles: Array<DOMRect> = []
-        for (const card of root.querySelectorAll<HTMLElement>(
-          '[data-course-id]',
-        )) {
-          const courseId = card.dataset.courseId
-          if (!courseId) continue
-          const measured = card.getBoundingClientRect()
-          const relative = new DOMRect(
-            measured.left - rootRect.left,
-            measured.top - rootRect.top,
-            measured.width,
-            measured.height,
-          )
-          obstacles.push(relative)
-          if (!cardsById.has(courseId)) cardsById.set(courseId, relative)
-        }
-        const routeMinX = obstacles.length
-          ? Math.min(...obstacles.map((card) => card.left))
-          : 5
-        const routeMaxX = obstacles.length
-          ? Math.max(...obstacles.map((card) => card.right))
-          : rootRect.width - 5
-        const occupied: Array<VerticalCorridor> = []
-        const measured = links.flatMap((link, index) => {
-          const sourceRect = cardsById.get(link.prerequisiteCourseId)
-          const targetRect = cardsById.get(link.dependentCourseId)
-          if (!sourceRect || !targetRect) return []
-          const downward = sourceRect.top <= targetRect.top
-          const startX = sourceRect.left + sourceRect.width / 2
-          const startY = downward ? sourceRect.bottom : sourceRect.top
-          const endX = targetRect.left + targetRect.width / 2
-          const endY = downward ? targetRect.top : targetRect.bottom
-          const exitY = startY + (downward ? 10 : -10)
-          const approachY = endY + (downward ? -16 : 16)
-          const connectionEndY = endY + (downward ? -1 : 1)
-          const d = segmentedConnectionPath({
-            startX,
-            startY,
-            endX,
-            endY: connectionEndY,
-            exitY,
-            approachY,
-            cards: obstacles,
-            occupied,
-            minX: routeMinX,
-            maxX: routeMaxX,
+      cancelAnimationFrame(firstFrame)
+      cancelAnimationFrame(measureFrame)
+      firstFrame = requestAnimationFrame(() => {
+        measureFrame = requestAnimationFrame(() => {
+          const rootRect = root.getBoundingClientRect()
+          const cardsById = new Map<string, DOMRect>()
+          const obstacles: Array<DOMRect> = []
+          for (const card of root.querySelectorAll<HTMLElement>(
+            '[data-course-id]',
+          )) {
+            const courseId = card.dataset.courseId
+            if (!courseId) continue
+            const measured = card.getBoundingClientRect()
+            const relative = new DOMRect(
+              measured.left - rootRect.left,
+              measured.top - rootRect.top,
+              measured.width,
+              measured.height,
+            )
+            obstacles.push(relative)
+            if (!cardsById.has(courseId)) cardsById.set(courseId, relative)
+          }
+          const routeMinX = obstacles.length
+            ? Math.min(...obstacles.map((card) => card.left))
+            : 5
+          const routeMaxX = obstacles.length
+            ? Math.max(...obstacles.map((card) => card.right))
+            : rootRect.width - 5
+          const occupied: Array<VerticalCorridor> = []
+          const measured = links.flatMap((link, index) => {
+            const sourceRect = cardsById.get(link.prerequisiteCourseId)
+            const targetRect = cardsById.get(link.dependentCourseId)
+            if (!sourceRect || !targetRect) return []
+            const downward = sourceRect.top <= targetRect.top
+            const startX = sourceRect.left + sourceRect.width / 2
+            const startY = downward ? sourceRect.bottom : sourceRect.top
+            const endX = targetRect.left + targetRect.width / 2
+            const endY = downward ? targetRect.top : targetRect.bottom
+            const exitY = startY + (downward ? 10 : -10)
+            const approachY = endY + (downward ? -16 : 16)
+            const connectionEndY = endY + (downward ? -1 : 1)
+            const d = segmentedConnectionPath({
+              startX,
+              startY,
+              endX,
+              endY: connectionEndY,
+              exitY,
+              approachY,
+              cards: obstacles,
+              occupied,
+              minX: routeMinX,
+              maxX: routeMaxX,
+            })
+            if (!d) return []
+            return [
+              {
+                key: `${link.prerequisiteCourseId}:${link.dependentCourseId}:${link.status}:${index}`,
+                d,
+                status: link.status,
+                prerequisiteCourseId: link.prerequisiteCourseId,
+                dependentCourseId: link.dependentCourseId,
+              },
+            ]
           })
-          if (!d) return []
-          return [
-            {
-              key: `${link.prerequisiteCourseId}:${link.dependentCourseId}:${link.status}:${index}`,
-              d,
-              status: link.status,
-              prerequisiteCourseId: link.prerequisiteCourseId,
-              dependentCourseId: link.dependentCourseId,
-            },
-          ]
+          setPaths((current) =>
+            pathsAreEqual(current, measured) ? current : measured,
+          )
         })
-        setPaths((current) =>
-          pathsAreEqual(current, measured) ? current : measured,
-        )
       })
     }
     const observer =
@@ -403,7 +407,8 @@ export function PrerequisiteGraph({
     window.addEventListener('resize', measure)
     measure()
     return () => {
-      cancelAnimationFrame(frame)
+      cancelAnimationFrame(firstFrame)
+      cancelAnimationFrame(measureFrame)
       observer?.disconnect()
       window.removeEventListener('resize', measure)
     }

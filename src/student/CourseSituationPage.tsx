@@ -57,6 +57,10 @@ import { StudentWeeklySchedule } from '@/student/components/StudentWeeklySchedul
 import { StudentAbsencePanel } from '@/student/absences/StudentAbsencePanel'
 import { useStudentAbsences } from '@/student/absences/useStudentAbsences'
 import { ProfessorEvaluationDialog } from '@/student/components/ProfessorEvaluationDialog'
+import {
+  privateQueryKeys,
+  publicQueryKeys,
+} from '@/integrations/tanstack-query/queryKeys'
 
 const staticSource = createCurriculumCatalogDataSource()
 const evaluationModes = [
@@ -94,6 +98,26 @@ const statusesByEvaluationMode = {
 
 type SituationTab = 'course' | 'enrolled' | 'history'
 
+const studyPeriodSortOrder: Readonly<Record<StudyPeriodYearPeriod, number>> = {
+  SUMMER: 0,
+  FIRST_SEMESTER: 1,
+  WINTER: 2,
+  SECOND_SEMESTER: 3,
+}
+
+function compareStudyPeriods(
+  left?: { year: number; yearPeriod: StudyPeriodYearPeriod },
+  right?: { year: number; yearPeriod: StudyPeriodYearPeriod },
+) {
+  if (!left) return right ? 1 : 0
+  if (!right) return -1
+  return (
+    right.year - left.year ||
+    studyPeriodSortOrder[right.yearPeriod] -
+      studyPeriodSortOrder[left.yearPeriod]
+  )
+}
+
 function labelForStatus(status: StudentCourseAttemptStatus) {
   return (
     Object.values(statusesByEvaluationMode)
@@ -112,6 +136,7 @@ function TabCount({ value }: { value: number }) {
 
 export function CourseSituationPage() {
   const auth = useOptionalAuth()
+  const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const queryClient = useQueryClient()
   const [attemptDialogOpen, setAttemptDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<SituationTab>('enrolled')
@@ -128,22 +153,23 @@ export function CourseSituationPage() {
   const [attemptError, setAttemptError] = useState<string>()
   const [attemptSaving, setAttemptSaving] = useState(false)
   const [absenceAttemptId, setAbsenceAttemptId] = useState<number>()
-  const [evaluationTarget, setEvaluationTarget] = useState<ProfessorEvaluationTarget>()
+  const [evaluationTarget, setEvaluationTarget] =
+    useState<ProfessorEvaluationTarget>()
 
   const { studentId, profileQuery } = useStudentProfile()
   const attemptsQuery = useQuery({
-    queryKey: ['course-situation', 'attempts', studentId],
+    queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
     queryFn: () => listStudentCourseAttempts(studentId!, auth.getAccessToken),
     enabled: Boolean(studentId),
   })
   const periodsQuery = useQuery({
-    queryKey: ['course-situation', 'study-periods'],
+    queryKey: publicQueryKeys.studyPeriods(),
     queryFn: listStudyPeriods,
     staleTime: Infinity,
     enabled: auth.isAuthenticated,
   })
   const staticQuery = useQuery({
-    queryKey: ['course-situation', 'static-data'],
+    queryKey: publicQueryKeys.courseSituationStaticData(),
     queryFn: async () => {
       const result = await staticSource.load()
       if (!result.ok) throw new Error(result.error.code)
@@ -153,7 +179,12 @@ export function CourseSituationPage() {
     enabled: auth.isAuthenticated,
   })
   const classesQuery = useQuery({
-    queryKey: ['course-situation', 'classes', courseId, studyPeriodId],
+    queryKey: privateQueryKeys.courseSituationClasses(
+      sessionSubject,
+      studentId,
+      courseId,
+      studyPeriodId,
+    ),
     queryFn: () =>
       listClassesForStudentCourseAttempt(
         Number(courseId),
@@ -166,12 +197,12 @@ export function CourseSituationPage() {
     (period) => String(period.id) === studyPeriodId,
   )
   const evaluationModeQuery = useQuery({
-    queryKey: [
-      'course-situation',
-      'course-evaluation',
+    queryKey: privateQueryKeys.courseSituationEvaluation(
+      sessionSubject,
+      studentId,
       courseId,
       selectedAttemptPeriod?.year,
-    ],
+    ),
     queryFn: () =>
       getCourseEvaluationForStudyPeriod(
         Number(courseId),
@@ -245,7 +276,7 @@ export function CourseSituationPage() {
   }, [enrolledPeriods])
 
   const scheduleQuery = useQuery({
-    queryKey: ['course-situation', 'class-schedules', selectedSchedulePeriodId],
+    queryKey: publicQueryKeys.classSchedules(selectedSchedulePeriodId),
     queryFn: () =>
       listClassSchedulesByStudyPeriod(Number(selectedSchedulePeriodId)),
     enabled:
@@ -279,16 +310,42 @@ export function CourseSituationPage() {
         (scheduleQuery.isSuccess && !classesWithSchedule.has(attempt.classId)),
     ).length
   const attemptsByPeriod = useMemo(() => {
-    const entries = new Map<string, typeof attempts>()
+    const entries = new Map<
+      string,
+      {
+        label: string
+        period?: { year: number; yearPeriod: StudyPeriodYearPeriod }
+        attempts: typeof attempts
+      }
+    >()
     for (const attempt of attempts.filter(
       (item) => item.status !== 'ENROLLED',
     )) {
-      const label = attempt.studyPeriod
-        ? studyPeriodLabel(attempt.studyPeriod)
-        : 'Período não informado'
-      entries.set(label, [...(entries.get(label) ?? []), attempt])
+      const period = attempt.studyPeriod
+        ? {
+            year: attempt.studyPeriod.year,
+            yearPeriod: attempt.studyPeriod.yearPeriod,
+          }
+        : undefined
+      const key = period
+        ? `${period.year}:${period.yearPeriod}`
+        : 'unknown-period'
+      const entry = entries.get(key)
+      if (entry)
+        entries.set(key, {
+          ...entry,
+          attempts: [...entry.attempts, attempt],
+        })
+      else
+        entries.set(key, {
+          label: period ? studyPeriodLabel(period) : 'Período não informado',
+          period,
+          attempts: [attempt],
+        })
     }
-    return [...entries.entries()]
+    return [...entries.values()].sort((left, right) =>
+      compareStudyPeriods(left.period, right.period),
+    )
   }, [attempts])
   const normalizedGrade = grade.trim().replace(',', '.')
   const numericGrade = normalizedGrade ? Number(normalizedGrade) : null
@@ -332,13 +389,7 @@ export function CourseSituationPage() {
 
   async function saveAttempt() {
     if (attemptSaving) return
-    if (
-      !studentId ||
-      !status ||
-      !evaluationMode ||
-      gradeError
-    )
-      return
+    if (!studentId || !status || !evaluationMode || gradeError) return
     const body = {
       studyPeriodId: studyPeriodId ? Number(studyPeriodId) : null,
       classId: classId ? Number(classId) : null,
@@ -364,7 +415,7 @@ export function CourseSituationPage() {
         )
       }
       await queryClient.invalidateQueries({
-        queryKey: ['course-situation', 'attempts'],
+        queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
       })
       setActiveTab(status === 'ENROLLED' ? 'enrolled' : 'history')
       setAttemptDialogOpen(false)
@@ -383,7 +434,7 @@ export function CourseSituationPage() {
       return
     await deleteStudentCourseAttempt(studentId, attemptId, auth.getAccessToken)
     await queryClient.invalidateQueries({
-      queryKey: ['course-situation', 'attempts'],
+      queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
     })
   }
 
@@ -391,7 +442,7 @@ export function CourseSituationPage() {
     if (!studentId) return
     await patchStudentProfile(studentId, value, auth.getAccessToken)
     await queryClient.invalidateQueries({
-      queryKey: ['student', 'profile'],
+      queryKey: privateQueryKeys.studentProfile(sessionSubject, studentId),
     })
   }
 
@@ -706,12 +757,12 @@ export function CourseSituationPage() {
         <TabsContent value="history">
           {attemptsByPeriod.length ? (
             <div className="space-y-5">
-              {attemptsByPeriod.map(([period, entries]) => (
+              {attemptsByPeriod.map(({ label, attempts: entries }) => (
                 <section
-                  key={period}
+                  key={label}
                   className="rounded-lg border-2 border-strong-border bg-card p-4"
                 >
-                  <h2 className="mb-3 font-extrabold">{period}</h2>
+                  <h2 className="mb-3 font-extrabold">{label}</h2>
                   <div className="space-y-2">{entries.map(renderAttempt)}</div>
                 </section>
               ))}

@@ -28,6 +28,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { loadCurriculumSuggestions } from '@/planner/data/curriculumSuggestionApi'
+import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 type Dispatch = PlannerDispatch
 
@@ -70,7 +71,7 @@ export function SuggestionOnboardingPanel({
     .filter((program) => program.catalog.id === catalogId)
     .sort((left, right) => left.program.name.localeCompare(right.program.name))
   const suggestionsQuery = useQuery({
-    queryKey: ['curriculum-suggestions', catalogProgramId],
+    queryKey: publicQueryKeys.curriculumSuggestions(catalogProgramId),
     queryFn: () =>
       loadCurriculumSuggestions(catalogProgramId as CatalogProgramId),
     enabled: Boolean(catalogProgramId),
@@ -293,7 +294,7 @@ export function ChangeSuggestionDialog({
     snapshot.selection.catalogProgramId,
   ])
   const suggestionsQuery = useQuery({
-    queryKey: ['curriculum-suggestions', catalogProgramId],
+    queryKey: publicQueryKeys.curriculumSuggestions(catalogProgramId),
     queryFn: () =>
       loadCurriculumSuggestions(catalogProgramId as CatalogProgramId),
     enabled: open && Boolean(catalogProgramId),

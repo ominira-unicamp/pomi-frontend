@@ -97,18 +97,6 @@ function plannedPositions(snapshot: CurriculumPlannerSnapshot) {
   return positions
 }
 
-function targetPosition(
-  snapshot: CurriculumPlannerSnapshot,
-  courseId: CourseId,
-) {
-  const period = snapshot.plan.periods.find((candidate) =>
-    candidate.items.some((item) => item.courseId === courseId),
-  )
-  return period
-    ? snapshot.plan.periods.findIndex((candidate) => candidate.id === period.id)
-    : undefined
-}
-
 function stateForCourse(
   courseId: CourseId,
   dependentPosition: number | undefined,
@@ -134,9 +122,11 @@ function candidateForPrefix(
   completed: ReadonlySet<CourseId>,
   positions: ReadonlyMap<CourseId, number>,
   unallocated: ReadonlySet<CourseId>,
+  candidates: Map<string, Course | undefined>,
 ) {
   const normalized = normalizePrefix(prefix)
-  return courses
+  if (candidates.has(normalized)) return candidates.get(normalized)
+  const candidate = courses
     .filter((course) =>
       normalizePrefix(course.prefix ?? course.code).startsWith(normalized),
     )
@@ -158,27 +148,32 @@ function candidateForPrefix(
         left.code.localeCompare(right.code, 'pt-BR')
       )
     })[0]
+  candidates.set(normalized, candidate)
+  return candidate
 }
 
 function evaluateItem(
   item: PrerequisiteItem,
   dependentPosition: number | undefined,
+  coursesById: ReadonlyMap<CourseId, Course>,
   courses: ReadonlyArray<Course>,
   completed: ReadonlySet<CourseId>,
   positions: ReadonlyMap<CourseId, number>,
   unallocated: ReadonlySet<CourseId>,
+  prefixCandidates: Map<string, Course | undefined>,
 ): PrerequisiteItemEvaluation {
   const target = item.target
   if (target.type === 'special') return { item, status: 'unknown' }
   const matchedCourse =
     target.type === 'course'
-      ? courses.find((course) => course.id === target.courseId)
+      ? coursesById.get(target.courseId)
       : candidateForPrefix(
           target.prefix,
           courses,
           completed,
           positions,
           unallocated,
+          prefixCandidates,
         )
   if (!matchedCourse) return { item, status: 'missing' }
   return {
@@ -236,32 +231,39 @@ export function evaluatePrerequisites({
   courses,
   rules,
   preferredAlternatives = new Map(),
+  courseIds,
 }: {
   snapshot: CurriculumPlannerSnapshot
   courses: ReadonlyArray<Course>
   rules: ReadonlyArray<CoursePrerequisiteRule>
   preferredAlternatives?: ReadonlyMap<CourseId, string>
+  courseIds?: ReadonlySet<CourseId>
 }): PrerequisiteEvaluation {
   const completed = new Set(
     snapshot.academicRecord.completedCourses.map((course) => course.courseId),
   )
   const positions = plannedPositions(snapshot)
   const unallocated = new Set(snapshot.plan.unallocatedCourseIds ?? [])
+  const coursesById = new Map(courses.map((course) => [course.id, course]))
+  const prefixCandidates = new Map<string, Course | undefined>()
   const evaluations = new Map<CourseId, CoursePrerequisiteEvaluation>()
   const links: Array<PrerequisiteLink> = []
 
   for (const rule of rules) {
-    const dependentPosition = targetPosition(snapshot, rule.courseId)
+    if (courseIds && !courseIds.has(rule.courseId)) continue
+    const dependentPosition = positions.get(rule.courseId)
     const alternatives = rule.alternatives.map((alternative) => ({
       key: alternative.key,
       items: alternative.allOf.map((item) =>
         evaluateItem(
           item,
           dependentPosition,
+          coursesById,
           courses,
           completed,
           positions,
           unallocated,
+          prefixCandidates,
         ),
       ),
     }))

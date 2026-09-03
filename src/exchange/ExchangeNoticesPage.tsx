@@ -22,6 +22,7 @@ import { useMemo, useState } from 'react'
 import type { ExchangeNotice, ExchangePlace } from '@/exchange/data/exchangeApi'
 import type { ExchangeNoticeFilters } from '@/exchange/data/exchangeNotices'
 import { useOptionalAuth } from '@/auth/AuthProvider'
+import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import {
   EmptyState,
   ErrorState,
@@ -48,6 +49,7 @@ import {
   processExchangeNotices,
 } from '@/exchange/data/exchangeNotices'
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
+import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 const pageSize = 20
 
@@ -108,9 +110,10 @@ export function SelectionGroup<T extends string | number>({
 
 function ExchangeAlertsSummary() {
   const auth = useOptionalAuth()
+  const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const { studentId, studentQuery } = useStudentProfile()
   const subscriptionQuery = useQuery({
-    queryKey: ['exchange', 'subscription', studentId],
+    queryKey: privateQueryKeys.exchangeSubscription(sessionSubject, studentId),
     queryFn: () =>
       getExchangeNoticeSubscription(studentId!, auth.getAccessToken),
     enabled: Boolean(studentId),
@@ -479,12 +482,12 @@ export function ExchangeNoticesPage() {
   const [filters, setFilters] = useState(defaultExchangeNoticeFilters)
   const [page, setPage] = useState(1)
   const noticesQuery = useQuery({
-    queryKey: ['exchange', 'notices'],
+    queryKey: publicQueryKeys.exchangeNotices(),
     queryFn: listExchangeNotices,
     retry: false,
   })
   const placesQuery = useQuery({
-    queryKey: ['exchange', 'places'],
+    queryKey: publicQueryKeys.exchangePlaces(),
     queryFn: listExchangePlaces,
     staleTime: 5 * 60_000,
     retry: false,

@@ -20,14 +20,11 @@ import {
   PageContainer,
   PageHeader,
 } from '@/components/PageLayout'
+import { AsyncSection } from '@/components/AsyncSection'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { createApiCurriculumPlannerStaticDataSource } from '@/planner/data/curriculumPlannerApi'
-import {
-  getCurriculum,
-  listCurricula,
-} from '@/planner/data/curriculumPersistenceApi'
+import { listCurricula } from '@/planner/data/curriculumPersistenceApi'
 import { listSemesterPlannings } from '@/semester-planner/data/semesterPlanningApi'
 import {
   ensureCurrentStudent,
@@ -47,8 +44,10 @@ import {
 import { ProfessorEvaluationDialog } from '@/student/components/ProfessorEvaluationDialog'
 import { useStudentAbsences } from '@/student/absences/useStudentAbsences'
 import { academicDateKey } from '@/student/absences/studentAbsences'
-
-const staticSource = createApiCurriculumPlannerStaticDataSource()
+import {
+  privateQueryKeys,
+  publicQueryKeys,
+} from '@/integrations/tanstack-query/queryKeys'
 
 function accountName(profile: ReturnType<typeof useOptionalAuth>['profile']) {
   return String(
@@ -189,7 +188,11 @@ function RecentSemesterPlan({ plan }: { plan: PersistedSemesterPlanning }) {
           {plan.name || `Horário ${plan.id}`}
         </h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          {studyPeriodLabel({ year: plan.studyPeriodYear, yearPeriod: plan.studyPeriodYearPeriod })} · {plan.classes.length} turma
+          {studyPeriodLabel({
+            year: plan.studyPeriodYear,
+            yearPeriod: plan.studyPeriodYearPeriod,
+          })}{' '}
+          · {plan.classes.length} turma
           {plan.classes.length === 1 ? '' : 's'} · {credits} créditos
         </p>
       </Card>
@@ -199,6 +202,7 @@ function RecentSemesterPlan({ plan }: { plan: PersistedSemesterPlanning }) {
 
 function AuthenticatedHome() {
   const auth = useOptionalAuth()
+  const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [situationError, setSituationError] = useState(false)
@@ -206,19 +210,19 @@ function AuthenticatedHome() {
     useState<ProfessorEvaluationTarget>()
   const { studentId, studentQuery } = useStudentProfile()
   const attemptsQuery = useQuery({
-    queryKey: ['course-situation', 'attempts', studentId],
+    queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
     queryFn: () => listStudentCourseAttempts(studentId!, auth.getAccessToken),
     enabled: Boolean(studentId),
     retry: false,
   })
   const curriculaQuery = useQuery({
-    queryKey: ['home', 'curricula', studentId],
+    queryKey: privateQueryKeys.curricula(sessionSubject, studentId),
     queryFn: () => listCurricula(studentId!, auth.getAccessToken),
     enabled: Boolean(studentId),
     retry: false,
   })
   const semesterPlansQuery = useQuery({
-    queryKey: ['semester-planner', 'plans', studentId],
+    queryKey: privateQueryKeys.semesterPlannings(sessionSubject, studentId),
     queryFn: () => listSemesterPlannings(studentId!, auth.getAccessToken),
     enabled: Boolean(studentId),
     retry: false,
@@ -226,26 +230,6 @@ function AuthenticatedHome() {
   const featuredCurriculum =
     curriculaQuery.data?.find((curriculum) => curriculum.isFavorite) ??
     curriculaQuery.data?.[0]
-  const featuredCurriculumQuery = useQuery({
-    queryKey: ['home', 'curriculum', studentId, featuredCurriculum?.id],
-    queryFn: () =>
-      getCurriculum(studentId!, featuredCurriculum!.id, auth.getAccessToken),
-    enabled: Boolean(studentId && featuredCurriculum?.id),
-    retry: false,
-  })
-  const staticQuery = useQuery({
-    queryKey: ['curriculum-planner', 'static-data'],
-    queryFn: async () => {
-      const result = await staticSource.load()
-      if (!result.ok) throw new Error(result.error.code)
-      return result.value
-    },
-    enabled: Boolean(studentId),
-    staleTime: Infinity,
-    gcTime: Infinity,
-    retry: false,
-  })
-
   const attempts = attemptsQuery.data ?? []
   const enrolledAttempts = attempts.filter(
     (attempt) => attempt.status === 'ENROLLED',
@@ -258,13 +242,12 @@ function AuthenticatedHome() {
   const academicPeriod = studyPeriodFromCode(currentStudyPeriodCode())
   const priorSemester = academicPeriod ? previousSemester(academicPeriod) : null
   const pendingEvaluationsQuery = useQuery({
-    queryKey: [
-      'professor-evaluations',
-      'pending',
+    queryKey: privateQueryKeys.pendingProfessorEvaluations(
+      sessionSubject,
       studentId,
       priorSemester?.year,
       priorSemester?.yearPeriod,
-    ],
+    ),
     queryFn: () =>
       listPendingProfessorEvaluations(
         studentId!,
@@ -284,11 +267,7 @@ function AuthenticatedHome() {
   const currentPeriodId = currentPeriodAttempt?.studyPeriodId ?? null
   const studyPeriodCode = academicPeriod ? studyPeriodLabel(academicPeriod) : ''
   const todayScheduleQuery = useQuery({
-    queryKey: [
-      'course-situation',
-      'class-schedules',
-      currentPeriodId ? String(currentPeriodId) : '',
-    ],
+    queryKey: publicQueryKeys.classSchedules(currentPeriodId),
     queryFn: () => listClassSchedulesByStudyPeriod(currentPeriodId!),
     enabled: Boolean(currentPeriodId),
     staleTime: Infinity,
@@ -303,23 +282,6 @@ function AuthenticatedHome() {
   const currentMeetings = (todayScheduleQuery.data ?? []).filter((meeting) =>
     currentClassIds.has(meeting.classId),
   )
-  const curriculumCourseIds = [
-    ...new Set(
-      (featuredCurriculumQuery.data?.courses ?? []).map(
-        (course) => course.courseId,
-      ),
-    ),
-  ]
-  const creditsByCourse = new Map(
-    (staticQuery.data?.courses ?? []).map((course) => [
-      String(course.id),
-      course.credits,
-    ]),
-  )
-  const curriculumCredits = curriculumCourseIds.reduce(
-    (total, courseId) => total + (creditsByCourse.get(String(courseId)) ?? 0),
-    0,
-  )
   const latestSemesterPlan = semesterPlansQuery.data?.[0]
   const pendingEvaluation = pendingEvaluationsQuery.data?.[0]
   async function openSituation() {
@@ -331,7 +293,7 @@ function AuthenticatedHome() {
           auth.getAccessToken,
         )
         await queryClient.invalidateQueries({
-          queryKey: ['student', 'current'],
+          queryKey: privateQueryKeys.currentStudent(sessionSubject),
         })
       }
       await navigate({ to: '/situacao-do-curso' })
@@ -340,19 +302,13 @@ function AuthenticatedHome() {
     }
   }
 
-  const loading =
-    studentQuery.isLoading ||
-    (Boolean(studentId) &&
-      (attemptsQuery.isLoading ||
-        curriculaQuery.isLoading ||
-        semesterPlansQuery.isLoading ||
-        (Boolean(featuredCurriculum) && featuredCurriculumQuery.isLoading)))
-  const hasDataError =
-    studentQuery.isError ||
-    attemptsQuery.isError ||
-    curriculaQuery.isError ||
-    semesterPlansQuery.isError ||
-    featuredCurriculumQuery.isError
+  if (studentQuery.isPending) {
+    return (
+      <PageContainer>
+        <LoadingState label="Identificando seu perfil acadêmico" />
+      </PageContainer>
+    )
+  }
 
   return (
     <PageContainer>
@@ -361,61 +317,69 @@ function AuthenticatedHome() {
         title={`Olá, ${firstName(auth.profile)}`}
         description="Acesse seus dados e continue seus planejamentos."
       />
-      {loading ? (
-        <LoadingState label="Preparando seu resumo" />
-      ) : (
-        <div className="space-y-8">
-          {pendingEvaluation && (
-            <Card className="border-primary bg-primary/5 p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex gap-3">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
-                    <MessageSquareHeart className="size-5" />
-                  </span>
-                  <div>
-                    <h2 className="font-extrabold">Avalie seus professores</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Sua experiência ajuda outros alunos a escolher turmas.
-                    </p>
-                  </div>
+      <div className="space-y-8">
+        {pendingEvaluation && (
+          <Card className="border-primary bg-primary/5 p-5">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex gap-3">
+                <span className="grid size-10 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground">
+                  <MessageSquareHeart className="size-5" />
+                </span>
+                <div>
+                  <h2 className="font-extrabold">Avalie seus professores</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Sua experiência ajuda outros alunos a escolher turmas.
+                  </p>
                 </div>
-                <button
-                  className={linkClass()}
-                  onClick={() =>
-                    setEvaluationTarget({
-                      classId: pendingEvaluation.class.id,
-                      classCode: pendingEvaluation.class.code,
-                      courseCode: pendingEvaluation.course.code,
-                      courseName: pendingEvaluation.course.name,
-                      professorId: pendingEvaluation.professor.id,
-                      professorName: pendingEvaluation.professor.name,
-                    })
-                  }
-                >
-                  Avaliar agora <ArrowRight />
-                </button>
               </div>
-            </Card>
-          )}
-          {(hasDataError || situationError) && (
-            <Alert variant="destructive">
-              <AlertTitle>Parte do resumo não está disponível</AlertTitle>
-              <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-                Os atalhos continuam disponíveis. Tente carregar novamente os
-                dados que falharam.
-                <button
-                  className={buttonVariants({ variant: 'outline', size: 'sm' })}
-                  onClick={() => {
-                    setSituationError(false)
-                    void queryClient.invalidateQueries()
-                  }}
-                >
-                  Tentar novamente
-                </button>
-              </AlertDescription>
-            </Alert>
-          )}
+              <button
+                className={linkClass()}
+                onClick={() =>
+                  setEvaluationTarget({
+                    classId: pendingEvaluation.class.id,
+                    classCode: pendingEvaluation.class.code,
+                    courseCode: pendingEvaluation.course.code,
+                    courseName: pendingEvaluation.course.name,
+                    professorId: pendingEvaluation.professor.id,
+                    professorName: pendingEvaluation.professor.name,
+                  })
+                }
+              >
+                Avaliar agora <ArrowRight />
+              </button>
+            </div>
+          </Card>
+        )}
+        {situationError && (
+          <Alert variant="destructive">
+            <AlertTitle>Parte do resumo não está disponível</AlertTitle>
+            <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+              Os atalhos continuam disponíveis. Tente carregar novamente os
+              dados que falharam.
+              <button
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                onClick={() => {
+                  setSituationError(false)
+                  void queryClient.invalidateQueries({
+                    queryKey: privateQueryKeys.currentStudent(sessionSubject),
+                  })
+                }}
+              >
+                Tentar novamente
+              </button>
+            </AlertDescription>
+          </Alert>
+        )}
 
+        <AsyncSection
+          isPending={attemptsQuery.isPending}
+          isError={attemptsQuery.isError}
+          isRefreshing={attemptsQuery.isFetching && !attemptsQuery.isPending}
+          loadingLabel="Carregando agenda"
+          errorTitle="Não foi possível carregar sua agenda"
+          errorDescription="Os demais recursos da página continuam disponíveis."
+          onRetry={() => void attemptsQuery.refetch()}
+        >
           <AgendaPanel
             currentPeriodId={currentPeriodId}
             currentPeriodCode={studyPeriodCode}
@@ -426,62 +390,85 @@ function AuthenticatedHome() {
             scheduleLoaded={todayScheduleQuery.isSuccess}
             absenceController={absenceController}
           />
+        </AsyncSection>
 
-          <section aria-labelledby="objectives-title">
-            <h2 id="objectives-title" className="mb-4 text-xl font-extrabold">
-              O que você quer organizar?
-            </h2>
-            <div className="grid gap-4 md:grid-cols-3">
-              <ObjectiveCard
-                icon={<GraduationCap className="size-5" />}
-                title="Situação do curso"
-                description="Atualize curso, disciplinas cursando e seu histórico."
-                action={
-                  <button
-                    className={linkClass(true)}
-                    onClick={() => void openSituation()}
-                  >
-                    Abrir situação <ArrowRight />
-                  </button>
-                }
-              />
-              <ObjectiveCard
-                icon={<BookOpen className="size-5" />}
-                title="Planejamento de currículo"
-                description="Organize sua trajetória e acompanhe os blocos da grade."
-                action={
-                  <Link
-                    to="/planejamentos-de-curriculo"
-                    className={linkClass(true)}
-                  >
-                    Ver currículos <ArrowRight />
-                  </Link>
-                }
-              />
-              <ObjectiveCard
-                icon={<CalendarDays className="size-5" />}
-                title="Planejamento de semestre"
-                description="Escolha turmas e monte alternativas de horário."
-                action={
-                  <Link
-                    to="/planejamentos-de-semestre"
-                    className={linkClass(true)}
-                  >
-                    Ver horários <ArrowRight />
-                  </Link>
-                }
-              />
+        <section aria-labelledby="objectives-title">
+          <h2 id="objectives-title" className="mb-4 text-xl font-extrabold">
+            O que você quer organizar?
+          </h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            <ObjectiveCard
+              icon={<GraduationCap className="size-5" />}
+              title="Situação do curso"
+              description="Atualize curso, disciplinas cursando e seu histórico."
+              action={
+                <button
+                  className={linkClass(true)}
+                  onClick={() => void openSituation()}
+                >
+                  Abrir situação <ArrowRight />
+                </button>
+              }
+            />
+            <ObjectiveCard
+              icon={<BookOpen className="size-5" />}
+              title="Planejamento de currículo"
+              description="Organize sua trajetória e acompanhe os blocos da grade."
+              action={
+                <Link
+                  to="/planejamentos-de-curriculo"
+                  className={linkClass(true)}
+                >
+                  Ver currículos <ArrowRight />
+                </Link>
+              }
+            />
+            <ObjectiveCard
+              icon={<CalendarDays className="size-5" />}
+              title="Planejamento de semestre"
+              description="Escolha turmas e monte alternativas de horário."
+              action={
+                <Link
+                  to="/planejamentos-de-semestre"
+                  className={linkClass(true)}
+                >
+                  Ver horários <ArrowRight />
+                </Link>
+              }
+            />
+          </div>
+        </section>
+
+        {(curriculaQuery.isPending ||
+          semesterPlansQuery.isPending ||
+          curriculaQuery.isError ||
+          semesterPlansQuery.isError ||
+          featuredCurriculum ||
+          latestSemesterPlan) && (
+          <section aria-labelledby="recent-title">
+            <div className="mb-4 flex items-end justify-between gap-4">
+              <h2 id="recent-title" className="text-xl font-extrabold">
+                Retomar planejamentos
+              </h2>
+              <CheckCircle2 className="size-5 text-muted-foreground" />
             </div>
-          </section>
-
-          {(featuredCurriculum || latestSemesterPlan) && (
-            <section aria-labelledby="recent-title">
-              <div className="mb-4 flex items-end justify-between gap-4">
-                <h2 id="recent-title" className="text-xl font-extrabold">
-                  Retomar planejamentos
-                </h2>
-                <CheckCircle2 className="size-5 text-muted-foreground" />
-              </div>
+            <AsyncSection
+              isPending={
+                curriculaQuery.isPending || semesterPlansQuery.isPending
+              }
+              isError={curriculaQuery.isError || semesterPlansQuery.isError}
+              isRefreshing={
+                (curriculaQuery.isFetching && !curriculaQuery.isPending) ||
+                (semesterPlansQuery.isFetching && !semesterPlansQuery.isPending)
+              }
+              loadingLabel="Carregando planejamentos recentes"
+              errorTitle="Parte dos planejamentos não está disponível"
+              errorDescription="Tente carregar novamente seus planejamentos salvos."
+              onRetry={() => {
+                void curriculaQuery.refetch()
+                void semesterPlansQuery.refetch()
+              }}
+            >
               <div className="grid gap-4 md:grid-cols-2">
                 {featuredCurriculum && (
                   <Link
@@ -501,8 +488,7 @@ function AuthenticatedHome() {
                         {featuredCurriculum.isFavorite ? ' · Favorito' : ''}
                       </h3>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {curriculumCourseIds.length} disciplinas ·{' '}
-                        {curriculumCredits} créditos
+                        Planejamento de currículo
                       </p>
                     </Card>
                   </Link>
@@ -525,23 +511,28 @@ function AuthenticatedHome() {
                   Ver todos os horários
                 </Link>
               </div>
-            </section>
-          )}
-          <ProfessorEvaluationDialog
-            open={Boolean(evaluationTarget)}
-            onOpenChange={(open) => {
-              if (!open) setEvaluationTarget(undefined)
-            }}
-            studentId={studentId ?? undefined}
-            target={evaluationTarget}
-            onSaved={() =>
-              void queryClient.invalidateQueries({
-                queryKey: ['professor-evaluations', 'pending', studentId],
-              })
-            }
-          />
-        </div>
-      )}
+            </AsyncSection>
+          </section>
+        )}
+        <ProfessorEvaluationDialog
+          open={Boolean(evaluationTarget)}
+          onOpenChange={(open) => {
+            if (!open) setEvaluationTarget(undefined)
+          }}
+          studentId={studentId ?? undefined}
+          target={evaluationTarget}
+          onSaved={() =>
+            void queryClient.invalidateQueries({
+              queryKey: privateQueryKeys.pendingProfessorEvaluations(
+                sessionSubject,
+                studentId,
+                priorSemester?.year,
+                priorSemester?.yearPeriod,
+              ),
+            })
+          }
+        />
+      </div>
     </PageContainer>
   )
 }

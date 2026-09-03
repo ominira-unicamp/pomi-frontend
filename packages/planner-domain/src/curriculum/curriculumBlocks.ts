@@ -32,6 +32,27 @@ export type CurriculumGroupView = Readonly<{
   electives: ReadonlyArray<CurriculumBlockView>
 }>
 
+type CurriculumBlockDefinition = Omit<CurriculumBlockView, 'courses'> &
+  Readonly<{ courses: ReadonlyArray<Course> }>
+
+type CurriculumGroupDefinition = Omit<
+  CurriculumGroupView,
+  'mandatory' | 'electives'
+> &
+  Readonly<{
+    mandatory?: CurriculumBlockDefinition
+    electives: ReadonlyArray<CurriculumBlockDefinition>
+  }>
+
+const definitionsByStaticData = new WeakMap<
+  CurriculumPlannerStaticData,
+  Map<string, ReadonlyArray<CurriculumGroupDefinition>>
+>()
+const viewsByStaticData = new WeakMap<
+  CurriculumPlannerStaticData,
+  Map<string, ReadonlyArray<CurriculumGroupView>>
+>()
+
 function coursesForSelector(
   selector: CourseSelector,
   courses: ReadonlyArray<Course>,
@@ -63,27 +84,25 @@ function distinctCourses(
 
 function courseStates(
   courses: ReadonlyArray<Course>,
-  snapshot: CurriculumPlannerSnapshot,
+  completed: ReadonlySet<CourseId>,
+  planned: ReadonlySet<CourseId>,
 ) {
-  const completed = new Set(
-    snapshot.academicRecord.completedCourses.map((course) => course.courseId),
-  )
-  const planned = new Map<CourseId, PlanningPeriodId>()
-  for (const period of snapshot.plan.periods) {
-    for (const item of period.items) {
-      planned.set(item.courseId, period.id)
-    }
-  }
-  for (const courseId of snapshot.plan.unallocatedCourseIds ?? []) {
-    planned.set(courseId, '' as PlanningPeriodId)
-  }
   return courses
     .filter((course) => !completed.has(course.id) && !planned.has(course.id))
-    .map((course) => ({
-      course,
-      plannedPeriodId: planned.get(course.id),
-      completed: false,
-    }))
+    .map((course) => ({ course, completed: false }))
+}
+
+export function curriculumAvailabilityKey(snapshot: CurriculumPlannerSnapshot) {
+  const completed = snapshot.academicRecord.completedCourses
+    .map((course) => course.courseId)
+    .sort()
+  const planned = new Set<CourseId>()
+  for (const period of snapshot.plan.periods) {
+    for (const item of period.items) planned.add(item.courseId)
+  }
+  for (const courseId of snapshot.plan.unallocatedCourseIds ?? [])
+    planned.add(courseId)
+  return `${completed.join(',')}|${[...planned].sort().join(',')}`
 }
 
 function electiveSelectorLabels(selectors: ReadonlyArray<CourseSelector>) {
@@ -99,13 +118,12 @@ function electiveSelectorLabels(selectors: ReadonlyArray<CourseSelector>) {
   ].sort((left, right) => left.localeCompare(right))
 }
 
-function groupFromBlocks(
+function groupDefinitionFromBlocks(
   id: string,
   title: string,
   blocks: CurriculumBlocks,
   staticData: CurriculumPlannerStaticData,
-  snapshot: CurriculumPlannerSnapshot,
-): CurriculumGroupView {
+): CurriculumGroupDefinition {
   const mandatoryCourses = distinctCourses(
     blocks.mandatory.map((requirement) => requirement.selector),
     staticData.courses,
@@ -118,7 +136,7 @@ function groupFromBlocks(
           id: `${id}:mandatory`,
           title: 'Obrigatórias',
           selectorLabels: [],
-          courses: courseStates(mandatoryCourses, snapshot),
+          courses: mandatoryCourses,
         }
       : undefined,
     electives: blocks.electives.map((requirement, index) => ({
@@ -127,14 +145,11 @@ function groupFromBlocks(
       requiredCredits: requirement.requiredCredits,
       requirement,
       selectorLabels: electiveSelectorLabels(requirement.eligibleCourses),
-      courses: courseStates(
-        distinctCourses(
-          requirement.eligibleCourses.filter(
-            (selector) => selector.type === 'specificCourse',
-          ),
-          staticData.courses,
+      courses: distinctCourses(
+        requirement.eligibleCourses.filter(
+          (selector) => selector.type === 'specificCourse',
         ),
-        snapshot,
+        staticData.courses,
       ),
     })),
   }
@@ -153,38 +168,77 @@ export function buildCurriculumGroups(
   staticData: CurriculumPlannerStaticData,
   snapshot: CurriculumPlannerSnapshot,
 ) {
+  const selectionKey = [
+    snapshot.selection.catalogProgramId ?? '',
+    snapshot.selection.specializationId ?? '',
+    snapshot.selection.languageId ?? '',
+  ].join(':')
+  const availabilityKey = curriculumAvailabilityKey(snapshot)
+  const viewKey = `${selectionKey}|${availabilityKey}`
+  const cachedViews = viewsByStaticData.get(staticData)?.get(viewKey)
+  if (cachedViews) return cachedViews
   const program = selectedCatalogProgram(staticData, snapshot)
   if (!program) return []
-  const groups: Array<CurriculumGroupView> = [
-    groupFromBlocks('base', 'Base', program.baseBlocks, staticData, snapshot),
-  ]
-  const specialization = program.specializations.find(
-    (option) => option.id === snapshot.selection.specializationId,
-  )
-  if (specialization) {
-    groups.push(
-      groupFromBlocks(
-        `specialization:${specialization.id}`,
-        `Habilitação · ${specialization.code} — ${specialization.name}`,
-        specialization.blocks,
-        staticData,
-        snapshot,
-      ),
+  let definitions = definitionsByStaticData.get(staticData)?.get(selectionKey)
+  if (!definitions) {
+    const next: Array<CurriculumGroupDefinition> = [
+      groupDefinitionFromBlocks('base', 'Base', program.baseBlocks, staticData),
+    ]
+    const specialization = program.specializations.find(
+      (option) => option.id === snapshot.selection.specializationId,
     )
-  }
-  const language = program.languages.find(
-    (option) => option.id === snapshot.selection.languageId,
-  )
-  if (language) {
-    groups.push(
-      groupFromBlocks(
-        `language:${language.id}`,
-        `Língua · ${language.name}`,
-        language.blocks,
-        staticData,
-        snapshot,
-      ),
+    if (specialization) {
+      next.push(
+        groupDefinitionFromBlocks(
+          `specialization:${specialization.id}`,
+          `Habilitação · ${specialization.code} — ${specialization.name}`,
+          specialization.blocks,
+          staticData,
+        ),
+      )
+    }
+    const language = program.languages.find(
+      (option) => option.id === snapshot.selection.languageId,
     )
+    if (language) {
+      next.push(
+        groupDefinitionFromBlocks(
+          `language:${language.id}`,
+          `Língua · ${language.name}`,
+          language.blocks,
+          staticData,
+        ),
+      )
+    }
+    definitions = next
+    const definitionCache = definitionsByStaticData.get(staticData) ?? new Map()
+    definitionCache.set(selectionKey, definitions)
+    definitionsByStaticData.set(staticData, definitionCache)
   }
+  const completed = new Set(
+    snapshot.academicRecord.completedCourses.map((course) => course.courseId),
+  )
+  const planned = new Set<CourseId>()
+  for (const period of snapshot.plan.periods) {
+    for (const item of period.items) planned.add(item.courseId)
+  }
+  for (const courseId of snapshot.plan.unallocatedCourseIds ?? [])
+    planned.add(courseId)
+  const groups = definitions.map((group) => ({
+    ...group,
+    mandatory: group.mandatory
+      ? {
+          ...group.mandatory,
+          courses: courseStates(group.mandatory.courses, completed, planned),
+        }
+      : undefined,
+    electives: group.electives.map((block) => ({
+      ...block,
+      courses: courseStates(block.courses, completed, planned),
+    })),
+  }))
+  const viewCache = viewsByStaticData.get(staticData) ?? new Map()
+  viewCache.set(viewKey, groups)
+  viewsByStaticData.set(staticData, viewCache)
   return groups
 }

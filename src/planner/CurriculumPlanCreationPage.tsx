@@ -36,6 +36,7 @@ import { curriculumDraftBootstrapKey } from '@/planner/data/planningDraftBootstr
 import { loadCurriculumSuggestions } from '@/planner/data/curriculumSuggestionApi'
 import { ensureCurrentStudent } from '@/student/data/studentApi'
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
+import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 const steps = ['Identificação', 'Base acadêmica', 'Revisão']
 const semesterOptions = [
@@ -66,7 +67,7 @@ export function CurriculumPlanCreationPage() {
   const [importedState, setImportedState] = useState<CurriculumPlannerState>()
   const importInputRef = useRef<HTMLInputElement>(null)
   const staticQuery = useQuery({
-    queryKey: ['curriculum-planner', 'creation-static-data'],
+    queryKey: publicQueryKeys.curriculumCatalog(),
     queryFn: async () => {
       const result = await loadCurriculumCatalog()
       if (!result.ok) throw new Error(result.error.code)
@@ -75,11 +76,9 @@ export function CurriculumPlanCreationPage() {
     staleTime: Infinity,
   })
   const suggestionsQuery = useQuery({
-    queryKey: [
-      'curriculum-planner',
-      'creation-suggestions',
+    queryKey: publicQueryKeys.plannerCreationSuggestions(
       selection.catalogProgramId,
-    ],
+    ),
     queryFn: () =>
       loadCurriculumSuggestions(selection.catalogProgramId as CatalogProgramId),
     enabled: source === 'suggestion' && Boolean(selection.catalogProgramId),

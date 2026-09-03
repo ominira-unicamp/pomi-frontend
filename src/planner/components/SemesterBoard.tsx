@@ -13,7 +13,7 @@ import type {
   PlanningPeriod,
 } from '@pomi/planner-domain/curriculum'
 import type { PlannerDispatch } from '@/planner/types'
-import type { CourseOption, SemesterViewModel } from '@/planner/viewModel'
+import type { SemesterViewModel } from '@/planner/viewModel'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'
 import { ActionTooltip } from '@/planner/components/ActionTooltip'
@@ -35,20 +35,21 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { listStudyPeriods } from '@/student/data/studentApi'
+import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import { studyPeriodLabel } from '@/student/data/studyPeriod'
 import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
 
 type Dispatch = PlannerDispatch
 
 function AddCourseToSemesterDialog({
-  courseOptions,
+  getCourseOptions,
   period,
   periods,
   title,
   disabled,
   dispatch,
 }: {
-  courseOptions: ReadonlyArray<CourseOption>
+  getCourseOptions: () => ReadonlyArray<{ value: string; label: string }>
   period: PlanningPeriod
   periods: ReadonlyArray<PlanningPeriod>
   title: string
@@ -92,7 +93,7 @@ function AddCourseToSemesterDialog({
           ariaLabel={`Disciplina para ${title}`}
           value={courseId}
           onValueChange={setCourseId}
-          options={courseOptions}
+          options={open ? getCourseOptions() : []}
           placeholder="Clique ou digite o código ou nome"
         />
         <DialogFooter>
@@ -148,7 +149,7 @@ function CompleteSemesterDialog({
 }) {
   const [studyPeriodId, setStudyPeriodId] = useState('')
   const studyPeriodsQuery = useQuery({
-    queryKey: ['curriculum-planner', 'study-periods'],
+    queryKey: publicQueryKeys.studyPeriods(),
     queryFn: listStudyPeriods,
     staleTime: Infinity,
     enabled: open,
@@ -238,7 +239,7 @@ type SemesterRowProps = {
   semesterIndex: number
   title: string
   periods: ReadonlyArray<PlanningPeriod>
-  courseOptions: ReadonlyArray<CourseOption>
+  getCourseOptions: () => ReadonlyArray<{ value: string; label: string }>
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   disabled: boolean
   dispatch: Dispatch
@@ -260,7 +261,7 @@ const SemesterRowContent = memo(function SemesterRowContent({
   semesterIndex,
   title,
   periods,
-  courseOptions,
+  getCourseOptions,
   planningStart,
   disabled,
   dispatch,
@@ -365,7 +366,7 @@ const SemesterRowContent = memo(function SemesterRowContent({
       >
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <AddCourseToSemesterDialog
-            courseOptions={courseOptions}
+            getCourseOptions={getCourseOptions}
             period={period}
             periods={periods}
             title={title}
@@ -447,11 +448,11 @@ const SemesterRowContent = memo(function SemesterRowContent({
 })
 
 const AddUnallocatedCourseDialog = memo(function AddUnallocatedCourseDialog({
-  courseOptions,
+  getCourseOptions,
   disabled,
   dispatch,
 }: {
-  courseOptions: ReadonlyArray<CourseOption>
+  getCourseOptions: () => ReadonlyArray<{ value: string; label: string }>
   disabled: boolean
   dispatch: Dispatch
 }) {
@@ -493,7 +494,7 @@ const AddUnallocatedCourseDialog = memo(function AddUnallocatedCourseDialog({
           ariaLabel="Disciplina não alocada"
           value={courseId}
           onValueChange={setCourseId}
-          options={courseOptions}
+          options={open ? getCourseOptions() : []}
           placeholder="Clique ou digite o código ou nome"
         />
         <DialogFooter>
@@ -519,7 +520,7 @@ const AddUnallocatedCourseDialog = memo(function AddUnallocatedCourseDialog({
 type UnallocatedCoursesPanelProps = {
   courses: ReadonlyArray<Course>
   credits: number
-  courseOptions: ReadonlyArray<CourseOption>
+  getCourseOptions: () => ReadonlyArray<{ value: string; label: string }>
   periods: ReadonlyArray<PlanningPeriod>
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   disabled: boolean
@@ -543,7 +544,7 @@ const UnallocatedCoursesPanelContent = memo(
   function UnallocatedCoursesPanelContent({
     courses,
     credits,
-    courseOptions,
+    getCourseOptions,
     periods,
     planningStart,
     disabled,
@@ -580,7 +581,7 @@ const UnallocatedCoursesPanelContent = memo(
         >
           <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
             <AddUnallocatedCourseDialog
-              courseOptions={courseOptions}
+              getCourseOptions={getCourseOptions}
               disabled={disabled}
               dispatch={dispatch}
             />

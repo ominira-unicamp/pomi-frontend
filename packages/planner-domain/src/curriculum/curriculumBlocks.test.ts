@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { buildCurriculumGroups } from './curriculumBlocks'
+import {
+  buildCurriculumGroups,
+  curriculumAvailabilityKey,
+} from './curriculumBlocks'
 import type {
   CatalogProgramId,
   CourseId,
@@ -101,5 +104,26 @@ describe('buildCurriculumGroups', () => {
     expect(groups[0].electives[0].selectorLabels).toEqual(['AB'])
     expect(groups[0].electives[0].courses).toEqual([])
     expect(groups[1].mandatory?.courses[0].course.code).toBe('CD100')
+  })
+
+  it('reuses the group views when a planned course moves between periods', () => {
+    const before = buildCurriculumGroups(staticData, snapshot)
+    const movedSnapshot: CurriculumPlannerSnapshot = {
+      ...snapshot,
+      plan: {
+        periods: [
+          { id: 'period-a' as PlanningPeriodId, items: [] },
+          {
+            id: 'period-b' as PlanningPeriodId,
+            items: [{ type: 'course', courseId: '2' as CourseId }],
+          },
+        ],
+      },
+    }
+
+    expect(curriculumAvailabilityKey(movedSnapshot)).toBe(
+      curriculumAvailabilityKey(snapshot),
+    )
+    expect(buildCurriculumGroups(staticData, movedSnapshot)).toBe(before)
   })
 })

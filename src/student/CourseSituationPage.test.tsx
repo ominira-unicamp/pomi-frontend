@@ -91,7 +91,10 @@ describe('CourseSituationPage', () => {
     login.mockReset()
     listClassesForStudentCourseAttempt.mockResolvedValue([])
     getCourseEvaluationForStudyPeriod.mockResolvedValue('GRADE_AND_ATTENDANCE')
-    getProfessorEvaluation.mockResolvedValue({ eligible: true, evaluation: null })
+    getProfessorEvaluation.mockResolvedValue({
+      eligible: true,
+      evaluation: null,
+    })
     listStudyPeriods.mockResolvedValue([
       {
         id: 20,
@@ -179,6 +182,47 @@ describe('CourseSituationPage', () => {
     expect(screen.getByText('MA111 — Cálculo I')).toBeTruthy()
   })
 
+  it('orders historical semesters from the most recent to the oldest', async () => {
+    listStudentCourseAttempts.mockResolvedValue([
+      {
+        id: 2,
+        courseId: 11,
+        studyPeriodId: 19,
+        classId: null,
+        evaluationMode: 'GRADE_AND_ATTENDANCE',
+        status: 'APPROVED',
+        grade: 8,
+        course: { code: 'MA111', name: 'Cálculo I', credits: 6 },
+        studyPeriod: { id: 19, year: 2025, yearPeriod: 'SECOND_SEMESTER' },
+        class: null,
+      },
+      {
+        id: 3,
+        courseId: 12,
+        studyPeriodId: 20,
+        classId: null,
+        evaluationMode: 'GRADE_AND_ATTENDANCE',
+        status: 'FAILED_BY_GRADE',
+        grade: 4,
+        course: { code: 'MC202', name: 'Estruturas', credits: 6 },
+        studyPeriod: { id: 20, year: 2026, yearPeriod: 'FIRST_SEMESTER' },
+        class: null,
+      },
+    ])
+    renderPage()
+
+    fireEvent.mouseDown(await screen.findByRole('tab', { name: /Histórico/ }), {
+      button: 0,
+      ctrlKey: false,
+    })
+
+    const newest = await screen.findByText('2026s1')
+    const oldest = screen.getByText('2025s2')
+    expect(
+      newest.compareDocumentPosition(oldest) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy()
+  })
+
   it('requires an explicit evaluation mode and result from the global add action', async () => {
     renderPage()
     await screen.findByText('MC102 — Algoritmos')
@@ -232,10 +276,17 @@ describe('CourseSituationPage', () => {
       button: 0,
       ctrlKey: false,
     })
-    fireEvent.click(await screen.findByRole('button', { name: 'Avaliar Docente' }))
+    fireEvent.click(
+      await screen.findByRole('button', { name: 'Avaliar Docente' }),
+    )
 
     expect(await screen.findByRole('dialog')).toBeTruthy()
-    expect(getProfessorEvaluation).toHaveBeenCalledWith(1, 31, 3, authState.getAccessToken)
+    expect(getProfessorEvaluation).toHaveBeenCalledWith(
+      1,
+      31,
+      3,
+      authState.getAccessToken,
+    )
   })
 
   it('fixes the evaluation mode from the selected study period after the class', async () => {
@@ -439,7 +490,7 @@ describe('CourseSituationPage', () => {
     fireEvent.change(
       screen.getByRole('textbox', { name: 'Nota final (opcional)' }),
       {
-      target: { value: '11' },
+        target: { value: '11' },
       },
     )
 

@@ -44,6 +44,7 @@ interface AuthContextValue {
   initialized: boolean
   isAuthenticated: boolean
   profile?: KeycloakTokenParsed
+  sessionSubject?: string
   login: (redirectUri?: string) => Promise<void>
   logout: () => Promise<void>
   getAccessToken: () => Promise<string>
@@ -67,8 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         keycloak.authenticated &&
         keycloak.tokenParsed &&
         keycloak.tokenParsed.email_verified !== true &&
-        false // desativado verificacao de email temporariamente
-
+        false, // desativado verificacao de email temporariamente
       ),
     )
   }, [])
@@ -139,6 +139,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       initialized,
       isAuthenticated,
       profile,
+      sessionSubject:
+        isAuthenticated && typeof profile?.sub === 'string'
+          ? profile.sub
+          : undefined,
       login,
       logout,
       getAccessToken,
@@ -168,12 +172,16 @@ export function useAuth() {
 
 export function useOptionalAuth(): AuthContextValue {
   const context = useContext(AuthContext)
-  return context ?? {
-    initialized: true,
-    isAuthenticated: false,
-    login: () => Promise.resolve(),
-    logout: () => Promise.resolve(),
-    getAccessToken: () => Promise.reject(new Error('Authentication is required.')),
-    emailVerificationRequired: false,
-  }
+  return (
+    context ?? {
+      initialized: true,
+      isAuthenticated: false,
+      sessionSubject: undefined,
+      login: () => Promise.resolve(),
+      logout: () => Promise.resolve(),
+      getAccessToken: () =>
+        Promise.reject(new Error('Authentication is required.')),
+      emailVerificationRequired: false,
+    }
+  )
 }

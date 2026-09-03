@@ -41,6 +41,7 @@ import { useFeedbackReport } from '@/feedback/FeedbackReportProvider'
 import { listStudyPeriods } from '@/student/data/studentApi'
 import { studyPeriodLabel } from '@/student/data/studyPeriod'
 import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
+import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 const outsideValue = '__outside__'
 const unallocatedValue = '__unallocated__'
@@ -205,7 +206,7 @@ function DetailsSection({
 }) {
   const { openFeedback } = useFeedbackReport()
   const query = useQuery({
-    queryKey: ['curriculum-planner', 'course-details', courseId, catalogYear],
+    queryKey: publicQueryKeys.courseDetails(courseId, catalogYear),
     queryFn: () => getCatalogCourseDetails(Number(courseId), catalogYear),
     staleTime: Infinity,
   })
@@ -355,7 +356,7 @@ function CourseDetailsBody({
   const [completedGrade, setCompletedGrade] = useState('')
   const [gradeError, setGradeError] = useState('')
   const studyPeriodsQuery = useQuery({
-    queryKey: ['curriculum-planner', 'study-periods'],
+    queryKey: publicQueryKeys.studyPeriods(),
     queryFn: listStudyPeriods,
     staleTime: Infinity,
     enabled: completionOpen,

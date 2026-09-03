@@ -6,6 +6,7 @@ import * as TanStackQueryProvider from './integrations/tanstack-query/root-provi
 import { AuthProvider } from './auth/AuthProvider.tsx'
 import { ThemeProvider } from './components/ThemeProvider.tsx'
 import { FeedbackReportProvider } from './feedback/FeedbackReportProvider.tsx'
+import { PrivateQueryCacheBoundary } from './integrations/tanstack-query/PrivateQueryCacheBoundary.tsx'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
@@ -42,9 +43,11 @@ if (rootElement && !rootElement.innerHTML) {
       <ThemeProvider>
         <AuthProvider>
           <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
-            <FeedbackReportProvider>
-              <RouterProvider router={router} />
-            </FeedbackReportProvider>
+            <PrivateQueryCacheBoundary>
+              <FeedbackReportProvider>
+                <RouterProvider router={router} />
+              </FeedbackReportProvider>
+            </PrivateQueryCacheBoundary>
           </TanStackQueryProvider.Provider>
         </AuthProvider>
       </ThemeProvider>

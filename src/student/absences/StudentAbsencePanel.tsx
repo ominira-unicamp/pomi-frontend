@@ -32,6 +32,7 @@ import {
   occurrenceFromMeeting,
 } from '@/student/absences/studentAbsences'
 import { listClassSchedulesByStudyPeriod } from '@/student/data/studentApi'
+import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 type StudentAbsencePanelProps = Readonly<{
   open: boolean
@@ -426,11 +427,7 @@ export function StudentAbsencePanel({
 }: StudentAbsencePanelProps) {
   const desktop = useDesktopLayout()
   const schedulesQuery = useQuery({
-    queryKey: [
-      'course-situation',
-      'class-schedules',
-      String(attempt.studyPeriodId ?? ''),
-    ],
+    queryKey: publicQueryKeys.classSchedules(attempt.studyPeriodId),
     queryFn: () => listClassSchedulesByStudyPeriod(attempt.studyPeriodId!),
     enabled: open && Boolean(attempt.studyPeriodId),
     staleTime: Infinity,

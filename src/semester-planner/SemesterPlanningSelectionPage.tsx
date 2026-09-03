@@ -21,6 +21,7 @@ import {
 import { Card } from '@/components/ui/card'
 import { getCurrentStudent } from '@/student/data/studentApi'
 import { listSemesterPlannings } from '@/semester-planner/data/semesterPlanningApi'
+import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 function totalCredits(plan: PersistedSemesterPlanning) {
   return plan.classes.reduce(
@@ -31,15 +32,19 @@ function totalCredits(plan: PersistedSemesterPlanning) {
 
 export function SemesterPlanningSelectionPage() {
   const auth = useOptionalAuth()
+  const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const navigate = useNavigate()
   const studentQuery = useQuery({
-    queryKey: ['semester-planner', 'student', auth.isAuthenticated],
+    queryKey: privateQueryKeys.currentStudent(sessionSubject),
     queryFn: () => getCurrentStudent(auth.getAccessToken),
     enabled: auth.initialized && auth.isAuthenticated,
     retry: false,
   })
   const plansQuery = useQuery({
-    queryKey: ['semester-planner', 'plans', studentQuery.data?.studentId],
+    queryKey: privateQueryKeys.semesterPlannings(
+      sessionSubject,
+      studentQuery.data?.studentId,
+    ),
     queryFn: () =>
       listSemesterPlannings(studentQuery.data!.studentId!, auth.getAccessToken),
     enabled: Boolean(studentQuery.data?.studentId),
@@ -126,7 +131,10 @@ export function SemesterPlanningSelectionPage() {
                   <div className="mt-5 flex items-center justify-between gap-3 border-t border-strong-border/30 pt-4 text-xs font-semibold text-muted-foreground">
                     <span className="inline-flex items-center gap-1.5">
                       <BookOpen className="size-3.5" />
-                      {studyPeriodLabel({ year: plan.studyPeriodYear, yearPeriod: plan.studyPeriodYearPeriod })}
+                      {studyPeriodLabel({
+                        year: plan.studyPeriodYear,
+                        yearPeriod: plan.studyPeriodYearPeriod,
+                      })}
                     </span>
                     <span className="inline-flex items-center gap-1.5 text-right">
                       <GraduationCap className="size-3.5" />

@@ -122,7 +122,8 @@ const schedules = [
   },
 ] as const
 
-const { listCurricula } = vi.hoisted(() => ({
+const { getCurriculum, listCurricula } = vi.hoisted(() => ({
+  getCurriculum: vi.fn(),
   listCurricula: vi.fn(),
 }))
 
@@ -136,14 +137,7 @@ vi.mock('@/home/dailyMenuApi', () => ({
 
 vi.mock('@/planner/data/curriculumPersistenceApi', () => ({
   listCurricula,
-  getCurriculum: vi.fn(() =>
-    Promise.resolve({
-      id: 7,
-      name: 'Meu currículo',
-      periods: [],
-      courses: [{ courseId: 11, periodId: null }],
-    }),
-  ),
+  getCurriculum,
 }))
 
 vi.mock('@/semester-planner/data/semesterPlanningApi', () => ({
@@ -227,12 +221,16 @@ describe('HomePage', () => {
         updatedAt: '2026-08-01T12:00:00.000Z',
       },
     ])
+    getCurriculum.mockReset()
     listStudentCourseAttempts.mockReset()
     listClassSchedulesByStudyPeriod.mockReset()
     listDailyMenus.mockReset()
     listStudentCourseAttempts.mockResolvedValue(attempts)
     listPendingProfessorEvaluations.mockResolvedValue([])
-    getProfessorEvaluation.mockResolvedValue({ eligible: true, evaluation: null })
+    getProfessorEvaluation.mockResolvedValue({
+      eligible: true,
+      evaluation: null,
+    })
     listClassSchedulesByStudyPeriod.mockResolvedValue(schedules)
     listStudentAbsences.mockResolvedValue([])
     listDailyMenus.mockResolvedValue([])
@@ -298,6 +296,7 @@ describe('HomePage', () => {
 
     expect(await screen.findByText('Olá, Ana')).toBeTruthy()
     expect(screen.queryByText('Próximo passo')).toBeNull()
+    expect(getCurriculum).not.toHaveBeenCalled()
   })
 
   it('invites the student to evaluate a professor pending from the previous semester', async () => {

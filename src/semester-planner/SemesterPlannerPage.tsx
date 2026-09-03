@@ -73,6 +73,7 @@ import { saveDraftHandoff } from '@/planner/data/planningDraftHandoff'
 import { SaveDraftDialog } from '@/planner/components/SaveDraftDialog'
 import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
 import { studyPeriodLabel } from '@/student/data/studyPeriod'
+import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 type GuideTab = 'disciplines' | 'classes'
 
@@ -90,6 +91,7 @@ export function SemesterPlannerPage({
   planningId?: string
 }) {
   const auth = useOptionalAuth()
+  const sessionSubject = auth.sessionSubject ?? 'anonymous-session'
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [draftBootstrap] = useState(() =>
@@ -386,7 +388,11 @@ export function SemesterPlannerPage({
   }, [activePlanId, auth.getAccessToken, document, query.data, studentId])
 
   const snapshotQuery = useQuery({
-    queryKey: ['semester-planner', 'snapshot', document, Boolean(planner)],
+    queryKey: privateQueryKeys.semesterPlannerSnapshot(
+      sessionSubject,
+      planningId,
+      document,
+    ),
     queryFn: async () => {
       if (!planner) return undefined
       const result = await planner.getSnapshot()
@@ -472,7 +478,9 @@ export function SemesterPlannerPage({
         name:
           document.name.trim() ||
           `Planejamento ${(() => {
-            const period = query.data?.studyPeriods.find((item) => item.id === studyPeriodId)
+            const period = query.data?.studyPeriods.find(
+              (item) => item.id === studyPeriodId,
+            )
             return period ? studyPeriodLabel(period) : ''
           })()}`,
       },
@@ -1177,7 +1185,9 @@ export function SemesterPlannerPage({
                   Período
                 </span>
                 <span className="text-foreground">
-                  {selectedStudyPeriod ? studyPeriodLabel(selectedStudyPeriod) : ''}
+                  {selectedStudyPeriod
+                    ? studyPeriodLabel(selectedStudyPeriod)
+                    : ''}
                 </span>
               </div>
             ) : (
@@ -1656,8 +1666,7 @@ export function SemesterPlannerPage({
                                   <p className="text-xs text-muted-foreground">
                                     {classItem.professors
                                       .map((professor) => professor.name)
-                                      .join(', ') ||
-                                      'Professor não informado'}
+                                      .join(', ') || 'Professor não informado'}
                                   </p>
                                 </div>
                                 {selected ? (

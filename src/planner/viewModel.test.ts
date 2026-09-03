@@ -51,9 +51,5 @@ describe('buildPlannerViewModel', () => {
       'completed',
     ])
     expect(view.completedCredits).toBe(6)
-    expect(view.courseOptions).toEqual([
-      { value: 'planned', label: 'MC102 — Algoritmos (06 créditos)' },
-      { value: 'completed', label: 'MA111 — Cálculo (06 créditos)' },
-    ])
   })
 })

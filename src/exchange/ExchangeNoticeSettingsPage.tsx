@@ -22,6 +22,10 @@ import {
 } from '@/exchange/data/exchangeApi'
 import { SelectionGroup } from '@/exchange/ExchangeNoticesPage'
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
+import {
+  privateQueryKeys,
+  publicQueryKeys,
+} from '@/integrations/tanstack-query/queryKeys'
 
 function subscriptionErrorMessage(error: unknown) {
   if (error instanceof ApiError && error.status === 422) {
@@ -35,16 +39,17 @@ function subscriptionErrorMessage(error: unknown) {
 
 export function ExchangeNoticeSettingsPage() {
   const auth = useOptionalAuth()
+  const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const queryClient = useQueryClient()
   const { studentId, studentQuery } = useStudentProfile()
   const placesQuery = useQuery({
-    queryKey: ['exchange', 'places'],
+    queryKey: publicQueryKeys.exchangePlaces(),
     queryFn: listExchangePlaces,
     staleTime: 5 * 60_000,
     retry: false,
   })
   const subscriptionQuery = useQuery({
-    queryKey: ['exchange', 'subscription', studentId],
+    queryKey: privateQueryKeys.exchangeSubscription(sessionSubject, studentId),
     queryFn: () =>
       getExchangeNoticeSubscription(studentId!, auth.getAccessToken),
     enabled: Boolean(studentId),
@@ -78,7 +83,7 @@ export function ExchangeNoticeSettingsPage() {
       patchExchangeNoticeSubscription(studentId!, patch!, auth.getAccessToken),
     onSuccess: (subscription) => {
       queryClient.setQueryData(
-        ['exchange', 'subscription', studentId],
+        privateQueryKeys.exchangeSubscription(sessionSubject, studentId),
         subscription,
       )
       setDraft({

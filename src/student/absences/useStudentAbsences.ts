@@ -8,9 +8,14 @@ import {
   deleteStudentAbsence,
   listStudentAbsences,
 } from '@/student/data/studentAbsenceApi'
+import { useOptionalAuth } from '@/auth/AuthProvider'
+import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
-export function studentAbsencesQueryKey(studentId: number | undefined) {
-  return ['student', studentId, 'absences'] as const
+export function studentAbsencesQueryKey(
+  sessionSubject: string,
+  studentId: number | undefined,
+) {
+  return privateQueryKeys.absences(sessionSubject, studentId)
 }
 
 export function useStudentAbsences(
@@ -18,8 +23,12 @@ export function useStudentAbsences(
   getAccessToken: () => Promise<string>,
   enabled = true,
 ) {
+  const auth = useOptionalAuth()
   const queryClient = useQueryClient()
-  const queryKey = studentAbsencesQueryKey(studentId)
+  const queryKey = studentAbsencesQueryKey(
+    auth.sessionSubject ?? 'unknown-session',
+    studentId,
+  )
   const query = useQuery({
     queryKey,
     queryFn: () => listStudentAbsences(studentId!, getAccessToken),

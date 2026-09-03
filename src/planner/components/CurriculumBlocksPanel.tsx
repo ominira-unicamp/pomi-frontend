@@ -4,10 +4,9 @@ import { memo, useMemo, useState } from 'react'
 import {
   buildCurriculumGroups,
   calculateElectiveCreditsBalances,
-  orderedPeriods,
+  curriculumAvailabilityKey,
 } from '@pomi/planner-domain/curriculum'
 import { CompactCourseCard } from './CourseCard'
-import type { CoursePrerequisiteResolver } from './CourseCard'
 import type {
   CourseId,
   CurriculumBlockView,
@@ -19,7 +18,9 @@ import { Button } from '@/components/ui/button'
 import { ActionTooltip } from '@/planner/components/ActionTooltip'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-function CurriculumBlock({
+const emptyPeriods: ReadonlyArray<PlanningPeriod> = []
+
+const CurriculumBlock = memo(function CurriculumBlock({
   block,
   groupId,
   periods,
@@ -27,7 +28,6 @@ function CurriculumBlock({
   remainingCredits,
   disabled,
   onOpenCourseDetails,
-  prerequisiteResolver,
 }: {
   block: CurriculumBlockView
   groupId: string
@@ -36,7 +36,6 @@ function CurriculumBlock({
   remainingCredits?: number
   disabled: boolean
   onOpenCourseDetails: (courseId: CourseId) => void
-  prerequisiteResolver?: CoursePrerequisiteResolver
 }) {
   const visibleCourses = block.courses
   return (
@@ -76,7 +75,6 @@ function CurriculumBlock({
               planningStart={planningStart}
               disabled={disabled}
               onOpenDetails={onOpenCourseDetails}
-              prerequisiteResolver={prerequisiteResolver}
             />
           ))}
         </div>
@@ -87,39 +85,41 @@ function CurriculumBlock({
       ) : null}
     </section>
   )
-}
+})
 
 export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
   staticData,
   snapshot,
   disabled,
   onOpenCourseDetails,
-  prerequisiteResolver,
 }: {
   staticData: CurriculumPlannerStaticData
   snapshot: CurriculumPlannerSnapshot
   disabled: boolean
   onOpenCourseDetails: (courseId: CourseId) => void
-  prerequisiteResolver?: CoursePrerequisiteResolver
 }) {
   const [collapsed, setCollapsed] = useState(false)
+  const availabilityKey = curriculumAvailabilityKey(snapshot)
   const groups = useMemo(
     () => buildCurriculumGroups(staticData, snapshot),
-    [snapshot, staticData],
+    [availabilityKey, snapshot, staticData],
   )
-  const periods = useMemo(() => orderedPeriods(snapshot.plan), [snapshot.plan])
+  const availableCourseIds = useMemo(
+    () =>
+      new Set([
+        ...snapshot.academicRecord.completedCourses.map(
+          (course) => course.courseId,
+        ),
+        ...snapshot.plan.periods.flatMap((period) =>
+          period.items.map((item) => item.courseId),
+        ),
+        ...(snapshot.plan.unallocatedCourseIds ?? []),
+      ]),
+    [availabilityKey],
+  )
   const electiveBalances = useMemo(() => {
-    const courseIds = new Set([
-      ...snapshot.academicRecord.completedCourses.map(
-        (course) => course.courseId,
-      ),
-      ...snapshot.plan.periods.flatMap((period) =>
-        period.items.map((item) => item.courseId),
-      ),
-      ...(snapshot.plan.unallocatedCourseIds ?? []),
-    ])
     const courses = staticData.courses.filter((course) =>
-      courseIds.has(course.id),
+      availableCourseIds.has(course.id),
     )
     return calculateElectiveCreditsBalances(courses, {
       mandatory: [],
@@ -129,13 +129,7 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
         ),
       ),
     })
-  }, [
-    groups,
-    snapshot.academicRecord.completedCourses,
-    snapshot.plan.periods,
-    snapshot.plan.unallocatedCourseIds,
-    staticData.courses,
-  ])
+  }, [groups, availableCourseIds, staticData.courses])
   const remainingCreditsByRequirement = new Map(
     electiveBalances.map((balance) => [
       balance.requirement,
@@ -192,8 +186,8 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
                     <CurriculumBlock
                       block={group.mandatory}
                       groupId={group.id}
-                      periods={periods}
-                      planningStart={snapshot.plan.planningStart}
+                      periods={emptyPeriods}
+                      planningStart={undefined}
                       remainingCredits={
                         group.mandatory.requirement
                           ? remainingCreditsByRequirement.get(
@@ -203,7 +197,6 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
                       }
                       disabled={disabled}
                       onOpenCourseDetails={onOpenCourseDetails}
-                      prerequisiteResolver={prerequisiteResolver}
                     />
                   )}
                   {group.electives.map((block) => (
@@ -211,8 +204,8 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
                       key={block.id}
                       block={block}
                       groupId={group.id}
-                      periods={periods}
-                      planningStart={snapshot.plan.planningStart}
+                      periods={emptyPeriods}
+                      planningStart={undefined}
                       remainingCredits={
                         block.requirement
                           ? remainingCreditsByRequirement.get(block.requirement)
@@ -220,7 +213,6 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
                       }
                       disabled={disabled}
                       onOpenCourseDetails={onOpenCourseDetails}
-                      prerequisiteResolver={prerequisiteResolver}
                     />
                   ))}
                 </div>

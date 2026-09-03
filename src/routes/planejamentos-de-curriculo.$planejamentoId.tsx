@@ -1,7 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 import { CurriculumPlannerPage } from '@/planner/CurriculumPlannerPage'
-import { CurriculumPlannerProvider } from '@/planner/CurriculumPlannerProvider'
 import {
   PlanningAccessGate,
   PlanningDraftGate,
@@ -18,17 +17,13 @@ function PlanningRoute() {
   if (planejamentoId === 'rascunho') {
     return (
       <PlanningDraftGate kind="curriculum">
-        <CurriculumPlannerProvider>
-          <CurriculumPlannerPage curriculumId={planejamentoId} />
-        </CurriculumPlannerProvider>
+        <CurriculumPlannerPage curriculumId={planejamentoId} />
       </PlanningDraftGate>
     )
   }
   return (
     <PlanningAccessGate kind="curriculum">
-      <CurriculumPlannerProvider>
-        <CurriculumPlannerPage curriculumId={planejamentoId} />
-      </CurriculumPlannerProvider>
+      <CurriculumPlannerPage curriculumId={planejamentoId} />
     </PlanningAccessGate>
   )
 }

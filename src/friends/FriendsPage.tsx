@@ -29,6 +29,7 @@ import {
   updatePublicProfile,
 } from '@/friends/studentSocialApi'
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
+import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 function PersonDetails({ person }: { person: PublicPerson }) {
   return (
@@ -82,22 +83,30 @@ function FriendshipCard({
 
 export function FriendsPage() {
   const auth = useOptionalAuth()
+  const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const queryClient = useQueryClient()
   const { studentId, studentQuery } = useStudentProfile()
   const [search, setSearch] = useState('')
   const [form, setForm] = useState<PublicProfile>()
   const profile = useQuery({
-    queryKey: ['student-social', studentId, 'profile'],
+    queryKey: privateQueryKeys.studentSocialProfile(sessionSubject, studentId),
     queryFn: () => getPublicProfile(studentId!, auth.getAccessToken),
     enabled: Boolean(studentId),
   })
   const friendships = useQuery({
-    queryKey: ['student-social', studentId, 'friendships'],
+    queryKey: privateQueryKeys.studentSocialFriendships(
+      sessionSubject,
+      studentId,
+    ),
     queryFn: () => listFriendships(studentId!, auth.getAccessToken),
     enabled: Boolean(studentId),
   })
   const people = useQuery({
-    queryKey: ['student-social', studentId, 'people', search.trim()],
+    queryKey: privateQueryKeys.studentSocialPeople(
+      sessionSubject,
+      studentId,
+      search.trim(),
+    ),
     queryFn: () => searchPeople(studentId!, search.trim(), auth.getAccessToken),
     enabled: Boolean(studentId && search.trim().length >= 3),
   })
@@ -105,7 +114,9 @@ export function FriendsPage() {
     if (profile.data) setForm(profile.data)
   }, [profile.data])
   const refresh = () =>
-    queryClient.invalidateQueries({ queryKey: ['student-social', studentId] })
+    queryClient.invalidateQueries({
+      queryKey: privateQueryKeys.studentSocial(sessionSubject, studentId),
+    })
   const save = useMutation({
     mutationFn: () =>
       updatePublicProfile(
