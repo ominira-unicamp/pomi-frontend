@@ -12,8 +12,8 @@ type CurriculumApiEntity = Readonly<{
   isFavorite: boolean
   selection: Readonly<{
     catalogProgramId: number | null
-    catalogSpecializationId: number | null
-    catalogLanguageId: number | null
+    specializationId: number | null
+    languageId: number | null
   }>
   planningStart: CurriculumDocument['planningStart']
   currentPeriodId: number | null
@@ -63,8 +63,8 @@ export type CurriculumSummary = Readonly<{
   isFavorite: boolean
   selection: Readonly<{
     catalogProgramId: number | null
-    catalogSpecializationId: number | null
-    catalogLanguageId: number | null
+    specializationId: number | null
+    languageId: number | null
   }>
   createdAt?: string
   updatedAt?: string
@@ -90,10 +90,8 @@ function documentFromApi(entity: CurriculumApiEntity): CurriculumDocument {
     isFavorite: entity.isFavorite,
     selection: {
       catalogProgramId: toStringOrNull(entity.selection.catalogProgramId),
-      specializationId: toStringOrNull(
-        entity.selection.catalogSpecializationId,
-      ),
-      languageId: toStringOrNull(entity.selection.catalogLanguageId),
+      specializationId: toStringOrNull(entity.selection.specializationId),
+      languageId: toStringOrNull(entity.selection.languageId),
     },
     planningStart: entity.planningStart,
     currentPeriodId: toStringOrNull(entity.currentPeriodId),
@@ -112,37 +110,35 @@ export async function listCurricula(
   studentId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  const summaries = await requestJson<ReadonlyArray<CurriculumSummaryApiEntity>>(
-    `/student/${studentId}/curricula`,
-    getAccessToken,
-  )
-  return summaries
-    .map((summary) => ({
-      id: summary.id,
-      name:
-        typeof summary.name === 'string' && summary.name.trim()
-          ? summary.name
-          : 'Currículo sem nome',
-      isFavorite: summary.isFavorite === true,
-      selection: {
-        catalogProgramId:
-          typeof summary.selection.catalogProgramId === 'number'
-            ? summary.selection.catalogProgramId
-            : null,
-        catalogSpecializationId:
-          typeof summary.selection.catalogSpecializationId === 'number'
-            ? summary.selection.catalogSpecializationId
-            : null,
-        catalogLanguageId:
-          typeof summary.selection.catalogLanguageId === 'number'
-            ? summary.selection.catalogLanguageId
-            : null,
-      },
-      createdAt:
-        typeof summary.createdAt === 'string' ? summary.createdAt : undefined,
-      updatedAt:
-        typeof summary.updatedAt === 'string' ? summary.updatedAt : undefined,
-    }))
+  const summaries = await requestJson<
+    ReadonlyArray<CurriculumSummaryApiEntity>
+  >(`/student/${studentId}/curricula`, getAccessToken)
+  return summaries.map((summary) => ({
+    id: summary.id,
+    name:
+      typeof summary.name === 'string' && summary.name.trim()
+        ? summary.name
+        : 'Currículo sem nome',
+    isFavorite: summary.isFavorite === true,
+    selection: {
+      catalogProgramId:
+        typeof summary.selection.catalogProgramId === 'number'
+          ? summary.selection.catalogProgramId
+          : null,
+      specializationId:
+        typeof summary.selection.specializationId === 'number'
+          ? summary.selection.specializationId
+          : null,
+      languageId:
+        typeof summary.selection.languageId === 'number'
+          ? summary.selection.languageId
+          : null,
+    },
+    createdAt:
+      typeof summary.createdAt === 'string' ? summary.createdAt : undefined,
+    updatedAt:
+      typeof summary.updatedAt === 'string' ? summary.updatedAt : undefined,
+  }))
 }
 
 export async function getCurriculum(
@@ -202,10 +198,8 @@ function toCreateBody(document: CurriculumDocument) {
     name: document.name,
     selection: {
       catalogProgramId: toNumberOrNull(document.selection.catalogProgramId),
-      catalogSpecializationId: toNumberOrNull(
-        document.selection.specializationId,
-      ),
-      catalogLanguageId: toNumberOrNull(document.selection.languageId),
+      specializationId: toNumberOrNull(document.selection.specializationId),
+      languageId: toNumberOrNull(document.selection.languageId),
     },
     planningStart: document.planningStart,
     currentPeriodId: toNumberOrNull(document.currentPeriodId),
@@ -367,8 +361,8 @@ export function patchBodyFromState(
     name: next.name,
     selection: {
       catalogProgramId: toNumberOrNull(next.selection.catalogProgramId),
-      catalogSpecializationId: toNumberOrNull(next.selection.specializationId),
-      catalogLanguageId: toNumberOrNull(next.selection.languageId),
+      specializationId: toNumberOrNull(next.selection.specializationId),
+      languageId: toNumberOrNull(next.selection.languageId),
     },
     planningStart: next.planningStart,
     currentPeriodId: toNumberOrNull(next.currentPeriodId),

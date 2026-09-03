@@ -14,8 +14,8 @@ describe('curriculum persistence API', () => {
         isFavorite: true,
         selection: {
           catalogProgramId: 42,
-          catalogSpecializationId: 7,
-          catalogLanguageId: 9,
+          specializationId: 7,
+          languageId: 9,
         },
         planningStart: { year: 2026, semester: 2, semesterNumber: 5 },
         currentPeriodId: 101,

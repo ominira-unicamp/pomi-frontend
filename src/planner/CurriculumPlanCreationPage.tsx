@@ -66,6 +66,7 @@ export function CurriculumPlanCreationPage() {
   const [submitting, setSubmitting] = useState(false)
   const [importedState, setImportedState] = useState<CurriculumPlannerState>()
   const importInputRef = useRef<HTMLInputElement>(null)
+  const profileSelectionInitialized = useRef(false)
   const staticQuery = useQuery({
     queryKey: publicQueryKeys.curriculumCatalog(),
     queryFn: async () => {
@@ -96,12 +97,13 @@ export function CurriculumPlanCreationPage() {
   useEffect(() => {
     const profile = profileQuery.data
     if (
+      profileSelectionInitialized.current ||
       !profile ||
-      selection.catalogProgramId ||
       importedState ||
       !staticQuery.data
     )
       return
+    profileSelectionInitialized.current = true
     const catalogProgram = staticQuery.data.catalogPrograms.find(
       (item) =>
         Number(item.catalog.id) === profile.catalogId &&
@@ -122,12 +124,7 @@ export function CurriculumPlanCreationPage() {
         ? String(profile.languageId)
         : '',
     })
-  }, [
-    importedState,
-    profileQuery.data,
-    selection.catalogProgramId,
-    staticQuery.data,
-  ])
+  }, [importedState, profileQuery.data, staticQuery.data])
 
   const generatedState = useMemo(
     () =>
@@ -347,6 +344,7 @@ export function CurriculumPlanCreationPage() {
               staticData={staticQuery.data}
               value={selection}
               onChange={(next) => {
+                profileSelectionInitialized.current = true
                 setSelection(next)
                 setSuggestionId('')
               }}

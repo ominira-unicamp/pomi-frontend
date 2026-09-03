@@ -147,10 +147,10 @@ function curriculumDetails(
   )
   if (!catalogProgram) return []
   const specialization = catalogProgram.specializations.find(
-    (item) => Number(item.id) === summary.selection.catalogSpecializationId,
+    (item) => Number(item.id) === summary.selection.specializationId,
   )
   const language = catalogProgram.languages.find(
-    (item) => Number(item.id) === summary.selection.catalogLanguageId,
+    (item) => Number(item.id) === summary.selection.languageId,
   )
   return [
     { label: 'Catálogo', value: `Catálogo ${catalogProgram.catalog.year}` },
