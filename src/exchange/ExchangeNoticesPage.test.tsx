@@ -1,9 +1,16 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { ReactNode } from 'react'
+import type * as Router from '@tanstack/react-router'
 
 import type * as ExchangeApi from '@/exchange/data/exchangeApi'
 import { ExchangeNoticesPage } from '@/exchange/ExchangeNoticesPage'
+
+vi.mock('@tanstack/react-router', async (importOriginal) => ({
+  ...(await importOriginal<typeof Router>()),
+  Link: ({ children }: { children: ReactNode }) => <a>{children}</a>,
+}))
 
 const mocks = vi.hoisted(() => ({
   login: vi.fn(),
@@ -92,41 +99,44 @@ describe('ExchangeNoticesPage', () => {
     renderPage()
 
     expect(await screen.findByText('Programa África')).toBeTruthy()
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Entrar para configurar' }),
-    )
+    fireEvent.click(screen.getByRole('button', { name: 'Configurar alertas' }))
     expect(mocks.auth.login).toHaveBeenCalledWith('/editais-de-intercambio')
   })
 
-  it('saves only the changed subscription field', async () => {
+  it('summarizes active alerts without hiding the public catalog', async () => {
     mocks.auth.isAuthenticated = true
     mocks.student.studentId = 7
     mocks.getSubscription.mockResolvedValue({
       studentId: 7,
-      enabled: false,
-      placeIds: [],
-    })
-    mocks.patchSubscription.mockResolvedValue({
-      studentId: 7,
       enabled: true,
-      placeIds: [],
+      placeIds: [3, 5],
     })
     renderPage()
 
-    fireEvent.click(
-      await screen.findByRole('checkbox', { name: 'Preferência pausada' }),
-    )
-    fireEvent.click(screen.getByRole('button', { name: 'Salvar preferências' }))
+    expect(await screen.findByText('Alertas configurados')).toBeTruthy()
+    expect(screen.getByText(/Você acompanha 2 locais/)).toBeTruthy()
+    expect(screen.getByText('Programa África')).toBeTruthy()
+  })
 
-    await waitFor(() =>
-      expect(mocks.patchSubscription).toHaveBeenCalledWith(
-        7,
-        { enabled: true },
-        mocks.auth.getAccessToken,
-      ),
+  it('adds and removes advanced filters individually', async () => {
+    renderPage()
+
+    await screen.findByText('Programa África')
+    fireEvent.pointerDown(
+      screen.getByRole('button', { name: 'Mais filtros' }),
+      {
+        button: 0,
+        ctrlKey: false,
+      },
+    )
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Locais' }))
+
+    expect(screen.getByText('Locais')).toBeTruthy()
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Remover filtro Locais' }),
     )
     expect(
-      await screen.findByText('Preferências de editais salvas.'),
-    ).toBeTruthy()
+      screen.queryByRole('button', { name: 'Remover filtro Locais' }),
+    ).toBeNull()
   })
 })

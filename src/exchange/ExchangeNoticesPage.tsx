@@ -1,7 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import {
-  Bell,
+  ArrowRight,
+  BellOff,
   CalendarDays,
+  CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -10,34 +13,34 @@ import {
   Filter,
   LogIn,
   MapPin,
+  Plus,
   Search,
+  X,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
-import type {
-  ExchangeNotice,
-  ExchangeNoticeSubscription,
-  ExchangePlace,
-} from '@/exchange/data/exchangeApi'
+import type { ExchangeNotice, ExchangePlace } from '@/exchange/data/exchangeApi'
 import type { ExchangeNoticeFilters } from '@/exchange/data/exchangeNotices'
-import { ApiError } from '@/api/errors'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
   EmptyState,
   ErrorState,
   LoadingState,
   PageContainer,
-  PageHeader,
 } from '@/components/PageLayout'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
-  buildExchangeSubscriptionPatch,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
   getExchangeNoticeSubscription,
   listExchangeNotices,
   listExchangePlaces,
-  patchExchangeNoticeSubscription,
 } from '@/exchange/data/exchangeApi'
 import {
   defaultExchangeNoticeFilters,
@@ -54,26 +57,18 @@ function formatDate(value: string | null) {
   return year && month && day ? `${day}/${month}/${year}` : value
 }
 
-function subscriptionErrorMessage(error: unknown) {
-  if (error instanceof ApiError && error.status === 422) {
-    return (
-      error.problem?.fields?.find((field) => field.path.includes('placeIds'))
-        ?.message ?? 'Um dos locais selecionados não está mais disponível.'
-    )
-  }
-  return 'Não foi possível salvar as preferências.'
-}
-
-function SelectionGroup<T extends string | number>({
+export function SelectionGroup<T extends string | number>({
   label,
   options,
   selected,
   onChange,
+  disabled = false,
 }: {
   label: string
   options: ReadonlyArray<{ value: T; label: string }>
   selected: ReadonlyArray<T>
   onChange: (values: ReadonlyArray<T>) => void
+  disabled?: boolean
 }) {
   const toggle = (value: T) =>
     onChange(
@@ -83,7 +78,7 @@ function SelectionGroup<T extends string | number>({
     )
 
   return (
-    <fieldset className="min-w-0">
+    <fieldset className="min-w-0 disabled:opacity-60" disabled={disabled}>
       <legend className="mb-2 text-sm font-extrabold">{label}</legend>
       <div className="max-h-44 space-y-1 overflow-y-auto rounded-md border-2 border-input bg-background p-2">
         {options.length > 0 ? (
@@ -111,17 +106,8 @@ function SelectionGroup<T extends string | number>({
   )
 }
 
-function ExchangeSubscriptionPanel({
-  places,
-  placesLoading,
-  placesError,
-}: {
-  places: ReadonlyArray<ExchangePlace>
-  placesLoading: boolean
-  placesError: boolean
-}) {
+function ExchangeAlertsSummary() {
   const auth = useOptionalAuth()
-  const queryClient = useQueryClient()
   const { studentId, studentQuery } = useStudentProfile()
   const subscriptionQuery = useQuery({
     queryKey: ['exchange', 'subscription', studentId],
@@ -130,61 +116,29 @@ function ExchangeSubscriptionPanel({
     enabled: Boolean(studentId),
     retry: false,
   })
-  const [draft, setDraft] = useState<
-    Pick<ExchangeNoticeSubscription, 'enabled' | 'placeIds'> | undefined
-  >()
-
-  useEffect(() => {
-    if (subscriptionQuery.data) {
-      setDraft({
-        enabled: subscriptionQuery.data.enabled,
-        placeIds: subscriptionQuery.data.placeIds,
-      })
-    }
-  }, [subscriptionQuery.data])
-
-  const patch =
-    draft && subscriptionQuery.data
-      ? buildExchangeSubscriptionPatch(draft, subscriptionQuery.data)
-      : undefined
-  const mutation = useMutation({
-    mutationFn: () =>
-      patchExchangeNoticeSubscription(studentId!, patch!, auth.getAccessToken),
-    onSuccess: (subscription) => {
-      queryClient.setQueryData(
-        ['exchange', 'subscription', studentId],
-        subscription,
-      )
-      setDraft({
-        enabled: subscription.enabled,
-        placeIds: subscription.placeIds,
-      })
-    },
-  })
-
   if (!auth.initialized || (auth.isAuthenticated && studentQuery.isLoading)) {
-    return <LoadingState label="Carregando suas preferências" />
+    return <LoadingState label="Carregando seus alertas" />
   }
 
   if (!auth.isAuthenticated) {
     return (
-      <Card className="mb-10 flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+      <Card className="mb-10 flex flex-col gap-5 border-primary/50 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
         <div>
           <p className="text-xs font-black tracking-[0.18em] text-primary uppercase">
-            Preferências de editais
+            Alertas de intercâmbio
           </p>
-          <h2 className="mt-1 text-xl font-extrabold">
-            Escolha os locais que você quer acompanhar
-          </h2>
+          <h1 className="mt-2 text-2xl font-black sm:text-3xl">
+            Receba novos editais por e-mail
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Entre para guardar sua seleção no POMI.
+            Entre no POMI e escolha os locais que você quer acompanhar.
           </p>
         </div>
         <Button
           className="shrink-0"
           onClick={() => void auth.login('/editais-de-intercambio')}
         >
-          <LogIn /> Entrar para configurar
+          <LogIn /> Configurar alertas
         </Button>
       </Card>
     )
@@ -195,7 +149,7 @@ function ExchangeSubscriptionPanel({
       <div className="mb-10">
         <ErrorState
           title="Não foi possível identificar seu estudante"
-          description="Tente carregar novamente para configurar as preferências."
+          description="O catálogo continua disponível enquanto tentamos carregar seus alertas."
           action={{
             label: 'Tentar novamente',
             onClick: () => void studentQuery.refetch(),
@@ -208,34 +162,29 @@ function ExchangeSubscriptionPanel({
   if (!studentId) {
     return (
       <Card className="mb-10 p-6">
-        <h2 className="text-xl font-extrabold">Preferências de editais</h2>
+        <h1 className="text-2xl font-black">Complete seu perfil acadêmico</h1>
         <p className="mt-2 text-muted-foreground">
-          Sua conta ainda não possui um estudante associado. Complete seu perfil
-          acadêmico antes de configurar esta área.
+          Sua conta ainda não possui um estudante associado. Complete o perfil
+          para configurar alertas de editais.
         </p>
       </Card>
     )
   }
 
-  if (subscriptionQuery.isLoading || placesLoading) {
-    return <LoadingState label="Carregando suas preferências" />
+  if (subscriptionQuery.isLoading) {
+    return <LoadingState label="Carregando seus alertas" />
   }
 
-  if (subscriptionQuery.isError || placesError || !draft) {
+  if (subscriptionQuery.isError || !subscriptionQuery.data) {
     return (
       <div className="mb-10">
         <ErrorState
-          title="Não foi possível carregar as preferências"
+          title="Não foi possível carregar seus alertas"
           description="A lista de editais continua disponível abaixo."
           action={{
             label: 'Tentar novamente',
             onClick: () => {
               void subscriptionQuery.refetch()
-              if (placesError) {
-                void queryClient.invalidateQueries({
-                  queryKey: ['exchange', 'places'],
-                })
-              }
             },
           }}
         />
@@ -243,76 +192,38 @@ function ExchangeSubscriptionPanel({
     )
   }
 
-  const placeOptions = places.map((place) => ({
-    value: place.id,
-    label: place.name,
-  }))
+  const subscription = subscriptionQuery.data
+  const selectedCount = subscription.placeIds.length
+  const enabled = subscription.enabled
 
   return (
-    <Card className="mb-10 p-5 sm:p-6">
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+    <Card className="mb-10 flex flex-col gap-5 border-primary/50 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+      <div className="flex min-w-0 gap-4">
+        <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+          {enabled ? <CheckCircle2 /> : <BellOff />}
+        </div>
         <div>
           <p className="text-xs font-black tracking-[0.18em] text-primary uppercase">
-            Preferências de editais
+            {enabled ? 'Alertas ativos' : 'Alertas pausados'}
           </p>
-          <h2 className="mt-1 flex items-center gap-2 text-xl font-extrabold">
-            <Bell className="size-5 text-primary" /> Acompanhamento
-          </h2>
+          <h1 className="mt-1 text-2xl font-black sm:text-3xl">
+            {enabled ? 'Alertas configurados' : 'Alertas de intercâmbio'}
+          </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Guarde os locais de seu interesse. O envio das notificações será
-            disponibilizado em uma etapa posterior.
+            {enabled
+              ? selectedCount > 0
+                ? `Você acompanha ${selectedCount} ${selectedCount === 1 ? 'local' : 'locais'} e receberá novos editais por e-mail.`
+                : 'Você receberá por e-mail novos editais de todos os locais.'
+              : 'Seus locais continuam salvos. Reative o envio quando quiser voltar a receber e-mails.'}
           </p>
         </div>
-        <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border-2 border-strong-border px-4 py-2 font-bold">
-          <input
-            type="checkbox"
-            className="size-5 accent-primary"
-            checked={draft.enabled}
-            onChange={(event) =>
-              setDraft((current) => ({
-                ...current!,
-                enabled: event.target.checked,
-              }))
-            }
-          />
-          {draft.enabled ? 'Preferência ativa' : 'Preferência pausada'}
-        </label>
       </div>
-
-      <div className="mt-6">
-        <SelectionGroup
-          label={`Locais de interesse (${draft.placeIds.length}/${places.length})`}
-          options={placeOptions}
-          selected={draft.placeIds}
-          onChange={(placeIds) =>
-            setDraft((current) => ({ ...current!, placeIds }))
-          }
-        />
-        <p className="mt-2 text-sm text-muted-foreground">
-          Sem locais selecionados, a preferência abrange todos os locais.
-        </p>
-      </div>
-
-      <div className="mt-6 flex flex-col gap-3 border-t-2 border-strong-border pt-5 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm font-semibold" role="status">
-          {mutation.isSuccess && !patch
-            ? 'Preferências de editais salvas.'
-            : patch
-              ? 'Há alterações não salvas.'
-              : 'Preferências salvas.'}
-        </p>
-        <Button
-          disabled={!patch || mutation.isPending}
-          onClick={() => mutation.mutate()}
-        >
-          {mutation.isPending ? 'Salvando…' : 'Salvar preferências'}
-        </Button>
-      </div>
-      {mutation.isError && (
-        <p className="mt-3 text-sm font-semibold text-destructive" role="alert">
-          {subscriptionErrorMessage(mutation.error)}
-        </p>
-      )}
+      <Link
+        to="/editais-de-intercambio/configuracoes"
+        className={`${buttonVariants()} shrink-0`}
+      >
+        {enabled ? 'Editar alertas' : 'Reativar alertas'} <ArrowRight />
+      </Link>
     </Card>
   )
 }
@@ -399,14 +310,45 @@ function CatalogFilters({
   places: ReadonlyArray<ExchangePlace>
   onChange: (filters: ExchangeNoticeFilters) => void
 }) {
+  type ActiveFilter =
+    | 'issuers'
+    | 'placeIds'
+    | 'registrationStartAfter'
+    | 'registrationStartBefore'
+    | 'registrationEndAfter'
+    | 'registrationEndBefore'
+
+  const filterOptions: ReadonlyArray<{
+    key: ActiveFilter
+    label: string
+  }> = [
+    { key: 'issuers', label: 'Órgãos emissores' },
+    { key: 'placeIds', label: 'Locais' },
+    { key: 'registrationStartAfter', label: 'Início a partir de' },
+    { key: 'registrationStartBefore', label: 'Início até' },
+    { key: 'registrationEndAfter', label: 'Fim a partir de' },
+    { key: 'registrationEndBefore', label: 'Fim até' },
+  ]
+  const [activeFilters, setActiveFilters] = useState<Array<ActiveFilter>>([])
   const update = <TKey extends keyof ExchangeNoticeFilters>(
     key: TKey,
     value: ExchangeNoticeFilters[TKey],
   ) => onChange({ ...filters, [key]: value })
+  const addFilter = (key: ActiveFilter) =>
+    setActiveFilters((current) =>
+      current.includes(key) ? current : [...current, key],
+    )
+  const removeFilter = (key: ActiveFilter) => {
+    setActiveFilters((current) => current.filter((item) => item !== key))
+    update(key, defaultExchangeNoticeFilters[key])
+  }
+  const availableFilters = filterOptions.filter(
+    ({ key }) => !activeFilters.includes(key),
+  )
 
   return (
     <div className="mb-6 space-y-4">
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto]">
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
         <label className="relative">
           <span className="sr-only">Buscar editais</span>
           <Search className="pointer-events-none absolute top-3 left-3 size-4 text-muted-foreground" />
@@ -417,11 +359,26 @@ function CatalogFilters({
             onChange={(event) => update('search', event.target.value)}
           />
         </label>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="default" disabled={availableFilters.length === 0}>
+              <Plus /> Mais filtros
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {availableFilters.map(({ key, label }) => (
+              <DropdownMenuItem key={key} onSelect={() => addFilter(key)}>
+                {label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button
           variant="outline"
-          onClick={() =>
+          onClick={() => {
+            addFilter('registrationEndAfter')
             update('registrationEndAfter', localDateKey(new Date()))
-          }
+          }}
         >
           <Filter /> Inscrições abertas
         </Button>
@@ -461,58 +418,59 @@ function CatalogFilters({
         </div>
       </div>
 
-      <details className="rounded-lg border-2 border-strong-border bg-muted/40">
-        <summary className="pomi-focus flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-lg px-4 py-2 font-extrabold marker:content-none [&::-webkit-details-marker]:hidden">
-          <Filter className="size-4" /> Mais filtros
-          <ChevronDown className="ml-auto size-4" />
-        </summary>
-        <div className="grid gap-5 border-t-2 border-strong-border p-4 md:grid-cols-2">
-          <SelectionGroup
-            label="Órgãos emissores"
-            options={issuers.map((issuer) => ({
-              value: issuer,
-              label: issuer,
-            }))}
-            selected={filters.issuers}
-            onChange={(values) => update('issuers', values)}
-          />
-          <SelectionGroup
-            label="Locais"
-            options={places.map((place) => ({
-              value: place.id,
-              label: place.name,
-            }))}
-            selected={filters.placeIds}
-            onChange={(values) => update('placeIds', values)}
-          />
-          {(
-            [
-              ['registrationStartAfter', 'Início a partir de'],
-              ['registrationStartBefore', 'Início até'],
-              ['registrationEndAfter', 'Fim a partir de'],
-              ['registrationEndBefore', 'Fim até'],
-            ] as const
-          ).map(([key, label]) => (
-            <label key={key} className="text-sm font-extrabold">
-              {label}
-              <Input
-                className="mt-2"
-                type="date"
-                value={filters[key]}
-                onChange={(event) => update(key, event.target.value)}
-              />
-            </label>
-          ))}
-          <div className="md:col-span-2">
-            <Button
-              variant="outline"
-              onClick={() => onChange(defaultExchangeNoticeFilters)}
-            >
-              Limpar filtros
-            </Button>
-          </div>
+      {activeFilters.length > 0 && (
+        <div className="grid gap-4 rounded-lg border-2 border-strong-border bg-muted/40 p-4 md:grid-cols-2 xl:grid-cols-3">
+          {activeFilters.map((key) => {
+            const label = filterOptions.find(
+              (option) => option.key === key,
+            )!.label
+            return (
+              <div key={key} className="min-w-0">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="text-sm font-extrabold">{label}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-8"
+                    aria-label={`Remover filtro ${label}`}
+                    onClick={() => removeFilter(key)}
+                  >
+                    <X />
+                  </Button>
+                </div>
+                {key === 'issuers' ? (
+                  <SelectionGroup
+                    label=""
+                    options={issuers.map((issuer) => ({
+                      value: issuer,
+                      label: issuer,
+                    }))}
+                    selected={filters.issuers}
+                    onChange={(values) => update('issuers', values)}
+                  />
+                ) : key === 'placeIds' ? (
+                  <SelectionGroup
+                    label=""
+                    options={places.map((place) => ({
+                      value: place.id,
+                      label: place.name,
+                    }))}
+                    selected={filters.placeIds}
+                    onChange={(values) => update('placeIds', values)}
+                  />
+                ) : (
+                  <Input
+                    aria-label={label}
+                    type="date"
+                    value={filters[key]}
+                    onChange={(event) => update(key, event.target.value)}
+                  />
+                )}
+              </div>
+            )
+          })}
         </div>
-      </details>
+      )}
     </div>
   )
 }
@@ -555,22 +513,12 @@ export function ExchangeNoticesPage() {
 
   return (
     <PageContainer size="wide">
-      <PageHeader
-        eyebrow="Oportunidades acadêmicas"
-        title="Editais de intercâmbio"
-        description="Consulte os editais publicados e guarde os locais que você quer acompanhar."
-      />
-
-      <ExchangeSubscriptionPanel
-        places={places}
-        placesLoading={placesQuery.isLoading}
-        placesError={placesQuery.isError}
-      />
+      <ExchangeAlertsSummary />
 
       <section aria-labelledby="exchange-notices-title">
         <div className="mb-5">
           <h2 id="exchange-notices-title" className="text-2xl font-black">
-            Editais publicados
+            Editais de intercâmbio
           </h2>
           <p className="mt-1 text-muted-foreground">
             Abra um edital para consultar os arquivos disponíveis.

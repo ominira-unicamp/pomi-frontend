@@ -126,6 +126,7 @@ export function CourseSituationPage() {
   const [status, setStatus] = useState<StudentCourseAttemptStatus | ''>('')
   const [grade, setGrade] = useState('')
   const [attemptError, setAttemptError] = useState<string>()
+  const [attemptSaving, setAttemptSaving] = useState(false)
   const [absenceAttemptId, setAbsenceAttemptId] = useState<number>()
   const [evaluationTarget, setEvaluationTarget] = useState<ProfessorEvaluationTarget>()
 
@@ -330,6 +331,7 @@ export function CourseSituationPage() {
   }
 
   async function saveAttempt() {
+    if (attemptSaving) return
     if (
       !studentId ||
       !status ||
@@ -345,6 +347,7 @@ export function CourseSituationPage() {
       grade: acceptsGrade ? numericGrade : null,
     }
     setAttemptError(undefined)
+    setAttemptSaving(true)
     try {
       if (editingAttemptId) {
         await patchStudentCourseAttempt(
@@ -370,6 +373,8 @@ export function CourseSituationPage() {
       setAttemptError(
         'Não foi possível salvar a tentativa. Verifique os dados e tente novamente.',
       )
+    } finally {
+      setAttemptSaving(false)
     }
   }
 
@@ -880,6 +885,7 @@ export function CourseSituationPage() {
                 !status ||
                 !evaluationMode ||
                 Boolean(gradeError) ||
+                attemptSaving ||
                 (!editingAttemptId && !courseId)
               }
               onClick={() => void saveAttempt()}
