@@ -64,6 +64,36 @@ export type StudentCourseAttemptStatus =
   | 'SUFFICIENT'
   | 'INSUFFICIENT'
 
+export type StudentHistoryImport = Readonly<{
+  format: 'pomi-student-history'
+  version: 1
+  student: Readonly<{ ra: string }>
+  semesters: ReadonlyArray<Readonly<{
+    year: number
+    yearPeriod: StudyPeriodYearPeriod
+    courses: ReadonlyArray<Readonly<{
+      code: string
+      name: string
+      grade: number | null
+      workloadHours: number | null
+      credits: number | null
+      status: Exclude<StudentCourseAttemptStatus, 'ENROLLED' | 'FAILED_BY_GRADE' | 'INSUFFICIENT'>
+    }>>
+  }>>
+}>
+
+export type StudentHistoryImportSummary = Readonly<{
+  created: number
+  updated: number
+  skipped: number
+  warnings: ReadonlyArray<Readonly<{
+    year: number | null
+    yearPeriod: string | null
+    code: string | null
+    message: string
+  }>>
+}>
+
 export type ProfessorEvaluation = Readonly<{
   id: number
   studentId: number
@@ -266,6 +296,18 @@ export function listStudentCourseAttempts(
   return requestJson<ReadonlyArray<StudentCourseAttempt>>(
     `/student/${studentId}/course-attempts`,
     getAccessToken,
+  )
+}
+
+export function importStudentHistory(
+  studentId: number,
+  body: StudentHistoryImport,
+  getAccessToken: () => Promise<string>,
+) {
+  return requestJson<StudentHistoryImportSummary>(
+    `/student/${studentId}/course-history`,
+    getAccessToken,
+    { method: 'POST', body: JSON.stringify(body) },
   )
 }
 

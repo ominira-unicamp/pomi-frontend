@@ -9,8 +9,9 @@ import {
   Pencil,
   Plus,
   Trash2,
+  Upload,
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import type { CourseProfileValues } from '@/student/components/CourseProfilePanel'
 import type { StudyPeriodYearPeriod } from '@/student/data/studyPeriod'
@@ -46,7 +47,10 @@ import {
   listStudyPeriods,
   patchStudentCourseAttempt,
   patchStudentProfile,
+  importStudentHistory,
 } from '@/student/data/studentApi'
+import { parseStudentHistoryPdf } from '@/student/historyImport/studentHistoryParser'
+import type { StudentHistoryParseResult } from '@/student/historyImport/studentHistoryParser'
 import { useStudentProfile } from '@/student/hooks/useStudentProfile'
 import { mostRecentStudyPeriodsFirst } from '@/student/data/studyPeriodOrdering'
 import { studyPeriodLabel } from '@/student/data/studyPeriod'
@@ -155,6 +159,24 @@ export function CourseSituationPage() {
   const [absenceAttemptId, setAbsenceAttemptId] = useState<number>()
   const [evaluationTarget, setEvaluationTarget] =
     useState<ProfessorEvaluationTarget>()
+  const historyFileInput = useRef<HTMLInputElement>(null)
+  const [historyImporting, setHistoryImporting] = useState(false)
+  const [historyImportError, setHistoryImportError] = useState<string>()
+  const [pendingHistoryImport, setPendingHistoryImport] =
+    useState<StudentHistoryParseResult>()
+  const [historyImportSummary, setHistoryImportSummary] = useState<{
+    created: number
+    updated: number
+    skipped: number
+    warnings: ReadonlyArray<
+      Readonly<{
+        year: number | null
+        yearPeriod: string | null
+        code: string | null
+        message: string
+      }>
+    >
+  }>()
 
   const { studentId, profileQuery } = useStudentProfile()
   const attemptsQuery = useQuery({
@@ -444,6 +466,51 @@ export function CourseSituationPage() {
     await queryClient.invalidateQueries({
       queryKey: privateQueryKeys.studentProfile(sessionSubject, studentId),
     })
+  }
+
+  async function parseHistoryFile(file: File) {
+    if (!studentId || historyImporting) return
+    setHistoryImporting(true)
+    setHistoryImportError(undefined)
+    setHistoryImportSummary(undefined)
+    try {
+      const parsed = await parseStudentHistoryPdf(file)
+      setPendingHistoryImport(parsed)
+    } catch (error) {
+      setHistoryImportError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível ler o histórico escolar.',
+      )
+    } finally {
+      setHistoryImporting(false)
+    }
+  }
+
+  async function confirmHistoryImport() {
+    if (!studentId || !pendingHistoryImport || historyImporting) return
+    setHistoryImporting(true)
+    setHistoryImportError(undefined)
+    try {
+      const summary = await importStudentHistory(
+        studentId,
+        pendingHistoryImport.value,
+        auth.getAccessToken,
+      )
+      setHistoryImportSummary(summary)
+      setPendingHistoryImport(undefined)
+      await queryClient.invalidateQueries({
+        queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
+      })
+    } catch (error) {
+      setHistoryImportError(
+        error instanceof Error
+          ? error.message
+          : 'Não foi possível salvar o histórico escolar.',
+      )
+    } finally {
+      setHistoryImporting(false)
+    }
   }
 
   function renderAttempt(attempt: (typeof attempts)[number]) {
@@ -755,6 +822,62 @@ export function CourseSituationPage() {
         </TabsContent>
 
         <TabsContent value="history">
+          <div className="mb-5 flex flex-col gap-3 rounded-lg border-2 border-strong-border bg-card p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-extrabold">Importar histórico escolar</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Use o PDF textual emitido pela DAC. O arquivo será processado no
+                navegador e não será enviado ao servidor.
+              </p>
+            </div>
+            <input
+              ref={historyFileInput}
+              className="hidden"
+              type="file"
+              accept="application/pdf,.pdf"
+              onChange={(event) => {
+                const file = event.target.files?.[0]
+                event.target.value = ''
+                if (file) void parseHistoryFile(file)
+              }}
+            />
+            <Button
+              className="shrink-0"
+              disabled={historyImporting}
+              onClick={() => historyFileInput.current?.click()}
+            >
+              <Upload />
+              {historyImporting ? 'Lendo…' : 'Escolher PDF'}
+            </Button>
+          </div>
+          {historyImportError && (
+            <Alert className="mb-5" variant="destructive">
+              <AlertCircle />
+              <AlertTitle>Não foi possível importar</AlertTitle>
+              <AlertDescription>{historyImportError}</AlertDescription>
+            </Alert>
+          )}
+          {historyImportSummary && (
+            <Alert className="mb-5">
+              <Check />
+              <AlertTitle>Histórico importado</AlertTitle>
+              <AlertDescription>
+                {historyImportSummary.created} criadas,{' '}
+                {historyImportSummary.updated} atualizadas e{' '}
+                {historyImportSummary.skipped} ignoradas.
+                {historyImportSummary.warnings.length > 0 && (
+                  <ul className="mt-2 list-disc space-y-1 pl-5">
+                    {historyImportSummary.warnings.map((warning, index) => (
+                      <li key={`${warning.code ?? 'item'}-${index}`}>
+                        {warning.code ? `${warning.code}: ` : ''}
+                        {warning.message}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </AlertDescription>
+            </Alert>
+          )}
           {attemptsByPeriod.length ? (
             <div className="space-y-5">
               {attemptsByPeriod.map(({ label, attempts: entries }) => (
@@ -779,6 +902,111 @@ export function CourseSituationPage() {
           )}
         </TabsContent>
       </Tabs>
+      <Dialog
+        open={Boolean(pendingHistoryImport)}
+        onOpenChange={(open) => {
+          if (!open && !historyImporting) setPendingHistoryImport(undefined)
+        }}
+      >
+        <DialogContent onOpenAutoFocus={(event) => event.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Confirmar importação do histórico</DialogTitle>
+          </DialogHeader>
+          {pendingHistoryImport && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                RA encontrado:{' '}
+                <strong>{pendingHistoryImport.value.student.ra}</strong>
+              </p>
+              <div className="rounded-md border-2 border-strong-border bg-secondary/50 p-3 text-sm">
+                <p>
+                  {pendingHistoryImport.value.semesters.length}{' '}
+                  {pendingHistoryImport.value.semesters.length === 1
+                    ? 'semestre'
+                    : 'semestres'}{' '}
+                  e{' '}
+                  {pendingHistoryImport.value.semesters.reduce(
+                    (total, semester) => total + semester.courses.length,
+                    0,
+                  )}{' '}
+                  disciplinas encontradas.
+                </p>
+                <p className="mt-1 text-muted-foreground">
+                  Disciplinas já registradas poderão ser atualizadas.
+                </p>
+              </div>
+              <div className="max-h-72 space-y-4 overflow-y-auto rounded-md border-2 border-strong-border p-3">
+                {pendingHistoryImport.value.semesters.map((semester) => (
+                  <section
+                    key={`${semester.year}:${semester.yearPeriod}`}
+                    aria-labelledby={`history-import-${semester.year}-${semester.yearPeriod}`}
+                  >
+                    <h3
+                      id={`history-import-${semester.year}-${semester.yearPeriod}`}
+                      className="mb-2 font-extrabold"
+                    >
+                      {studyPeriodLabel(semester)}
+                    </h3>
+                    <ul className="space-y-2">
+                      {semester.courses.map((course) => (
+                        <li
+                          key={`${semester.year}:${semester.yearPeriod}:${course.code}`}
+                          className="rounded-md bg-secondary/60 px-3 py-2 text-sm"
+                        >
+                          <p className="font-bold">
+                            {course.code} — {course.name}
+                          </p>
+                          <p className="text-muted-foreground">
+                            {labelForStatus(course.status)}
+                            {course.grade !== null
+                              ? ` · Nota ${course.grade}`
+                              : ''}
+                            {course.credits !== null
+                              ? ` · ${course.credits} créditos`
+                              : ''}
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ))}
+              </div>
+              {pendingHistoryImport.warnings.length > 0 && (
+                <Alert>
+                  <AlertCircle />
+                  <AlertTitle>Atenção antes de importar</AlertTitle>
+                  <AlertDescription>
+                    {pendingHistoryImport.warnings.length} linhas não puderam
+                    ser interpretadas e não serão enviadas.
+                    <ul className="mt-2 max-h-32 list-disc space-y-1 overflow-y-auto pl-5">
+                      {pendingHistoryImport.warnings.map((warning, index) => (
+                        <li key={`${warning.line}-${index}`}>
+                          {warning.message}
+                        </li>
+                      ))}
+                    </ul>
+                  </AlertDescription>
+                </Alert>
+              )}
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  disabled={historyImporting}
+                  onClick={() => setPendingHistoryImport(undefined)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  disabled={historyImporting}
+                  onClick={() => void confirmHistoryImport()}
+                >
+                  {historyImporting ? 'Salvando…' : 'Confirmar e salvar'}
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
       {absenceAttempt && (
         <StudentAbsencePanel
           open
