@@ -38,7 +38,7 @@ MC050   Monitoria   ---   120   8   Suficiente
             },
             {
               code: 'LA122',
-              status: 'SUFFICIENT',
+              status: 'APPROVED_BY_PROFICIENCY',
               grade: null,
             },
             {
@@ -50,5 +50,24 @@ MC050   Monitoria   ---   120   8   Suficiente
         },
       ],
     })
+  })
+
+  it('does not attach a previous professor or course to the next course', () => {
+    const result = parseStudentHistoryText(`
+Registro Acadêmico 245511
+1º Semestre de 2023
+MA111    Prof Doutor Leithold Louis Aurazo   9,2   90   6   Aprovado por Nota e Frequência
+Alvarez
+Geometria Analítica e Vetores
+MA141     7,7   60   4   Aprovado por Nota e Frequência
+`)
+
+    expect(result.value.semesters[0]?.courses).toMatchObject([
+      {
+        code: 'MA141',
+        name: 'Geometria Analítica e Vetores',
+        grade: 7.7,
+      },
+    ])
   })
 })

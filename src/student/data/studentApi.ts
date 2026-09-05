@@ -60,6 +60,7 @@ export type StudentCourseAttemptStatus =
   | 'APPROVED'
   | 'FAILED_BY_GRADE'
   | 'APPROVED_BY_ATTENDANCE'
+  | 'APPROVED_BY_PROFICIENCY'
   | 'FAILED_BY_ATTENDANCE'
   | 'SUFFICIENT'
   | 'INSUFFICIENT'
@@ -122,9 +123,12 @@ export type PendingProfessorEvaluation = Readonly<{
 export function isApprovedStudentCourseAttempt(
   attempt: Pick<StudentCourseAttempt, 'status'>,
 ) {
-  return ['APPROVED', 'APPROVED_BY_ATTENDANCE', 'SUFFICIENT'].includes(
-    attempt.status,
-  )
+  return [
+    'APPROVED',
+    'APPROVED_BY_ATTENDANCE',
+    'APPROVED_BY_PROFICIENCY',
+    'SUFFICIENT',
+  ].includes(attempt.status)
 }
 
 export type StudentCourseAttemptClass = Readonly<{

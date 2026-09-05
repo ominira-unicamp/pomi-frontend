@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   createContext,
   useCallback,
@@ -17,6 +17,7 @@ import {
 } from '@/feedback/feedbackReportApi'
 import { useCurrentStudent } from '@/student/hooks/useStudentProfile'
 import { FeedbackReportDialog } from '@/feedback/FeedbackReportDialog'
+import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 const draftKey = 'pomi.feedback-report.draft'
 
@@ -58,6 +59,7 @@ function clearDraft() {
 export function FeedbackReportProvider({ children }: { children: ReactNode }) {
   const auth = useOptionalAuth()
   const student = useCurrentStudent()
+  const queryClient = useQueryClient()
   const [draft, setDraft] = useState<FeedbackDraft | undefined>(() =>
     readDraft(),
   )
@@ -79,7 +81,7 @@ export function FeedbackReportProvider({ children }: { children: ReactNode }) {
   const openFeedback = useCallback(
     (input: Partial<FeedbackReportInput> = {}) => {
       setDraft({
-        identified: false,
+        identified: auth.isAuthenticated && Boolean(student.data?.studentId),
         input: {
           kind: input.kind ?? 'BUG',
           target: input.target ?? { type: 'GENERAL' },
@@ -90,7 +92,7 @@ export function FeedbackReportProvider({ children }: { children: ReactNode }) {
       })
       setOpen(true)
     },
-    [],
+    [auth.isAuthenticated, student.data?.studentId],
   )
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -103,8 +105,16 @@ export function FeedbackReportProvider({ children }: { children: ReactNode }) {
     async (submission: FeedbackDraft) => {
       await mutation.mutateAsync(submission)
       clearDraft()
+      if (student.data?.studentId) {
+        await queryClient.invalidateQueries({
+          queryKey: privateQueryKeys.feedbackReports(
+            auth.sessionSubject ?? 'unknown-session',
+            student.data.studentId,
+          ),
+        })
+      }
     },
-    [mutation],
+    [auth.sessionSubject, mutation, queryClient, student.data?.studentId],
   )
   const handleLogin = useCallback(
     (submission: FeedbackDraft) => {

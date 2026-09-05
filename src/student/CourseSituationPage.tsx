@@ -123,6 +123,7 @@ function compareStudyPeriods(
 }
 
 function labelForStatus(status: StudentCourseAttemptStatus) {
+  if (status === 'APPROVED_BY_PROFICIENCY') return 'Aprovada por proficiência'
   return (
     Object.values(statusesByEvaluationMode)
       .flat()

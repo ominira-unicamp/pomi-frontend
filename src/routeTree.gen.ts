@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SituacaoDoCursoRouteImport } from './routes/situacao-do-curso'
 import { Route as PlanejamentosDeCurriculoRouteImport } from './routes/planejamentos-de-curriculo'
+import { Route as MinhasSolicitacoesRouteImport } from './routes/minhas-solicitacoes'
 import { Route as EditaisDeIntercambioRouteImport } from './routes/editais-de-intercambio'
 import { Route as AmigosRouteImport } from './routes/amigos'
 import { Route as DesignSystemRouteImport } from './routes/[_]design-system'
@@ -40,6 +41,11 @@ const PlanejamentosDeCurriculoRoute =
     path: '/planejamentos-de-curriculo',
     getParentRoute: () => rootRouteImport,
   } as any)
+const MinhasSolicitacoesRoute = MinhasSolicitacoesRouteImport.update({
+  id: '/minhas-solicitacoes',
+  path: '/minhas-solicitacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EditaisDeIntercambioRoute = EditaisDeIntercambioRouteImport.update({
   id: '/editais-de-intercambio',
   path: '/editais-de-intercambio',
@@ -108,6 +114,7 @@ export interface FileRoutesByFullPath {
   '/_design-system': typeof DesignSystemRoute
   '/amigos': typeof AmigosRoute
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
+  '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
   '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoRouteWithChildren
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
@@ -124,6 +131,7 @@ export interface FileRoutesByTo {
   '/_design-system': typeof DesignSystemRoute
   '/amigos': typeof AmigosRoute
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
+  '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/_design-system': typeof DesignSystemRoute
   '/amigos': typeof AmigosRoute
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
+  '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
   '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoRouteWithChildren
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
@@ -158,6 +167,7 @@ export interface FileRouteTypes {
     | '/_design-system'
     | '/amigos'
     | '/editais-de-intercambio'
+    | '/minhas-solicitacoes'
     | '/planejamentos-de-curriculo'
     | '/situacao-do-curso'
     | '/sobre'
@@ -174,6 +184,7 @@ export interface FileRouteTypes {
     | '/_design-system'
     | '/amigos'
     | '/editais-de-intercambio'
+    | '/minhas-solicitacoes'
     | '/situacao-do-curso'
     | '/sobre'
     | '/editais-de-intercambio/configuracoes'
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/_design-system'
     | '/amigos'
     | '/editais-de-intercambio'
+    | '/minhas-solicitacoes'
     | '/planejamentos-de-curriculo'
     | '/situacao-do-curso'
     | '/sobre'
@@ -206,6 +218,7 @@ export interface RootRouteChildren {
   DesignSystemRoute: typeof DesignSystemRoute
   AmigosRoute: typeof AmigosRoute
   EditaisDeIntercambioRoute: typeof EditaisDeIntercambioRoute
+  MinhasSolicitacoesRoute: typeof MinhasSolicitacoesRoute
   PlanejamentosDeCurriculoRoute: typeof PlanejamentosDeCurriculoRouteWithChildren
   SituacaoDoCursoRoute: typeof SituacaoDoCursoRoute
   SobreRoute: typeof SobreRoute
@@ -236,6 +249,13 @@ declare module '@tanstack/react-router' {
       path: '/planejamentos-de-curriculo'
       fullPath: '/planejamentos-de-curriculo'
       preLoaderRoute: typeof PlanejamentosDeCurriculoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/minhas-solicitacoes': {
+      id: '/minhas-solicitacoes'
+      path: '/minhas-solicitacoes'
+      fullPath: '/minhas-solicitacoes'
+      preLoaderRoute: typeof MinhasSolicitacoesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/editais-de-intercambio': {
@@ -342,6 +362,7 @@ const rootRouteChildren: RootRouteChildren = {
   DesignSystemRoute: DesignSystemRoute,
   AmigosRoute: AmigosRoute,
   EditaisDeIntercambioRoute: EditaisDeIntercambioRoute,
+  MinhasSolicitacoesRoute: MinhasSolicitacoesRoute,
   PlanejamentosDeCurriculoRoute: PlanejamentosDeCurriculoRouteWithChildren,
   SituacaoDoCursoRoute: SituacaoDoCursoRoute,
   SobreRoute: SobreRoute,

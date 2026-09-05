@@ -48,14 +48,31 @@ export type FeedbackReportInput = Readonly<{
 
 export type FeedbackReceipt = Readonly<{ createdAt: string }>
 
-async function responseJson(response: Promise<Response>) {
+export const feedbackReportStatuses = ['OPEN', 'IN_PROGRESS', 'CLOSED'] as const
+export type FeedbackReportStatus = (typeof feedbackReportStatuses)[number]
+
+export type FeedbackReport = Readonly<{
+  id: number
+  kind: FeedbackKind
+  target: FeedbackTarget
+  title: string
+  description: string
+  sourcePath: string | null
+  status: FeedbackReportStatus
+  adminMessage: string | null
+  reporterStudentId: number | null
+  createdAt: string
+  updatedAt: string
+}>
+
+async function responseJson<T>(response: Promise<Response>): Promise<T> {
   const resolvedResponse = await response
   await expectApiResponse(resolvedResponse)
-  return (await resolvedResponse.json()) as FeedbackReceipt
+  return (await resolvedResponse.json()) as T
 }
 
 export function submitAnonymousFeedbackReport(input: FeedbackReportInput) {
-  return responseJson(
+  return responseJson<FeedbackReceipt>(
     appApiPublicRequest('/feedback-reports', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -69,11 +86,20 @@ export function submitStudentFeedbackReport(
   input: FeedbackReportInput,
   getAccessToken: () => Promise<string>,
 ) {
-  return responseJson(
+  return responseJson<FeedbackReceipt>(
     appApiRequest(`/student/${studentId}/feedback-reports`, getAccessToken, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(input),
     }),
+  )
+}
+
+export function listStudentFeedbackReports(
+  studentId: number,
+  getAccessToken: () => Promise<string>,
+) {
+  return responseJson<ReadonlyArray<FeedbackReport>>(
+    appApiRequest(`/student/${studentId}/feedback-reports`, getAccessToken),
   )
 }

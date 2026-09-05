@@ -13,6 +13,7 @@ export type StudentHistoryImportCourse = Readonly<{
   status:
     | 'APPROVED'
     | 'APPROVED_BY_ATTENDANCE'
+    | 'APPROVED_BY_PROFICIENCY'
     | 'DROPPED'
     | 'FAILED_BY_ATTENDANCE'
     | 'SUFFICIENT'
@@ -45,6 +46,7 @@ export type StudentHistoryParseResult = Readonly<{
 const semesterPattern = /^(1|2)º Semestre de (\d{4})\b/
 const raPattern = /Registro Acadêmico[\s\S]{0,120}?\b(\d{6})\b/
 const codePattern = /^[A-Z]{1,3}(?:\s+\d{3,4}|\d{3,4})$/
+const courseLinePattern = /^[A-Z]{1,3}(?:\s+\d{3,4}|\d{3,4})(?:\s|$)/
 const rowPattern = new RegExp(
   `^\\s*([A-Z]{1,3}(?:\\s+\\d{3,4}|\\d{3,4}))\\s+(.*?)\\s{2,}((?:\\d+[,.]\\d+)|---)\\s{2,}(\\d+|-)\\s{2,}(\\d+|-)\\s{2,}(.+?)\\s*$`,
 )
@@ -61,7 +63,8 @@ function statusFor(value: string) {
   if (status.includes('Aprovado por Nota')) return 'APPROVED' as const
   if (status.includes('Aprovado por Frequência'))
     return 'APPROVED_BY_ATTENDANCE' as const
-  if (status.includes('Aprovado - Proficiência')) return 'SUFFICIENT' as const
+  if (status.includes('Aprovado - Proficiência'))
+    return 'APPROVED_BY_PROFICIENCY' as const
   if (status.includes('Suficiente')) return 'SUFFICIENT' as const
   if (status.includes('Reprovado por Frequência'))
     return 'FAILED_BY_ATTENDANCE' as const
@@ -99,6 +102,14 @@ function previousName(lines: ReadonlyArray<string>, index: number) {
     const line = cleanName(lines[cursor] ?? '')
     if (!line || isNoise(line)) continue
     if (semesterPattern.test(line) || codePattern.test(line)) break
+    const precedingLine = cleanName(lines[cursor - 1] ?? '')
+    if (
+      courseLinePattern.test(precedingLine) &&
+      /\b(?:Prof|Profa|Professor)\b/.test(precedingLine)
+    ) {
+      continue
+    }
+    if (courseLinePattern.test(line)) break
     if (/^(?:\d+º|Código|Nome|Média|CH|Crd|Situação)/.test(line)) break
     names.unshift(line)
   }
@@ -136,7 +147,11 @@ function parseText(text: string): StudentHistoryParseResult {
     const rowMatch = cleanLine.match(rowPattern)
     if (!rowMatch) return
     const status = statusFor(rowMatch[6] ?? '')
-    const name = cleanName(rowMatch[2] ?? '') || previousName(lines, index)
+    const inlineName = cleanName(rowMatch[2] ?? '')
+    const name =
+      inlineName && !/^(?:Prof|Profa|Professor)\b/.test(inlineName)
+        ? inlineName
+        : previousName(lines, index)
     if (!status || !name) {
       warnings.push({
         page: null,

@@ -182,6 +182,14 @@ export const privateQueryKeys = {
       ...privateQueryKeys.studentSocial(sessionSubject, studentId),
       'profile',
     ] as const,
+  feedbackReports: (sessionSubject: string, studentId?: number | null) =>
+    [
+      'private',
+      sessionSubject,
+      'student',
+      studentId ?? 'none',
+      'feedback-reports',
+    ] as const,
   studentSocialFriendships: (
     sessionSubject: string,
     studentId?: number | null,
