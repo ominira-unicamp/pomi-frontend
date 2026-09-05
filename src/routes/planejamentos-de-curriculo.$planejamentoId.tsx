@@ -1,10 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { CurriculumPlannerPage } from '@/planner/CurriculumPlannerPage'
+import { CurriculumPlannerPage } from '@/features/curriculum-planner'
 import {
   PlanningAccessGate,
   PlanningDraftGate,
-} from '@/planner/components/PlanningDraftGate'
+} from '@/features/planning-shared'
 
 export const Route = createFileRoute(
   '/planejamentos-de-curriculo/$planejamentoId',

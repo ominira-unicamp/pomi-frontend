@@ -61,7 +61,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
-import { useFeedbackReport } from '@/feedback/FeedbackReportProvider'
+import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
 
 function displayName(profile: ReturnType<typeof useAuth>['profile']) {
   return String(

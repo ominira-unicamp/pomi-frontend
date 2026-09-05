@@ -1,5 +1,5 @@
 import type { CurriculumPlannerStaticDataSource } from '@pomi/planner-domain/curriculum'
-import { createApiCurriculumPlannerStaticDataSource as createSource } from '@/planner/data/curriculumPlannerApi'
+import { createApiCurriculumPlannerStaticDataSource as createSource } from '@/features/curriculum-planner/data/curriculumPlannerApi'
 
 const source: CurriculumPlannerStaticDataSource = createSource()
 

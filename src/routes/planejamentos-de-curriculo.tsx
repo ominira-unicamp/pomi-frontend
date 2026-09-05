@@ -5,7 +5,7 @@ import {
   useRouterState,
 } from '@tanstack/react-router'
 
-import { CurriculumPlannerProvider } from '@/planner/CurriculumPlannerProvider'
+import { CurriculumPlannerProvider } from '@/features/curriculum-planner'
 
 export const Route = createFileRoute('/planejamentos-de-curriculo')({
   component: CurriculumPlanningLayout,

@@ -1,4 +1,4 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { FriendsPage } from '@/friends/FriendsPage'
+import { FriendsPage } from '@/features/friends'
 
 export const Route = createFileRoute('/amigos')({ component: FriendsPage })

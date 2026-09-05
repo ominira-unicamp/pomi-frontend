@@ -1,0 +1,1 @@
+export { CourseSituationPage } from './CourseSituationPage'

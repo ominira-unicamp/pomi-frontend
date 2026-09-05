@@ -5,7 +5,7 @@ import { RouterProvider, createRouter } from '@tanstack/react-router'
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 import { AuthProvider } from './auth/AuthProvider.tsx'
 import { ThemeProvider } from './components/ThemeProvider.tsx'
-import { FeedbackReportProvider } from './feedback/FeedbackReportProvider.tsx'
+import { FeedbackReportProvider } from './features/feedback/FeedbackReportProvider.tsx'
 import { PrivateQueryCacheBoundary } from './integrations/tanstack-query/PrivateQueryCacheBoundary.tsx'
 
 // Import the generated route tree

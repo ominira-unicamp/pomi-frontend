@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
-import { CurriculumPlannerPage } from '@/planner/CurriculumPlannerPage'
+import { CurriculumPlannerPage } from '@/features/curriculum-planner'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 
 export const Route = createFileRoute('/planejamentos-de-curriculo/')({
