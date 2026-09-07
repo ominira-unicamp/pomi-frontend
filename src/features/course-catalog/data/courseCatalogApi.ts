@@ -73,7 +73,6 @@ export type CatalogCourse = Readonly<{
             code: string
             kind: 'FULL' | 'PARTIAL' | 'SPECIAL'
             courseId: number | null
-            prefixId: number | null
           }>
         >
       }>

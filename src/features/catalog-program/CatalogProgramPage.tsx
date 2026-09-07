@@ -802,9 +802,7 @@ function PrefixCourses({
 }) {
   const [page, setPage] = useState(1)
   const matchingCourses = courses.filter(
-    (course) =>
-      (course.prefix ?? course.code.slice(0, prefix.length)).toUpperCase() ===
-      prefix,
+    (course) => course.code.toUpperCase().startsWith(prefix),
   )
   const totalPages = Math.max(
     1,
@@ -930,10 +928,10 @@ function requirementRow(
     }
   }
   if (selector.type === 'prefix') {
-    const code = `${selector.prefix.trim().toUpperCase()}---`
+    const code = selector.prefix.trim().toUpperCase()
     return {
       code,
-      name: `Qualquer disciplina com código ${code}`,
+      name: `Qualquer disciplina com código iniciado por ${code}`,
     }
   }
   return {

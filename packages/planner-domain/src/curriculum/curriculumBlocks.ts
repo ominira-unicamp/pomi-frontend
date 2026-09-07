@@ -62,9 +62,7 @@ function coursesForSelector(
     return courses.filter((course) => course.id === selector.courseId)
   }
   const prefix = selector.prefix.trim().toUpperCase()
-  return courses.filter(
-    (course) => course.prefix?.trim().toUpperCase() === prefix,
-  )
+  return courses.filter((course) => course.code.toUpperCase().startsWith(prefix))
 }
 
 function distinctCourses(

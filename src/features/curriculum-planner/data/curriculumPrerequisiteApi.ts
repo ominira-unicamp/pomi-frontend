@@ -13,7 +13,6 @@ type ApiPrerequisiteItem = Readonly<{
   code: string
   kind: 'FULL' | 'PARTIAL' | 'SPECIAL'
   courseId: number | null
-  prefixId: number | null
 }>
 type ApiCatalogCourse = Readonly<{
   courseId: number

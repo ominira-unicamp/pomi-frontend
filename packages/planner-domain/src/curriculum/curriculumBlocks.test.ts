@@ -93,6 +93,38 @@ const snapshot: CurriculumPlannerSnapshot = {
 }
 
 describe('buildCurriculumGroups', () => {
+  it('matches literal prefixes longer than two characters by course code', () => {
+    const groups = buildCurriculumGroups(
+      {
+        ...staticData,
+        courses: [course('4', 'QA851', 'QA')],
+        catalogPrograms: [
+          {
+            ...staticData.catalogPrograms[0],
+            baseBlocks: {
+              mandatory: [
+                {
+                  type: 'course',
+                  source: { type: 'base' },
+                  selector: { type: 'prefix', prefix: 'QA85' },
+                },
+              ],
+              electives: [],
+            },
+            specializations: [],
+          },
+        ],
+      },
+      snapshot,
+    )
+
+    expect(
+      groups[0].mandatory?.courses.map(
+        ({ course: courseItem }) => courseItem.code,
+      ),
+    ).toEqual(['QA851'])
+  })
+
   it('builds base and selected habilitation while hiding completed and planned courses', () => {
     const groups = buildCurriculumGroups(staticData, snapshot)
 

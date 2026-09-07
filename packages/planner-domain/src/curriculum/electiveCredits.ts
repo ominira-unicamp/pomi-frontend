@@ -17,9 +17,9 @@ export type ElectiveCreditsBalance = Readonly<{
 function matchesSelector(course: Course, selector: CourseSelector) {
   if (selector.type === 'anyCourse') return true
   if (selector.type === 'specificCourse') return course.id === selector.courseId
-  return (
-    course.prefix?.trim().toUpperCase() === selector.prefix.trim().toUpperCase()
-  )
+  return course.code
+    .toUpperCase()
+    .startsWith(selector.prefix.trim().toUpperCase())
 }
 
 function matchesRequirement(

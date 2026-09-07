@@ -127,9 +127,7 @@ function candidateForPrefix(
   const normalized = normalizePrefix(prefix)
   if (candidates.has(normalized)) return candidates.get(normalized)
   const candidate = courses
-    .filter((course) =>
-      normalizePrefix(course.prefix ?? course.code).startsWith(normalized),
-    )
+    .filter((course) => normalizePrefix(course.code).startsWith(normalized))
     .filter(
       (course) =>
         completed.has(course.id) ||

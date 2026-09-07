@@ -5,7 +5,6 @@ export type CatalogCoursePrerequisiteItem = Readonly<{
   code: string
   kind: 'FULL' | 'PARTIAL' | 'SPECIAL'
   courseId: number | null
-  prefixId: number | null
 }>
 
 export type CatalogCoursePrerequisiteGroup = Readonly<{
