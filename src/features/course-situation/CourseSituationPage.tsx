@@ -19,6 +19,15 @@ import {
 } from '@/components/PageLayout'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   privateQueryKeys,
@@ -76,6 +85,8 @@ export function CourseSituationPage() {
     useState<CourseAttemptFormState>(emptyAttemptForm)
   const [attemptError, setAttemptError] = useState<string>()
   const [attemptSaving, setAttemptSaving] = useState(false)
+  const [removalAttemptId, setRemovalAttemptId] = useState<number>()
+  const [removalInProgress, setRemovalInProgress] = useState(false)
   const [absenceAttemptId, setAbsenceAttemptId] = useState<number>()
   const [evaluationTarget, setEvaluationTarget] =
     useState<ProfessorEvaluationTarget>()
@@ -274,13 +285,23 @@ export function CourseSituationPage() {
     }
   }
 
-  async function removeAttempt(attemptId: number) {
-    if (!studentId || !window.confirm('Remover esta tentativa do histórico?'))
+  async function confirmRemoveAttempt() {
+    if (!studentId || removalAttemptId === undefined || removalInProgress)
       return
-    await deleteStudentCourseAttempt(studentId, attemptId, auth.getAccessToken)
-    await queryClient.invalidateQueries({
-      queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
-    })
+    setRemovalInProgress(true)
+    try {
+      await deleteStudentCourseAttempt(
+        studentId,
+        removalAttemptId,
+        auth.getAccessToken,
+      )
+      await queryClient.invalidateQueries({
+        queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
+      })
+      setRemovalAttemptId(undefined)
+    } finally {
+      setRemovalInProgress(false)
+    }
   }
 
   async function saveProfile(value: CourseProfileValues) {
@@ -460,7 +481,7 @@ export function CourseSituationPage() {
             onOpenAbsences={setAbsenceAttemptId}
             onEvaluate={setEvaluationTarget}
             onEdit={openEdit}
-            onRemove={(attemptId) => void removeAttempt(attemptId)}
+            onRemove={setRemovalAttemptId}
           />
         </TabsContent>
         <TabsContent value="history">
@@ -480,7 +501,7 @@ export function CourseSituationPage() {
             onOpenAbsences={setAbsenceAttemptId}
             onEvaluate={setEvaluationTarget}
             onEdit={openEdit}
-            onRemove={(attemptId) => void removeAttempt(attemptId)}
+            onRemove={setRemovalAttemptId}
           />
         </TabsContent>
       </Tabs>
@@ -492,6 +513,37 @@ export function CourseSituationPage() {
         }}
         onConfirm={() => void confirmHistoryImport()}
       />
+      <Dialog
+        open={removalAttemptId !== undefined}
+        onOpenChange={(open) => {
+          if (!open && !removalInProgress) setRemovalAttemptId(undefined)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remover disciplina?</DialogTitle>
+            <DialogDescription>
+              {removalAttemptId === undefined
+                ? 'A tentativa selecionada será removida.'
+                : `A tentativa de ${attempts.find((attempt) => attempt.id === removalAttemptId)?.course.name ?? 'disciplina'} será removida do seu histórico.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" disabled={removalInProgress}>
+                Cancelar
+              </Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              disabled={removalInProgress}
+              onClick={() => void confirmRemoveAttempt()}
+            >
+              {removalInProgress ? 'Removendo…' : 'Remover disciplina'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {absenceAttempt && (
         <StudentAbsencePanel
           open

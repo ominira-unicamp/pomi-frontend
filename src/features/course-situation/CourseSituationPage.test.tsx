@@ -9,6 +9,7 @@ const {
   listClassesForStudentCourseAttempt,
   listClassSchedulesByStudyPeriod,
   listStudyPeriods,
+  deleteStudentCourseAttempt,
   getCourseEvaluationForStudyPeriod,
   getProfessorEvaluation,
   listStudentAbsences,
@@ -17,6 +18,7 @@ const {
   listClassesForStudentCourseAttempt: vi.fn(),
   listClassSchedulesByStudyPeriod: vi.fn(),
   listStudyPeriods: vi.fn(),
+  deleteStudentCourseAttempt: vi.fn(),
   getCourseEvaluationForStudyPeriod: vi.fn(),
   getProfessorEvaluation: vi.fn(),
   listStudentAbsences: vi.fn(),
@@ -58,7 +60,7 @@ vi.mock('@/features/student/data/studentApi', () => ({
   getCourseEvaluationForStudyPeriod,
   getProfessorEvaluation,
   createStudentCourseAttempt: vi.fn(),
-  deleteStudentCourseAttempt: vi.fn(),
+  deleteStudentCourseAttempt,
   patchStudentCourseAttempt: vi.fn(),
   patchStudentProfile: vi.fn(),
   putProfessorEvaluation: vi.fn(),
@@ -252,6 +254,29 @@ describe('CourseSituationPage', () => {
     expect(await screen.findByText('Editar tentativa')).toBeTruthy()
     expect(document.activeElement).not.toBe(
       screen.getByRole('combobox', { name: 'Modalidade de avaliação' }),
+    )
+  })
+
+  it('requires confirmation before removing an attempt', async () => {
+    renderPage()
+    await screen.findByText('MC102 — Algoritmos')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remover' }))
+
+    expect(await screen.findByRole('dialog')).toBeTruthy()
+    expect(
+      screen.getByText(/A tentativa de Algoritmos será removida/),
+    ).toBeTruthy()
+    expect(deleteStudentCourseAttempt).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remover disciplina' }))
+
+    await waitFor(() =>
+      expect(deleteStudentCourseAttempt).toHaveBeenCalledWith(
+        1,
+        1,
+        authState.getAccessToken,
+      ),
     )
   })
 

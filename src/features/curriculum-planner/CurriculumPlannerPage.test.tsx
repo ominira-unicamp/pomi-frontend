@@ -62,7 +62,16 @@ const staticData: CurriculumPlannerStaticData = {
             },
           },
         ],
-        electives: [],
+        electives: [
+          {
+            type: 'electiveCredits',
+            source: { type: 'base' },
+            requiredCredits: 4,
+            eligibleCourses: [
+              { type: 'specificCourse', courseId: 'second-course' as CourseId },
+            ],
+          },
+        ],
       },
       specializations: [],
       languages: [],
@@ -168,6 +177,14 @@ describe('CurriculumPlannerPage', () => {
       await screen.findByRole('heading', { name: 'Blocos da grade' }),
     ).toBeTruthy()
     expect(screen.getByRole('heading', { name: 'Base' })).toBeTruthy()
+    fireEvent.click(
+      screen.getByRole('button', { name: /CE739, Sistemas, 4 créditos/ }),
+    )
+    expect(await screen.findByText('No planejamento')).toBeTruthy()
+    expect(
+      screen.getByRole('combobox', { name: 'Local de CE739 no planejamento' }),
+    ).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar' }))
     const semesterHeadings = screen
       .getAllByRole('heading', { level: 3 })
       .filter((heading) => heading.textContent.includes('sem -'))

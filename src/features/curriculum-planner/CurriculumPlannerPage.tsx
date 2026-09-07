@@ -37,9 +37,7 @@ import type {
   CoursePrerequisiteResolver,
   PlannerDragData,
 } from '@/features/curriculum-planner/components/CourseCard'
-import type {
-  CourseId,
-} from '@pomi/planner-domain/curriculum'
+import type { CourseId } from '@pomi/planner-domain/curriculum'
 import type { ResolvedPlanningImport } from '@pomi/planner-domain/transfer'
 import {
   ErrorState,
@@ -302,9 +300,9 @@ export function CurriculumPlannerPage({
     planner.studentProfile,
   ])
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 0 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, {
-      activationConstraint: { distance: 0 },
+      activationConstraint: { delay: 250, tolerance: 5 },
     }),
     useSensor(KeyboardSensor),
   )
@@ -636,9 +634,7 @@ export function CurriculumPlannerPage({
           <AlertDescription>
             {importError === 'parse'
               ? 'O arquivo não é um planejamento JSON válido ou está em uma versão incompatível.'
-              : curriculumPlannerErrorText(
-                  planner.error ?? 'invalidInput',
-                )}
+              : curriculumPlannerErrorText(planner.error ?? 'invalidInput')}
           </AlertDescription>
         </Alert>
       )}
