@@ -125,6 +125,19 @@ export const privateQueryKeys = {
       studentId ?? 'none',
       'semester-plannings',
     ] as const,
+  semesterPlanning: (
+    sessionSubject: string,
+    studentId: number | null | undefined,
+    planningId: string | number,
+  ) =>
+    [
+      'private',
+      sessionSubject,
+      'student',
+      studentId ?? 'none',
+      'semester-plannings',
+      String(planningId),
+    ] as const,
   semesterPlannerSnapshot: (
     sessionSubject: string,
     planningId: string | number,
@@ -236,6 +249,8 @@ export const privateQueryKeys = {
       'shared-period-plannings',
       ownerPublicId,
     ] as const,
+  sharedPeriodPlanning: (sessionSubject: string, shareId: string) =>
+    ['shared-period-planning', sessionSubject, shareId] as const,
   courseSituationClasses: (
     sessionSubject: string,
     studentId: number | null | undefined,

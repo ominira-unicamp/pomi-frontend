@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
 import {
   BookOpen,
   CalendarDays,
@@ -327,9 +328,11 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
             ) : (
               <div className="mt-5 grid gap-3">
                 {sharedPlans.map((plan) => (
-                  <article
+                  <Link
                     key={plan.shareId}
-                    className="rounded-lg border-2 border-border bg-card p-4"
+                    to="/planejamentos-de-semestre/compartilhado/$shareId"
+                    params={{ shareId: plan.shareId }}
+                    className="pomi-focus block rounded-lg border-2 border-border bg-card p-4 transition-colors hover:border-primary"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <h3 className="font-extrabold">
@@ -360,7 +363,7 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
                         ))}
                       </div>
                     )}
-                  </article>
+                  </Link>
                 ))}
               </div>
             )}

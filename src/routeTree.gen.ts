@@ -33,6 +33,7 @@ import { Route as PerfilSolicitacoesRouteImport } from './routes/perfil.solicita
 import { Route as PerfilAmigosRouteImport } from './routes/perfil.amigos'
 import { Route as EditaisDeIntercambioConfiguracoesRouteImport } from './routes/editais-de-intercambio_.configuracoes'
 import { Route as DisciplinasCourseIdRouteImport } from './routes/disciplinas.$courseId'
+import { Route as PlanejamentosDeSemestreCompartilhadoShareIdRouteImport } from './routes/planejamentos-de-semestre.compartilhado.$shareId'
 
 const TaxonomiaRoute = TaxonomiaRouteImport.update({
   id: '/taxonomia',
@@ -162,6 +163,12 @@ const DisciplinasCourseIdRoute = DisciplinasCourseIdRouteImport.update({
   path: '/$courseId',
   getParentRoute: () => DisciplinasRoute,
 } as any)
+const PlanejamentosDeSemestreCompartilhadoShareIdRoute =
+  PlanejamentosDeSemestreCompartilhadoShareIdRouteImport.update({
+    id: '/planejamentos-de-semestre/compartilhado/$shareId',
+    path: '/planejamentos-de-semestre/compartilhado/$shareId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -188,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/perfil/': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo/': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
+  '/planejamentos-de-semestre/compartilhado/$shareId': typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -211,6 +219,7 @@ export interface FileRoutesByTo {
   '/perfil': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
+  '/planejamentos-de-semestre/compartilhado/$shareId': typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -238,6 +247,7 @@ export interface FileRoutesById {
   '/perfil/': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo/': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre/': typeof PlanejamentosDeSemestreIndexRoute
+  '/planejamentos-de-semestre/compartilhado/$shareId': typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -266,6 +276,7 @@ export interface FileRouteTypes {
     | '/perfil/'
     | '/planejamentos-de-curriculo/'
     | '/planejamentos-de-semestre'
+    | '/planejamentos-de-semestre/compartilhado/$shareId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -289,6 +300,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/planejamentos-de-curriculo'
     | '/planejamentos-de-semestre'
+    | '/planejamentos-de-semestre/compartilhado/$shareId'
   id:
     | '__root__'
     | '/'
@@ -315,6 +327,7 @@ export interface FileRouteTypes {
     | '/perfil/'
     | '/planejamentos-de-curriculo/'
     | '/planejamentos-de-semestre/'
+    | '/planejamentos-de-semestre/compartilhado/$shareId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -334,6 +347,7 @@ export interface RootRouteChildren {
   PlanejamentosDeSemestrePlanejamentoIdRoute: typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   PlanejamentosDeSemestreNovoRoute: typeof PlanejamentosDeSemestreNovoRoute
   PlanejamentosDeSemestreIndexRoute: typeof PlanejamentosDeSemestreIndexRoute
+  PlanejamentosDeSemestreCompartilhadoShareIdRoute: typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -506,6 +520,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DisciplinasCourseIdRouteImport
       parentRoute: typeof DisciplinasRoute
     }
+    '/planejamentos-de-semestre/compartilhado/$shareId': {
+      id: '/planejamentos-de-semestre/compartilhado/$shareId'
+      path: '/planejamentos-de-semestre/compartilhado/$shareId'
+      fullPath: '/planejamentos-de-semestre/compartilhado/$shareId'
+      preLoaderRoute: typeof PlanejamentosDeSemestreCompartilhadoShareIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -576,6 +597,8 @@ const rootRouteChildren: RootRouteChildren = {
     PlanejamentosDeSemestrePlanejamentoIdRoute,
   PlanejamentosDeSemestreNovoRoute: PlanejamentosDeSemestreNovoRoute,
   PlanejamentosDeSemestreIndexRoute: PlanejamentosDeSemestreIndexRoute,
+  PlanejamentosDeSemestreCompartilhadoShareIdRoute:
+    PlanejamentosDeSemestreCompartilhadoShareIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

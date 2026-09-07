@@ -421,6 +421,17 @@ export function listSemesterPlannings(
   )
 }
 
+export function getSemesterPlanning(
+  studentId: number,
+  planId: number,
+  getAccessToken: () => Promise<string>,
+) {
+  return authenticatedJson<PersistedSemesterPlanning>(
+    `/student/${studentId}/period-plannings/${planId}`,
+    getAccessToken,
+  )
+}
+
 export function createSemesterPlanning(
   studentId: number,
   document: Readonly<{

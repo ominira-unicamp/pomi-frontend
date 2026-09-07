@@ -199,12 +199,14 @@ export function SemesterPlannerPage({
     curriculumQuery,
     anonymousCurriculumDataQuery,
     anonymousSuggestionsQuery,
+    planQuery,
   } = useSemesterPlannerQueries({
     getAccessToken: auth.getAccessToken,
     authInitialized: auth.initialized,
     studyPeriodId,
     guideCurriculumId,
     anonymousCatalogProgramId,
+    planningId,
   })
 
   const professorEvaluationSummaries = useMemo(
@@ -514,7 +516,9 @@ export function SemesterPlannerPage({
   }
 
   function selectPlan(planId: number) {
-    const plan = plansQuery.data?.find((item) => item.id === planId)
+    const plan =
+      plansQuery.data?.find((item) => item.id === planId) ??
+      (planQuery.data?.id === planId ? planQuery.data : undefined)
     if (!plan) return
     setActivePlanId(plan.id)
     setVisibility(plan.visibility)
@@ -611,7 +615,7 @@ export function SemesterPlannerPage({
     const targetId = Number(planningId)
     if (!Number.isInteger(targetId) || activePlanId === targetId) return
     selectPlan(targetId)
-  }, [activePlanId, planningId, plansQuery.data])
+  }, [activePlanId, planningId, planQuery.data, plansQuery.data])
 
   function exportPlanning() {
     const file = serializeSemesterPlanning(document, query.data!)
@@ -666,6 +670,18 @@ export function SemesterPlannerPage({
   }
 
   if (query.isLoading) {
+    return (
+      <PageContainer size="wide">
+        <LoadingState label="Carregando planejamento de semestre" />
+      </PageContainer>
+    )
+  }
+  if (
+    planningId !== 'rascunho' &&
+    !activePlanId &&
+    !planQuery.data &&
+    (planQuery.isLoading || plansQuery.isLoading)
+  ) {
     return (
       <PageContainer size="wide">
         <LoadingState label="Carregando planejamento de semestre" />

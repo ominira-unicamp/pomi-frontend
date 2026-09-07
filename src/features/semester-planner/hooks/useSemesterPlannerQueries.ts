@@ -9,6 +9,7 @@ import {
 import { loadCurriculumSuggestions } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
 import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
 import {
+  getSemesterPlanning,
   listSemesterPlannings,
   loadProfessorEvaluationSummaries,
   loadSemesterPlannerStaticData,
@@ -25,12 +26,14 @@ export function useSemesterPlannerQueries({
   studyPeriodId,
   guideCurriculumId,
   anonymousCatalogProgramId,
+  planningId,
 }: {
   getAccessToken: () => Promise<string>
   authInitialized: boolean
   studyPeriodId?: number
   guideCurriculumId?: number | null
   anonymousCatalogProgramId: string
+  planningId?: string
 }) {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
@@ -44,6 +47,22 @@ export function useSemesterPlannerQueries({
     queryKey: privateQueryKeys.semesterPlannings(sessionSubject, studentId),
     queryFn: () => listSemesterPlannings(studentId!, getAccessToken),
     enabled: Boolean(studentId),
+    retry: false,
+  })
+  const numericPlanningId = planningId ? Number(planningId) : undefined
+  const planQuery = useQuery({
+    queryKey: privateQueryKeys.semesterPlanning(
+      sessionSubject,
+      studentId,
+      planningId ?? 'none',
+    ),
+    queryFn: () =>
+      getSemesterPlanning(studentId!, numericPlanningId!, getAccessToken),
+    enabled:
+      Boolean(studentId) &&
+      planningId !== undefined &&
+      planningId !== 'rascunho' &&
+      Number.isInteger(numericPlanningId),
     retry: false,
   })
   const professorEvaluationSummariesQuery = useQuery({
@@ -94,6 +113,7 @@ export function useSemesterPlannerQueries({
     studentProfileQuery,
     query,
     plansQuery,
+    planQuery,
     professorEvaluationSummariesQuery,
     curriculaQuery,
     curriculumQuery,
