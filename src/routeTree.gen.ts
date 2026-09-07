@@ -18,12 +18,14 @@ import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as MinhasSolicitacoesRouteImport } from './routes/minhas-solicitacoes'
 import { Route as EditaisDeIntercambioRouteImport } from './routes/editais-de-intercambio'
 import { Route as DisciplinasRouteImport } from './routes/disciplinas'
+import { Route as CursosRouteImport } from './routes/cursos'
 import { Route as DesignSystemRouteImport } from './routes/[_]design-system'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlanejamentosDeSemestreIndexRouteImport } from './routes/planejamentos-de-semestre.index'
 import { Route as PlanejamentosDeCurriculoIndexRouteImport } from './routes/planejamentos-de-curriculo.index'
 import { Route as PerfilIndexRouteImport } from './routes/perfil.index'
 import { Route as DisciplinasIndexRouteImport } from './routes/disciplinas.index'
+import { Route as CursosIndexRouteImport } from './routes/cursos.index'
 import { Route as PlanejamentosDeSemestreNovoRouteImport } from './routes/planejamentos-de-semestre.novo'
 import { Route as PlanejamentosDeSemestrePlanejamentoIdRouteImport } from './routes/planejamentos-de-semestre.$planejamentoId'
 import { Route as PlanejamentosDeCurriculoNovoRouteImport } from './routes/planejamentos-de-curriculo.novo'
@@ -81,6 +83,11 @@ const DisciplinasRoute = DisciplinasRouteImport.update({
   path: '/disciplinas',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CursosRoute = CursosRouteImport.update({
+  id: '/cursos',
+  path: '/cursos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
   id: '/_design-system',
   path: '/_design-system',
@@ -112,6 +119,11 @@ const DisciplinasIndexRoute = DisciplinasIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DisciplinasRoute,
+} as any)
+const CursosIndexRoute = CursosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CursosRoute,
 } as any)
 const PlanejamentosDeSemestreNovoRoute =
   PlanejamentosDeSemestreNovoRouteImport.update({
@@ -173,6 +185,7 @@ const PlanejamentosDeSemestreCompartilhadoShareIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/cursos': typeof CursosRouteWithChildren
   '/disciplinas': typeof DisciplinasRouteWithChildren
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
   '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
@@ -191,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
   '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
+  '/cursos/': typeof CursosIndexRoute
   '/disciplinas/': typeof DisciplinasIndexRoute
   '/perfil/': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo/': typeof PlanejamentosDeCurriculoIndexRoute
@@ -215,6 +229,7 @@ export interface FileRoutesByTo {
   '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
   '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
+  '/cursos': typeof CursosIndexRoute
   '/disciplinas': typeof DisciplinasIndexRoute
   '/perfil': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoIndexRoute
@@ -225,6 +240,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/cursos': typeof CursosRouteWithChildren
   '/disciplinas': typeof DisciplinasRouteWithChildren
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
   '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
@@ -243,6 +259,7 @@ export interface FileRoutesById {
   '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
   '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
+  '/cursos/': typeof CursosIndexRoute
   '/disciplinas/': typeof DisciplinasIndexRoute
   '/perfil/': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo/': typeof PlanejamentosDeCurriculoIndexRoute
@@ -254,6 +271,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/_design-system'
+    | '/cursos'
     | '/disciplinas'
     | '/editais-de-intercambio'
     | '/minhas-solicitacoes'
@@ -272,6 +290,7 @@ export interface FileRouteTypes {
     | '/planejamentos-de-curriculo/novo'
     | '/planejamentos-de-semestre/$planejamentoId'
     | '/planejamentos-de-semestre/novo'
+    | '/cursos/'
     | '/disciplinas/'
     | '/perfil/'
     | '/planejamentos-de-curriculo/'
@@ -296,6 +315,7 @@ export interface FileRouteTypes {
     | '/planejamentos-de-curriculo/novo'
     | '/planejamentos-de-semestre/$planejamentoId'
     | '/planejamentos-de-semestre/novo'
+    | '/cursos'
     | '/disciplinas'
     | '/perfil'
     | '/planejamentos-de-curriculo'
@@ -305,6 +325,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_design-system'
+    | '/cursos'
     | '/disciplinas'
     | '/editais-de-intercambio'
     | '/minhas-solicitacoes'
@@ -323,6 +344,7 @@ export interface FileRouteTypes {
     | '/planejamentos-de-curriculo/novo'
     | '/planejamentos-de-semestre/$planejamentoId'
     | '/planejamentos-de-semestre/novo'
+    | '/cursos/'
     | '/disciplinas/'
     | '/perfil/'
     | '/planejamentos-de-curriculo/'
@@ -333,6 +355,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignSystemRoute: typeof DesignSystemRoute
+  CursosRoute: typeof CursosRouteWithChildren
   DisciplinasRoute: typeof DisciplinasRouteWithChildren
   EditaisDeIntercambioRoute: typeof EditaisDeIntercambioRoute
   MinhasSolicitacoesRoute: typeof MinhasSolicitacoesRoute
@@ -415,6 +438,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DisciplinasRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cursos': {
+      id: '/cursos'
+      path: '/cursos'
+      fullPath: '/cursos'
+      preLoaderRoute: typeof CursosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_design-system': {
       id: '/_design-system'
       path: '/_design-system'
@@ -456,6 +486,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/disciplinas/'
       preLoaderRoute: typeof DisciplinasIndexRouteImport
       parentRoute: typeof DisciplinasRoute
+    }
+    '/cursos/': {
+      id: '/cursos/'
+      path: '/'
+      fullPath: '/cursos/'
+      preLoaderRoute: typeof CursosIndexRouteImport
+      parentRoute: typeof CursosRoute
     }
     '/planejamentos-de-semestre/novo': {
       id: '/planejamentos-de-semestre/novo'
@@ -530,6 +567,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CursosRouteChildren {
+  CursosIndexRoute: typeof CursosIndexRoute
+}
+
+const CursosRouteChildren: CursosRouteChildren = {
+  CursosIndexRoute: CursosIndexRoute,
+}
+
+const CursosRouteWithChildren =
+  CursosRoute._addFileChildren(CursosRouteChildren)
+
 interface DisciplinasRouteChildren {
   DisciplinasCourseIdRoute: typeof DisciplinasCourseIdRoute
   DisciplinasIndexRoute: typeof DisciplinasIndexRoute
@@ -581,6 +629,7 @@ const PlanejamentosDeCurriculoRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignSystemRoute: DesignSystemRoute,
+  CursosRoute: CursosRouteWithChildren,
   DisciplinasRoute: DisciplinasRouteWithChildren,
   EditaisDeIntercambioRoute: EditaisDeIntercambioRoute,
   MinhasSolicitacoesRoute: MinhasSolicitacoesRoute,

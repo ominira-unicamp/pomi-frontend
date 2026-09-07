@@ -331,7 +331,7 @@ function DetailsSection({
             })
           }
         >
-          <MessageSquareWarning className="size-4" /> Corrigir informação
+          <MessageSquareWarning className="size-4" /> Reportar dado incorreto
         </Button>
       </div>
     </section>
@@ -619,6 +619,7 @@ export function CourseDetailsDialog(props: CourseDetailsDialogProps) {
       <SheetContent
         side="bottom"
         className="max-h-[88dvh] rounded-t-xl bg-background text-foreground"
+        closeButtonClassName="text-foreground hover:bg-accent"
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
         <SheetHeader className="border-b-2 border-strong-border pr-12">

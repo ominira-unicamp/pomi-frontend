@@ -1,8 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
-import type {
-  CourseDetailsSearch,
-} from '@/features/course-catalog'
+import type { CourseDetailsSearch } from '@/features/course-catalog'
 import { CourseDetailsPage } from '@/features/course-catalog'
 
 type CourseDetailsRouteSearch = CourseDetailsSearch
@@ -29,9 +27,10 @@ function DisciplinasDetailsRoute() {
       }}
       onSearchChange={(nextSearch) =>
         void navigate({
-        to: '/disciplinas/$courseId',
+          to: '/disciplinas/$courseId',
           params,
           search: nextSearch,
+          replace: true,
         })
       }
     />

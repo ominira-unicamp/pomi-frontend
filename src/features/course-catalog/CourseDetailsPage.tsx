@@ -171,7 +171,7 @@ export function CourseDetailsPage({
               })
             }
           >
-            <MessageSquareWarning /> Corrigir informação
+            <MessageSquareWarning /> Reportar dado incorreto
           </Button>
         }
       />

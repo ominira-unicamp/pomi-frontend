@@ -1,6 +1,21 @@
 import { dataApiRequest } from '@/api/client'
 import { expectApiResponse } from '@/api/errors'
 
+export type CatalogCoursePrerequisiteItem = Readonly<{
+  code: string
+  kind: 'FULL' | 'PARTIAL' | 'SPECIAL'
+  courseId: number | null
+  prefixId: number | null
+}>
+
+export type CatalogCoursePrerequisiteGroup = Readonly<{
+  all: ReadonlyArray<CatalogCoursePrerequisiteItem>
+}>
+
+export type CatalogCoursePrerequisites = Readonly<{
+  any: ReadonlyArray<CatalogCoursePrerequisiteGroup>
+}>
+
 export type CatalogCourseDetails = Readonly<{
   id: number
   catalogId: number
@@ -34,6 +49,7 @@ export type CatalogCourseDetails = Readonly<{
   syllabus: string | null
   bibliography: string | null
   sourceUrl: string | null
+  prerequisites: CatalogCoursePrerequisites
 }>
 
 export async function getCatalogCourseDetails(

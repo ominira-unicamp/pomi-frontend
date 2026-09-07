@@ -1,6 +1,7 @@
 import { Link, useRouterState } from '@tanstack/react-router'
 import {
   BookOpen,
+  BookOpenCheck,
   CalendarDays,
   ChevronLeft,
   ChevronRight,
@@ -103,6 +104,7 @@ type NavigationItem = Readonly<{
     | '/planejamentos-de-semestre'
     | '/situacao-do-curso'
     | '/disciplinas'
+    | '/cursos'
     | '/perfil'
     | '/pessoas'
     | '/taxonomia'
@@ -117,7 +119,16 @@ const navigationGroups: ReadonlyArray<
   Readonly<{ label?: string; items: ReadonlyArray<NavigationItem> }>
 > = [
   {
-    items: [{ label: 'Início', to: '/', icon: House, matches: ['/'] }],
+    items: [
+      { label: 'Início', to: '/', icon: House, matches: ['/'] },
+      {
+        label: 'Situação do curso',
+        to: '/situacao-do-curso',
+        icon: BookOpenCheck,
+        matches: ['/situacao-do-curso'],
+        requiresAuth: true,
+      },
+    ],
   },
   {
     label: 'Planejamento',
@@ -137,14 +148,13 @@ const navigationGroups: ReadonlyArray<
     ],
   },
   {
-    label: 'Vida acadêmica',
+    label: 'Catálogo acadêmico',
     items: [
       {
-        label: 'Situação do curso',
-        to: '/situacao-do-curso',
+        label: 'Cursos',
+        to: '/cursos',
         icon: GraduationCap,
-        matches: ['/situacao-do-curso'],
-        requiresAuth: true,
+        matches: ['/cursos'],
       },
       {
         label: 'Disciplinas',

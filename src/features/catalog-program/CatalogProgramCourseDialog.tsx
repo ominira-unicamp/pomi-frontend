@@ -1,0 +1,220 @@
+import { useQuery } from '@tanstack/react-query'
+import { Link } from '@tanstack/react-router'
+import { ExternalLink, MessageSquareWarning } from 'lucide-react'
+import { useEffect, useState } from 'react'
+
+import type { Course } from '@pomi/planner-domain/curriculum'
+import type { CatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
+import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
+import { getCatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
+import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
+
+function useDesktopLayout() {
+  const [desktop, setDesktop] = useState(
+    () => window.matchMedia('(min-width: 640px)').matches,
+  )
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 640px)')
+    const update = () => setDesktop(media.matches)
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+
+  return desktop
+}
+
+export function CatalogProgramCourseDialog({
+  course,
+  catalogYear,
+  onOpenChange,
+}: {
+  course?: Course
+  catalogYear: number
+  onOpenChange: (open: boolean) => void
+}) {
+  const desktop = useDesktopLayout()
+  const { openFeedback } = useFeedbackReport()
+  const courseId = course ? Number(course.id) : undefined
+  const query = useQuery({
+    queryKey: publicQueryKeys.courseDetails(
+      course ? String(course.id) : 'none',
+      catalogYear,
+    ),
+    queryFn: () => getCatalogCourseDetails(courseId!, catalogYear),
+    enabled: courseId !== undefined,
+    staleTime: Infinity,
+  })
+
+  if (!course) return null
+
+  const details = query.data
+  const title = `${course.code} — ${course.name}`
+  const description = `${course.credits} créditos · Catálogo ${catalogYear}`
+  const body = (
+    <div className="space-y-5 overflow-y-auto p-5 sm:p-6">
+      {query.isLoading && (
+        <p className="text-sm text-muted-foreground" aria-live="polite">
+          Carregando informações acadêmicas...
+        </p>
+      )}
+      {query.isError && (
+        <p className="text-sm text-destructive" role="alert">
+          Não foi possível carregar as informações acadêmicas desta disciplina.
+        </p>
+      )}
+      {!query.isLoading && !query.isError && !details && (
+        <p className="text-sm text-muted-foreground">
+          Esta disciplina não possui informações acadêmicas no catálogo de{' '}
+          {catalogYear}.
+        </p>
+      )}
+      {details && <CourseDetails details={details} />}
+      <div className="flex flex-wrap items-center gap-4 border-t-2 border-border pt-4">
+        {details?.sourceUrl && (
+          <a
+            className="inline-flex items-center gap-1 text-sm font-bold text-primary underline"
+            href={details.sourceUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Ver fonte institucional <ExternalLink className="size-4" />
+          </a>
+        )}
+        <Link
+          className="text-sm font-bold text-primary underline"
+          to="/disciplinas/$courseId"
+          params={{ courseId: String(course.id) }}
+          search={{ catalogYear }}
+        >
+          Ver detalhes completos
+        </Link>
+        {details && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-auto px-0 py-1 text-muted-foreground hover:bg-transparent hover:text-foreground"
+            onClick={() =>
+              openFeedback({
+                kind: 'DATA_ISSUE',
+                target: {
+                  type: 'ACADEMIC_RESOURCE',
+                  academicResourceType: 'CATALOG_COURSE',
+                  academicResourceId: details.id,
+                },
+                title: `Informação de ${details.code}`,
+              })
+            }
+          >
+            <MessageSquareWarning className="size-4" /> Reportar dado incorreto
+          </Button>
+        )}
+      </div>
+    </div>
+  )
+
+  return desktop ? (
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent
+        className="flex max-h-[88dvh] max-w-2xl flex-col overflow-hidden p-0"
+        onOpenAutoFocus={(event) => event.preventDefault()}
+      >
+        <DialogHeader className="mb-0 border-b-2 border-strong-border p-5 pr-12 sm:p-6 sm:pr-12">
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
+        </DialogHeader>
+        {body}
+      </DialogContent>
+    </Dialog>
+  ) : (
+    <Sheet open onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="max-h-[88dvh] rounded-t-xl bg-background text-foreground"
+        closeButtonClassName="text-foreground hover:bg-accent"
+        onOpenAutoFocus={(event) => event.preventDefault()}
+      >
+        <SheetHeader className="border-b-2 border-strong-border pr-12">
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription>{description}</SheetDescription>
+        </SheetHeader>
+        {body}
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+function CourseDetails({ details }: { details: CatalogCourseDetails }) {
+  const prerequisiteGroups = details.prerequisites.any
+
+  return (
+    <div className="space-y-5">
+      <section className="space-y-2">
+        <h2 className="text-base font-extrabold">Ementa</h2>
+        <p className="whitespace-pre-line text-sm text-muted-foreground">
+          {details.syllabus ?? 'Ementa não informada neste catálogo.'}
+        </p>
+      </section>
+      <section className="space-y-3 border-t-2 border-border pt-4">
+        <h2 className="text-base font-extrabold">Pré-requisitos</h2>
+        {prerequisiteGroups.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Nenhum pré-requisito informado neste catálogo.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Qualquer uma das alternativas abaixo deve ser atendida.
+            </p>
+            {prerequisiteGroups.map((group, index) => (
+              <div
+                key={`prerequisite-${index}`}
+                className="rounded-sm border-2 border-border p-3 text-sm"
+              >
+                <span className="mr-2 text-xs font-black text-muted-foreground">
+                  ALTERNATIVA {index + 1}
+                </span>
+                {group.all.map((item, itemIndex) => (
+                  <span key={`${item.code}-${itemIndex}`}>
+                    {itemIndex > 0 && <span className="mx-2">e</span>}
+                    {item.courseId !== null ? (
+                      <Link
+                        className="font-mono font-black text-primary underline-offset-4 hover:underline"
+                        to="/disciplinas/$courseId"
+                        params={{ courseId: String(item.courseId) }}
+                        search={{ catalogYear: details.catalogYear }}
+                      >
+                        {item.kind === 'PARTIAL' ? '*' : ''}
+                        {item.code}
+                      </Link>
+                    ) : (
+                      <span className="font-mono font-black">
+                        {item.kind === 'PARTIAL' ? '*' : ''}
+                        {item.code}
+                      </span>
+                    )}
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}

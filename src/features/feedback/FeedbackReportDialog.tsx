@@ -310,6 +310,7 @@ export function FeedbackReportDialog(props: Props) {
         <SheetContent
           side="bottom"
           className="max-h-[90dvh] overflow-y-auto bg-card text-card-foreground"
+          closeButtonClassName="text-card-foreground hover:bg-accent"
         >
           <SheetHeader className="pr-12">
             <SheetTitle>{title}</SheetTitle>

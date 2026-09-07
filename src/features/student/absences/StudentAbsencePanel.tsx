@@ -468,6 +468,7 @@ export function StudentAbsencePanel({
       <SheetContent
         side="bottom"
         className="max-h-[85dvh] rounded-t-xl bg-background text-foreground"
+        closeButtonClassName="text-foreground hover:bg-accent"
       >
         <SheetHeader className="border-b-2 border-strong-border pr-12">
           <SheetTitle>{title}</SheetTitle>

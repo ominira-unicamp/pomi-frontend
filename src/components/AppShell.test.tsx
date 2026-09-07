@@ -80,7 +80,7 @@ describe('AppShell', () => {
     expect(screen.getByRole('link', { name: 'Currículo' })).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Intercâmbio' })).toBeTruthy()
     expect(screen.getByText('Planejamento')).toBeTruthy()
-    expect(screen.getByText('Vida acadêmica')).toBeTruthy()
+    expect(screen.getByText('Catálogo acadêmico')).toBeTruthy()
     expect(screen.getByText('Comunidade')).toBeTruthy()
     expect(screen.getByText('Recursos')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Sobre nós' })).toBeTruthy()
