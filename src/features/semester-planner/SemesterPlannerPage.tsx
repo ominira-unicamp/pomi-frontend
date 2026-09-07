@@ -29,17 +29,23 @@ import type {
   SemesterPlanningGuide,
 } from '@pomi/planner-domain/semester'
 import type { SemesterDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
+import type { SemesterPlanningVisibility } from '@/features/semester-planner/data/semesterPlanningApi'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
 import { LoadingState, PageContainer } from '@/components/PageLayout'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import { deleteSemesterPlanning } from '@/features/semester-planner/data/semesterPlanningApi'
+import {
+  deleteSemesterPlanning,
+  updateSemesterPlanningVisibility,
+} from '@/features/semester-planner/data/semesterPlanningApi'
 import { createApiSemesterPlanner } from '@/features/semester-planner/data/apiSemesterPlanner'
 import { downloadSemesterPlanning } from '@/features/planning-shared/data/planningPlatform'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
@@ -55,6 +61,29 @@ import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import { useScheduleGridSelection } from '@/features/semester-planner/hooks/useScheduleGridSelection'
 
 type GuideTab = 'disciplines' | 'classes'
+
+const visibilityOptions: ReadonlyArray<{
+  value: SemesterPlanningVisibility
+  label: string
+  description: string
+}> = [
+  {
+    value: 'PRIVATE',
+    label: 'Privado',
+    description: 'Somente você pode visualizar este planejamento.',
+  },
+  {
+    value: 'FRIENDS',
+    label: 'Amigos',
+    description: 'Apenas seus amigos podem visualizar este planejamento.',
+  },
+  {
+    value: 'PUBLIC',
+    label: 'Público',
+    description:
+      'Qualquer pessoa com o link pode visualizar este planejamento.',
+  },
+]
 
 function courseColor(code: string) {
   return scheduleCourseColor(code)
@@ -83,6 +112,11 @@ export function SemesterPlannerPage({
     Boolean(draftBootstrap?.studyPeriodId),
   )
   const [activePlanId, setActivePlanId] = useState<number>()
+  const [visibility, setVisibility] =
+    useState<SemesterPlanningVisibility>('PRIVATE')
+  const [visibilityDraft, setVisibilityDraft] =
+    useState<SemesterPlanningVisibility>('PRIVATE')
+  const [visibilityDialogOpen, setVisibilityDialogOpen] = useState(false)
   const [previewClassId, setPreviewClassId] = useState<number>()
   const [isSaving, setIsSaving] = useState(false)
   const [saveDraftDialogOpen, setSaveDraftDialogOpen] = useState(false)
@@ -483,6 +517,7 @@ export function SemesterPlannerPage({
     const plan = plansQuery.data?.find((item) => item.id === planId)
     if (!plan) return
     setActivePlanId(plan.id)
+    setVisibility(plan.visibility)
     setStudyPeriodLocked(true)
     setStudyPeriodId(plan.studyPeriodId)
     const nextGuide = guideFromApi(plan.guide)
@@ -523,6 +558,32 @@ export function SemesterPlannerPage({
     const name = window.prompt('Nome do planejamento', document.name)?.trim()
     if (!name || name === document.name) return
     await dispatch({ type: 'rename', name })
+  }
+
+  function openVisibilityDialog() {
+    setVisibilityDraft(visibility)
+    setVisibilityDialogOpen(true)
+  }
+
+  async function saveVisibility() {
+    if (!activePlanId || !studentId) return
+    try {
+      setIsSaving(true)
+      const updated = await updateSemesterPlanningVisibility(
+        studentId,
+        activePlanId,
+        visibilityDraft,
+        auth.getAccessToken,
+      )
+      setVisibility(updated.visibility)
+      await plansQuery.refetch()
+      setVisibilityDialogOpen(false)
+      setError(undefined)
+    } catch {
+      setError('Não foi possível atualizar a publicidade do planejamento.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   async function removePlan() {
@@ -1083,9 +1144,7 @@ export function SemesterPlannerPage({
         isSaving={isSaving}
         importInputRef={importInput}
         onPeriodChange={changePeriod}
-        onGuideModeChange={(mode) =>
-          updateGuide({ ...document.guide, mode })
-        }
+        onGuideModeChange={(mode) => updateGuide({ ...document.guide, mode })}
         onConfigureGuide={() => {
           setConfigurationMode(
             guideMode === 'program' ? 'program' : 'curriculum',
@@ -1094,6 +1153,8 @@ export function SemesterPlannerPage({
         }}
         onOpenSaveDraft={() => setSaveDraftDialogOpen(true)}
         onRename={() => void renamePlan()}
+        visibility={visibility}
+        onConfigureVisibility={openVisibilityDialog}
         onExport={exportPlanning}
         onImport={(file) => void importPlanning(file)}
         onRemove={() => void removePlan()}
@@ -1736,6 +1797,55 @@ export function SemesterPlannerPage({
         onExport={exportPlanning}
         onLogin={saveDraft}
       />
+      <Dialog
+        open={visibilityDialogOpen}
+        onOpenChange={setVisibilityDialogOpen}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configurar publicidade</DialogTitle>
+            <DialogDescription>
+              Escolha quem poderá visualizar este planejamento de semestre.
+            </DialogDescription>
+          </DialogHeader>
+          <div
+            className="grid gap-2"
+            role="radiogroup"
+            aria-label="Publicidade"
+          >
+            {visibilityOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={visibilityDraft === option.value}
+                className={`pomi-focus rounded-md border-2 p-3 text-left transition-colors ${
+                  visibilityDraft === option.value
+                    ? 'border-primary bg-primary/10'
+                    : 'border-border hover:bg-muted'
+                }`}
+                onClick={() => setVisibilityDraft(option.value)}
+              >
+                <span className="block font-black">{option.label}</span>
+                <span className="mt-1 block text-sm text-muted-foreground">
+                  {option.description}
+                </span>
+              </button>
+            ))}
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setVisibilityDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button disabled={isSaving} onClick={() => void saveVisibility()}>
+              Salvar publicidade
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </PageContainer>
   )
 }

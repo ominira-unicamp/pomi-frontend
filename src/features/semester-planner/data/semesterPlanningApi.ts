@@ -356,6 +356,7 @@ export type PersistedSemesterPlanning = Readonly<{
   studyPeriodYear: number
   studyPeriodYearPeriod: StudyPeriod['yearPeriod']
   curriculumId: number | null
+  visibility: SemesterPlanningVisibility
   classes: ReadonlyArray<
     Readonly<{
       id: number
@@ -376,6 +377,8 @@ export type PersistedSemesterPlanning = Readonly<{
     manualCourseIds: ReadonlyArray<number>
   }>
 }>
+
+export type SemesterPlanningVisibility = 'PRIVATE' | 'FRIENDS' | 'PUBLIC'
 
 type PlanningGuideInput = SemesterPlanningGuide
 
@@ -467,6 +470,22 @@ export function patchSemesterPlanning(
         classes: { set: document.classIds },
         guide: guideToApi(document.guide),
       }),
+    },
+  )
+}
+
+export function updateSemesterPlanningVisibility(
+  studentId: number,
+  planId: number,
+  visibility: SemesterPlanningVisibility,
+  getAccessToken: () => Promise<string>,
+) {
+  return authenticatedJson<PersistedSemesterPlanning>(
+    `/student/${studentId}/period-plannings/${planId}`,
+    getAccessToken,
+    {
+      method: 'PATCH',
+      body: JSON.stringify({ visibility }),
     },
   )
 }

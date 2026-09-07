@@ -3,12 +3,14 @@ import {
   MoreHorizontal,
   Pencil,
   Save,
+  Share2,
   Trash2,
   Upload,
 } from 'lucide-react'
 import type { ChangeEvent, RefObject } from 'react'
 import type { GuideMode, StudyPeriod } from '@pomi/planner-domain/semester'
 
+import type { SemesterPlanningVisibility } from '@/features/semester-planner/data/semesterPlanningApi'
 import { PageHeader } from '@/components/PageLayout'
 import { Button } from '@/components/ui/button'
 import {
@@ -20,6 +22,12 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { mostRecentStudyPeriodsFirst } from '@/features/student/data/studyPeriodOrdering'
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
+
+function visibilityLabel(visibility: SemesterPlanningVisibility) {
+  if (visibility === 'FRIENDS') return 'Amigos'
+  if (visibility === 'PUBLIC') return 'Público'
+  return 'Privado'
+}
 
 export function SemesterPlanningHeader({
   name,
@@ -34,6 +42,8 @@ export function SemesterPlanningHeader({
   onPeriodChange,
   onGuideModeChange,
   onConfigureGuide,
+  visibility,
+  onConfigureVisibility,
   onOpenSaveDraft,
   onRename,
   onExport,
@@ -52,6 +62,8 @@ export function SemesterPlanningHeader({
   onPeriodChange: (periodId: number) => void
   onGuideModeChange: (mode: GuideMode) => void
   onConfigureGuide: () => void
+  visibility: SemesterPlanningVisibility
+  onConfigureVisibility: () => void
   onOpenSaveDraft: () => void
   onRename: () => void
   onExport: () => void
@@ -79,7 +91,9 @@ export function SemesterPlanningHeader({
                 Período
               </span>
               <span className="text-foreground">
-                {selectedStudyPeriod ? studyPeriodLabel(selectedStudyPeriod) : ''}
+                {selectedStudyPeriod
+                  ? studyPeriodLabel(selectedStudyPeriod)
+                  : ''}
               </span>
             </div>
           ) : (
@@ -122,6 +136,16 @@ export function SemesterPlanningHeader({
               Configurar
             </Button>
           )}
+          {activePlanId && (
+            <Button
+              variant="outline"
+              disabled={isSaving}
+              title="Alterar a publicidade do planejamento"
+              onClick={onConfigureVisibility}
+            >
+              <Share2 className="size-4" /> {visibilityLabel(visibility)}
+            </Button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
@@ -137,7 +161,9 @@ export function SemesterPlanningHeader({
               <DropdownMenuItem onSelect={onExport}>
                 <Download className="size-4" /> Exportar
               </DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => importInputRef.current?.click()}>
+              <DropdownMenuItem
+                onSelect={() => importInputRef.current?.click()}
+              >
                 <Upload className="size-4" /> Importar
               </DropdownMenuItem>
               {activePlanId && (

@@ -34,6 +34,12 @@ import type { Category, Tag } from './data/tagTaxonomyApi'
 import type { TagTreeNode } from './data/tagTaxonomyTree'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
+  deleteStudentTagInterest,
+  listStudentTagInterests,
+  putStudentTagInterest,
+} from '@/features/student-interests/data/studentTagInterestApi'
+import { getCurrentStudent } from '@/features/student/data/studentApi'
+import {
   EmptyState,
   ErrorState,
   LoadingState,
@@ -65,6 +71,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 type EditorState =
   | { kind: 'category'; mode: 'create' | 'edit'; category?: Category }
@@ -88,6 +95,24 @@ export function TagTaxonomyPage() {
   const [contributionMode, setContributionMode] = useState(false)
   const [editor, setEditor] = useState<EditorState>()
   const [feedback, setFeedback] = useState<string>()
+  const sessionSubject = auth.sessionSubject ?? 'unknown-session'
+
+  const currentStudentQuery = useQuery({
+    queryKey: privateQueryKeys.currentStudent(sessionSubject),
+    queryFn: () => getCurrentStudent(auth.getAccessToken),
+    enabled:
+      auth.initialized && auth.isAuthenticated && Boolean(auth.sessionSubject),
+    staleTime: 5 * 60 * 1000,
+    retry: false,
+  })
+  const studentId = currentStudentQuery.data?.studentId
+  const interestsQuery = useQuery({
+    queryKey: privateQueryKeys.studentTagInterests(sessionSubject, studentId),
+    queryFn: () => listStudentTagInterests(studentId!, auth.getAccessToken),
+    enabled: auth.isAuthenticated && Boolean(studentId),
+    staleTime: 60 * 1000,
+    retry: false,
+  })
 
   const categoriesQuery = useQuery({
     queryKey: [...taxonomyQueryKey, 'categories'],
@@ -202,12 +227,32 @@ export function TagTaxonomyPage() {
     },
     onError: (error) => setFeedback(apiErrorMessage(error)),
   })
+  const interestMutation = useMutation({
+    mutationFn: (input: { tagId: number; interested: boolean }) => {
+      if (!studentId)
+        return Promise.reject(new Error('Estudante não encontrado.'))
+      return input.interested
+        ? putStudentTagInterest(studentId, input.tagId, auth.getAccessToken)
+        : deleteStudentTagInterest(studentId, input.tagId, auth.getAccessToken)
+    },
+    onSuccess: async () => {
+      setFeedback(undefined)
+      await queryClient.invalidateQueries({
+        queryKey: privateQueryKeys.studentTagInterests(
+          sessionSubject,
+          studentId,
+        ),
+      })
+    },
+    onError: (error) => setFeedback(apiErrorMessage(error)),
+  })
 
   const isMutating =
     categoryMutation.isPending ||
     tagMutation.isPending ||
     deleteCategoryMutation.isPending ||
-    deleteTagMutation.isPending
+    deleteTagMutation.isPending ||
+    interestMutation.isPending
 
   if (categoriesQuery.isLoading || tagsQuery.isLoading) {
     return <LoadingState label="Carregando taxonomia" />
@@ -428,6 +473,21 @@ export function TagTaxonomyPage() {
             onRetry={() => void relatedCoursesQuery.refetch()}
             authenticated={auth.initialized && auth.isAuthenticated}
             contributionMode={contributionMode}
+            interestAvailable={Boolean(studentId)}
+            interested={Boolean(
+              selectedTag &&
+              interestsQuery.data?.some(
+                (interest) => interest.id === selectedTag.id,
+              ),
+            )}
+            interestPending={interestMutation.isPending}
+            onToggleInterest={(interested) => {
+              if (selectedTagId !== undefined)
+                interestMutation.mutate({
+                  tagId: selectedTagId,
+                  interested,
+                })
+            }}
             onEdit={(tag) => openTagEditor('edit', tag)}
             onCreateChild={() =>
               selectedTagId !== undefined &&
@@ -620,6 +680,10 @@ function TagDetails({
   onRetry,
   authenticated,
   contributionMode,
+  interestAvailable,
+  interested,
+  interestPending,
+  onToggleInterest,
   onEdit,
   onCreateChild,
   onDelete,
@@ -637,6 +701,10 @@ function TagDetails({
   onRetry: () => void
   authenticated: boolean
   contributionMode: boolean
+  interestAvailable: boolean
+  interested: boolean
+  interestPending: boolean
+  onToggleInterest: (interested: boolean) => void
   onEdit: (tag: Tag) => void
   onCreateChild: () => void
   onDelete: (tag: Tag) => void
@@ -669,6 +737,20 @@ function TagDetails({
               <Trash2 /> Excluir
             </Button>
           </div>
+        )}
+        {tag && authenticated && interestAvailable && (
+          <Button
+            className="mt-4 w-full sm:w-auto"
+            variant={interested ? 'outline' : 'default'}
+            disabled={interestPending}
+            onClick={() => onToggleInterest(!interested)}
+          >
+            {interestPending
+              ? 'Salvando…'
+              : interested
+                ? 'Remover'
+                : 'Adicionar interesse'}
+          </Button>
         )}
       </CardHeader>
       <CardContent>

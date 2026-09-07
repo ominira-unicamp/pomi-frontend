@@ -59,6 +59,14 @@ export const privateQueryKeys = {
       studentId ?? 'none',
       'profile',
     ] as const,
+  studentTagInterests: (sessionSubject: string, studentId?: number | null) =>
+    [
+      'private',
+      sessionSubject,
+      'student',
+      studentId ?? 'none',
+      'tag-interests',
+    ] as const,
   courseAttempts: (sessionSubject: string, studentId?: number | null) =>
     [
       'private',
@@ -207,6 +215,26 @@ export const privateQueryKeys = {
       ...privateQueryKeys.studentSocial(sessionSubject, studentId),
       'people',
       search,
+    ] as const,
+  studentSocialPerson: (
+    sessionSubject: string,
+    studentId: number | null | undefined,
+    publicId: string,
+  ) =>
+    [
+      ...privateQueryKeys.studentSocial(sessionSubject, studentId),
+      'person',
+      publicId,
+    ] as const,
+  studentSharedPeriodPlannings: (
+    sessionSubject: string,
+    studentId: number | null | undefined,
+    ownerPublicId: string,
+  ) =>
+    [
+      ...privateQueryKeys.studentSocial(sessionSubject, studentId),
+      'shared-period-plannings',
+      ownerPublicId,
     ] as const,
   courseSituationClasses: (
     sessionSubject: string,

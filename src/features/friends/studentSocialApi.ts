@@ -5,6 +5,30 @@ export type PublicPerson = Readonly<{
   publicId: string
   displayName: string
   bio: string | null
+  interests: ReadonlyArray<Readonly<{ id: number; name: string }>>
+  currentCourses: ReadonlyArray<
+    Readonly<{
+      courseCode: string
+      courseName: string
+      classCode: string | null
+      schedules: ReadonlyArray<
+        Readonly<{
+          id: number
+          dayOfWeek:
+            | 'MONDAY'
+            | 'TUESDAY'
+            | 'WEDNESDAY'
+            | 'THURSDAY'
+            | 'FRIDAY'
+            | 'SATURDAY'
+            | 'SUNDAY'
+          start: string
+          end: string
+          roomCode: string
+        }>
+      >
+    }>
+  >
   program: Readonly<{ code: string | number; name: string }> | null
   specialization: Readonly<{ code: string | number; name: string }> | null
   entryYear: number | null
@@ -13,41 +37,25 @@ export type PublicPerson = Readonly<{
 export type PublicProfile = PublicPerson &
   Readonly<{
     enabled: boolean
-    showProgram: boolean
-    showSpecialization: boolean
-    showEntryYear: boolean
+    currentCoursesVisibility: 'PRIVATE' | 'FRIENDS' | 'PUBLIC'
   }>
 
 export type PublicProfileUpdate = Readonly<
   Pick<
     PublicProfile,
-    | 'enabled'
-    | 'displayName'
-    | 'bio'
-    | 'showProgram'
-    | 'showSpecialization'
-    | 'showEntryYear'
+    'enabled' | 'displayName' | 'bio' | 'currentCoursesVisibility'
   >
 >
 
 export function publicProfileUpdateInput(
   profile: PublicProfile,
 ): PublicProfileUpdate {
-  const {
-    enabled,
-    displayName,
-    bio,
-    showProgram,
-    showSpecialization,
-    showEntryYear,
-  } = profile
+  const { enabled, displayName, bio, currentCoursesVisibility } = profile
   return {
     enabled,
     displayName,
     bio,
-    showProgram,
-    showSpecialization,
-    showEntryYear,
+    currentCoursesVisibility,
   }
 }
 
@@ -62,9 +70,7 @@ export function hasPublicProfileChanges(
     current.enabled !== persisted.enabled ||
     current.displayName !== persisted.displayName ||
     current.bio !== persisted.bio ||
-    current.showProgram !== persisted.showProgram ||
-    current.showSpecialization !== persisted.showSpecialization ||
-    current.showEntryYear !== persisted.showEntryYear
+    current.currentCoursesVisibility !== persisted.currentCoursesVisibility
   )
 }
 
@@ -107,11 +113,24 @@ export const updatePublicProfile = (
 
 export const searchPeople = (
   studentId: number,
-  query: string,
+  query: string | undefined,
+  token: () => Promise<string>,
+) => {
+  const params = new URLSearchParams({ page: '1', pageSize: '20' })
+  if (query?.trim()) params.set('query', query.trim())
+  return requestJson<{ items: ReadonlyArray<PublicPerson>; total: number }>(
+    `/student/${studentId}/people?${params.toString()}`,
+    token,
+  )
+}
+
+export const getPerson = (
+  studentId: number,
+  publicId: string,
   token: () => Promise<string>,
 ) =>
-  requestJson<{ items: ReadonlyArray<PublicPerson>; total: number }>(
-    `/student/${studentId}/people?query=${encodeURIComponent(query)}&page=1&pageSize=20`,
+  requestJson<PublicPerson>(
+    `/student/${studentId}/people/${encodeURIComponent(publicId)}`,
     token,
   )
 

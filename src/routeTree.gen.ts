@@ -13,19 +13,24 @@ import { Route as TaxonomiaRouteImport } from './routes/taxonomia'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SituacaoDoCursoRouteImport } from './routes/situacao-do-curso'
 import { Route as PlanejamentosDeCurriculoRouteImport } from './routes/planejamentos-de-curriculo'
+import { Route as PessoasRouteImport } from './routes/pessoas'
+import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as MinhasSolicitacoesRouteImport } from './routes/minhas-solicitacoes'
 import { Route as EditaisDeIntercambioRouteImport } from './routes/editais-de-intercambio'
 import { Route as DisciplinasRouteImport } from './routes/disciplinas'
-import { Route as AmigosRouteImport } from './routes/amigos'
 import { Route as DesignSystemRouteImport } from './routes/[_]design-system'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlanejamentosDeSemestreIndexRouteImport } from './routes/planejamentos-de-semestre.index'
 import { Route as PlanejamentosDeCurriculoIndexRouteImport } from './routes/planejamentos-de-curriculo.index'
+import { Route as PerfilIndexRouteImport } from './routes/perfil.index'
 import { Route as DisciplinasIndexRouteImport } from './routes/disciplinas.index'
 import { Route as PlanejamentosDeSemestreNovoRouteImport } from './routes/planejamentos-de-semestre.novo'
 import { Route as PlanejamentosDeSemestrePlanejamentoIdRouteImport } from './routes/planejamentos-de-semestre.$planejamentoId'
 import { Route as PlanejamentosDeCurriculoNovoRouteImport } from './routes/planejamentos-de-curriculo.novo'
 import { Route as PlanejamentosDeCurriculoPlanejamentoIdRouteImport } from './routes/planejamentos-de-curriculo.$planejamentoId'
+import { Route as PerfisPublicIdRouteImport } from './routes/perfis.$publicId'
+import { Route as PerfilSolicitacoesRouteImport } from './routes/perfil.solicitacoes'
+import { Route as PerfilAmigosRouteImport } from './routes/perfil.amigos'
 import { Route as EditaisDeIntercambioConfiguracoesRouteImport } from './routes/editais-de-intercambio_.configuracoes'
 import { Route as DisciplinasCourseIdRouteImport } from './routes/disciplinas.$courseId'
 
@@ -50,6 +55,16 @@ const PlanejamentosDeCurriculoRoute =
     path: '/planejamentos-de-curriculo',
     getParentRoute: () => rootRouteImport,
   } as any)
+const PessoasRoute = PessoasRouteImport.update({
+  id: '/pessoas',
+  path: '/pessoas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MinhasSolicitacoesRoute = MinhasSolicitacoesRouteImport.update({
   id: '/minhas-solicitacoes',
   path: '/minhas-solicitacoes',
@@ -63,11 +78,6 @@ const EditaisDeIntercambioRoute = EditaisDeIntercambioRouteImport.update({
 const DisciplinasRoute = DisciplinasRouteImport.update({
   id: '/disciplinas',
   path: '/disciplinas',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AmigosRoute = AmigosRouteImport.update({
-  id: '/amigos',
-  path: '/amigos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
@@ -92,6 +102,11 @@ const PlanejamentosDeCurriculoIndexRoute =
     path: '/',
     getParentRoute: () => PlanejamentosDeCurriculoRoute,
   } as any)
+const PerfilIndexRoute = PerfilIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PerfilRoute,
+} as any)
 const DisciplinasIndexRoute = DisciplinasIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -121,6 +136,21 @@ const PlanejamentosDeCurriculoPlanejamentoIdRoute =
     path: '/$planejamentoId',
     getParentRoute: () => PlanejamentosDeCurriculoRoute,
   } as any)
+const PerfisPublicIdRoute = PerfisPublicIdRouteImport.update({
+  id: '/perfis/$publicId',
+  path: '/perfis/$publicId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilSolicitacoesRoute = PerfilSolicitacoesRouteImport.update({
+  id: '/solicitacoes',
+  path: '/solicitacoes',
+  getParentRoute: () => PerfilRoute,
+} as any)
+const PerfilAmigosRoute = PerfilAmigosRouteImport.update({
+  id: '/amigos',
+  path: '/amigos',
+  getParentRoute: () => PerfilRoute,
+} as any)
 const EditaisDeIntercambioConfiguracoesRoute =
   EditaisDeIntercambioConfiguracoesRouteImport.update({
     id: '/editais-de-intercambio_/configuracoes',
@@ -136,40 +166,49 @@ const DisciplinasCourseIdRoute = DisciplinasCourseIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
-  '/amigos': typeof AmigosRoute
   '/disciplinas': typeof DisciplinasRouteWithChildren
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
   '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
+  '/perfil': typeof PerfilRouteWithChildren
+  '/pessoas': typeof PessoasRoute
   '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoRouteWithChildren
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/taxonomia': typeof TaxonomiaRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
+  '/perfil/amigos': typeof PerfilAmigosRoute
+  '/perfil/solicitacoes': typeof PerfilSolicitacoesRoute
+  '/perfis/$publicId': typeof PerfisPublicIdRoute
   '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
   '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
   '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
   '/disciplinas/': typeof DisciplinasIndexRoute
+  '/perfil/': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo/': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
-  '/amigos': typeof AmigosRoute
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
   '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
+  '/pessoas': typeof PessoasRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/taxonomia': typeof TaxonomiaRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
+  '/perfil/amigos': typeof PerfilAmigosRoute
+  '/perfil/solicitacoes': typeof PerfilSolicitacoesRoute
+  '/perfis/$publicId': typeof PerfisPublicIdRoute
   '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
   '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
   '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
   '/disciplinas': typeof DisciplinasIndexRoute
+  '/perfil': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
 }
@@ -177,21 +216,26 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
-  '/amigos': typeof AmigosRoute
   '/disciplinas': typeof DisciplinasRouteWithChildren
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
   '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
+  '/perfil': typeof PerfilRouteWithChildren
+  '/pessoas': typeof PessoasRoute
   '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoRouteWithChildren
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/taxonomia': typeof TaxonomiaRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio_/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
+  '/perfil/amigos': typeof PerfilAmigosRoute
+  '/perfil/solicitacoes': typeof PerfilSolicitacoesRoute
+  '/perfis/$publicId': typeof PerfisPublicIdRoute
   '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
   '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
   '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
   '/disciplinas/': typeof DisciplinasIndexRoute
+  '/perfil/': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo/': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre/': typeof PlanejamentosDeSemestreIndexRoute
 }
@@ -200,61 +244,75 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/_design-system'
-    | '/amigos'
     | '/disciplinas'
     | '/editais-de-intercambio'
     | '/minhas-solicitacoes'
+    | '/perfil'
+    | '/pessoas'
     | '/planejamentos-de-curriculo'
     | '/situacao-do-curso'
     | '/sobre'
     | '/taxonomia'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio/configuracoes'
+    | '/perfil/amigos'
+    | '/perfil/solicitacoes'
+    | '/perfis/$publicId'
     | '/planejamentos-de-curriculo/$planejamentoId'
     | '/planejamentos-de-curriculo/novo'
     | '/planejamentos-de-semestre/$planejamentoId'
     | '/planejamentos-de-semestre/novo'
     | '/disciplinas/'
+    | '/perfil/'
     | '/planejamentos-de-curriculo/'
     | '/planejamentos-de-semestre'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/_design-system'
-    | '/amigos'
     | '/editais-de-intercambio'
     | '/minhas-solicitacoes'
+    | '/pessoas'
     | '/situacao-do-curso'
     | '/sobre'
     | '/taxonomia'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio/configuracoes'
+    | '/perfil/amigos'
+    | '/perfil/solicitacoes'
+    | '/perfis/$publicId'
     | '/planejamentos-de-curriculo/$planejamentoId'
     | '/planejamentos-de-curriculo/novo'
     | '/planejamentos-de-semestre/$planejamentoId'
     | '/planejamentos-de-semestre/novo'
     | '/disciplinas'
+    | '/perfil'
     | '/planejamentos-de-curriculo'
     | '/planejamentos-de-semestre'
   id:
     | '__root__'
     | '/'
     | '/_design-system'
-    | '/amigos'
     | '/disciplinas'
     | '/editais-de-intercambio'
     | '/minhas-solicitacoes'
+    | '/perfil'
+    | '/pessoas'
     | '/planejamentos-de-curriculo'
     | '/situacao-do-curso'
     | '/sobre'
     | '/taxonomia'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio_/configuracoes'
+    | '/perfil/amigos'
+    | '/perfil/solicitacoes'
+    | '/perfis/$publicId'
     | '/planejamentos-de-curriculo/$planejamentoId'
     | '/planejamentos-de-curriculo/novo'
     | '/planejamentos-de-semestre/$planejamentoId'
     | '/planejamentos-de-semestre/novo'
     | '/disciplinas/'
+    | '/perfil/'
     | '/planejamentos-de-curriculo/'
     | '/planejamentos-de-semestre/'
   fileRoutesById: FileRoutesById
@@ -262,15 +320,17 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignSystemRoute: typeof DesignSystemRoute
-  AmigosRoute: typeof AmigosRoute
   DisciplinasRoute: typeof DisciplinasRouteWithChildren
   EditaisDeIntercambioRoute: typeof EditaisDeIntercambioRoute
   MinhasSolicitacoesRoute: typeof MinhasSolicitacoesRoute
+  PerfilRoute: typeof PerfilRouteWithChildren
+  PessoasRoute: typeof PessoasRoute
   PlanejamentosDeCurriculoRoute: typeof PlanejamentosDeCurriculoRouteWithChildren
   SituacaoDoCursoRoute: typeof SituacaoDoCursoRoute
   SobreRoute: typeof SobreRoute
   TaxonomiaRoute: typeof TaxonomiaRoute
   EditaisDeIntercambioConfiguracoesRoute: typeof EditaisDeIntercambioConfiguracoesRoute
+  PerfisPublicIdRoute: typeof PerfisPublicIdRoute
   PlanejamentosDeSemestrePlanejamentoIdRoute: typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   PlanejamentosDeSemestreNovoRoute: typeof PlanejamentosDeSemestreNovoRoute
   PlanejamentosDeSemestreIndexRoute: typeof PlanejamentosDeSemestreIndexRoute
@@ -306,6 +366,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlanejamentosDeCurriculoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/pessoas': {
+      id: '/pessoas'
+      path: '/pessoas'
+      fullPath: '/pessoas'
+      preLoaderRoute: typeof PessoasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/minhas-solicitacoes': {
       id: '/minhas-solicitacoes'
       path: '/minhas-solicitacoes'
@@ -325,13 +399,6 @@ declare module '@tanstack/react-router' {
       path: '/disciplinas'
       fullPath: '/disciplinas'
       preLoaderRoute: typeof DisciplinasRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/amigos': {
-      id: '/amigos'
-      path: '/amigos'
-      fullPath: '/amigos'
-      preLoaderRoute: typeof AmigosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_design-system': {
@@ -361,6 +428,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/planejamentos-de-curriculo/'
       preLoaderRoute: typeof PlanejamentosDeCurriculoIndexRouteImport
       parentRoute: typeof PlanejamentosDeCurriculoRoute
+    }
+    '/perfil/': {
+      id: '/perfil/'
+      path: '/'
+      fullPath: '/perfil/'
+      preLoaderRoute: typeof PerfilIndexRouteImport
+      parentRoute: typeof PerfilRoute
     }
     '/disciplinas/': {
       id: '/disciplinas/'
@@ -397,6 +471,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlanejamentosDeCurriculoPlanejamentoIdRouteImport
       parentRoute: typeof PlanejamentosDeCurriculoRoute
     }
+    '/perfis/$publicId': {
+      id: '/perfis/$publicId'
+      path: '/perfis/$publicId'
+      fullPath: '/perfis/$publicId'
+      preLoaderRoute: typeof PerfisPublicIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil/solicitacoes': {
+      id: '/perfil/solicitacoes'
+      path: '/solicitacoes'
+      fullPath: '/perfil/solicitacoes'
+      preLoaderRoute: typeof PerfilSolicitacoesRouteImport
+      parentRoute: typeof PerfilRoute
+    }
+    '/perfil/amigos': {
+      id: '/perfil/amigos'
+      path: '/amigos'
+      fullPath: '/perfil/amigos'
+      preLoaderRoute: typeof PerfilAmigosRouteImport
+      parentRoute: typeof PerfilRoute
+    }
     '/editais-de-intercambio_/configuracoes': {
       id: '/editais-de-intercambio_/configuracoes'
       path: '/editais-de-intercambio/configuracoes'
@@ -428,6 +523,21 @@ const DisciplinasRouteWithChildren = DisciplinasRoute._addFileChildren(
   DisciplinasRouteChildren,
 )
 
+interface PerfilRouteChildren {
+  PerfilAmigosRoute: typeof PerfilAmigosRoute
+  PerfilSolicitacoesRoute: typeof PerfilSolicitacoesRoute
+  PerfilIndexRoute: typeof PerfilIndexRoute
+}
+
+const PerfilRouteChildren: PerfilRouteChildren = {
+  PerfilAmigosRoute: PerfilAmigosRoute,
+  PerfilSolicitacoesRoute: PerfilSolicitacoesRoute,
+  PerfilIndexRoute: PerfilIndexRoute,
+}
+
+const PerfilRouteWithChildren =
+  PerfilRoute._addFileChildren(PerfilRouteChildren)
+
 interface PlanejamentosDeCurriculoRouteChildren {
   PlanejamentosDeCurriculoPlanejamentoIdRoute: typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
   PlanejamentosDeCurriculoNovoRoute: typeof PlanejamentosDeCurriculoNovoRoute
@@ -450,16 +560,18 @@ const PlanejamentosDeCurriculoRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignSystemRoute: DesignSystemRoute,
-  AmigosRoute: AmigosRoute,
   DisciplinasRoute: DisciplinasRouteWithChildren,
   EditaisDeIntercambioRoute: EditaisDeIntercambioRoute,
   MinhasSolicitacoesRoute: MinhasSolicitacoesRoute,
+  PerfilRoute: PerfilRouteWithChildren,
+  PessoasRoute: PessoasRoute,
   PlanejamentosDeCurriculoRoute: PlanejamentosDeCurriculoRouteWithChildren,
   SituacaoDoCursoRoute: SituacaoDoCursoRoute,
   SobreRoute: SobreRoute,
   TaxonomiaRoute: TaxonomiaRoute,
   EditaisDeIntercambioConfiguracoesRoute:
     EditaisDeIntercambioConfiguracoesRoute,
+  PerfisPublicIdRoute: PerfisPublicIdRoute,
   PlanejamentosDeSemestrePlanejamentoIdRoute:
     PlanejamentosDeSemestrePlanejamentoIdRoute,
   PlanejamentosDeSemestreNovoRoute: PlanejamentosDeSemestreNovoRoute,

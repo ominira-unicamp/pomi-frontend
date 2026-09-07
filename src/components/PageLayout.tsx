@@ -28,12 +28,14 @@ export function PageHeader({
   description,
   actions,
   compact = false,
+  className,
 }: {
   eyebrow?: string
   title: string
   description?: string
   actions?: ReactNode
   compact?: boolean
+  className?: string
 }) {
   return (
     <header
@@ -42,6 +44,7 @@ export function PageHeader({
         compact
           ? 'mb-6 gap-3 pb-4 sm:items-center'
           : 'mb-8 gap-5 pb-6 sm:items-start',
+        className,
       )}
     >
       <div className="min-w-0 flex-1 max-w-3xl">

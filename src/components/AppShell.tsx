@@ -124,7 +124,8 @@ function Navigation({ compact = false }: { compact?: boolean }) {
         <span className={cn(compact && 'sr-only')}>Horários</span>
       </Link>
       <Link
-        to="/amigos"
+        to="/perfil"
+        activeOptions={{ exact: false }}
         onClick={() => setMobileOpen(false)}
         activeProps={{ 'aria-current': 'page' }}
         className={cn(
@@ -133,7 +134,19 @@ function Navigation({ compact = false }: { compact?: boolean }) {
         )}
       >
         <Users className="size-5 shrink-0" />
-        <span className={cn(compact && 'sr-only')}>Amigos</span>
+        <span className={cn(compact && 'sr-only')}>Meu perfil</span>
+      </Link>
+      <Link
+        to="/pessoas"
+        onClick={() => setMobileOpen(false)}
+        activeProps={{ 'aria-current': 'page' }}
+        className={cn(
+          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
+          compact && 'justify-center px-0',
+        )}
+      >
+        <UserRound className="size-5 shrink-0" />
+        <span className={cn(compact && 'sr-only')}>Pessoas</span>
       </Link>
       <Link
         to="/situacao-do-curso"
@@ -250,6 +263,11 @@ function AccountMenu() {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="truncate">{name}</DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/perfil">
+            <UserRound /> Meu perfil
+          </Link>
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => void logout()}>
           <LogOut /> Sair
         </DropdownMenuItem>

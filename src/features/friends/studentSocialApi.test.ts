@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
   acceptFriendship,
+  getPerson,
   hasPublicProfileChanges,
   publicProfileUpdateInput,
   requestFriendship,
@@ -26,8 +27,23 @@ describe('student social API', () => {
     await searchPeople(7, 'Ada Lovelace', getAccessToken)
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringMatching(
-        /\/student\/7\/people\?query=Ada%20Lovelace&page=1&pageSize=20$/,
+        /\/student\/7\/people\?page=1&pageSize=20&query=(Ada%20Lovelace|Ada\+Lovelace)$/,
       ),
+      expect.objectContaining({ cache: 'no-store' }),
+    )
+  })
+
+  it('loads the public directory without requiring a search term', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(
+        new Response(JSON.stringify({ items: [], total: 0 }), { status: 200 }),
+      )
+
+    await searchPeople(7, undefined, getAccessToken)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/\/student\/7\/people\?page=1&pageSize=20$/),
       expect.objectContaining({ cache: 'no-store' }),
     )
   })
@@ -54,21 +70,19 @@ describe('student social API', () => {
         publicId: 'a375fdb0-45d9-4a79-8415-89fcb64157b6',
         displayName: 'Ada',
         bio: 'Olá',
+        interests: [],
+        currentCourses: [],
         program: { code: 34, name: 'Computação' },
         specialization: { code: 'CC', name: 'Integral' },
         entryYear: 2026,
         enabled: true,
-        showProgram: true,
-        showSpecialization: false,
-        showEntryYear: true,
+        currentCoursesVisibility: 'FRIENDS',
       }),
     ).toEqual({
       enabled: true,
       displayName: 'Ada',
       bio: 'Olá',
-      showProgram: true,
-      showSpecialization: false,
-      showEntryYear: true,
+      currentCoursesVisibility: 'FRIENDS',
     })
   })
 
@@ -77,13 +91,13 @@ describe('student social API', () => {
       publicId: 'a375fdb0-45d9-4a79-8415-89fcb64157b6',
       displayName: 'Ada',
       bio: null,
+      interests: [],
+      currentCourses: [],
       program: null,
       specialization: null,
       entryYear: 2026,
       enabled: true,
-      showProgram: false,
-      showSpecialization: false,
-      showEntryYear: false,
+      currentCoursesVisibility: 'PRIVATE' as const,
     }
     expect(hasPublicProfileChanges(profile, profile)).toBe(false)
     expect(hasPublicProfileChanges({ ...profile, bio: 'Olá' }, profile)).toBe(
@@ -119,6 +133,21 @@ describe('student social API', () => {
     expect(fetchMock).toHaveBeenLastCalledWith(
       expect.stringMatching(/\/student\/7\/friendships\/11\/accept$/),
       expect.objectContaining({ method: 'POST' }),
+    )
+  })
+
+  it('loads a public person through the dedicated profile endpoint', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ publicId: 'person-id' }), {
+        status: 200,
+      }),
+    )
+
+    await getPerson(7, 'person-id', getAccessToken)
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/\/student\/7\/people\/person-id$/),
+      expect.objectContaining({ cache: 'no-store' }),
     )
   })
 })

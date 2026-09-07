@@ -99,8 +99,15 @@ export function CourseProfilePanel({
     catalogId: catalogId ? Number(catalogId) : null,
     programId: selectedProgram ? Number(selectedProgram.program.id) : null,
     specializationId:
-      selectedProgram && specializationId ? Number(specializationId) : null,
-    languageId: selectedProgram && languageId ? Number(languageId) : null,
+      selectedProgram?.specializations.some(
+        (item) => item.id === specializationId,
+      )
+        ? Number(specializationId)
+        : null,
+    languageId:
+      selectedProgram?.languages.some((item) => item.id === languageId)
+        ? Number(languageId)
+        : null,
     entryYear: entryYear ? Number(entryYear) : null,
   }
   const hasChanges =

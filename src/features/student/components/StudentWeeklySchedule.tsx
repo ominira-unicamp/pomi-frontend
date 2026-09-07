@@ -1,8 +1,27 @@
 import { scheduleDays, scheduleMinutes } from '@pomi/planner-domain/semester'
-import type { StudentClassSchedule } from '@/features/student/data/studentApi'
+
+export type WeeklyScheduleMeeting = Readonly<{
+  id: number
+  classId?: number
+  studyPeriodId?: number
+  classCode: string
+  courseCode: string
+  dayOfWeek:
+    | 'MONDAY'
+    | 'TUESDAY'
+    | 'WEDNESDAY'
+    | 'THURSDAY'
+    | 'FRIDAY'
+    | 'SATURDAY'
+    | 'SUNDAY'
+  start: string
+  end: string
+  roomCode: string
+}>
 
 type StudentWeeklyScheduleProps = Readonly<{
-  meetings: ReadonlyArray<StudentClassSchedule>
+  meetings: ReadonlyArray<WeeklyScheduleMeeting>
+  tone?: 'default' | 'subtle'
 }>
 
 const hourHeightRem = 2
@@ -30,7 +49,13 @@ function opaqueScheduleCourseColor(code: string) {
 
 export function StudentWeeklySchedule({
   meetings,
+  tone = 'default',
 }: StudentWeeklyScheduleProps) {
+  const border = tone === 'subtle' ? 'border-border' : 'border-strong-border'
+  const fadedBorder =
+    tone === 'subtle' ? 'border-border/60' : 'border-strong-border/40'
+  const lightBorder =
+    tone === 'subtle' ? 'border-border/50' : 'border-strong-border/30'
   const earliestStart = meetings.length
     ? Math.min(...meetings.map((meeting) => scheduleMinutes(meeting.start)))
     : 7 * 60
@@ -56,14 +81,14 @@ export function StudentWeeklySchedule({
   })
 
   return (
-    <div className="overflow-x-auto rounded-lg border-2 border-strong-border bg-card">
+    <div className={`overflow-x-auto rounded-lg border-2 bg-card ${border}`}>
       <div className="min-w-[46rem]">
         <div className="grid grid-cols-[3.5rem_repeat(6,minmax(6.5rem,1fr))]">
-          <div className="border-b border-strong-border" />
+          <div className={`border-b ${border}`} />
           {scheduleDays.map(([, label]) => (
             <div
               key={label}
-              className="border-b border-l border-strong-border py-1 text-center text-sm font-extrabold"
+              className={`border-b border-l py-1 text-center text-sm font-extrabold ${border}`}
             >
               {label}
             </div>
@@ -80,7 +105,7 @@ export function StudentWeeklySchedule({
             {Array.from({ length: rowCount }, (_, index) => (
               <div
                 key={index}
-                className="border-b border-strong-border/40 pr-2 pt-1 text-right text-xs text-muted-foreground"
+                className={`border-b pr-2 pt-1 text-right text-xs text-muted-foreground ${fadedBorder}`}
               >
                 {formatScheduleTime(visibleStart + index * 60)}
               </div>
@@ -89,13 +114,13 @@ export function StudentWeeklySchedule({
           {scheduleDays.map(([day]) => (
             <div
               key={day}
-              className="grid border-l border-strong-border/50"
+              className={`grid border-l ${fadedBorder}`}
               style={{
                 gridTemplateRows: `repeat(${rowCount}, minmax(0, 1fr))`,
               }}
             >
               {Array.from({ length: rowCount }, (_, index) => (
-                <div key={index} className="border-b border-strong-border/30" />
+                <div key={index} className={`border-b ${lightBorder}`} />
               ))}
             </div>
           ))}
@@ -103,7 +128,7 @@ export function StudentWeeklySchedule({
             <div
               key={meeting.id}
               aria-label={`${meeting.courseCode}, turma ${meeting.classCode}, ${meeting.start} às ${meeting.end}, sala ${meeting.roomCode}`}
-              className={`absolute z-10 overflow-hidden rounded border-2 p-1 text-left text-[11px] font-bold shadow-sm ${opaqueScheduleCourseColor(meeting.courseCode)}`}
+              className={`absolute z-10 overflow-hidden rounded-md border-2 p-1.5 text-left text-[11px] font-bold shadow-sm ${opaqueScheduleCourseColor(meeting.courseCode)}`}
               style={{
                 left: `calc(3.5rem + ${dayIndex} * (100% - 3.5rem) / 6 + 3px)`,
                 width: 'calc((100% - 3.5rem) / 6 - 6px)',
@@ -126,7 +151,7 @@ export function StudentWeeklySchedule({
             {formatScheduleTime(visibleEnd)}
           </div>
           {scheduleDays.map(([day]) => (
-            <div key={day} className="border-l border-strong-border/30" />
+            <div key={day} className={`border-l ${lightBorder}`} />
           ))}
         </div>
       </div>

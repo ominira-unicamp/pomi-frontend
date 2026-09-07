@@ -222,25 +222,34 @@ export function FriendsPage() {
               />
             </label>
             <div className="flex flex-wrap gap-4 md:col-span-2">
-              {(
-                [
-                  ['enabled', 'Perfil encontrável'],
-                  ['showProgram', 'Mostrar curso'],
-                  ['showSpecialization', 'Mostrar modalidade'],
-                  ['showEntryYear', 'Mostrar ano de ingresso'],
-                ] as const
-              ).map(([key, label]) => (
-                <label key={key} className="flex items-center gap-2 font-bold">
-                  <input
-                    type="checkbox"
-                    checked={form[key]}
-                    onChange={(event) =>
-                      setForm({ ...form, [key]: event.target.checked })
-                    }
-                  />
-                  {label}
-                </label>
-              ))}
+              <label className="flex items-center gap-2 font-bold">
+                <input
+                  type="checkbox"
+                  checked={form.enabled}
+                  onChange={(event) =>
+                    setForm({ ...form, enabled: event.target.checked })
+                  }
+                />
+                Perfil encontrável
+              </label>
+              <label className="grid gap-1 text-sm font-bold">
+                Compartilhar disciplinas cursando
+                <select
+                  className="pomi-focus h-10 rounded-md border-2 border-input bg-background px-3 font-medium"
+                  value={form.currentCoursesVisibility}
+                  onChange={(event) =>
+                    setForm({
+                      ...form,
+                      currentCoursesVisibility: event.target
+                        .value as PublicProfile['currentCoursesVisibility'],
+                    })
+                  }
+                >
+                  <option value="PRIVATE">Privado</option>
+                  <option value="FRIENDS">Amigos</option>
+                  <option value="PUBLIC">Público</option>
+                </select>
+              </label>
             </div>
             <div className="md:col-span-2">
               <Button
