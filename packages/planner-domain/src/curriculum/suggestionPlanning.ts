@@ -67,14 +67,7 @@ export function planningFromSuggestion(
   const semesters = [...suggestion.semesters].sort(
     (left, right) => left.semester - right.semester,
   )
-  const applicable = semesters.filter(
-    (semester) => semester.semester >= startSemesterNumber,
-  )
-  if (!applicable.length) return undefined
-  const byNumber = new Map(
-    applicable.map((semester) => [semester.semester, semester]),
-  )
-  const lastSemester = applicable.at(-1)!.semester
+  if (!semesters.length) return undefined
   return {
     selection: {
       catalogProgramId: suggestion.catalogProgramId,
@@ -83,14 +76,8 @@ export function planningFromSuggestion(
         : {}),
     },
     planningStart: { ...planningStart, semesterNumber: startSemesterNumber },
-    periods: Array.from(
-      { length: lastSemester - startSemesterNumber + 1 },
-      (_, index) => {
-        const semester = byNumber.get(startSemesterNumber + index)
-        return {
-          courses: semester?.courses.map((course) => course.id) ?? [],
-        }
-      },
-    ),
+    periods: semesters.map((semester) => ({
+      courses: semester.courses.map((course) => course.id),
+    })),
   }
 }

@@ -6,6 +6,7 @@ import type {
 } from '@pomi/planner-domain/curriculum'
 import type { PlannerDispatch } from '@/features/curriculum-planner/types'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
+import { InlineMessage } from '@/components/patterns/InlineMessage'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
@@ -30,6 +31,7 @@ export function CurriculumSelectionFields({
     (program) => program.id === snapshot.selection.catalogProgramId,
   )
   const [catalogId, setCatalogId] = useState(selected?.catalog.id ?? '')
+  const [selectionWarning, setSelectionWarning] = useState<string>()
   useEffect(() => {
     if (selected) setCatalogId(selected.catalog.id)
   }, [selected?.catalog.id])
@@ -47,6 +49,19 @@ export function CurriculumSelectionFields({
   const programs = staticData.catalogPrograms
     .filter((program) => program.catalog.id === catalogId)
     .sort((left, right) => left.program.name.localeCompare(right.program.name))
+  const selectionWarningMessage =
+    'A troca do programa removeu a habilitação e a língua selecionadas, pois elas dependiam do programa anterior.'
+  const selectProgram = (value: string) => {
+    if (
+      value !== snapshot.selection.catalogProgramId &&
+      (snapshot.selection.specializationId || snapshot.selection.languageId)
+    )
+      setSelectionWarning(selectionWarningMessage)
+    void dispatch({
+      type: 'selectCatalogProgram',
+      catalogProgramId: value ? (value as never) : null,
+    })
+  }
   return (
     <div className={cn('grid gap-4 md:grid-cols-2 xl:grid-cols-4', className)}>
       <label className="space-y-2 text-sm font-bold">
@@ -61,6 +76,11 @@ export function CurriculumSelectionFields({
           onValueChange={(value) => {
             setCatalogId(value)
             if (!value || selected?.catalog.id !== value) {
+              if (
+                snapshot.selection.specializationId ||
+                snapshot.selection.languageId
+              )
+                setSelectionWarning(selectionWarningMessage)
               void dispatch({
                 type: 'selectCatalogProgram',
                 catalogProgramId: null,
@@ -83,12 +103,7 @@ export function CurriculumSelectionFields({
           placeholder={
             catalogId ? 'Digite o programa' : 'Escolha um catálogo primeiro'
           }
-          onValueChange={(value) =>
-            void dispatch({
-              type: 'selectCatalogProgram',
-              catalogProgramId: value ? (value as never) : null,
-            })
-          }
+          onValueChange={selectProgram}
         />
       </label>
       {selected?.specializations.length ? (
@@ -134,6 +149,14 @@ export function CurriculumSelectionFields({
             }
           />
         </label>
+      ) : null}
+      {selectionWarning ? (
+        <InlineMessage
+          className="md:col-span-2 xl:col-span-4"
+          variant="warning"
+        >
+          {selectionWarning}
+        </InlineMessage>
       ) : null}
     </div>
   )

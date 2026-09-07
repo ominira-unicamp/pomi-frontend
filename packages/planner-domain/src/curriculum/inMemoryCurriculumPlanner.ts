@@ -146,7 +146,6 @@ function executeCommand(
   switch (command.type) {
     case 'clearPlanning':
       next.plan = { periods: [] }
-      next.academicRecord = { completedCourses: [] }
       return ok(next)
     case 'selectCatalogProgram': {
       if (
@@ -162,32 +161,8 @@ function executeCommand(
         })
       }
       const selected = command.catalogProgramId ?? undefined
+      if (selected === state.selection.catalogProgramId) return ok(next)
       next.selection = { catalogProgramId: selected }
-      if (selected) {
-        const selectedProgram = staticData.catalogPrograms.find(
-          (item) => item.id === selected,
-        )!
-        if (
-          state.selection.specializationId &&
-          selectedProgram.specializations.some(
-            (item) => item.id === state.selection.specializationId,
-          )
-        )
-          next.selection = {
-            ...next.selection,
-            specializationId: state.selection.specializationId,
-          }
-        if (
-          state.selection.languageId &&
-          selectedProgram.languages.some(
-            (item) => item.id === state.selection.languageId,
-          )
-        )
-          next.selection = {
-            ...next.selection,
-            languageId: state.selection.languageId,
-          }
-      }
       return ok(next)
     }
     case 'selectSpecialization': {

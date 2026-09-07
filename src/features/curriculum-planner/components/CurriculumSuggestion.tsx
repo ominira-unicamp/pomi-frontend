@@ -100,9 +100,7 @@ export function SuggestionOnboardingPanel({
     if (!selectedSuggestion) return
     const data = planningFromSuggestion(selectedSuggestion, planningStart)
     if (!data) {
-      setApplyError(
-        'A sugestão não possui semestres a partir do início escolhido.',
-      )
+      setApplyError('A sugestão não possui semestres para aplicar.')
       return
     }
     const succeeded = await dispatch({ type: 'importPlanning', data })
@@ -318,9 +316,7 @@ export function ChangeSuggestionDialog({
     if (!selected) return
     const data = planningFromSuggestion(selected, planningStart)
     if (!data) {
-      setApplyError(
-        'A sugestão não possui semestres a partir do início escolhido.',
-      )
+      setApplyError('A sugestão não possui semestres para aplicar.')
       return
     }
     const succeeded = await dispatch({ type: 'importPlanning', data })
@@ -346,8 +342,8 @@ export function ChangeSuggestionDialog({
         <DialogHeader>
           <DialogTitle>Usar sugestão curricular</DialogTitle>
           <DialogDescription>
-            A sugestão substituirá todo o planejamento atual, incluindo as
-            disciplinas concluídas e as escolhas de currículo.
+            A sugestão substituirá os períodos e as escolhas de currículo. O
+            histórico de disciplinas concluídas será preservado.
           </DialogDescription>
         </DialogHeader>
         {suggestionsQuery.isError ? (

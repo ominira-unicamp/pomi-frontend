@@ -49,9 +49,9 @@ export function ClearPlanningDialog({
         <DialogHeader>
           <DialogTitle>Limpar planejamento?</DialogTitle>
           <DialogDescription>
-            Todos os semestres, disciplinas planejadas, concluídas e o início do
-            planejamento serão removidos. Catálogo e programa selecionados serão
-            preservados.
+            Todos os semestres, disciplinas planejadas e o início do
+            planejamento serão removidos. O histórico de disciplinas concluídas,
+            o catálogo e o programa selecionados serão preservados.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

@@ -383,7 +383,7 @@ describe('CatalogProgramPage', () => {
     renderPage()
 
     fireEvent.click(
-      await screen.findByRole('button', { name: 'Expandir MU' }),
+      await screen.findByRole('button', { name: 'Expandir MU---' }),
     )
 
     expect(screen.getByText('MU010')).toBeTruthy()
@@ -398,7 +398,7 @@ describe('CatalogProgramPage', () => {
 
     expect(screen.getByText('MU011')).toBeTruthy()
     expect(screen.getByText('MU012')).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Recolher MU' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Recolher MU---' })).toBeTruthy()
   })
 
   it('preserves the program when selecting the catalog', async () => {
@@ -513,7 +513,7 @@ describe('CatalogProgramPage', () => {
     renderPage()
 
     fireEvent.click(
-      await screen.findByRole('button', { name: 'Expandir MU' }),
+      await screen.findByRole('button', { name: 'Expandir MU---' }),
     )
     fireEvent.click(
       await screen.findByRole('button', {

@@ -928,10 +928,10 @@ function requirementRow(
     }
   }
   if (selector.type === 'prefix') {
-    const code = selector.prefix.trim().toUpperCase()
+    const code = `${selector.prefix.trim().toUpperCase()}---`
     return {
       code,
-      name: `Qualquer disciplina com código iniciado por ${code}`,
+      name: `Qualquer disciplina com código ${code}`,
     }
   }
   return {

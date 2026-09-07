@@ -184,7 +184,7 @@ describe('CurriculumPlannerPage', () => {
     expect(
       screen.getByRole('combobox', { name: 'Local de CE739 no planejamento' }),
     ).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: 'Fechar' }))
+    fireEvent.click(screen.getByRole('button', { name: /Fechar/ }))
     const semesterHeadings = screen
       .getAllByRole('heading', { level: 3 })
       .filter((heading) => heading.textContent.includes('sem -'))

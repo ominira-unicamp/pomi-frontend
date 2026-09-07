@@ -194,8 +194,58 @@ describe('createInMemoryCurriculumPlanner', () => {
     })
     expect(snapshot.ok && snapshot.value.plan).toEqual({ periods: [] })
     expect(snapshot.ok && snapshot.value.academicRecord).toEqual({
-      completedCourses: [],
+      completedCourses: [{ courseId }],
     })
+  })
+
+  it('clears dependent selections when the program is cleared', async () => {
+    const planner = createInMemoryCurriculumPlanner({
+      staticDataSource: {
+        load: () => Promise.resolve({ ok: true as const, value: staticData }),
+      },
+      initialState: {
+        ...initialState,
+        selection: {
+          catalogProgramId,
+          specializationId: 'specialization-1' as never,
+          languageId: 'language-1' as never,
+        },
+      },
+    })
+
+    await expect(
+      planner.dispatch(
+        { type: 'selectCatalogProgram', catalogProgramId: null },
+        { expectedRevision: initialRevision },
+      ),
+    ).resolves.toEqual({ ok: true, value: undefined })
+
+    const snapshot = await planner.getSnapshot()
+    expect(snapshot.ok && snapshot.value.selection).toEqual({})
+  })
+
+  it('keeps dependent selections when selecting the same program again', async () => {
+    const selection = {
+      catalogProgramId,
+      specializationId: 'specialization-1' as never,
+      languageId: 'language-1' as never,
+    }
+    const planner = createInMemoryCurriculumPlanner({
+      staticDataSource: {
+        load: () => Promise.resolve({ ok: true as const, value: staticData }),
+      },
+      initialState: { ...initialState, selection },
+    })
+
+    await expect(
+      planner.dispatch(
+        { type: 'selectCatalogProgram', catalogProgramId },
+        { expectedRevision: initialRevision },
+      ),
+    ).resolves.toEqual({ ok: true, value: undefined })
+
+    const snapshot = await planner.getSnapshot()
+    expect(snapshot.ok && snapshot.value.selection).toEqual(selection)
   })
 
   it('imports a portable planning document with fresh period ids', async () => {
