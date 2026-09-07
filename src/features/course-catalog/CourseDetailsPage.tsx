@@ -22,6 +22,7 @@ import {
   PageContainer,
   PageHeader,
 } from '@/components/PageLayout'
+import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -117,10 +118,7 @@ export function CourseDetailsPage({
   })
 
   useEffect(() => {
-    if (
-      selectedCatalog &&
-      search.catalogYear !== selectedCatalog.catalogYear
-    ) {
+    if (selectedCatalog && search.catalogYear !== selectedCatalog.catalogYear) {
       onSearchChange({
         ...search,
         catalogYear: selectedCatalog.catalogYear,
@@ -194,10 +192,7 @@ export function CourseDetailsPage({
           {selectedCatalog?.syllabus && (
             <SyllabusSection text={selectedCatalog.syllabus} />
           )}
-          <PrerequisitesSection
-            course={course}
-            catalog={selectedCatalog}
-          />
+          <PrerequisitesSection course={course} catalog={selectedCatalog} />
           {selectedCatalog && <CatalogDetails course={selectedCatalog} />}
           <RelatedSection
             courses={relatedQuery.data ?? []}
@@ -209,7 +204,9 @@ export function CourseDetailsPage({
             courses={catalogCourses}
             selected={selectedCatalog}
             loading={catalogQuery.isLoading}
-            onChange={(year) => onSearchChange({ ...search, catalogYear: year })}
+            onChange={(year) =>
+              onSearchChange({ ...search, catalogYear: year })
+            }
           />
           <TagsSection
             tags={tagsQuery.data ?? []}
@@ -308,7 +305,9 @@ function CatalogDetails({ course }: { course: CatalogCourse }) {
               ? offeringLabels[course.offeringPeriod]
               : 'Não informado'}
           </Definition>
-          <Definition label="Avaliação">{course.evaluation ?? 'Não informado'}</Definition>
+          <Definition label="Avaliação">
+            {course.evaluation ?? 'Não informado'}
+          </Definition>
           <Definition label="Exame final">
             {course.finalExam === null
               ? 'Não informado'
@@ -399,7 +398,7 @@ function PrerequisitesSection({
                       <Link
                         to="/disciplinas/$courseId"
                         params={{ courseId: String(item.courseId) }}
-                        search={{ page: 1 }}
+                        search={{}}
                         className="font-mono font-black text-primary underline"
                       >
                         {item.kind === 'PARTIAL' ? '*' : ''}
@@ -469,34 +468,36 @@ function TagsSection({
             ))}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">Nenhuma tag associada.</p>
+          <p className="text-sm text-muted-foreground">
+            Nenhuma tag associada.
+          </p>
         )}
         {authenticated ? (
-          available.length > 0 && (
-            <Select
-              value=""
-              onValueChange={(value) => onChange(Number(value), 'add')}
-              disabled={pending}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Adicionar tag" />
-              </SelectTrigger>
-              <SelectContent>
-                {available.map((tag) => (
-                  <SelectItem key={tag.id} value={String(tag.id)}>
-                    {tag.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )
+          <AutocompleteSelect
+            ariaLabel="Buscar tag para adicionar"
+            value=""
+            options={available.map((tag) => ({
+              value: String(tag.id),
+              label: tag.name,
+            }))}
+            placeholder={
+              available.length > 0
+                ? 'Buscar tag para adicionar'
+                : 'Todas as tags já foram adicionadas'
+            }
+            disabled={pending || available.length === 0}
+            onValueChange={(value) => {
+              if (value) onChange(Number(value), 'add')
+            }}
+          />
         ) : (
           <Button variant="outline" className="w-full" onClick={onLogin}>
             <LogIn /> Entrar para editar
           </Button>
         )}
         <p className="text-xs text-muted-foreground">
-          Tags são metadados compartilhados e não substituem as informações oficiais do catálogo.
+          Tags são metadados compartilhados e não substituem as informações
+          oficiais do catálogo.
         </p>
       </CardContent>
     </Card>
@@ -517,7 +518,9 @@ function RelatedSection({
       </CardHeader>
       <CardContent>
         {loading ? (
-          <p className="text-sm text-muted-foreground">Carregando relações...</p>
+          <p className="text-sm text-muted-foreground">
+            Carregando relações...
+          </p>
         ) : courses.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             Ainda não há disciplinas relacionadas por tags.
@@ -529,11 +532,15 @@ function RelatedSection({
                 key={course.id}
                 to="/disciplinas/$courseId"
                 params={{ courseId: String(course.id) }}
-                search={{ page: 1 }}
+                search={{}}
                 className="pomi-focus rounded-sm border-2 border-border p-3 hover:border-primary"
               >
-                <span className="font-mono text-sm font-black text-primary">{course.code}</span>
-                <span className="mt-1 block text-sm font-bold">{course.name}</span>
+                <span className="font-mono text-sm font-black text-primary">
+                  {course.code}
+                </span>
+                <span className="mt-1 block text-sm font-bold">
+                  {course.name}
+                </span>
               </Link>
             ))}
           </div>
@@ -572,12 +579,15 @@ function ExpandableText({ title, text }: { title: string; text: string }) {
 function selectCatalog(
   courses: ReadonlyArray<CatalogCourse>,
   year?: number,
-) : CatalogCourse | undefined {
+): CatalogCourse | undefined {
   if (courses.length === 0) return undefined
-  return courses
-    .slice()
-    .sort((left, right) => right.catalogYear - left.catalogYear)
-    .find((course) => course.catalogYear === year) ?? courses
-    .slice()
-    .sort((left, right) => right.catalogYear - left.catalogYear)[0]
+  return (
+    courses
+      .slice()
+      .sort((left, right) => right.catalogYear - left.catalogYear)
+      .find((course) => course.catalogYear === year) ??
+    courses
+      .slice()
+      .sort((left, right) => right.catalogYear - left.catalogYear)[0]
+  )
 }

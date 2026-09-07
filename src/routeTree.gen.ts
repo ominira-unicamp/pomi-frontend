@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TaxonomiaRouteImport } from './routes/taxonomia'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SituacaoDoCursoRouteImport } from './routes/situacao-do-curso'
 import { Route as PlanejamentosDeCurriculoRouteImport } from './routes/planejamentos-de-curriculo'
@@ -28,6 +29,11 @@ import { Route as PlanejamentosDeCurriculoPlanejamentoIdRouteImport } from './ro
 import { Route as EditaisDeIntercambioConfiguracoesRouteImport } from './routes/editais-de-intercambio_.configuracoes'
 import { Route as DisciplinasCourseIdRouteImport } from './routes/disciplinas.$courseId'
 
+const TaxonomiaRoute = TaxonomiaRouteImport.update({
+  id: '/taxonomia',
+  path: '/taxonomia',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SobreRoute = SobreRouteImport.update({
   id: '/sobre',
   path: '/sobre',
@@ -137,6 +143,7 @@ export interface FileRoutesByFullPath {
   '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoRouteWithChildren
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
+  '/taxonomia': typeof TaxonomiaRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
   '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
@@ -155,6 +162,7 @@ export interface FileRoutesByTo {
   '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
+  '/taxonomia': typeof TaxonomiaRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
   '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoRouteWithChildren
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
+  '/taxonomia': typeof TaxonomiaRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio_/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
   '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/planejamentos-de-curriculo'
     | '/situacao-do-curso'
     | '/sobre'
+    | '/taxonomia'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio/configuracoes'
     | '/planejamentos-de-curriculo/$planejamentoId'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/minhas-solicitacoes'
     | '/situacao-do-curso'
     | '/sobre'
+    | '/taxonomia'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio/configuracoes'
     | '/planejamentos-de-curriculo/$planejamentoId'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/planejamentos-de-curriculo'
     | '/situacao-do-curso'
     | '/sobre'
+    | '/taxonomia'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio_/configuracoes'
     | '/planejamentos-de-curriculo/$planejamentoId'
@@ -257,6 +269,7 @@ export interface RootRouteChildren {
   PlanejamentosDeCurriculoRoute: typeof PlanejamentosDeCurriculoRouteWithChildren
   SituacaoDoCursoRoute: typeof SituacaoDoCursoRoute
   SobreRoute: typeof SobreRoute
+  TaxonomiaRoute: typeof TaxonomiaRoute
   EditaisDeIntercambioConfiguracoesRoute: typeof EditaisDeIntercambioConfiguracoesRoute
   PlanejamentosDeSemestrePlanejamentoIdRoute: typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   PlanejamentosDeSemestreNovoRoute: typeof PlanejamentosDeSemestreNovoRoute
@@ -265,6 +278,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/taxonomia': {
+      id: '/taxonomia'
+      path: '/taxonomia'
+      fullPath: '/taxonomia'
+      preLoaderRoute: typeof TaxonomiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sobre': {
       id: '/sobre'
       path: '/sobre'
@@ -437,6 +457,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanejamentosDeCurriculoRoute: PlanejamentosDeCurriculoRouteWithChildren,
   SituacaoDoCursoRoute: SituacaoDoCursoRoute,
   SobreRoute: SobreRoute,
+  TaxonomiaRoute: TaxonomiaRoute,
   EditaisDeIntercambioConfiguracoesRoute:
     EditaisDeIntercambioConfiguracoesRoute,
   PlanejamentosDeSemestrePlanejamentoIdRoute:

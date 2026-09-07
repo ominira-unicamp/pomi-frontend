@@ -14,6 +14,7 @@ import {
   MessageSquarePlus,
   MessageSquareText,
   PanelsTopLeft,
+  Tags,
   UserRound,
   Users,
 } from 'lucide-react'
@@ -158,6 +159,18 @@ function Navigation({ compact = false }: { compact?: boolean }) {
       >
         <BookOpen className="size-5 shrink-0" />
         <span className={cn(compact && 'sr-only')}>Disciplinas</span>
+      </Link>
+      <Link
+        to="/taxonomia"
+        onClick={() => setMobileOpen(false)}
+        activeProps={{ 'aria-current': 'page' }}
+        className={cn(
+          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
+          compact && 'justify-center px-0',
+        )}
+      >
+        <Tags className="size-5 shrink-0" />
+        <span className={cn(compact && 'sr-only')}>Taxonomia</span>
       </Link>
       <Link
         to="/minhas-solicitacoes"

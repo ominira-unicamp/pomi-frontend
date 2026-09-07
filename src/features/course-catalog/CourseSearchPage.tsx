@@ -17,6 +17,7 @@ import {
   PageContainer,
   PageHeader,
 } from '@/components/PageLayout'
+import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -51,7 +52,9 @@ export type CourseSearch = Readonly<{
 
 type ActiveFilter = 'unitId' | 'catalogYear' | 'tagId'
 
-const filterOptions: ReadonlyArray<Readonly<{ key: ActiveFilter; label: string }>> = [
+const filterOptions: ReadonlyArray<
+  Readonly<{ key: ActiveFilter; label: string }>
+> = [
   { key: 'unitId', label: 'Unidade' },
   { key: 'catalogYear', label: 'Catálogo' },
   { key: 'tagId', label: 'Tag' },
@@ -194,7 +197,8 @@ export function CourseSearchPage({
       {activeFilters.length > 0 && (
         <div className="mb-8 grid gap-4 rounded-lg border-2 border-strong-border bg-muted/40 p-4 md:grid-cols-2 xl:grid-cols-3">
           {activeFilters.map((key) => {
-            const label = filterOptions.find((option) => option.key === key)?.label ?? key
+            const label =
+              filterOptions.find((option) => option.key === key)?.label ?? key
             return (
               <div key={key} className="min-w-0">
                 <div className="mb-2 flex items-center justify-between gap-2">
@@ -237,15 +241,13 @@ export function CourseSearchPage({
                     onChange={(value) => updateFilter(key, value)}
                   />
                 ) : (
-                  <FilterSelect
+                  <TagFilterSelect
                     label={label}
                     value={search.tagId}
-                    placeholder="Todas as tags"
                     options={(tagsQuery.data ?? []).map((tag) => ({
                       value: tag.id,
                       label: `${categoriesQuery.data?.find((category) => category.id === tag.categoryId)?.name ?? 'Categoria'}: ${tag.name}`,
                     }))}
-                    showLabel={false}
                     onChange={(value) => updateFilter(key, value)}
                   />
                 )}
@@ -292,7 +294,7 @@ export function CourseSearchPage({
                 key={course.id}
                 to="/disciplinas/$courseId"
                 params={{ courseId: String(course.id) }}
-                search={search}
+                search={{}}
                 className="pomi-focus block rounded-lg"
               >
                 <Card
@@ -351,6 +353,34 @@ export function CourseSearchPage({
         </section>
       )}
     </PageContainer>
+  )
+}
+
+function TagFilterSelect({
+  label,
+  value,
+  options,
+  onChange,
+}: {
+  label: string
+  value?: number
+  options: ReadonlyArray<Readonly<{ value: number; label: string }>>
+  onChange: (value?: number) => void
+}) {
+  return (
+    <AutocompleteSelect
+      ariaLabel={label}
+      value={value === undefined ? '' : String(value)}
+      options={options.map((option) => ({
+        value: String(option.value),
+        label: option.label,
+      }))}
+      placeholder="Buscar tag"
+      emptyLabel="Todas as tags"
+      onValueChange={(nextValue) =>
+        onChange(nextValue === '' ? undefined : Number(nextValue))
+      }
+    />
   )
 }
 
