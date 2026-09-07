@@ -1,22 +1,26 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
-import { ArrowLeft, Bell, BellOff } from 'lucide-react'
+import { Bell, BellOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import type { ExchangeNoticeSubscription } from '@/features/exchange/data/exchangeApi'
 import { ApiError } from '@/api/errors'
 import { useOptionalAuth } from '@/auth/AuthProvider'
+import { ContextBackLink } from '@/components/ContextBackLink'
 import {
   ErrorState,
   LoadingState,
   PageContainer,
   PageHeader,
 } from '@/components/PageLayout'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card } from '@/components/ui/card'
 import { ActionBar } from '@/components/patterns/ActionBar'
-import { Field, FieldDescription, FieldLabel } from '@/components/patterns/Field'
+import {
+  Field,
+  FieldDescription,
+  FieldLabel,
+} from '@/components/patterns/Field'
 import { InlineMessage } from '@/components/patterns/InlineMessage'
 import { SearchableMultiSelect } from '@/components/patterns/SearchableMultiSelect'
 import {
@@ -145,12 +149,10 @@ export function ExchangeNoticeSettingsPage() {
 
   return (
     <PageContainer>
-      <Link
+      <ContextBackLink
         to="/editais-de-intercambio"
-        className={`${buttonVariants({ variant: 'ghost' })} mb-4 -ml-3`}
-      >
-        <ArrowLeft /> Oportunidades
-      </Link>
+        label="Voltar para oportunidades"
+      />
       <PageHeader
         eyebrow="Conta e notificações"
         title="Configurar alertas"

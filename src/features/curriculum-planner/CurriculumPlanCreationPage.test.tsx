@@ -3,12 +3,14 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CurriculumPlanCreationPage } from './CurriculumPlanCreationPage'
+import type { ReactNode } from 'react'
 import type {
   CatalogProgramId,
   CurriculumPlannerStaticData,
 } from '@pomi/planner-domain/curriculum'
 
 vi.mock('@tanstack/react-router', () => ({
+  Link: ({ children }: { children: ReactNode }) => <a href="/">{children}</a>,
   useNavigate: () => vi.fn(),
 }))
 

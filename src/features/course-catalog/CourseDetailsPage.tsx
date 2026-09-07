@@ -1,12 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import {
-  ArrowLeft,
-  ExternalLink,
-  LogIn,
-  MessageSquareWarning,
-  Trash2,
-} from 'lucide-react'
+import { ExternalLink, LogIn, MessageSquareWarning, Trash2 } from 'lucide-react'
 import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 
@@ -15,6 +9,7 @@ import type {
   Course,
   Tag,
 } from '@/features/course-catalog/data/courseCatalogApi'
+import { ContextBackLink } from '@/components/ContextBackLink'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
   ErrorState,
@@ -157,13 +152,7 @@ export function CourseDetailsPage({
 
   return (
     <PageContainer size="wide">
-      <Link
-        to="/disciplinas"
-        search={{ page: 1 }}
-        className="pomi-focus mb-5 inline-flex items-center gap-2 text-sm font-bold text-primary"
-      >
-        <ArrowLeft className="size-4" /> Voltar para disciplinas
-      </Link>
+      <ContextBackLink to="/disciplinas" label="Voltar para disciplinas" />
       <PageHeader
         title={`${course.code} — ${course.name}`}
         description={`${course.credits} créditos${course.unitCode ? ` · ${course.unitCode}` : ''}`}

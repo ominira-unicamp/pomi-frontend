@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { PersonLink, RelationshipAction } from './components'
 import { relationshipFor } from './types'
 import { useOptionalAuth } from '@/auth/AuthProvider'
+import { AuthRequiredState } from '@/components/AuthRequiredState'
 import {
   EmptyState,
   LoadingState,
@@ -60,10 +61,25 @@ export function PublicPeoplePage() {
       acceptFriendship(studentId!, id, auth.getAccessToken),
     onSuccess: refresh,
   })
-  if (studentQuery.isLoading)
+  if (!auth.initialized || studentQuery.isLoading)
     return (
       <PageContainer>
         <LoadingState label="Carregando comunidade" />
+      </PageContainer>
+    )
+  if (!auth.isAuthenticated)
+    return (
+      <PageContainer>
+        <PageHeader
+          eyebrow="Comunidade"
+          title="Pessoas"
+          description="Encontre estudantes que optaram por tornar seu perfil público."
+        />
+        <AuthRequiredState
+          title="Entre para encontrar pessoas"
+          description="A comunidade é reservada a estudantes autenticados e respeita as escolhas de privacidade de cada perfil."
+          onLogin={() => void auth.login(window.location.href)}
+        />
       </PageContainer>
     )
   if (!studentId)
@@ -71,7 +87,7 @@ export function PublicPeoplePage() {
       <PageContainer>
         <EmptyState
           title="Perfil acadêmico necessário"
-          description="Entre com uma conta de estudante para encontrar perfis públicos."
+          description="Conclua seu cadastro de estudante para encontrar perfis públicos."
         />
       </PageContainer>
     )

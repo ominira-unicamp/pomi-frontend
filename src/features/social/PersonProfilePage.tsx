@@ -13,6 +13,7 @@ import { relationshipFor } from './types'
 import type { WeeklyScheduleMeeting } from '@/features/student/components/StudentWeeklySchedule'
 import { StudentWeeklySchedule } from '@/features/student/components/StudentWeeklySchedule'
 import { useOptionalAuth } from '@/auth/AuthProvider'
+import { AuthRequiredState } from '@/components/AuthRequiredState'
 import {
   EmptyState,
   LoadingState,
@@ -98,6 +99,27 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
       removeFriendship(studentId!, id, auth.getAccessToken),
     onSuccess: refresh,
   })
+  if (!auth.initialized)
+    return (
+      <PageContainer>
+        <LoadingState label="Carregando perfil" />
+      </PageContainer>
+    )
+  if (!auth.isAuthenticated)
+    return (
+      <PageContainer>
+        <PageHeader
+          eyebrow="Comunidade"
+          title="Perfil de estudante"
+          description="Conheça pessoas da comunidade POMI."
+        />
+        <AuthRequiredState
+          title="Entre para visualizar este perfil"
+          description="Perfis de estudantes ficam disponíveis somente para a comunidade autenticada."
+          onLogin={() => void auth.login(window.location.href)}
+        />
+      </PageContainer>
+    )
   if (
     studentQuery.isLoading ||
     personQuery.isLoading ||
@@ -141,7 +163,7 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
     : relationshipFor(person, studentId, friendships)
   const friendship = friendshipFor(publicId, friendships)
   return (
-    <PageContainer className="pt-4 sm:pt-5">
+    <PageContainer className="pt-10 sm:pt-12">
       <PageHeader
         eyebrow="Comunidade"
         title={person.displayName}

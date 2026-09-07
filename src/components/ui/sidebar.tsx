@@ -16,11 +16,11 @@ const SidebarContext = createContext<SidebarContextValue | undefined>(undefined)
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window === 'undefined') return true
+    if (typeof window === 'undefined') return false
     try {
-      return window.localStorage.getItem(sidebarPreferenceKey) !== 'false'
+      return window.localStorage.getItem(sidebarPreferenceKey) === 'true'
     } catch {
-      return true
+      return false
     }
   })
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -77,7 +77,10 @@ export function SidebarContent({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('flex min-h-0 flex-1 flex-col p-3', className)}
+      className={cn(
+        'pomi-scrollbar flex min-h-0 flex-1 flex-col overflow-y-auto p-3',
+        className,
+      )}
       {...props}
     />
   )

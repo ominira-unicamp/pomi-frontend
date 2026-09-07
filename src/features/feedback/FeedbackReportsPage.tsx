@@ -7,6 +7,7 @@ import type {
 } from '@/features/feedback/feedbackReportApi'
 import { listStudentFeedbackReports } from '@/features/feedback/feedbackReportApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
+import { AuthRequiredState } from '@/components/AuthRequiredState'
 import {
   EmptyState,
   ErrorState,
@@ -102,16 +103,25 @@ export function FeedbackReportsPage() {
     retry: false,
   })
 
-  if (!auth.initialized || studentQuery.isLoading || (studentId && reportsQuery.isLoading)) {
-    return <LoadingState label="Carregando suas solicitações" />
+  if (
+    !auth.initialized ||
+    studentQuery.isLoading ||
+    (studentId && reportsQuery.isLoading)
+  ) {
+    return <LoadingState label="Carregando seus feedbacks" />
   }
   if (!auth.isAuthenticated) {
     return (
       <PageContainer>
-        <ErrorState
-          title="Entre para visualizar suas solicitações"
+        <PageHeader
+          eyebrow="Conta"
+          title="Meus feedbacks"
+          description="Acompanhe os feedbacks que você enviou para a equipe do POMI."
+        />
+        <AuthRequiredState
+          title="Entre para visualizar seus feedbacks"
           description="Os feedbacks enviados com a sua conta ficam disponíveis nesta página."
-          action={{ label: 'Entrar', onClick: () => void auth.login() }}
+          onLogin={() => void auth.login(window.location.href)}
         />
       </PageContainer>
     )
@@ -120,9 +130,12 @@ export function FeedbackReportsPage() {
     return (
       <PageContainer>
         <ErrorState
-          title="Não foi possível carregar suas solicitações"
+          title="Não foi possível carregar seus feedbacks"
           description="Tente novamente em instantes."
-          action={{ label: 'Tentar novamente', onClick: () => void reportsQuery.refetch() }}
+          action={{
+            label: 'Tentar novamente',
+            onClick: () => void reportsQuery.refetch(),
+          }}
         />
       </PageContainer>
     )
@@ -132,7 +145,7 @@ export function FeedbackReportsPage() {
       <PageContainer>
         <ErrorState
           title="Conta de estudante não encontrada"
-          description="Conclua o cadastro do seu estudante para consultar suas solicitações."
+          description="Conclua o cadastro do seu estudante para consultar seus feedbacks."
         />
       </PageContainer>
     )
@@ -142,14 +155,17 @@ export function FeedbackReportsPage() {
     <PageContainer>
       <PageHeader
         eyebrow="Conta"
-        title="Minhas solicitações"
+        title="Meus feedbacks"
         description="Acompanhe os feedbacks que você enviou para a equipe do POMI."
       />
       {reports.length === 0 ? (
         <EmptyState
-          title="Nenhuma solicitação ainda"
+          title="Nenhum feedback ainda"
           description="Quando você enviar um feedback identificado, ele aparecerá aqui."
-          action={{ label: 'Voltar ao início', onClick: () => window.history.back() }}
+          action={{
+            label: 'Voltar ao início',
+            onClick: () => window.history.back(),
+          }}
         />
       ) : (
         <div className="grid gap-5">
@@ -160,7 +176,7 @@ export function FeedbackReportsPage() {
       )}
       <div className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
         <MessageSquareText className="size-4" />
-        <span>Solicitações encerradas continuam disponíveis para consulta.</span>
+        <span>Feedbacks encerrados continuam disponíveis para consulta.</span>
       </div>
     </PageContainer>
   )

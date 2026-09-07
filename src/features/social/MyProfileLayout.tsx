@@ -3,7 +3,12 @@ import { Bell, Eye, UserRound, Users } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import { PageContainer, PageHeader } from '@/components/PageLayout'
+import { AuthRequiredState } from '@/components/AuthRequiredState'
+import {
+  LoadingState,
+  PageContainer,
+  PageHeader,
+} from '@/components/PageLayout'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { getPublicProfile } from '@/features/friends/studentSocialApi'
 import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
@@ -41,6 +46,27 @@ export function MyProfileLayout() {
       <Eye /> Visualizar perfil
     </Button>
   )
+  if (!auth.initialized)
+    return (
+      <PageContainer>
+        <LoadingState label="Carregando seu perfil" />
+      </PageContainer>
+    )
+  if (!auth.isAuthenticated)
+    return (
+      <PageContainer>
+        <PageHeader
+          eyebrow="Comunidade"
+          title="Meu perfil"
+          description="Gerencie suas informações públicas e conexões no POMI."
+        />
+        <AuthRequiredState
+          title="Entre para acessar seu perfil"
+          description="Sua conta reúne informações públicas, interesses, amizades e solicitações."
+          onLogin={() => void auth.login(window.location.href)}
+        />
+      </PageContainer>
+    )
   return (
     <PageContainer>
       <PageHeader
@@ -50,11 +76,7 @@ export function MyProfileLayout() {
         actions={profileAction}
       />
       <nav aria-label="Seções do seu perfil" className="mb-6">
-        <div
-          role="tablist"
-          aria-label="Seções do seu perfil"
-          className="grid w-full grid-cols-1 border-b-2 border-strong-border sm:grid-cols-3"
-        >
+        <div className="grid w-full grid-cols-1 border-b-2 border-strong-border sm:grid-cols-3">
           {tabs.map((tab) => {
             const { to, label, icon: Icon } = tab
             const exact = 'exact' in tab && tab.exact
@@ -67,7 +89,6 @@ export function MyProfileLayout() {
                   'aria-current': 'page',
                   'data-state': 'active',
                 }}
-                role="tab"
                 className="pomi-focus -mb-0.5 inline-flex min-h-11 items-center justify-center gap-2 border-b-4 border-transparent px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground aria-[current=page]:border-primary aria-[current=page]:text-foreground"
               >
                 <Icon className="size-4" />

@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useRouterState } from '@tanstack/react-router'
 import {
   BookOpen,
   CalendarDays,
@@ -8,22 +8,29 @@ import {
   GraduationCap,
   House,
   Info,
+  Laptop,
+  LockKeyhole,
   LogIn,
   LogOut,
   Menu,
   MessageSquarePlus,
   MessageSquareText,
+  Moon,
+  MoreHorizontal,
   PanelsTopLeft,
+  Sun,
   Tags,
   UserRound,
   Users,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 import { useAuth } from '@/auth/AuthProvider'
 import { Brand } from '@/components/Brand'
 import { SiteFooter } from '@/components/SiteFooter'
 import { ThemeMenu } from '@/components/ThemeMenu'
+import { useTheme } from '@/components/ThemeProvider'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -31,7 +38,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
@@ -83,133 +95,250 @@ function initials(name: string) {
     .toUpperCase()
 }
 
+type NavigationItem = Readonly<{
+  label: string
+  to:
+    | '/'
+    | '/planejamentos-de-curriculo'
+    | '/planejamentos-de-semestre'
+    | '/situacao-do-curso'
+    | '/disciplinas'
+    | '/perfil'
+    | '/pessoas'
+    | '/taxonomia'
+    | '/editais-de-intercambio'
+    | '/minhas-solicitacoes'
+  icon: LucideIcon
+  matches: ReadonlyArray<string>
+  requiresAuth?: boolean
+}>
+
+const navigationGroups: ReadonlyArray<
+  Readonly<{ label?: string; items: ReadonlyArray<NavigationItem> }>
+> = [
+  {
+    items: [{ label: 'Início', to: '/', icon: House, matches: ['/'] }],
+  },
+  {
+    label: 'Planejamento',
+    items: [
+      {
+        label: 'Currículo',
+        to: '/planejamentos-de-curriculo',
+        icon: PanelsTopLeft,
+        matches: ['/planejamentos-de-curriculo'],
+      },
+      {
+        label: 'Horários',
+        to: '/planejamentos-de-semestre',
+        icon: CalendarDays,
+        matches: ['/planejamentos-de-semestre'],
+      },
+    ],
+  },
+  {
+    label: 'Vida acadêmica',
+    items: [
+      {
+        label: 'Situação do curso',
+        to: '/situacao-do-curso',
+        icon: GraduationCap,
+        matches: ['/situacao-do-curso'],
+        requiresAuth: true,
+      },
+      {
+        label: 'Disciplinas',
+        to: '/disciplinas',
+        icon: BookOpen,
+        matches: ['/disciplinas'],
+      },
+    ],
+  },
+  {
+    label: 'Comunidade',
+    items: [
+      {
+        label: 'Meu perfil',
+        to: '/perfil',
+        icon: UserRound,
+        matches: ['/perfil'],
+        requiresAuth: true,
+      },
+      {
+        label: 'Pessoas',
+        to: '/pessoas',
+        icon: Users,
+        matches: ['/pessoas', '/perfis'],
+        requiresAuth: true,
+      },
+    ],
+  },
+  {
+    label: 'Recursos',
+    items: [
+      {
+        label: 'Taxonomia',
+        to: '/taxonomia',
+        icon: Tags,
+        matches: ['/taxonomia'],
+      },
+      {
+        label: 'Intercâmbio',
+        to: '/editais-de-intercambio',
+        icon: FileSearch,
+        matches: ['/editais-de-intercambio'],
+      },
+      {
+        label: 'Meus feedbacks',
+        to: '/minhas-solicitacoes',
+        icon: MessageSquareText,
+        matches: ['/minhas-solicitacoes'],
+        requiresAuth: true,
+      },
+    ],
+  },
+]
+
+function matchesNavigationItem(pathname: string, item: NavigationItem) {
+  return item.matches.some((path) =>
+    path === '/'
+      ? pathname === '/'
+      : pathname === path || pathname.startsWith(`${path}/`),
+  )
+}
+
 function Navigation({ compact = false }: { compact?: boolean }) {
   const { setMobileOpen } = useSidebar()
+  const { isAuthenticated } = useAuth()
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
   return (
-    <nav aria-label="Navegação principal">
-      <Link
-        to="/"
-        onClick={() => setMobileOpen(false)}
-        activeProps={{ 'aria-current': 'page' }}
-        className={cn(
-          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
-          compact && 'justify-center px-0',
-        )}
-      >
-        <House className="size-5 shrink-0" />
-        <span className={cn(compact && 'sr-only')}>Início</span>
-      </Link>
-      <Link
-        to="/planejamentos-de-curriculo"
-        onClick={() => setMobileOpen(false)}
-        activeProps={{ 'aria-current': 'page' }}
-        className={cn(
-          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
-          compact && 'justify-center px-0',
-        )}
-      >
-        <PanelsTopLeft className="size-5 shrink-0" />
-        <span className={cn(compact && 'sr-only')}>Currículo</span>
-      </Link>
-      <Link
-        to="/planejamentos-de-semestre"
-        onClick={() => setMobileOpen(false)}
-        activeProps={{ 'aria-current': 'page' }}
-        className={cn(
-          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
-          compact && 'justify-center px-0',
-        )}
-      >
-        <CalendarDays className="size-5 shrink-0" />
-        <span className={cn(compact && 'sr-only')}>Horários</span>
-      </Link>
-      <Link
-        to="/perfil"
-        activeOptions={{ exact: false }}
-        onClick={() => setMobileOpen(false)}
-        activeProps={{ 'aria-current': 'page' }}
-        className={cn(
-          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
-          compact && 'justify-center px-0',
-        )}
-      >
-        <Users className="size-5 shrink-0" />
-        <span className={cn(compact && 'sr-only')}>Meu perfil</span>
-      </Link>
-      <Link
-        to="/pessoas"
-        onClick={() => setMobileOpen(false)}
-        activeProps={{ 'aria-current': 'page' }}
-        className={cn(
-          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
-          compact && 'justify-center px-0',
-        )}
-      >
-        <UserRound className="size-5 shrink-0" />
-        <span className={cn(compact && 'sr-only')}>Pessoas</span>
-      </Link>
-      <Link
-        to="/situacao-do-curso"
-        onClick={() => setMobileOpen(false)}
-        activeProps={{ 'aria-current': 'page' }}
-        className={cn(
-          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
-          compact && 'justify-center px-0',
-        )}
-      >
-        <GraduationCap className="size-5 shrink-0" />
-        <span className={cn(compact && 'sr-only')}>Situação do curso</span>
-      </Link>
-      <Link
-        to="/disciplinas"
-        search={{ page: 1 }}
-        onClick={() => setMobileOpen(false)}
-        activeProps={{ 'aria-current': 'page' }}
-        className={cn(
-          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
-          compact && 'justify-center px-0',
-        )}
-      >
-        <BookOpen className="size-5 shrink-0" />
-        <span className={cn(compact && 'sr-only')}>Disciplinas</span>
-      </Link>
-      <Link
-        to="/taxonomia"
-        onClick={() => setMobileOpen(false)}
-        activeProps={{ 'aria-current': 'page' }}
-        className={cn(
-          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
-          compact && 'justify-center px-0',
-        )}
-      >
-        <Tags className="size-5 shrink-0" />
-        <span className={cn(compact && 'sr-only')}>Taxonomia</span>
-      </Link>
-      <Link
-        to="/minhas-solicitacoes"
-        onClick={() => setMobileOpen(false)}
-        activeProps={{ 'aria-current': 'page' }}
-        className={cn(
-          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
-          compact && 'justify-center px-0',
-        )}
-      >
-        <MessageSquareText className="size-5 shrink-0" />
-        <span className={cn(compact && 'sr-only')}>Minhas solicitações</span>
-      </Link>
-      <Link
-        to="/editais-de-intercambio"
-        onClick={() => setMobileOpen(false)}
-        activeProps={{ 'aria-current': 'page' }}
-        className={cn(
-          'pomi-focus flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent aria-[current=page]:border-primary aria-[current=page]:bg-sidebar-accent',
-          compact && 'justify-center px-0',
-        )}
-      >
-        <FileSearch className="size-5 shrink-0" />
-        <span className={cn(compact && 'sr-only')}>Intercâmbio</span>
-      </Link>
+    <nav aria-label="Navegação principal" className="space-y-3">
+      {navigationGroups.map((group, groupIndex) => (
+        <section
+          key={group.label ?? 'inicio'}
+          aria-label={group.label}
+          className={cn(
+            groupIndex > 0 && 'border-t border-sidebar-border pt-3',
+          )}
+        >
+          {group.label && (
+            <p
+              className={cn(
+                'mb-1 px-3 text-[0.68rem] font-black tracking-[0.16em] text-sidebar-foreground/55 uppercase',
+                compact && 'sr-only',
+              )}
+            >
+              {group.label}
+            </p>
+          )}
+          <div className="space-y-1">
+            {group.items.map((item) => {
+              const Icon = item.icon
+              const active = matchesNavigationItem(pathname, item)
+              const locked = Boolean(item.requiresAuth && !isAuthenticated)
+              const link = (
+                <Link
+                  to={item.to}
+                  search={item.to === '/disciplinas' ? { page: 1 } : undefined}
+                  aria-current={active ? 'page' : undefined}
+                  aria-label={
+                    compact
+                      ? `${item.label}${locked ? ', requer conta' : ''}`
+                      : undefined
+                  }
+                  data-active={active}
+                  onClick={() => setMobileOpen(false)}
+                  className={cn(
+                    'pomi-focus relative flex min-h-11 items-center gap-3 rounded-md border-2 border-transparent px-3 py-2 text-sm font-bold text-sidebar-foreground transition-colors hover:bg-sidebar-accent data-[active=true]:border-primary data-[active=true]:bg-sidebar-accent',
+                    compact && 'justify-center px-0',
+                  )}
+                >
+                  <Icon className="size-5 shrink-0" />
+                  <span className={cn('min-w-0 flex-1', compact && 'sr-only')}>
+                    {item.label}
+                  </span>
+                  {locked && (
+                    <LockKeyhole
+                      aria-hidden="true"
+                      className={cn(
+                        'size-3.5 shrink-0 text-sidebar-foreground/60',
+                        compact && 'absolute right-1.5 bottom-1.5 size-3',
+                      )}
+                    />
+                  )}
+                </Link>
+              )
+              return compact ? (
+                <Tooltip key={item.to}>
+                  <TooltipTrigger asChild>{link}</TooltipTrigger>
+                  <TooltipContent side="right">
+                    {item.label}
+                    {locked && ' · Requer conta'}
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <div key={item.to}>{link}</div>
+              )
+            })}
+          </div>
+        </section>
+      ))}
     </nav>
+  )
+}
+
+function MobileActionsMenu() {
+  const { openFeedback } = useFeedbackReport()
+  const { theme, setTheme } = useTheme()
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground md:hidden"
+          aria-label="Abrir ações"
+        >
+          <MoreHorizontal />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuItem onSelect={() => openFeedback()}>
+          <MessageSquarePlus /> Enviar feedback
+        </DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            {theme === 'dark' ? <Moon /> : <Sun />} Tema
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuRadioGroup
+              value={theme}
+              onValueChange={(value) =>
+                setTheme(value as 'light' | 'dark' | 'system')
+              }
+            >
+              <DropdownMenuRadioItem value="light">
+                <Sun /> Claro
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="dark">
+                <Moon /> Escuro
+              </DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="system">
+                <Laptop /> Sistema
+              </DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link to="/sobre">
+            <Info /> Sobre nós
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 
@@ -333,22 +462,17 @@ function AppHeader() {
       <div className="ml-auto flex items-center gap-1">
         <Button
           variant="ghost"
-          className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className="hidden text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground md:inline-flex"
           aria-label="Enviar feedback"
           onClick={() => openFeedback()}
         >
           <MessageSquarePlus className="size-4" />
           <span className="hidden text-sm font-bold sm:inline">Feedback</span>
         </Button>
-        <Link
-          to="/sobre"
-          aria-label="Sobre nós"
-          className="pomi-focus inline-flex size-10 items-center justify-center rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground sm:w-auto sm:gap-2 sm:px-3"
-        >
-          <Info className="size-4" />
-          <span className="hidden text-sm font-bold sm:inline">Sobre nós</span>
-        </Link>
-        <ThemeMenu />
+        <div className="hidden md:block">
+          <ThemeMenu />
+        </div>
+        <MobileActionsMenu />
         <AccountMenu />
       </div>
     </header>

@@ -31,6 +31,9 @@
   --sidebar-accent: #38322e;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #554b44;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #8f857c;
+  --scrollbar-thumb-hover: #b14040;
   --radius: 0.5rem;
 }
 
@@ -61,6 +64,9 @@
   --sidebar-accent: #312a25;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #51463e;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #78685d;
+  --scrollbar-thumb-hover: #d56565;
 }
 
 @theme inline {
@@ -131,6 +137,43 @@
 @layer components {
   .pomi-focus {
     @apply focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  .pomi-scrollbar {
+    scrollbar-color: transparent transparent;
+    scrollbar-width: thin;
+  }
+
+  .pomi-scrollbar:hover,
+  .pomi-scrollbar:focus-within {
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  }
+
+  .pomi-scrollbar::-webkit-scrollbar {
+    width: 0.45rem;
+    height: 0.45rem;
+  }
+
+  .pomi-scrollbar::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  .pomi-scrollbar::-webkit-scrollbar-thumb {
+    border: 0.1rem solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    background-clip: padding-box;
+  }
+
+  .pomi-scrollbar:hover::-webkit-scrollbar-thumb,
+  .pomi-scrollbar:focus-within::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    background-clip: padding-box;
+  }
+
+  .pomi-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
+    background-clip: padding-box;
   }
 
   .pomi-rule {
