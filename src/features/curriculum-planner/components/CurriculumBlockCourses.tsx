@@ -141,6 +141,7 @@ function CurriculumBlockSnip({
               selected={selectedCourseIds.has(state.course.id)}
               selectionMode={selectionMode}
               onToggleSelection={onToggleCourseSelection}
+              touchAction="pan-y"
             />
           ))}
         </div>
@@ -183,7 +184,7 @@ function CurriculumBlockTable({
 
   return (
     <div className="overflow-x-auto rounded-md border-2 border-border">
-      <table className="w-full table-fixed border-collapse bg-white text-left text-sm">
+      <table className="w-full table-fixed border-collapse bg-card text-left text-sm">
         <colgroup>
           <col className="w-24 sm:w-36" />
           <col className="w-20 sm:w-28" />

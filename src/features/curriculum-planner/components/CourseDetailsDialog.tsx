@@ -1,11 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import {
-  CircleCheck,
-  ExternalLink,
-  MessageSquareWarning,
-  Trash2,
-} from 'lucide-react'
+import { CircleCheck, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { periodReference } from '@pomi/planner-domain/curriculum'
@@ -18,10 +13,9 @@ import type {
 } from '@pomi/planner-domain/curriculum'
 import type { CoursePrerequisiteMenuState } from '@/features/curriculum-planner/components/CourseCard'
 import type { CurriculumPlannerContextValue } from '@/features/curriculum-planner/CurriculumPlannerProvider'
-import type { CatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
 import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -38,7 +32,6 @@ import {
 } from '@/components/ui/sheet'
 import { CatalogCourseDetailsContent } from '@/features/course-catalog/CatalogCourseDetailsContent'
 import { getCatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
-import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
 import { isApprovedStudentCourseAttempt } from '@/features/student/data/studentApi'
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
@@ -108,14 +101,11 @@ function PrerequisitePlanningSection({
     (alternative) => alternative.key === evaluation.selectedAlternativeKey,
   )
   return (
-    <section className="space-y-3 border-t-2 border-border pt-4">
-      <div>
-        <h3 className="font-extrabold">Situação no planejamento</h3>
-        <p className="text-sm text-muted-foreground">
-          Avaliação dos pré-requisitos do catálogo {prerequisites.year} dentro
-          deste currículo.
-        </p>
-      </div>
+    <div className="space-y-3 border-t border-border pt-3">
+      <p className="text-sm text-muted-foreground">
+        Avaliação dos pré-requisitos do catálogo {prerequisites.year} dentro
+        deste currículo.
+      </p>
       {prerequisites.status === 'loading' && (
         <p className="text-sm text-muted-foreground">Carregando...</p>
       )}
@@ -182,7 +172,7 @@ function PrerequisitePlanningSection({
           />
         </label>
       )}
-    </section>
+    </div>
   )
 }
 
@@ -265,11 +255,14 @@ function PlanningSection({
       </section>
       <section className="space-y-3 border-t-2 border-border pt-4">
         <div>
-          <h3 className="font-extrabold">Conclusão</h3>
+          <h3 className="font-extrabold">Situação no planejamento</h3>
           <p className="text-sm text-muted-foreground">
-            A conclusão é registrada no histórico do aluno.
+            Veja a conclusão registrada e os pré-requisitos desta disciplina.
           </p>
         </div>
+        <h4 className="border-t border-border pt-3 text-sm font-extrabold">
+          Conclusão
+        </h4>
         {approvedAttempt ? (
           <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
             <span className="flex items-center gap-2 text-sm font-bold">
@@ -290,77 +283,56 @@ function PlanningSection({
             Não concluída no histórico acadêmico.
           </p>
         )}
+        <PrerequisitePlanningSection
+          course={course}
+          prerequisites={prerequisites}
+        />
       </section>
-      <PrerequisitePlanningSection
-        course={course}
-        prerequisites={prerequisites}
-      />
-      {planned && (
-        <section className="border-t-2 border-border pt-4">
-          <Button
-            variant="outline"
-            className="text-destructive"
-            disabled={disabled}
-            onClick={() => void changeLocation(outsideValue)}
-          >
-            <Trash2 /> Remover do planejamento
-          </Button>
-        </section>
-      )}
     </div>
   )
 }
 
-function CatalogCourseFooter({
+function CourseDetailsFooter({
   course,
-  details,
   catalogYear,
+  planned,
+  disabled,
+  dispatch,
+  onRemoved,
 }: {
   course: Course
-  details?: CatalogCourseDetails | null
   catalogYear: number
+  planned: boolean
+  disabled: boolean
+  dispatch: CourseDetailsDialogProps['dispatch']
+  onRemoved: () => void
 }) {
-  const { openFeedback } = useFeedbackReport()
+  const removeFromPlanning = async () => {
+    const succeeded = await dispatch({
+      type: 'removeCourseFromPlan',
+      courseId: course.id,
+    })
+    if (succeeded) onRemoved()
+  }
+
   return (
-    <div className="flex flex-wrap items-center gap-4 border-t-2 border-border pt-4">
-      {details?.sourceUrl && (
-        <a
-          className="inline-flex items-center gap-1 text-sm font-bold text-primary underline"
-          href={details.sourceUrl}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Ver fonte institucional <ExternalLink className="size-4" />
-        </a>
-      )}
+    <div className="flex shrink-0 items-center justify-between gap-3 border-t-2 border-border bg-card px-5 py-4 sm:px-6">
       <Link
-        className="text-sm font-bold text-primary underline"
+        className={buttonVariants({ variant: 'outline' })}
         to="/disciplinas/$courseId"
         params={{ courseId: String(course.id) }}
         search={{ catalogYear }}
       >
-        Ver detalhes completos
+        Dados completos
       </Link>
-      {details && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-auto px-0 py-1 text-muted-foreground hover:bg-transparent hover:text-foreground"
-          onClick={() =>
-            openFeedback({
-              kind: 'DATA_ISSUE',
-              target: {
-                type: 'ACADEMIC_RESOURCE',
-                academicResourceType: 'CATALOG_COURSE',
-                academicResourceId: details.id,
-              },
-              title: `Informação de ${details.code}`,
-            })
-          }
-        >
-          <MessageSquareWarning className="size-4" /> Reportar dado incorreto
-        </Button>
-      )}
+      <Button
+        variant="outline"
+        className="text-destructive"
+        disabled={!planned || disabled}
+        onClick={() => void removeFromPlanning()}
+      >
+        <Trash2 /> Remover do planejamento
+      </Button>
     </div>
   )
 }
@@ -402,11 +374,6 @@ function CourseDetailsBody({
       {catalogQuery.data && (
         <CatalogCourseDetailsContent details={catalogQuery.data} />
       )}
-      <CatalogCourseFooter
-        course={course}
-        details={catalogQuery.data}
-        catalogYear={props.catalogYear}
-      />
     </div>
   )
 }
@@ -447,6 +414,14 @@ export function CourseDetailsDialog(props: CourseDetailsDialogProps) {
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           {body}
+          <CourseDetailsFooter
+            course={props.course}
+            catalogYear={props.catalogYear}
+            planned={Boolean(props.plannedPeriodId || props.unallocated)}
+            disabled={props.disabled}
+            dispatch={props.dispatch}
+            onRemoved={props.onRemoved}
+          />
         </DialogContent>
       </Dialog>
     )
@@ -455,7 +430,7 @@ export function CourseDetailsDialog(props: CourseDetailsDialogProps) {
     <Sheet open={props.open} onOpenChange={props.onOpenChange}>
       <SheetContent
         side="bottom"
-        className="max-h-[88dvh] rounded-t-xl bg-background text-foreground"
+        className="max-h-[88dvh] overflow-hidden rounded-t-xl bg-background text-foreground"
         closeButtonClassName="text-foreground hover:bg-accent"
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
@@ -464,6 +439,14 @@ export function CourseDetailsDialog(props: CourseDetailsDialogProps) {
           <SheetDescription>{description}</SheetDescription>
         </SheetHeader>
         {body}
+        <CourseDetailsFooter
+          course={props.course}
+          catalogYear={props.catalogYear}
+          planned={Boolean(props.plannedPeriodId || props.unallocated)}
+          disabled={props.disabled}
+          dispatch={props.dispatch}
+          onRemoved={props.onRemoved}
+        />
       </SheetContent>
     </Sheet>
   )

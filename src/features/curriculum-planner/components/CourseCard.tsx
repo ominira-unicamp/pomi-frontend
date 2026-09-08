@@ -110,6 +110,7 @@ export const CompactCourseCard = memo(function CompactCourseCard({
   selectionMode = false,
   onToggleSelection,
   prerequisiteResolver,
+  touchAction = 'none',
 }: {
   dragId: string
   state: CurriculumCourseState
@@ -121,6 +122,7 @@ export const CompactCourseCard = memo(function CompactCourseCard({
   selectionMode?: boolean
   onToggleSelection?: (courseId: CourseId) => void
   prerequisiteResolver?: CoursePrerequisiteResolver
+  touchAction?: 'none' | 'pan-y'
 }) {
   const data: CourseDragData = {
     type: 'course',
@@ -154,7 +156,8 @@ export const CompactCourseCard = memo(function CompactCourseCard({
       type="button"
       data-course-id={state.course.id}
       className={cn(
-        'pomi-focus relative z-30 touch-none rounded-sm select-none [&[data-prerequisite-tree=true]>span]:bg-primary/30 [&[data-prerequisite-active=true]>span]:bg-primary/50',
+        'pomi-focus relative z-30 rounded-sm select-none [&[data-prerequisite-tree=true]>span]:bg-primary/30 [&[data-prerequisite-active=true]>span]:bg-primary/50',
+        touchAction === 'pan-y' ? 'touch-pan-y' : 'touch-none',
         isDragging && 'opacity-30',
       )}
       aria-label={label}
