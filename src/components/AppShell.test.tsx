@@ -134,7 +134,7 @@ describe('AppShell', () => {
     expect(screen.queryByRole('button', { name: 'Abrir menu' })).toBeNull()
   })
 
-  it('opens a scrollable mobile navigation drawer from the bottom bar', async () => {
+  it('opens a scrollable bottom sheet from the mobile navigation', async () => {
     renderShell()
     const navigation = await screen.findByRole('navigation', {
       name: 'Navegação rápida',
@@ -144,7 +144,10 @@ describe('AppShell', () => {
 
     const dialog = await screen.findByRole('dialog')
     expect(dialog).toBeTruthy()
-    expect(screen.getByText('Navegação do POMI')).toBeTruthy()
+    expect(within(dialog).getByRole('heading', { name: 'Menu' })).toBeTruthy()
+    expect(dialog.className).toContain('bottom-0')
+    expect(dialog.className).toContain('slide-in-from-bottom')
+    expect(dialog.className).toContain('h-[90dvh]')
     expect(dialog.querySelector('.pomi-scrollbar')?.className).toContain(
       'overflow-y-auto',
     )
@@ -228,7 +231,7 @@ describe('AppShell', () => {
     expect(main.nextElementSibling).toBe(footer)
     expect(sidebar?.parentElement).toBe(main.parentElement?.parentElement)
     expect(container.firstElementChild?.className).toContain(
-      'pb-[calc(4rem+env(safe-area-inset-bottom))]',
+      'pb-[calc(3.5rem+env(safe-area-inset-bottom))]',
     )
   })
 

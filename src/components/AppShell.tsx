@@ -513,13 +513,14 @@ function AppSidebar() {
         </SidebarFooter>
       </Sidebar>
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent id="mobile-navigation-menu" className="w-72" side="left">
-          <SheetHeader className="border-b border-sidebar-border pr-12">
-            <Brand />
-            <SheetTitle className="sr-only">Navegação do POMI</SheetTitle>
-            <SheetDescription className="sr-only">
-              Acesse as áreas do planejador.
-            </SheetDescription>
+        <SheetContent
+          id="mobile-navigation-menu"
+          side="bottom"
+          className="h-[90dvh] max-h-[46rem] rounded-t-2xl border-x-2"
+        >
+          <SheetHeader className="border-b border-sidebar-border pr-14">
+            <SheetTitle>Menu</SheetTitle>
+            <SheetDescription>Navegue pelas áreas do POMI.</SheetDescription>
           </SheetHeader>
           <div className="pomi-scrollbar min-h-0 flex-1 overflow-y-auto p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
             <Navigation />
@@ -555,10 +556,10 @@ function MobileBottomNavigation() {
             aria-current={active ? 'page' : undefined}
             data-active={active}
             onClick={() => setMobileOpen(false)}
-            className="pomi-focus flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 border-t-4 border-transparent px-1 py-1 text-xs font-bold transition-colors hover:bg-sidebar-accent data-[active=true]:border-primary data-[active=true]:bg-sidebar-accent"
+            className="pomi-focus flex min-h-14 min-w-0 items-center justify-center border-t-4 border-transparent px-1 transition-colors hover:bg-sidebar-accent data-[active=true]:border-primary data-[active=true]:bg-sidebar-accent"
           >
             <Icon className="size-5 shrink-0" />
-            <span className="max-w-full truncate">{item.label}</span>
+            <span className="sr-only">{item.label}</span>
           </Link>
         )
       })}
@@ -569,10 +570,10 @@ function MobileBottomNavigation() {
         aria-label={menuActive && !mobileOpen ? 'Menu, seção atual' : 'Menu'}
         data-active={menuActive}
         onClick={() => setMobileOpen(true)}
-        className="pomi-focus flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 border-t-4 border-transparent px-1 py-1 text-xs font-bold transition-colors hover:bg-sidebar-accent data-[active=true]:border-primary data-[active=true]:bg-sidebar-accent"
+        className="pomi-focus flex min-h-14 min-w-0 items-center justify-center border-t-4 border-transparent px-1 transition-colors hover:bg-sidebar-accent data-[active=true]:border-primary data-[active=true]:bg-sidebar-accent"
       >
         <Menu className="size-5 shrink-0" />
-        <span>Menu</span>
+        <span className="sr-only">Menu</span>
       </button>
     </nav>
   )
@@ -580,7 +581,7 @@ function MobileBottomNavigation() {
 
 function Shell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-svh flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+    <div className="flex min-h-svh flex-col pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
       <AppHeader />
       <div className="flex min-h-0 flex-1 items-stretch">
         <AppSidebar />
