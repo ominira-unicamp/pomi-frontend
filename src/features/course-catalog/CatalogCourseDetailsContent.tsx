@@ -17,7 +17,7 @@ export function CatalogCourseDetailsContent({
           {details.syllabus ?? 'Ementa não informada neste catálogo.'}
         </p>
       </section>
-      <section className="space-y-3 border-t-2 border-border pt-4">
+      <section className="space-y-3 pt-4">
         <h2 className="text-base font-extrabold">Pré-requisitos</h2>
         {prerequisiteGroups.length === 0 ? (
           <p className="text-sm text-muted-foreground">

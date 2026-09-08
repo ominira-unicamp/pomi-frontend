@@ -168,6 +168,9 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
   const [baseView, setBaseView] = useState<'snip' | 'table'>('snip')
   const [searchOpen, setSearchOpen] = useState(false)
   const [searchPrefix, setSearchPrefix] = useState<string>()
+  const catalogYear = staticData.catalogPrograms.find(
+    (program) => program.id === snapshot.selection.catalogProgramId,
+  )?.catalog.year
   const availabilityKey = curriculumAvailabilityKey(snapshot)
   const groups = useMemo(
     () => buildCurriculumGroups(staticData, snapshot),
@@ -287,6 +290,7 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
         courses={staticData.courses}
         excludedCourseIds={availableCourseIds}
         initialPrefix={searchPrefix}
+        catalogYear={catalogYear}
         title={
           searchPrefix ? `Adicionar disciplina ${searchPrefix}---` : undefined
         }

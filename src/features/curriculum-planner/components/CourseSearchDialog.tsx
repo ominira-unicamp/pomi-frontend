@@ -12,6 +12,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -38,12 +45,28 @@ const filterOptions: ReadonlyArray<
   { key: 'credits', label: 'Créditos' },
 ]
 
+function useDesktopLayout() {
+  const [desktop, setDesktop] = useState(
+    () => window.matchMedia('(min-width: 640px)').matches,
+  )
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 640px)')
+    const update = () => setDesktop(media.matches)
+    media.addEventListener('change', update)
+    return () => media.removeEventListener('change', update)
+  }, [])
+
+  return desktop
+}
+
 export function CourseSearchDialog({
   open,
   onOpenChange,
   courses,
   excludedCourseIds,
   initialPrefix,
+  catalogYear,
   title = 'Adicionar disciplina',
   description,
   searchLabel,
@@ -55,12 +78,14 @@ export function CourseSearchDialog({
   courses: ReadonlyArray<Course>
   excludedCourseIds: ReadonlySet<CourseId>
   initialPrefix?: string
+  catalogYear?: number
   title?: string
   description: string
   searchLabel: string
   disabled: boolean
   onAdd: (courseId: CourseId) => Promise<boolean>
 }) {
+  const desktop = useDesktopLayout()
   const normalizedInitialPrefix = initialPrefix?.trim().toUpperCase()
   const [query, setQuery] = useState('')
   const [selectedCourseId, setSelectedCourseId] = useState<CourseId>()
@@ -120,6 +145,14 @@ export function CourseSearchDialog({
   const availableFilters = filterOptions.filter(
     ({ key }) => !activeFilters.includes(key),
   )
+  const selectedCourse = courses.find(
+    (course) => course.id === selectedCourseId,
+  )
+  const catalogMetadata = catalogYear
+    ? `${selectedCourse ? `${selectedCourse.credits} créditos · ` : ''}Catálogo ${catalogYear}`
+    : selectedCourse
+      ? `${selectedCourse.credits} créditos`
+      : undefined
 
   useEffect(() => {
     setPage(1)
@@ -144,239 +177,279 @@ export function CourseSearchDialog({
     if (await onAdd(selectedCourseId)) onOpenChange(false)
   }
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{description}</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-            <label className="relative block">
-              <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                role="combobox"
-                aria-label={searchLabel}
-                aria-expanded={visibleCourses.length > 0}
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Código ou nome da disciplina"
-                className="pl-9"
-              />
-            </label>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+  const header = desktop ? (
+    <DialogHeader>
+      <DialogTitle>{title}</DialogTitle>
+      <DialogDescription>
+        {description}
+        {catalogMetadata && (
+          <span className="block font-semibold text-muted-foreground">
+            {catalogMetadata}
+          </span>
+        )}
+      </DialogDescription>
+    </DialogHeader>
+  ) : (
+    <SheetHeader className="border-b-2 border-strong-border pr-12">
+      <SheetTitle>{title}</SheetTitle>
+      <SheetDescription>
+        {description}
+        {catalogMetadata && (
+          <span className="block font-semibold text-muted-foreground">
+            {catalogMetadata}
+          </span>
+        )}
+      </SheetDescription>
+    </SheetHeader>
+  )
+  const body = (
+    <div className="space-y-4">
+      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <label className="relative block">
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            role="combobox"
+            aria-label={searchLabel}
+            aria-expanded={visibleCourses.length > 0}
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Código ou nome da disciplina"
+            className="pl-9"
+          />
+        </label>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={availableFilters.length === 0}
+            >
+              <Plus /> Mais filtros
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {availableFilters.map(({ key, label }) => (
+              <DropdownMenuItem key={key} onSelect={() => addFilter(key)}>
+                {label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+      {activeFilters.length > 0 && (
+        <div className="grid gap-3 rounded-md border-2 border-border bg-muted/30 p-3 sm:grid-cols-2">
+          {activeFilters.map((filter) => (
+            <div key={filter} className="min-w-0">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="text-sm font-extrabold">
+                  {filter === 'prefix' ? 'Prefixo' : 'Créditos'}
+                </span>
                 <Button
                   type="button"
-                  variant="outline"
-                  disabled={availableFilters.length === 0}
+                  variant="ghost"
+                  size="icon"
+                  className="size-8"
+                  aria-label={`Remover filtro ${filter === 'prefix' ? 'Prefixo' : 'Créditos'}`}
+                  onClick={() => removeFilter(filter)}
                 >
-                  <Plus /> Mais filtros
+                  <X />
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {availableFilters.map(({ key, label }) => (
-                  <DropdownMenuItem key={key} onSelect={() => addFilter(key)}>
-                    {label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-          {activeFilters.length > 0 && (
-            <div className="grid gap-3 rounded-md border-2 border-border bg-muted/30 p-3 sm:grid-cols-2">
-              {activeFilters.map((filter) => (
-                <div key={filter} className="min-w-0">
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <span className="text-sm font-extrabold">
-                      {filter === 'prefix' ? 'Prefixo' : 'Créditos'}
-                    </span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-8"
-                      aria-label={`Remover filtro ${filter === 'prefix' ? 'Prefixo' : 'Créditos'}`}
-                      onClick={() => removeFilter(filter)}
-                    >
-                      <X />
-                    </Button>
-                  </div>
-                  {filter === 'prefix' ? (
-                    <Select
-                      value={prefix ?? 'all'}
-                      onValueChange={(value) =>
-                        setPrefix(value === 'all' ? undefined : value)
-                      }
-                    >
-                      <SelectTrigger aria-label="Filtrar por prefixo">
-                        <SelectValue placeholder="Todos os prefixos" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos os prefixos</SelectItem>
-                        {prefixes.map((value) => (
-                          <SelectItem key={value} value={value}>
-                            {value}---
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  ) : (
-                    <Select
-                      value={credits === undefined ? 'all' : String(credits)}
-                      onValueChange={(value) =>
-                        setCredits(value === 'all' ? undefined : Number(value))
-                      }
-                    >
-                      <SelectTrigger aria-label="Filtrar por créditos">
-                        <SelectValue placeholder="Todos os créditos" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Todos os créditos</SelectItem>
-                        {creditValues.map((value) => (
-                          <SelectItem key={value} value={String(value)}>
-                            {value} créditos
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                </div>
-              ))}
+              </div>
+              {filter === 'prefix' ? (
+                <Select
+                  value={prefix ?? 'all'}
+                  onValueChange={(value) =>
+                    setPrefix(value === 'all' ? undefined : value)
+                  }
+                >
+                  <SelectTrigger aria-label="Filtrar por prefixo">
+                    <SelectValue placeholder="Todos os prefixos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os prefixos</SelectItem>
+                    {prefixes.map((value) => (
+                      <SelectItem key={value} value={value}>
+                        {value}---
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Select
+                  value={credits === undefined ? 'all' : String(credits)}
+                  onValueChange={(value) =>
+                    setCredits(value === 'all' ? undefined : Number(value))
+                  }
+                >
+                  <SelectTrigger aria-label="Filtrar por créditos">
+                    <SelectValue placeholder="Todos os créditos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os créditos</SelectItem>
+                    {creditValues.map((value) => (
+                      <SelectItem key={value} value={String(value)}>
+                        {value} créditos
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
-          )}
-          <div className="overflow-x-auto rounded-md border-2 border-border">
-            <table className="w-full table-fixed border-collapse text-left text-sm">
-              <colgroup>
-                <col className="w-24 sm:w-36" />
-                <col className="w-20 sm:w-28" />
-                <col />
-              </colgroup>
-              <thead className="bg-muted/60 text-xs font-black tracking-[0.08em] uppercase">
-                <tr>
-                  <th className="border-b-2 border-border px-3 py-2">Código</th>
-                  <th className="border-b-2 border-border px-3 py-2">
-                    Créditos
-                  </th>
-                  <th className="border-b-2 border-border px-3 py-2">Nome</th>
-                </tr>
-              </thead>
-              <tbody>
-                {visibleCourses.map((course) => {
-                  const unavailable = excludedCourseIds.has(course.id)
-                  return (
-                    <tr
-                      key={course.id}
-                      role="button"
-                      tabIndex={unavailable ? -1 : 0}
-                      aria-label={`Selecionar ${course.code}, ${course.name}${unavailable ? ', já adicionada ao planejamento' : ''}`}
-                      aria-disabled={unavailable}
-                      aria-selected={selectedCourseId === course.id}
-                      className={cn(
-                        'h-10 border-b border-border last:border-b-0',
-                        unavailable
-                          ? 'cursor-not-allowed text-muted-foreground opacity-60'
-                          : 'cursor-pointer hover:bg-muted/40',
-                        selectedCourseId === course.id && 'bg-primary/10',
-                      )}
-                      onClick={() => {
-                        if (!unavailable) setSelectedCourseId(course.id)
-                      }}
-                      onKeyDown={(event) => {
-                        if (
-                          !unavailable &&
-                          (event.key === 'Enter' || event.key === ' ')
-                        ) {
-                          event.preventDefault()
-                          setSelectedCourseId(course.id)
-                        }
-                      }}
-                    >
-                      <td className="px-3 py-2 font-mono font-black text-primary">
-                        {course.code}
-                      </td>
-                      <td className="px-3 py-2 font-semibold">
-                        {course.credits}
-                      </td>
-                      <td className="px-3 py-2 font-semibold">
-                        {course.name}
-                        {unavailable && (
-                          <span className="ml-2 text-xs font-bold text-muted-foreground">
-                            Já adicionada
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
-                {visibleCourses.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={3}
-                      className="h-10 px-4 text-center text-muted-foreground"
-                    >
-                      Nenhuma disciplina disponível com estes filtros.
-                    </td>
-                  </tr>
-                )}
-                {Array.from({ length: placeholderRowCount }, (_, index) => (
-                  <tr key={`placeholder:${index}`} aria-hidden="true">
-                    <td colSpan={3} className="h-10 p-0" />
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <nav
-            className="flex items-center justify-center gap-3"
-            aria-label="Paginação das disciplinas"
-          >
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => setPage((current) => current - 1)}
-            >
-              <ChevronLeft /> Anterior
-            </Button>
-            <span className="text-sm font-bold">
-              {page} / {totalPages}
-            </span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages}
-              onClick={() => setPage((current) => current + 1)}
-            >
-              Próxima <ChevronRight />
-            </Button>
-          </nav>
+          ))}
         </div>
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="button"
-            disabled={
-              disabled ||
-              !selectedCourseId ||
-              excludedCourseIds.has(selectedCourseId)
-            }
-            onClick={() => void submit()}
-          >
-            Adicionar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      )}
+      <div className="overflow-x-auto rounded-md border-2 border-border">
+        <table className="w-full table-fixed border-collapse text-left text-sm">
+          <colgroup>
+            <col className="w-24 sm:w-36" />
+            <col className="w-20 sm:w-28" />
+            <col />
+          </colgroup>
+          <thead className="bg-muted/60 text-xs font-black tracking-[0.08em] uppercase">
+            <tr>
+              <th className="border-b-2 border-border px-3 py-2">Código</th>
+              <th className="border-b-2 border-border px-3 py-2">Créditos</th>
+              <th className="border-b-2 border-border px-3 py-2">Nome</th>
+            </tr>
+          </thead>
+          <tbody>
+            {visibleCourses.map((course) => {
+              const unavailable = excludedCourseIds.has(course.id)
+              return (
+                <tr
+                  key={course.id}
+                  role="button"
+                  tabIndex={unavailable ? -1 : 0}
+                  aria-label={`Selecionar ${course.code}, ${course.name}${unavailable ? ', já adicionada ao planejamento' : ''}`}
+                  aria-disabled={unavailable}
+                  aria-selected={selectedCourseId === course.id}
+                  className={cn(
+                    'h-10 border-b border-border last:border-b-0',
+                    unavailable
+                      ? 'cursor-not-allowed text-muted-foreground opacity-60'
+                      : 'cursor-pointer hover:bg-muted/40',
+                    selectedCourseId === course.id && 'bg-primary/10',
+                  )}
+                  onClick={() => {
+                    if (!unavailable) setSelectedCourseId(course.id)
+                  }}
+                  onKeyDown={(event) => {
+                    if (
+                      !unavailable &&
+                      (event.key === 'Enter' || event.key === ' ')
+                    ) {
+                      event.preventDefault()
+                      setSelectedCourseId(course.id)
+                    }
+                  }}
+                >
+                  <td className="px-3 py-2 font-mono font-black text-primary">
+                    {course.code}
+                  </td>
+                  <td className="px-3 py-2 font-semibold">{course.credits}</td>
+                  <td className="px-3 py-2 font-semibold">
+                    {course.name}
+                    {unavailable && (
+                      <span className="ml-2 text-xs font-bold text-muted-foreground">
+                        Já adicionada
+                      </span>
+                    )}
+                  </td>
+                </tr>
+              )
+            })}
+            {visibleCourses.length === 0 && (
+              <tr>
+                <td
+                  colSpan={3}
+                  className="h-10 px-4 text-center text-muted-foreground"
+                >
+                  Nenhuma disciplina disponível com estes filtros.
+                </td>
+              </tr>
+            )}
+            {Array.from({ length: placeholderRowCount }, (_, index) => (
+              <tr key={`placeholder:${index}`} aria-hidden="true">
+                <td colSpan={3} className="h-10 p-0" />
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <nav
+        className="flex items-center justify-center gap-3"
+        aria-label="Paginação das disciplinas"
+      >
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={page <= 1}
+          onClick={() => setPage((current) => current - 1)}
+        >
+          <ChevronLeft /> Anterior
+        </Button>
+        <span className="text-sm font-bold">
+          {page} / {totalPages}
+        </span>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          disabled={page >= totalPages}
+          onClick={() => setPage((current) => current + 1)}
+        >
+          Próxima <ChevronRight />
+        </Button>
+      </nav>
+    </div>
+  )
+  const footer = (
+    <DialogFooter>
+      <Button
+        type="button"
+        variant="outline"
+        onClick={() => onOpenChange(false)}
+      >
+        Cancelar
+      </Button>
+      <Button
+        type="button"
+        disabled={
+          disabled ||
+          !selectedCourseId ||
+          excludedCourseIds.has(selectedCourseId)
+        }
+        onClick={() => void submit()}
+      >
+        Adicionar
+      </Button>
+    </DialogFooter>
+  )
+
+  if (desktop)
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-3xl">
+          {header}
+          {body}
+          {footer}
+        </DialogContent>
+      </Dialog>
+    )
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="bottom"
+        className="flex max-h-[88dvh] flex-col overflow-hidden rounded-t-xl bg-background text-foreground"
+        closeButtonClassName="text-foreground hover:bg-accent"
+      >
+        {header}
+        <div className="min-h-0 flex-1 overflow-y-auto p-5">{body}</div>
+        {footer}
+      </SheetContent>
+    </Sheet>
   )
 }
 

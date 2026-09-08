@@ -406,6 +406,9 @@ export function CurriculumPlannerPage({
     return <CurriculumPlanningSelection planner={planner} />
   }
   const { staticData, snapshot } = planner
+  const catalogYear = staticData.catalogPrograms.find(
+    (program) => program.id === snapshot.selection.catalogProgramId,
+  )?.catalog.year
   const activeCurriculum = planner.curricula.find(
     (curriculum) => curriculum.id === planner.activeCurriculumId,
   )
@@ -751,6 +754,7 @@ export function CurriculumPlannerPage({
                 credits={plannerView.unallocatedCredits}
                 availableCourses={staticData.courses}
                 excludedCourseIds={excludedCourseIds}
+                catalogYear={catalogYear}
                 periods={periods}
                 planningStart={snapshot.plan.planningStart}
                 disabled={planner.isDispatching}
@@ -772,6 +776,7 @@ export function CurriculumPlannerPage({
                       periods={periods}
                       availableCourses={staticData.courses}
                       excludedCourseIds={excludedCourseIds}
+                      catalogYear={catalogYear}
                       planningStart={snapshot.plan.planningStart}
                       disabled={planner.isDispatching}
                       dispatch={planner.dispatch}

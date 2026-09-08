@@ -41,6 +41,7 @@ function AddCourseToSemesterDialog({
   excludedCourseIds,
   period,
   periods,
+  catalogYear,
   title,
   disabled,
   dispatch,
@@ -49,6 +50,7 @@ function AddCourseToSemesterDialog({
   excludedCourseIds: ReadonlySet<CourseId>
   period: PlanningPeriod
   periods: ReadonlyArray<PlanningPeriod>
+  catalogYear?: number
   title: string
   disabled: boolean
   dispatch: Dispatch
@@ -73,6 +75,7 @@ function AddCourseToSemesterDialog({
         onOpenChange={setOpen}
         courses={availableCourses}
         excludedCourseIds={excludedCourseIds}
+        catalogYear={catalogYear}
         description={`Busque a disciplina que será adicionada a ${title}.`}
         searchLabel={`Disciplina para ${title}`}
         disabled={disabled}
@@ -90,6 +93,7 @@ type SemesterRowProps = {
   periods: ReadonlyArray<PlanningPeriod>
   availableCourses: ReadonlyArray<Course>
   excludedCourseIds: ReadonlySet<CourseId>
+  catalogYear?: number
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   disabled: boolean
   dispatch: Dispatch
@@ -116,6 +120,7 @@ const SemesterRowContent = memo(function SemesterRowContent({
   periods,
   availableCourses,
   excludedCourseIds,
+  catalogYear,
   planningStart,
   disabled,
   dispatch,
@@ -233,6 +238,7 @@ const SemesterRowContent = memo(function SemesterRowContent({
           <AddCourseToSemesterDialog
             availableCourses={availableCourses}
             excludedCourseIds={excludedCourseIds}
+            catalogYear={catalogYear}
             period={period}
             periods={periods}
             title={title}
@@ -303,11 +309,13 @@ const SemesterRowContent = memo(function SemesterRowContent({
 const AddUnallocatedCourseDialog = memo(function AddUnallocatedCourseDialog({
   availableCourses,
   excludedCourseIds,
+  catalogYear,
   disabled,
   dispatch,
 }: {
   availableCourses: ReadonlyArray<Course>
   excludedCourseIds: ReadonlySet<CourseId>
+  catalogYear?: number
   disabled: boolean
   dispatch: Dispatch
 }) {
@@ -331,6 +339,7 @@ const AddUnallocatedCourseDialog = memo(function AddUnallocatedCourseDialog({
         onOpenChange={setOpen}
         courses={availableCourses}
         excludedCourseIds={excludedCourseIds}
+        catalogYear={catalogYear}
         title="Adicionar disciplina não alocada"
         description="Busque uma disciplina para adicionar sem vinculá-la a um semestre."
         searchLabel="Disciplina não alocada"
@@ -348,6 +357,7 @@ type UnallocatedCoursesPanelProps = {
   credits: number
   availableCourses: ReadonlyArray<Course>
   excludedCourseIds: ReadonlySet<CourseId>
+  catalogYear?: number
   periods: ReadonlyArray<PlanningPeriod>
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   disabled: boolean
@@ -377,6 +387,7 @@ const UnallocatedCoursesPanelContent = memo(
     credits,
     availableCourses,
     excludedCourseIds,
+    catalogYear,
     periods,
     planningStart,
     disabled,
@@ -435,6 +446,7 @@ const UnallocatedCoursesPanelContent = memo(
             <AddUnallocatedCourseDialog
               availableCourses={availableCourses}
               excludedCourseIds={excludedCourseIds}
+              catalogYear={catalogYear}
               disabled={disabled}
               dispatch={dispatch}
             />

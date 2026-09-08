@@ -650,7 +650,7 @@ describe('CurriculumPlannerPage', () => {
     )
     await waitFor(() => expect(screen.queryByText('Atual')).toBeNull())
     fireEvent.click(courseCard)
-    expect(await screen.findByText('Conclusão')).toBeTruthy()
+    expect(screen.queryByText('Conclusão')).toBeNull()
     expect(
       screen.queryByRole('button', { name: 'Marcar como concluída' }),
     ).toBeNull()

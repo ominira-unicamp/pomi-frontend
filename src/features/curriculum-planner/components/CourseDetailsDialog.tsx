@@ -1,12 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { CircleCheck, Trash2 } from 'lucide-react'
+import { ExternalLink, MessageSquareWarning, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { periodReference } from '@pomi/planner-domain/curriculum'
 import type {
   Course,
-  CoursePrerequisiteEvaluation,
   CurriculumPlannerSnapshot,
   PlanningPeriod,
   PlanningPeriodId,
@@ -15,7 +14,8 @@ import type { CoursePrerequisiteMenuState } from '@/features/curriculum-planner/
 import type { CurriculumPlannerContextValue } from '@/features/curriculum-planner/CurriculumPlannerProvider'
 import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
-import { Button, buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
+import { buttonVariants } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -31,10 +31,11 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { CatalogCourseDetailsContent } from '@/features/course-catalog/CatalogCourseDetailsContent'
+import type { CatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
 import { getCatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
-import { isApprovedStudentCourseAttempt } from '@/features/student/data/studentApi'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
+import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
+import { cn } from '@/lib/utils'
 
 const outsideValue = '__outside__'
 const unallocatedValue = '__unallocated__'
@@ -54,139 +55,14 @@ function useDesktopLayout() {
   return desktop
 }
 
-function prerequisiteItemLabel(
-  item: CoursePrerequisiteEvaluation['alternatives'][number]['items'][number],
-) {
-  const target = item.item.target
-  const code =
-    item.matchedCourseCode ??
-    (target.type === 'course'
-      ? target.code
-      : target.type === 'prefix'
-        ? `${target.prefix}---`
-        : target.code)
-  return `${item.item.kind === 'PARTIAL' ? '*' : ''}${code}`
-}
-
-function prerequisiteStatusLabel(
-  status: CoursePrerequisiteEvaluation['alternatives'][number]['items'][number]['status'],
-) {
-  return {
-    completed: 'Concluída',
-    plannedBefore: 'Planejada antes',
-    samePeriod: 'No mesmo semestre',
-    plannedAfter: 'Planejada depois',
-    unallocated: 'Não alocada',
-    missing: 'Fora do planejamento',
-    unknown: 'Condição especial',
-  }[status]
-}
-
-function alternativeLabel(
-  alternative: CoursePrerequisiteEvaluation['alternatives'][number],
-) {
-  return alternative.items.map(prerequisiteItemLabel).join(' + ')
-}
-
-function PrerequisitePlanningSection({
-  course,
-  prerequisites,
-}: {
-  course: Course
-  prerequisites?: CoursePrerequisiteMenuState
-}) {
-  if (!prerequisites) return null
-  const evaluation = prerequisites.evaluation
-  const selected = evaluation?.alternatives.find(
-    (alternative) => alternative.key === evaluation.selectedAlternativeKey,
-  )
-  return (
-    <div className="space-y-3 border-t border-border pt-3">
-      <p className="text-sm text-muted-foreground">
-        Avaliação dos pré-requisitos do catálogo {prerequisites.year} dentro
-        deste currículo.
-      </p>
-      {prerequisites.status === 'loading' && (
-        <p className="text-sm text-muted-foreground">Carregando...</p>
-      )}
-      {prerequisites.status === 'error' && (
-        <p className="text-sm text-destructive">
-          Não foi possível avaliar os pré-requisitos deste planejamento.
-        </p>
-      )}
-      {prerequisites.status === 'notInCatalog' && (
-        <p className="text-sm text-muted-foreground">
-          {course.code} não está disponível no catálogo de {prerequisites.year}.
-        </p>
-      )}
-      {prerequisites.status === 'ready' && !evaluation && (
-        <p className="text-sm text-muted-foreground">
-          Esta disciplina não possui pré-requisitos no catálogo de{' '}
-          {prerequisites.year}.
-        </p>
-      )}
-      {selected && (
-        <ul className="divide-y divide-border">
-          {selected.items.map((item) => (
-            <li
-              key={`${selected.key}:${prerequisiteItemLabel(item)}`}
-              className="flex items-center justify-between gap-4 py-2 text-sm"
-            >
-              <span className="font-mono font-black">
-                {prerequisiteItemLabel(item)}
-              </span>
-              <span
-                className={
-                  ['samePeriod', 'plannedAfter', 'missing'].includes(
-                    item.status,
-                  )
-                    ? 'text-right font-semibold text-destructive'
-                    : 'text-right font-semibold text-muted-foreground'
-                }
-              >
-                {prerequisiteStatusLabel(item.status)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-      {evaluation && evaluation.alternatives.length > 1 && (
-        <label className="block space-y-2 text-sm font-bold">
-          <span>Alternativa considerada</span>
-          <AutocompleteSelect
-            ariaLabel={`Alternativa de pré-requisito de ${course.code}`}
-            value={prerequisites.preferredAlternativeKey ?? '__automatic__'}
-            onValueChange={(value) =>
-              prerequisites.onAlternativeChange(
-                course.id,
-                value === '__automatic__' ? undefined : value,
-              )
-            }
-            options={[
-              { value: '__automatic__', label: 'Automática' },
-              ...evaluation.alternatives.map((alternative) => ({
-                value: alternative.key,
-                label: alternativeLabel(alternative),
-              })),
-            ]}
-          />
-        </label>
-      )}
-    </div>
-  )
-}
-
 function PlanningSection({
   course,
   plannedPeriodId,
   unallocated,
-  completed,
-  attempts,
   periods,
   planningStart,
   disabled,
   dispatch,
-  prerequisites,
   onRemoved,
 }: CourseDetailsDialogProps & { course: Course }) {
   const planned = Boolean(plannedPeriodId || unallocated)
@@ -203,9 +79,6 @@ function PlanningSection({
       label: periodReference(period, periods, planningStart),
     })),
   ]
-  const approvedAttempt = attempts.find((attempt) =>
-    isApprovedStudentCourseAttempt(attempt),
-  )
   const changeLocation = async (value: string) => {
     if (value === locationValue) return
     if (value === outsideValue) {
@@ -253,41 +126,6 @@ function PlanningSection({
           </p>
         )}
       </section>
-      <section className="space-y-3 border-t-2 border-border pt-4">
-        <div>
-          <h3 className="font-extrabold">Situação no planejamento</h3>
-          <p className="text-sm text-muted-foreground">
-            Veja a conclusão registrada e os pré-requisitos desta disciplina.
-          </p>
-        </div>
-        <h4 className="border-t border-border pt-3 text-sm font-extrabold">
-          Conclusão
-        </h4>
-        {approvedAttempt ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
-            <span className="flex items-center gap-2 text-sm font-bold">
-              <CircleCheck className="size-4" />
-              Concluída
-              {approvedAttempt.studyPeriod &&
-                ` em ${studyPeriodLabel(approvedAttempt.studyPeriod)}`}
-              {approvedAttempt.grade !== null &&
-                ` · Nota ${approvedAttempt.grade}`}
-            </span>
-          </div>
-        ) : completed ? (
-          <div className="border-t border-border pt-3 text-sm font-bold">
-            <CircleCheck className="mr-2 inline size-4" /> Concluída
-          </div>
-        ) : (
-          <p className="border-t border-border pt-3 text-sm text-muted-foreground">
-            Não concluída no histórico acadêmico.
-          </p>
-        )}
-        <PrerequisitePlanningSection
-          course={course}
-          prerequisites={prerequisites}
-        />
-      </section>
     </div>
   )
 }
@@ -316,9 +154,12 @@ function CourseDetailsFooter({
   }
 
   return (
-    <div className="flex shrink-0 items-center justify-between gap-3 border-t-2 border-border bg-card px-5 py-4 sm:px-6">
+    <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t-2 border-border bg-card px-5 py-4 sm:px-6">
       <Link
-        className={buttonVariants({ variant: 'outline' })}
+        className={cn(
+          buttonVariants({ variant: 'ghost' }),
+          'h-auto px-0 py-1 text-primary underline-offset-4 hover:bg-transparent hover:underline',
+        )}
         to="/disciplinas/$courseId"
         params={{ courseId: String(course.id) }}
         search={{ catalogYear }}
@@ -327,11 +168,52 @@ function CourseDetailsFooter({
       </Link>
       <Button
         variant="outline"
-        className="text-destructive"
+        className="shrink-0 text-destructive"
         disabled={!planned || disabled}
         onClick={() => void removeFromPlanning()}
       >
         <Trash2 /> Remover do planejamento
+      </Button>
+    </div>
+  )
+}
+
+function CatalogCourseDetailsLinks({
+  details,
+}: {
+  details?: CatalogCourseDetails | null
+}) {
+  const { openFeedback } = useFeedbackReport()
+  if (!details) return null
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pt-4">
+      {details.sourceUrl && (
+        <a
+          className="pomi-focus inline-flex items-center gap-1 text-sm font-bold text-primary underline-offset-4 hover:underline"
+          href={details.sourceUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Ver fonte institucional <ExternalLink className="size-4" />
+        </a>
+      )}
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-auto px-0 py-1 text-muted-foreground hover:bg-transparent hover:text-foreground"
+        onClick={() =>
+          openFeedback({
+            kind: 'DATA_ISSUE',
+            target: {
+              type: 'ACADEMIC_RESOURCE',
+              academicResourceType: 'CATALOG_COURSE',
+              academicResourceId: details.id,
+            },
+            title: `Informação de ${details.code}`,
+          })
+        }
+      >
+        <MessageSquareWarning className="size-4" /> Reportar dado incorreto
       </Button>
     </div>
   )
@@ -351,29 +233,41 @@ function CourseDetailsBody({
     staleTime: Infinity,
   })
   return (
-    <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5 sm:p-6">
-      <PlanningSection {...props} course={course} />
-      {catalogQuery.isLoading && (
-        <p className="text-sm text-muted-foreground" aria-live="polite">
-          Carregando informações acadêmicas...
-        </p>
-      )}
-      {catalogQuery.isError && (
-        <p className="text-sm text-destructive" role="alert">
-          Não foi possível carregar as informações acadêmicas desta disciplina.
-        </p>
-      )}
-      {!catalogQuery.isLoading &&
-        !catalogQuery.isError &&
-        !catalogQuery.data && (
-          <p className="text-sm text-muted-foreground">
-            Esta disciplina não possui informações acadêmicas no catálogo de{' '}
-            {props.catalogYear}.
+    <div className="min-h-0 flex flex-1 flex-col overflow-hidden">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5 sm:p-6">
+        <PlanningSection {...props} course={course} />
+        {catalogQuery.isLoading && (
+          <p className="text-sm text-muted-foreground" aria-live="polite">
+            Carregando informações acadêmicas...
           </p>
         )}
-      {catalogQuery.data && (
-        <CatalogCourseDetailsContent details={catalogQuery.data} />
-      )}
+        {catalogQuery.isError && (
+          <p className="text-sm text-destructive" role="alert">
+            Não foi possível carregar as informações acadêmicas desta
+            disciplina.
+          </p>
+        )}
+        {!catalogQuery.isLoading &&
+          !catalogQuery.isError &&
+          !catalogQuery.data && (
+            <p className="text-sm text-muted-foreground">
+              Esta disciplina não possui informações acadêmicas no catálogo de{' '}
+              {props.catalogYear}.
+            </p>
+          )}
+        {catalogQuery.data && (
+          <CatalogCourseDetailsContent details={catalogQuery.data} />
+        )}
+        <CatalogCourseDetailsLinks details={catalogQuery.data} />
+      </div>
+      <CourseDetailsFooter
+        course={course}
+        catalogYear={props.catalogYear}
+        planned={Boolean(props.plannedPeriodId || props.unallocated)}
+        disabled={props.disabled}
+        dispatch={props.dispatch}
+        onRemoved={props.onRemoved}
+      />
     </div>
   )
 }
@@ -414,14 +308,6 @@ export function CourseDetailsDialog(props: CourseDetailsDialogProps) {
             <DialogDescription>{description}</DialogDescription>
           </DialogHeader>
           {body}
-          <CourseDetailsFooter
-            course={props.course}
-            catalogYear={props.catalogYear}
-            planned={Boolean(props.plannedPeriodId || props.unallocated)}
-            disabled={props.disabled}
-            dispatch={props.dispatch}
-            onRemoved={props.onRemoved}
-          />
         </DialogContent>
       </Dialog>
     )
@@ -439,14 +325,6 @@ export function CourseDetailsDialog(props: CourseDetailsDialogProps) {
           <SheetDescription>{description}</SheetDescription>
         </SheetHeader>
         {body}
-        <CourseDetailsFooter
-          course={props.course}
-          catalogYear={props.catalogYear}
-          planned={Boolean(props.plannedPeriodId || props.unallocated)}
-          disabled={props.disabled}
-          dispatch={props.dispatch}
-          onRemoved={props.onRemoved}
-        />
       </SheetContent>
     </Sheet>
   )
