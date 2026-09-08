@@ -33,6 +33,7 @@ export type PrerequisiteItemStatus =
   | 'plannedAfter'
   | 'unallocated'
   | 'missing'
+  | 'notInCatalog'
   | 'unknown'
 
 export type PrerequisiteItemEvaluation = Readonly<{
@@ -52,7 +53,7 @@ export type CoursePrerequisiteEvaluation = Readonly<{
   automaticAlternativeKey: string | null
   selectedAlternativeKey: string | null
   alternatives: ReadonlyArray<PrerequisiteAlternativeEvaluation>
-  issues: ReadonlyArray<'missing' | 'inverted'>
+  issues: ReadonlyArray<'missing' | 'notInCatalog' | 'inverted'>
 }>
 
 export type PrerequisiteLink = Readonly<{
@@ -123,11 +124,13 @@ function candidateForPrefix(
   positions: ReadonlyMap<CourseId, number>,
   unallocated: ReadonlySet<CourseId>,
   candidates: Map<string, Course | undefined>,
+  catalogCourseIds?: ReadonlySet<CourseId>,
 ) {
   const normalized = normalizePrefix(prefix)
   if (candidates.has(normalized)) return candidates.get(normalized)
   const candidate = courses
     .filter((course) => normalizePrefix(course.code).startsWith(normalized))
+    .filter((course) => !catalogCourseIds || catalogCourseIds.has(course.id))
     .filter(
       (course) =>
         completed.has(course.id) ||
@@ -159,9 +162,25 @@ function evaluateItem(
   positions: ReadonlyMap<CourseId, number>,
   unallocated: ReadonlySet<CourseId>,
   prefixCandidates: Map<string, Course | undefined>,
+  catalogCourseIds?: ReadonlySet<CourseId>,
 ): PrerequisiteItemEvaluation {
   const target = item.target
   if (target.type === 'special') return { item, status: 'unknown' }
+  if (catalogCourseIds && target.type === 'course') {
+    if (!catalogCourseIds.has(target.courseId))
+      return { item, status: 'notInCatalog' }
+  }
+  if (
+    catalogCourseIds &&
+    target.type === 'prefix' &&
+    !courses.some(
+      (course) =>
+        catalogCourseIds.has(course.id) &&
+        normalizePrefix(course.code).startsWith(normalizePrefix(target.prefix)),
+    )
+  ) {
+    return { item, status: 'notInCatalog' }
+  }
   const matchedCourse =
     target.type === 'course'
       ? coursesById.get(target.courseId)
@@ -172,6 +191,7 @@ function evaluateItem(
           positions,
           unallocated,
           prefixCandidates,
+          catalogCourseIds,
         )
   if (!matchedCourse) return { item, status: 'missing' }
   return {
@@ -198,11 +218,20 @@ function alternativeScore(alternative: PrerequisiteAlternativeEvaluation) {
   const missing = alternative.items.filter((item) =>
     ['missing', 'unallocated'].includes(item.status),
   ).length
+  const notInCatalog = alternative.items.filter(
+    (item) => item.status === 'notInCatalog',
+  ).length
   const unknown = alternative.items.filter(
     (item) => item.status === 'unknown',
   ).length
   const fullyValid = valid === alternative.items.length
-  return { fullyValid, valid, invalid, missing, unknown }
+  return {
+    fullyValid,
+    valid,
+    invalid,
+    missing: missing + notInCatalog,
+    unknown,
+  }
 }
 
 function chooseAutomaticAlternative(
@@ -230,12 +259,14 @@ export function evaluatePrerequisites({
   rules,
   preferredAlternatives = new Map(),
   courseIds,
+  catalogCourseIds,
 }: {
   snapshot: CurriculumPlannerSnapshot
   courses: ReadonlyArray<Course>
   rules: ReadonlyArray<CoursePrerequisiteRule>
   preferredAlternatives?: ReadonlyMap<CourseId, string>
   courseIds?: ReadonlySet<CourseId>
+  catalogCourseIds?: ReadonlySet<CourseId>
 }): PrerequisiteEvaluation {
   const completed = new Set(
     snapshot.academicRecord.completedCourses.map((course) => course.courseId),
@@ -262,6 +293,7 @@ export function evaluatePrerequisites({
           positions,
           unallocated,
           prefixCandidates,
+          catalogCourseIds,
         ),
       ),
     }))
@@ -280,6 +312,9 @@ export function evaluatePrerequisites({
           ['missing', 'unallocated'].includes(item.status),
         )
           ? (['missing'] as const)
+          : []),
+        ...(selected?.items.some((item) => item.status === 'notInCatalog')
+          ? (['notInCatalog'] as const)
           : []),
         ...(selected?.items.some((item) => item.status === 'plannedAfter')
           ? (['inverted'] as const)

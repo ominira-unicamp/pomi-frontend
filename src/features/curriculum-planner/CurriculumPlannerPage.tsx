@@ -11,7 +11,9 @@ import {
 } from '@dnd-kit/core'
 import {
   History,
+  LayoutGrid,
   MoreHorizontal,
+  Network,
   Pencil,
   Plus,
   RotateCcw,
@@ -34,6 +36,7 @@ import type {
 } from '@/features/curriculum-planner/components/CourseCard'
 import type {
   CourseId,
+  CurriculumCourseState,
   PlanningPeriodId,
 } from '@pomi/planner-domain/curriculum'
 import {
@@ -63,8 +66,8 @@ import {
 import { CurriculumSelectionFields } from '@/features/curriculum-planner/components/CurriculumSelection'
 import {
   ChangeSuggestionDialog,
-  SuggestionOnboardingPanel,
   StudentHistoryImportDialog,
+  SuggestionOnboardingPanel,
 } from '@/features/curriculum-planner/components/CurriculumSuggestion'
 import { PlanningStartDialog } from '@/features/curriculum-planner/components/PlanningStartDialog'
 import { CurriculumPlanningSelection } from '@/features/curriculum-planner/components/CurriculumPlanningSelection'
@@ -74,6 +77,7 @@ import {
 } from '@/features/curriculum-planner/components/SemesterBoard'
 import { CompactVisual } from '@/features/curriculum-planner/components/CourseCard'
 import { PrerequisiteGraph } from '@/features/curriculum-planner/components/PrerequisiteGraph'
+import { PrerequisiteTreeView } from '@/features/curriculum-planner/components/PrerequisiteTreeView'
 import { suggestionOnboardingPreferenceKey } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
 import { useCurriculumPlanner } from '@/features/curriculum-planner/CurriculumPlannerProvider'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
@@ -84,7 +88,7 @@ import { commandForCourseDrop } from '@/features/curriculum-planner/dnd'
 import {
   CurrentCatalogUnavailableError,
   currentCatalogYear,
-  loadCurrentYearPrerequisites,
+  loadCatalogPrerequisites,
 } from '@/features/curriculum-planner/data/curriculumPrerequisiteApi'
 import {
   curriculumPlannerErrorText,
@@ -129,18 +133,31 @@ export function CurriculumPlannerPage({
     () => new Set(),
   )
   const [selectionMode, setSelectionMode] = useState(false)
+  const [semesterView, setSemesterView] = useState<'grid' | 'tree'>('grid')
   const prerequisiteBoardRef = useRef<HTMLDivElement>(null)
   const [
     preferredPrerequisiteAlternatives,
     setPreferredPrerequisiteAlternatives,
   ] = useState<ReadonlyMap<CourseId, string>>(() => new Map())
-  const prerequisiteYear = currentCatalogYear()
+  const selectedCatalogYear = useMemo(
+    () =>
+      planner.staticData?.catalogPrograms.find(
+        (program) =>
+          program.id === planner.snapshot?.selection.catalogProgramId,
+      )?.catalog.year,
+    [planner.snapshot?.selection.catalogProgramId, planner.staticData],
+  )
+  const prerequisiteYear = selectedCatalogYear ?? currentCatalogYear()
   const prerequisitesQuery = useQuery({
     queryKey: publicQueryKeys.curriculumPrerequisites(prerequisiteYear),
-    queryFn: () => loadCurrentYearPrerequisites(),
+    queryFn: () => loadCatalogPrerequisites(prerequisiteYear),
     enabled: Boolean(planner.snapshot && planner.staticData),
     staleTime: Infinity,
   })
+  const currentCatalogCourseIds = useMemo(
+    () => new Set(prerequisitesQuery.data?.courseIds ?? []),
+    [prerequisitesQuery.data?.courseIds],
+  )
   const prerequisiteEvaluation = useMemo(
     () =>
       planner.snapshot && planner.staticData && prerequisitesQuery.data
@@ -149,6 +166,7 @@ export function CurriculumPlannerPage({
             courses: planner.staticData.courses,
             rules: prerequisitesQuery.data.rules,
             preferredAlternatives: preferredPrerequisiteAlternatives,
+            catalogCourseIds: currentCatalogCourseIds,
             courseIds: new Set([
               ...planner.snapshot.academicRecord.completedCourses.map(
                 (course) => course.courseId,
@@ -167,12 +185,39 @@ export function CurriculumPlannerPage({
       planner.staticData,
       preferredPrerequisiteAlternatives,
       prerequisitesQuery.data,
+      currentCatalogCourseIds,
     ],
   )
-  const currentCatalogCourseIds = useMemo(
-    () => new Set(prerequisitesQuery.data?.courseIds ?? []),
-    [prerequisitesQuery.data?.courseIds],
+  const visualPrerequisiteLinks = useMemo(
+    () =>
+      prerequisiteEvaluation?.links.map((link) => ({
+        ...link,
+        alternative:
+          (prerequisiteEvaluation.courses.get(link.dependentCourseId)
+            ?.alternatives.length ?? 0) > 1,
+      })) ?? [],
+    [prerequisiteEvaluation],
   )
+  const prerequisiteTreeStates = useMemo<
+    ReadonlyArray<CurriculumCourseState>
+  >(() => {
+    if (!planner.snapshot || !planner.staticData) return []
+    const completedCourseIds = new Set(
+      planner.snapshot.academicRecord.completedCourses.map(
+        (course) => course.courseId,
+      ),
+    )
+    const periodByCourseId = new Map(
+      planner.snapshot.plan.periods.flatMap((period) =>
+        period.items.map((item) => [item.courseId, period.id] as const),
+      ),
+    )
+    return planner.staticData.courses.map((course) => ({
+      course,
+      completed: completedCourseIds.has(course.id),
+      plannedPeriodId: periodByCourseId.get(course.id),
+    }))
+  }, [planner.snapshot, planner.staticData])
   const changePrerequisiteAlternative = useCallback(
     (courseId: CourseId, key?: string) => {
       setPreferredPrerequisiteAlternatives((current) => {
@@ -736,87 +781,112 @@ export function CurriculumPlannerPage({
                   ? 'Sair do modo de seleção'
                   : 'Selecionar disciplinas'}
               </Button>
-            </div>
-          </div>
-          <div ref={prerequisiteBoardRef} className="relative">
-            <PrerequisiteGraph
-              rootRef={prerequisiteBoardRef}
-              links={prerequisiteEvaluation?.links ?? []}
-              visible
-            />
-            <div
-              role="region"
-              aria-label="Planejamento por semestre"
-              className="divide-y-2 divide-strong-border overflow-hidden rounded-md border-2 border-strong-border bg-card shadow-[4px_4px_0_color-mix(in_srgb,var(--primary)_25%,transparent)]"
-            >
-              <UnallocatedCoursesPanel
-                courses={plannerView.unallocatedCourses}
-                credits={plannerView.unallocatedCredits}
-                availableCourses={staticData.courses}
-                excludedCourseIds={excludedCourseIds}
-                catalogYear={catalogYear}
-                periods={periods}
-                planningStart={snapshot.plan.planningStart}
-                disabled={planner.isDispatching}
-                dispatch={planner.dispatch}
-                onOpenCourseDetails={setSelectedCourseId}
-                selectedCourseIds={selectedCourseIds}
-                selectionMode={selectionMode}
-                onToggleCourseSelection={toggleCourseSelection}
-                onPlaceSelectedCourses={placeSelectedCoursesInUnallocated}
-                prerequisiteResolver={prerequisiteResolver}
-              />
-              {periods.length ? (
-                plannerView.semesters
-                  .map((semester, index) => (
-                    <SemesterRow
-                      key={semester.period.id}
-                      semester={semester}
-                      title={periodTitle(index, snapshot.plan.planningStart)}
-                      periods={periods}
-                      availableCourses={staticData.courses}
-                      excludedCourseIds={excludedCourseIds}
-                      catalogYear={catalogYear}
-                      planningStart={snapshot.plan.planningStart}
-                      disabled={planner.isDispatching}
-                      dispatch={planner.dispatch}
-                      onOpenCourseDetails={setSelectedCourseId}
-                      selectedCourseIds={selectedCourseIds}
-                      selectionMode={selectionMode}
-                      onToggleCourseSelection={toggleCourseSelection}
-                      onPlaceSelectedCourses={placeSelectedCourses}
-                      prerequisiteResolver={prerequisiteResolver}
-                    />
-                  ))
-                  .concat(
-                    <button
-                      key="add-semester"
-                      type="button"
-                      className="flex min-h-14 w-full items-center justify-center gap-2 bg-background px-4 py-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
-                      onClick={addSemester}
-                      disabled={planner.isDispatching}
-                    >
-                      <Plus className="size-4" /> Adicionar semestre
-                    </button>,
+              <Button
+                variant="outline"
+                aria-pressed={semesterView === 'tree'}
+                onClick={() =>
+                  setSemesterView((current) =>
+                    current === 'grid' ? 'tree' : 'grid',
                   )
-              ) : (
-                <section className="grid min-h-32 place-items-center px-6 py-8 text-center">
-                  <div>
-                    <h3 className="text-base font-extrabold">
-                      Nenhum semestre criado
-                    </h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      Adicione o primeiro semestre para começar a distribuir as
-                      disciplinas.
-                    </p>
-                    <Button className="mt-4" onClick={addSemester}>
-                      <Plus /> Adicionar primeiro semestre
-                    </Button>
-                  </div>
-                </section>
-              )}
+                }
+              >
+                {semesterView === 'grid' ? <Network /> : <LayoutGrid />}
+                {semesterView === 'grid'
+                  ? 'Visualizar árvore'
+                  : 'Visualizar grade'}
+              </Button>
             </div>
           </div>
+          {semesterView === 'tree' ? (
+            <PrerequisiteTreeView
+              states={prerequisiteTreeStates}
+              links={visualPrerequisiteLinks}
+              onOpenCourseDetails={setSelectedCourseId}
+              selectedCourseIds={selectedCourseIds}
+              selectionMode={selectionMode}
+              onToggleCourseSelection={toggleCourseSelection}
+            />
+          ) : (
+            <div ref={prerequisiteBoardRef} className="relative">
+              <PrerequisiteGraph
+                rootRef={prerequisiteBoardRef}
+                links={visualPrerequisiteLinks}
+                visible
+              />
+              <div
+                role="region"
+                aria-label="Planejamento por semestre"
+                className="divide-y-2 divide-strong-border overflow-hidden rounded-md border-2 border-strong-border bg-card shadow-[4px_4px_0_color-mix(in_srgb,var(--primary)_25%,transparent)]"
+              >
+                <UnallocatedCoursesPanel
+                  courses={plannerView.unallocatedCourses}
+                  credits={plannerView.unallocatedCredits}
+                  availableCourses={staticData.courses}
+                  excludedCourseIds={excludedCourseIds}
+                  catalogYear={catalogYear}
+                  periods={periods}
+                  planningStart={snapshot.plan.planningStart}
+                  disabled={planner.isDispatching}
+                  dispatch={planner.dispatch}
+                  onOpenCourseDetails={setSelectedCourseId}
+                  selectedCourseIds={selectedCourseIds}
+                  selectionMode={selectionMode}
+                  onToggleCourseSelection={toggleCourseSelection}
+                  onPlaceSelectedCourses={placeSelectedCoursesInUnallocated}
+                  prerequisiteResolver={prerequisiteResolver}
+                />
+                {periods.length ? (
+                  plannerView.semesters
+                    .map((semester, index) => (
+                      <SemesterRow
+                        key={semester.period.id}
+                        semester={semester}
+                        title={periodTitle(index, snapshot.plan.planningStart)}
+                        periods={periods}
+                        availableCourses={staticData.courses}
+                        excludedCourseIds={excludedCourseIds}
+                        catalogYear={catalogYear}
+                        planningStart={snapshot.plan.planningStart}
+                        disabled={planner.isDispatching}
+                        dispatch={planner.dispatch}
+                        onOpenCourseDetails={setSelectedCourseId}
+                        selectedCourseIds={selectedCourseIds}
+                        selectionMode={selectionMode}
+                        onToggleCourseSelection={toggleCourseSelection}
+                        onPlaceSelectedCourses={placeSelectedCourses}
+                        prerequisiteResolver={prerequisiteResolver}
+                      />
+                    ))
+                    .concat(
+                      <button
+                        key="add-semester"
+                        type="button"
+                        className="flex min-h-14 w-full items-center justify-center gap-2 bg-background px-4 py-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                        onClick={addSemester}
+                        disabled={planner.isDispatching}
+                      >
+                        <Plus className="size-4" /> Adicionar semestre
+                      </button>,
+                    )
+                ) : (
+                  <section className="grid min-h-32 place-items-center px-6 py-8 text-center">
+                    <div>
+                      <h3 className="text-base font-extrabold">
+                        Nenhum semestre criado
+                      </h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Adicione o primeiro semestre para começar a distribuir
+                        as disciplinas.
+                      </p>
+                      <Button className="mt-4" onClick={addSemester}>
+                        <Plus /> Adicionar primeiro semestre
+                      </Button>
+                    </div>
+                  </section>
+                )}
+              </div>
+            </div>
+          )}
         </section>
         <div className="mb-7 overflow-hidden rounded-md border-2 border-border bg-card">
           {!showSuggestionOnboarding && (

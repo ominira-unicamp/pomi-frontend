@@ -1,16 +1,17 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import type { RefObject } from 'react'
 
-import type { PrerequisiteLink } from '@pomi/planner-domain/curriculum'
+import type { VisualPrerequisiteLink } from '@/features/curriculum-planner/prerequisiteTreeLayout'
 
 import { cn } from '@/lib/utils'
 
 type MeasuredPath = Readonly<{
   key: string
   d: string
-  status: PrerequisiteLink['status']
-  prerequisiteCourseId: PrerequisiteLink['prerequisiteCourseId']
-  dependentCourseId: PrerequisiteLink['dependentCourseId']
+  status: VisualPrerequisiteLink['status']
+  alternative?: boolean
+  prerequisiteCourseId: VisualPrerequisiteLink['prerequisiteCourseId']
+  dependentCourseId: VisualPrerequisiteLink['dependentCourseId']
 }>
 
 type VerticalCorridor = Readonly<{
@@ -32,6 +33,7 @@ function pathsAreEqual(
         path.key === right[index]?.key &&
         path.d === right[index]?.d &&
         path.status === right[index]?.status &&
+        path.alternative === right[index]?.alternative &&
         path.prerequisiteCourseId === right[index]?.prerequisiteCourseId &&
         path.dependentCourseId === right[index]?.dependentCourseId,
     )
@@ -81,7 +83,7 @@ function prerequisiteTree(
   return { courseIds, pathKeys }
 }
 
-function pathClass(status: PrerequisiteLink['status']) {
+function pathClass(status: VisualPrerequisiteLink['status']) {
   if (status === 'samePeriod') return 'stroke-destructive'
   if (status === 'plannedAfter') return 'stroke-chart-4'
   if (status === 'completed') return 'stroke-muted-foreground'
@@ -258,7 +260,7 @@ export function PrerequisiteGraph({
   visible,
 }: {
   rootRef: RefObject<HTMLDivElement | null>
-  links: ReadonlyArray<PrerequisiteLink>
+  links: ReadonlyArray<VisualPrerequisiteLink>
   visible: boolean
 }) {
   const markerId = useId().replace(/:/g, '')
@@ -400,6 +402,7 @@ export function PrerequisiteGraph({
                 key: `${link.prerequisiteCourseId}:${link.dependentCourseId}:${link.status}:${index}`,
                 d,
                 status: link.status,
+                alternative: link.alternative,
                 prerequisiteCourseId: link.prerequisiteCourseId,
                 dependentCourseId: link.dependentCourseId,
               },
@@ -455,6 +458,7 @@ export function PrerequisiteGraph({
             strokeWidth="2"
             markerEnd={`url(#${markerId})`}
             className={cn('opacity-90', pathClass(path.status))}
+            strokeDasharray={path.alternative ? '6 4' : undefined}
           />
         ))}
     </svg>

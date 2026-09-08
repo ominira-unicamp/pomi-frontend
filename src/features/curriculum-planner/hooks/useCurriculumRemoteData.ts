@@ -75,7 +75,13 @@ export function useCurriculumRemoteData({
   )
   const data = useMemo<CurriculumRemoteData | undefined>(() => {
     if (!enabled) return { studentId: undefined, summaries: [], completed: [] }
-    if (!studentQuery.data || (studentId && !curriculaQuery.data))
+    if (
+      !studentQuery.data ||
+      (studentId &&
+        (!curriculaQuery.data ||
+          attemptsQuery.isPending ||
+          (activeCurriculumId && curriculumQuery.isPending)))
+    )
       return undefined
     return {
       studentId,
@@ -84,10 +90,13 @@ export function useCurriculumRemoteData({
       completed,
     }
   }, [
+    activeCurriculumId,
     completed,
     curriculaQuery.data,
     curriculumQuery.data,
+    curriculumQuery.isPending,
     enabled,
+    attemptsQuery.isPending,
     studentId,
     studentQuery.data,
   ])

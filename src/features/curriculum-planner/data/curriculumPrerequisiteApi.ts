@@ -130,8 +130,7 @@ async function loadForYear(year: number): Promise<CurrentYearPrerequisites> {
   }
 }
 
-export function loadCurrentYearPrerequisites(date = new Date()) {
-  const year = currentCatalogYear(date)
+export function loadCatalogPrerequisites(year: number) {
   const current = loadsByYear.get(year)
   if (current) return current
   const loading = loadForYear(year).catch((error) => {
@@ -140,4 +139,8 @@ export function loadCurrentYearPrerequisites(date = new Date()) {
   })
   loadsByYear.set(year, loading)
   return loading
+}
+
+export function loadCurrentYearPrerequisites(date = new Date()) {
+  return loadCatalogPrerequisites(currentCatalogYear(date))
 }

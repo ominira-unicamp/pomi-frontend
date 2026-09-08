@@ -175,6 +175,23 @@ describe('evaluatePrerequisites', () => {
     expect(result.courses.get('4' as CourseId)?.issues).toContain('missing')
   })
 
+  it('reports a prerequisite that is absent from the catalog', () => {
+    const result = evaluatePrerequisites({
+      snapshot,
+      courses,
+      rules: [rule],
+      preferredAlternatives: new Map([['4' as CourseId, firstAlternative.key]]),
+      catalogCourseIds: new Set(['3' as CourseId]),
+    })
+
+    expect(
+      result.courses.get('4' as CourseId)?.alternatives[0].items[0].status,
+    ).toBe('notInCatalog')
+    expect(result.courses.get('4' as CourseId)?.issues).toContain(
+      'notInCatalog',
+    )
+  })
+
   it('resolves a prefix to a completed course first', () => {
     const prefixRule: CoursePrerequisiteRule = {
       courseId: '4' as CourseId,

@@ -12,10 +12,10 @@ import type {
 } from '@pomi/planner-domain/curriculum'
 import type { CoursePrerequisiteMenuState } from '@/features/curriculum-planner/components/CourseCard'
 import type { CurriculumPlannerContextValue } from '@/features/curriculum-planner/CurriculumPlannerProvider'
+import type { CatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
 import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
-import { Button } from '@/components/ui/button'
-import { buttonVariants } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -31,7 +31,6 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { CatalogCourseDetailsContent } from '@/features/course-catalog/CatalogCourseDetailsContent'
-import type { CatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
 import { getCatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
 import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
@@ -127,6 +126,90 @@ function PlanningSection({
         )}
       </section>
     </div>
+  )
+}
+
+function prerequisiteAlternativeLabel(
+  alternative: NonNullable<
+    CoursePrerequisiteMenuState['evaluation']
+  >['alternatives'][number],
+) {
+  return alternative.items
+    .map(({ item }) => {
+      const target = item.target
+      if (target.type === 'course') return target.code
+      if (target.type === 'prefix') return `${target.prefix}---`
+      return target.code
+    })
+    .join(' + ')
+}
+
+function PrerequisiteAlternativeSection({
+  course,
+  prerequisites,
+  disabled,
+}: {
+  course: Course
+  prerequisites?: CoursePrerequisiteMenuState
+  disabled: boolean
+}) {
+  const alternatives = prerequisites?.evaluation?.alternatives ?? []
+  if (prerequisites?.status !== 'ready' || alternatives.length <= 1) return null
+  const selectedValue = prerequisites.preferredAlternativeKey ?? 'automatic'
+  return (
+    <section className="space-y-3 border-t-2 border-border pt-5">
+      <div>
+        <h3 className="font-extrabold">Pré-requisitos</h3>
+        <p className="text-sm text-muted-foreground">
+          Escolha como os pré-requisitos desta disciplina devem ser avaliados.
+        </p>
+      </div>
+      <div
+        className="grid gap-2"
+        role="group"
+        aria-label="Alternativa de pré-requisitos"
+      >
+        <button
+          type="button"
+          aria-pressed={selectedValue === 'automatic'}
+          disabled={disabled}
+          className={cn(
+            'pomi-focus rounded-md border-2 px-3 py-2 text-left text-sm transition-colors',
+            selectedValue === 'automatic'
+              ? 'border-primary bg-primary/10'
+              : 'border-border bg-background hover:bg-accent',
+          )}
+          onClick={() => prerequisites.onAlternativeChange(course.id)}
+        >
+          <span className="block font-bold">Automático</span>
+          <span className="text-muted-foreground">
+            Usar a alternativa mais compatível com o planejamento.
+          </span>
+        </button>
+        {alternatives.map((alternative, index) => (
+          <button
+            key={alternative.key}
+            type="button"
+            aria-pressed={selectedValue === alternative.key}
+            disabled={disabled}
+            className={cn(
+              'pomi-focus rounded-md border-2 px-3 py-2 text-left text-sm transition-colors',
+              selectedValue === alternative.key
+                ? 'border-primary bg-primary/10'
+                : 'border-border bg-background hover:bg-accent',
+            )}
+            onClick={() =>
+              prerequisites.onAlternativeChange(course.id, alternative.key)
+            }
+          >
+            <span className="block font-bold">Opção {index + 1}</span>
+            <span className="font-mono text-xs font-bold">
+              {prerequisiteAlternativeLabel(alternative)}
+            </span>
+          </button>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -236,6 +319,11 @@ function CourseDetailsBody({
     <div className="min-h-0 flex flex-1 flex-col overflow-hidden">
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5 sm:p-6">
         <PlanningSection {...props} course={course} />
+        <PrerequisiteAlternativeSection
+          course={course}
+          prerequisites={props.prerequisites}
+          disabled={props.disabled}
+        />
         {catalogQuery.isLoading && (
           <p className="text-sm text-muted-foreground" aria-live="polite">
             Carregando informações acadêmicas...

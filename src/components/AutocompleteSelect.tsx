@@ -1,5 +1,15 @@
 import { Command } from 'cmdk'
-import { memo, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { Branch as DismissableLayerBranch } from '@radix-ui/react-dismissable-layer'
+import { createPortal } from 'react-dom'
+import {
+  memo,
+  useEffect,
+  useId,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
 export type AutocompleteOption = Readonly<{ value: string; label: string }>
 
@@ -39,6 +49,12 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
   const [query, setQuery] = useState(selected?.label ?? '')
   const [open, setOpen] = useState(false)
   const [scrollTop, setScrollTop] = useState(0)
+  const [listPosition, setListPosition] = useState<{
+    left: number
+    top: number
+    width: number
+  }>()
+  const anchorRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const indexedOptions = useMemo(
     () =>
@@ -88,14 +104,59 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
     firstOptionIndex,
     lastOptionIndex,
   )
+  const listHeight = Math.min(
+    viewportHeight + listChromeHeight,
+    listChromeHeight +
+      optionListOffset +
+      Math.max(visibleOptions.length, 1) * optionHeight,
+  )
 
   useEffect(() => {
     setScrollTop(0)
     if (listRef.current) listRef.current.scrollTop = 0
   }, [normalizedQuery])
 
+  useLayoutEffect(() => {
+    if (!open || disabled) return
+    const updatePosition = () => {
+      const anchor = anchorRef.current
+      if (!anchor) return
+      const rect = anchor.getBoundingClientRect()
+      const spaceBelow = window.innerHeight - rect.bottom - 8
+      const spaceAbove = rect.top - 8
+      const top =
+        spaceBelow < listHeight && spaceAbove >= listHeight
+          ? rect.top - listHeight - 4
+          : rect.bottom + 4
+      setListPosition({
+        left: rect.left,
+        top,
+        width: rect.width,
+      })
+    }
+    const observer =
+      typeof ResizeObserver === 'undefined'
+        ? undefined
+        : new ResizeObserver(updatePosition)
+    observer?.observe(anchorRef.current as Element)
+    document.addEventListener('scroll', updatePosition, true)
+    window.addEventListener('resize', updatePosition)
+    updatePosition()
+    return () => {
+      observer?.disconnect()
+      document.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updatePosition)
+    }
+  }, [disabled, listHeight, open])
+
   return (
-    <Command label={ariaLabel} shouldFilter={false} loop className="relative">
+    <Command
+      ref={anchorRef}
+      label={ariaLabel}
+      shouldFilter={false}
+      loop
+      className="relative"
+    >
       <Command.Input
         role="combobox"
         aria-autocomplete="list"
@@ -127,58 +188,63 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
           setOpen(false)
         }}
       />
-      {open && !disabled && (
-        <Command.List
-          ref={listRef}
-          id={listId}
-          label={`Opções de ${ariaLabel}`}
-          className="absolute z-50 mt-1 w-max min-w-full overflow-y-auto rounded-md border-2 border-strong-border bg-popover p-1 text-popover-foreground shadow-lg"
-          style={{
-            height: Math.min(
-              viewportHeight + listChromeHeight,
-              listChromeHeight +
-                optionListOffset +
-                Math.max(visibleOptions.length, 1) * optionHeight,
-            ),
-          }}
-          onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
-        >
-          {emptyLabel && (
-            <Command.Item
-              value="__empty__"
-              className="pomi-focus block h-10 w-full whitespace-nowrap rounded-sm px-3 py-2 text-left text-sm font-semibold data-[selected=true]:bg-accent"
-              onMouseDown={(event) => event.preventDefault()}
-              onSelect={() => select()}
+      {open &&
+        !disabled &&
+        listPosition &&
+        createPortal(
+          <DismissableLayerBranch style={{ pointerEvents: 'auto' }}>
+            <Command.List
+              ref={listRef}
+              id={listId}
+              label={`Opções de ${ariaLabel}`}
+              className="fixed z-[70] w-max min-w-0 overflow-y-auto rounded-md border-2 border-strong-border bg-popover p-1 text-popover-foreground shadow-lg"
+              style={{
+                left: listPosition.left,
+                top: listPosition.top,
+                width: listPosition.width,
+                height: listHeight,
+                pointerEvents: 'auto',
+              }}
+              onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
             >
-              {emptyLabel}
-            </Command.Item>
-          )}
-          <div
-            style={{
-              height: visibleOptions.length * optionHeight,
-              position: 'relative',
-            }}
-          >
-            {renderedOptions.map((option, index) => (
-              <Command.Item
-                key={option.value}
-                value={option.value}
-                className="pomi-focus absolute h-10 w-full whitespace-nowrap rounded-sm px-3 py-2 text-left text-sm font-semibold hover:bg-accent data-[selected=true]:bg-accent"
-                style={{ top: (firstOptionIndex + index) * optionHeight }}
-                onMouseDown={(event) => event.preventDefault()}
-                onSelect={() => select(option)}
+              {emptyLabel && (
+                <Command.Item
+                  value="__empty__"
+                  className="pomi-focus block h-10 w-full whitespace-nowrap rounded-sm px-3 py-2 text-left text-sm font-semibold data-[selected=true]:bg-accent"
+                  onMouseDown={(event) => event.preventDefault()}
+                  onSelect={() => select()}
+                >
+                  {emptyLabel}
+                </Command.Item>
+              )}
+              <div
+                style={{
+                  height: visibleOptions.length * optionHeight,
+                  position: 'relative',
+                }}
               >
-                {option.label}
-              </Command.Item>
-            ))}
-          </div>
-          {!visibleOptions.length && (
-            <p className="px-3 py-2 text-sm text-muted-foreground">
-              Nenhuma opção encontrada.
-            </p>
-          )}
-        </Command.List>
-      )}
+                {renderedOptions.map((option, index) => (
+                  <Command.Item
+                    key={option.value}
+                    value={option.value}
+                    className="pomi-focus absolute h-10 w-full whitespace-nowrap rounded-sm px-3 py-2 text-left text-sm font-semibold hover:bg-accent data-[selected=true]:bg-accent"
+                    style={{ top: (firstOptionIndex + index) * optionHeight }}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onSelect={() => select(option)}
+                  >
+                    {option.label}
+                  </Command.Item>
+                ))}
+              </div>
+              {!visibleOptions.length && (
+                <p className="px-3 py-2 text-sm text-muted-foreground">
+                  Nenhuma opção encontrada.
+                </p>
+              )}
+            </Command.List>
+          </DismissableLayerBranch>,
+          document.body,
+        )}
     </Command>
   )
 })

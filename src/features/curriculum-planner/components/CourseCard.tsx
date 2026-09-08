@@ -73,11 +73,12 @@ function PrerequisiteIssueMarkers({
 }: {
   prerequisites?: CoursePrerequisiteMenuState
 }) {
-  const issues = prerequisites?.evaluation?.issues ?? []
-  if (!issues.length) return null
+  const issues = new Set(prerequisites?.evaluation?.issues ?? [])
+  if (prerequisites?.status === 'notInCatalog') issues.add('notInCatalog')
+  if (!issues.size) return null
   return (
     <span className="pointer-events-none absolute -top-2 -right-2 z-40 flex gap-0.5">
-      {issues.includes('missing') && (
+      {issues.has('missing') && (
         <span
           className="grid size-4 place-items-center rounded-full border border-amber-800 bg-amber-300 text-amber-950"
           title="Pré-requisito ausente do planejamento"
@@ -86,7 +87,16 @@ function PrerequisiteIssueMarkers({
           <CircleAlert className="size-3" />
         </span>
       )}
-      {issues.includes('inverted') && (
+      {issues.has('notInCatalog') && (
+        <span
+          className="grid size-4 place-items-center rounded-full border border-amber-800 bg-amber-300 text-amber-950"
+          title="Pré-requisito ausente do catálogo"
+          aria-label="Pré-requisito ausente do catálogo"
+        >
+          <CircleAlert className="size-3" />
+        </span>
+      )}
+      {issues.has('inverted') && (
         <span
           className="grid size-4 place-items-center rounded-full border border-destructive bg-destructive text-destructive-foreground"
           title="Ordem de pré-requisito invertida"
@@ -141,11 +151,18 @@ export const CompactCourseCard = memo(function CompactCourseCard({
   }, [isDragging])
   const period = periods.find((item) => item.id === state.plannedPeriodId)
   const prerequisites = prerequisiteResolver?.(state.course.id)
-  const issueLabel = (prerequisites?.evaluation?.issues ?? [])
+  const issueLabel = [
+    ...(prerequisites?.evaluation?.issues ?? []),
+    ...(prerequisites?.status === 'notInCatalog'
+      ? (['notInCatalog'] as const)
+      : []),
+  ]
     .map((issue) =>
       issue === 'missing'
         ? 'pré-requisito ausente do planejamento'
-        : 'ordem de pré-requisito invertida',
+        : issue === 'notInCatalog'
+          ? 'pré-requisito ausente do catálogo'
+          : 'ordem de pré-requisito invertida',
     )
     .join(', ')
   const label = `${state.course.code}, ${state.course.name}, ${state.course.credits} créditos${state.completed ? (period ? `, concluída e planejada em ${periodReference(period, periods, planningStart)}` : ', concluída') : period ? `, planejada em ${periodReference(period, periods, planningStart)}` : ', não planejada'}${issueLabel ? `, ${issueLabel}` : ''}`
