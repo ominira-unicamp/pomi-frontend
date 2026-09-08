@@ -640,10 +640,10 @@ function RequirementTable({
         )}
       </div>
       <div className="overflow-x-auto rounded-md border-2 border-border">
-        <table className="w-full min-w-[32rem] table-fixed border-collapse text-left text-sm">
+        <table className="w-full table-fixed border-collapse text-left text-sm">
           <colgroup>
-            <col className="w-36" />
-            <col className="w-28" />
+            <col className="w-20 sm:w-36" />
+            <col className="w-20 sm:w-28" />
             <col />
           </colgroup>
           <thead className="bg-muted/60 text-xs font-black tracking-[0.08em] uppercase">
@@ -801,8 +801,8 @@ function PrefixCourses({
   markCompleted: boolean
 }) {
   const [page, setPage] = useState(1)
-  const matchingCourses = courses.filter(
-    (course) => course.code.toUpperCase().startsWith(prefix),
+  const matchingCourses = courses.filter((course) =>
+    course.code.toUpperCase().startsWith(prefix),
   )
   const totalPages = Math.max(
     1,
@@ -829,10 +829,10 @@ function PrefixCourses({
         Disciplinas que atendem ao requisito {prefix}---
       </p>
       <div className="overflow-x-auto rounded-md border-2 border-border bg-background">
-        <table className="w-full min-w-[32rem] table-fixed border-collapse text-left text-sm">
+        <table className="w-full table-fixed border-collapse text-left text-sm">
           <colgroup>
-            <col className="w-36" />
-            <col className="w-28" />
+            <col className="w-20 sm:w-36" />
+            <col className="w-20 sm:w-28" />
             <col />
           </colgroup>
           <thead className="bg-muted/60 text-xs font-black tracking-[0.08em] uppercase">
@@ -1023,10 +1023,10 @@ function CurriculumProposal({
                     )}
                   </div>
                   <div className="overflow-x-auto rounded-md border-2 border-border">
-                    <table className="w-full min-w-[28rem] table-fixed border-collapse text-left text-sm">
+                    <table className="w-full table-fixed border-collapse text-left text-sm">
                       <colgroup>
-                        <col className="w-36" />
-                        <col className="w-28" />
+                        <col className="w-20 sm:w-36" />
+                        <col className="w-20 sm:w-28" />
                         <col />
                       </colgroup>
                       <thead className="bg-muted/60 text-xs font-black tracking-[0.08em] uppercase">

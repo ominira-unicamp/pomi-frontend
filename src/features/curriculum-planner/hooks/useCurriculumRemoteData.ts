@@ -125,6 +125,7 @@ export function useCurriculumRemoteData({
   return {
     remoteQuery,
     studentProfileQuery,
+    attemptsQuery,
     curriculaQuery,
     curriculumQuery,
   }

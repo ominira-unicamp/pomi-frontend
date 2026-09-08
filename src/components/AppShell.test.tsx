@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import {
   Outlet,
   RouterProvider,
@@ -50,11 +50,23 @@ function renderShell(initialEntry = '/') {
     path: '/perfis/$publicId',
     component: () => <h1>Perfil público</h1>,
   })
+  const curriculumPlanningRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/planejamentos-de-curriculo/$planningId',
+    component: () => <h1>Planejamento de currículo</h1>,
+  })
+  const semesterPlanningRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/planejamentos-de-semestre/compartilhado/$shareId',
+    component: () => <h1>Planejamento de semestre</h1>,
+  })
   const router = createRouter({
     routeTree: rootRoute.addChildren([
       indexRoute,
       aboutRoute,
       publicProfileRoute,
+      curriculumPlanningRoute,
+      semesterPlanningRoute,
     ]),
     history: createMemoryHistory({ initialEntries: [initialEntry] }),
   })
@@ -75,10 +87,19 @@ describe('AppShell', () => {
 
   it('renders the main navigation and starts login', async () => {
     renderShell()
+    const navigation = await screen.findByRole('navigation', {
+      name: 'Navegação principal',
+    })
 
-    expect(await screen.findByRole('link', { name: 'Início' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Currículo' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Intercâmbio' })).toBeTruthy()
+    expect(
+      within(navigation).getByRole('link', { name: 'Início' }),
+    ).toBeTruthy()
+    expect(
+      within(navigation).getByRole('link', { name: 'Currículo' }),
+    ).toBeTruthy()
+    expect(
+      within(navigation).getByRole('link', { name: 'Intercâmbio' }),
+    ).toBeTruthy()
     expect(screen.getByText('Planejamento')).toBeTruthy()
     expect(screen.getByText('Catálogo acadêmico')).toBeTruthy()
     expect(screen.getByText('Comunidade')).toBeTruthy()
@@ -92,12 +113,42 @@ describe('AppShell', () => {
     expect(login).toHaveBeenCalledOnce()
   })
 
-  it('opens the mobile navigation as a dialog', async () => {
+  it('replaces the mobile hamburger with four quick destinations', async () => {
     renderShell()
-    fireEvent.click(await screen.findByRole('button', { name: 'Abrir menu' }))
+    const navigation = await screen.findByRole('navigation', {
+      name: 'Navegação rápida',
+    })
 
-    expect(await screen.findByRole('dialog')).toBeTruthy()
+    expect(
+      within(navigation).getByRole('link', { name: 'Início' }),
+    ).toBeTruthy()
+    expect(
+      within(navigation).getByRole('link', { name: 'Currículo' }),
+    ).toBeTruthy()
+    expect(
+      within(navigation).getByRole('link', { name: 'Semestre' }),
+    ).toBeTruthy()
+    expect(
+      within(navigation).getByRole('button', { name: 'Menu' }),
+    ).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Abrir menu' })).toBeNull()
+  })
+
+  it('opens a scrollable mobile navigation drawer from the bottom bar', async () => {
+    renderShell()
+    const navigation = await screen.findByRole('navigation', {
+      name: 'Navegação rápida',
+    })
+    const menuButton = within(navigation).getByRole('button', { name: 'Menu' })
+    fireEvent.click(menuButton)
+
+    const dialog = await screen.findByRole('dialog')
+    expect(dialog).toBeTruthy()
     expect(screen.getByText('Navegação do POMI')).toBeTruthy()
+    expect(dialog.querySelector('.pomi-scrollbar')?.className).toContain(
+      'overflow-y-auto',
+    )
+    expect(menuButton.getAttribute('aria-expanded')).toBe('true')
   })
 
   it('groups secondary mobile actions in a menu', async () => {
@@ -123,12 +174,49 @@ describe('AppShell', () => {
 
   it('marks only the contextual primary destination as active', async () => {
     renderShell('/perfis/person-id')
-    const homeLink = await screen.findByRole('link', { name: 'Início' })
-    const peopleLink = screen.getByRole('link', { name: 'Pessoas' })
+    const mainNavigation = await screen.findByRole('navigation', {
+      name: 'Navegação principal',
+    })
+    const quickNavigation = screen.getByRole('navigation', {
+      name: 'Navegação rápida',
+    })
+    const homeLink = within(mainNavigation).getByRole('link', {
+      name: 'Início',
+    })
+    const peopleLink = within(mainNavigation).getByRole('link', {
+      name: 'Pessoas',
+    })
 
     expect(homeLink.getAttribute('aria-current')).toBeNull()
     expect(peopleLink.getAttribute('aria-current')).toBe('page')
+    expect(
+      within(quickNavigation).getByRole('button', {
+        name: 'Menu, seção atual',
+      }).dataset.active,
+    ).toBe('true')
   })
+
+  it.each([
+    ['/planejamentos-de-curriculo/plan-id', 'Currículo'],
+    ['/planejamentos-de-semestre/compartilhado/share-id', 'Semestre'],
+  ])(
+    'marks a deep planning route in the quick navigation',
+    async (path, name) => {
+      renderShell(path)
+      const navigation = await screen.findByRole('navigation', {
+        name: 'Navegação rápida',
+      })
+
+      expect(
+        within(navigation)
+          .getByRole('link', { name })
+          .getAttribute('aria-current'),
+      ).toBe('page')
+      expect(
+        within(navigation).getByRole('button', { name: 'Menu' }).dataset.active,
+      ).toBe('false')
+    },
+  )
 
   it('places the footer after a full-viewport main beside the sidebar', async () => {
     const { container } = renderShell()
@@ -139,6 +227,9 @@ describe('AppShell', () => {
     expect(main.className).toContain('min-h-[calc(100svh-4.5rem)]')
     expect(main.nextElementSibling).toBe(footer)
     expect(sidebar?.parentElement).toBe(main.parentElement?.parentElement)
+    expect(container.firstElementChild?.className).toContain(
+      'pb-[calc(4rem+env(safe-area-inset-bottom))]',
+    )
   })
 
   it('keeps the header and sidebar fixed while the content scrolls', async () => {

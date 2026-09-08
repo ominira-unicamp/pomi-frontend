@@ -115,12 +115,33 @@ type NavigationItem = Readonly<{
   requiresAuth?: boolean
 }>
 
+const homeNavigationItem: NavigationItem = {
+  label: 'Início',
+  to: '/',
+  icon: House,
+  matches: ['/'],
+}
+
+const curriculumNavigationItem: NavigationItem = {
+  label: 'Currículo',
+  to: '/planejamentos-de-curriculo',
+  icon: PanelsTopLeft,
+  matches: ['/planejamentos-de-curriculo'],
+}
+
+const semesterNavigationItem: NavigationItem = {
+  label: 'Horários',
+  to: '/planejamentos-de-semestre',
+  icon: CalendarDays,
+  matches: ['/planejamentos-de-semestre'],
+}
+
 const navigationGroups: ReadonlyArray<
   Readonly<{ label?: string; items: ReadonlyArray<NavigationItem> }>
 > = [
   {
     items: [
-      { label: 'Início', to: '/', icon: House, matches: ['/'] },
+      homeNavigationItem,
       {
         label: 'Situação do curso',
         to: '/situacao-do-curso',
@@ -132,20 +153,7 @@ const navigationGroups: ReadonlyArray<
   },
   {
     label: 'Planejamento',
-    items: [
-      {
-        label: 'Currículo',
-        to: '/planejamentos-de-curriculo',
-        icon: PanelsTopLeft,
-        matches: ['/planejamentos-de-curriculo'],
-      },
-      {
-        label: 'Horários',
-        to: '/planejamentos-de-semestre',
-        icon: CalendarDays,
-        matches: ['/planejamentos-de-semestre'],
-      },
-    ],
+    items: [curriculumNavigationItem, semesterNavigationItem],
   },
   {
     label: 'Catálogo acadêmico',
@@ -216,6 +224,12 @@ function matchesNavigationItem(pathname: string, item: NavigationItem) {
       : pathname === path || pathname.startsWith(`${path}/`),
   )
 }
+
+const mobilePrimaryNavigationItems = [
+  homeNavigationItem,
+  curriculumNavigationItem,
+  { ...semesterNavigationItem, label: 'Semestre' },
+] as const satisfies ReadonlyArray<NavigationItem>
 
 function Navigation({ compact = false }: { compact?: boolean }) {
   const { setMobileOpen } = useSidebar()
@@ -437,20 +451,10 @@ function EmailVerificationDialog() {
 }
 
 function AppHeader() {
-  const { collapsed, mobileOpen, setMobileOpen, toggle } = useSidebar()
+  const { collapsed, toggle } = useSidebar()
   const { openFeedback } = useFeedbackReport()
   return (
     <header className="sticky top-0 z-40 flex h-18 shrink-0 items-center border-b-4 border-primary bg-sidebar px-4 text-sidebar-foreground sm:px-6">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="mr-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground md:hidden"
-        aria-label="Abrir menu"
-        aria-expanded={mobileOpen}
-        onClick={() => setMobileOpen(true)}
-      >
-        <Menu />
-      </Button>
       <Brand />
       <Tooltip>
         <TooltipTrigger asChild>
@@ -509,7 +513,7 @@ function AppSidebar() {
         </SidebarFooter>
       </Sidebar>
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent className="w-72" side="left">
+        <SheetContent id="mobile-navigation-menu" className="w-72" side="left">
           <SheetHeader className="border-b border-sidebar-border pr-12">
             <Brand />
             <SheetTitle className="sr-only">Navegação do POMI</SheetTitle>
@@ -517,7 +521,7 @@ function AppSidebar() {
               Acesse as áreas do planejador.
             </SheetDescription>
           </SheetHeader>
-          <div className="p-3">
+          <div className="pomi-scrollbar min-h-0 flex-1 overflow-y-auto p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
             <Navigation />
           </div>
         </SheetContent>
@@ -526,9 +530,57 @@ function AppSidebar() {
   )
 }
 
+function MobileBottomNavigation() {
+  const { mobileOpen, setMobileOpen } = useSidebar()
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
+  const primaryRouteActive = mobilePrimaryNavigationItems.some((item) =>
+    matchesNavigationItem(pathname, item),
+  )
+  const menuActive = mobileOpen || !primaryRouteActive
+
+  return (
+    <nav
+      aria-label="Navegação rápida"
+      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t-2 border-sidebar-border bg-sidebar pb-[env(safe-area-inset-bottom)] text-sidebar-foreground md:hidden"
+    >
+      {mobilePrimaryNavigationItems.map((item) => {
+        const Icon = item.icon
+        const active = matchesNavigationItem(pathname, item)
+        return (
+          <Link
+            key={item.to}
+            to={item.to}
+            aria-current={active ? 'page' : undefined}
+            data-active={active}
+            onClick={() => setMobileOpen(false)}
+            className="pomi-focus flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 border-t-4 border-transparent px-1 py-1 text-xs font-bold transition-colors hover:bg-sidebar-accent data-[active=true]:border-primary data-[active=true]:bg-sidebar-accent"
+          >
+            <Icon className="size-5 shrink-0" />
+            <span className="max-w-full truncate">{item.label}</span>
+          </Link>
+        )
+      })}
+      <button
+        type="button"
+        aria-controls="mobile-navigation-menu"
+        aria-expanded={mobileOpen}
+        aria-label={menuActive && !mobileOpen ? 'Menu, seção atual' : 'Menu'}
+        data-active={menuActive}
+        onClick={() => setMobileOpen(true)}
+        className="pomi-focus flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 border-t-4 border-transparent px-1 py-1 text-xs font-bold transition-colors hover:bg-sidebar-accent data-[active=true]:border-primary data-[active=true]:bg-sidebar-accent"
+      >
+        <Menu className="size-5 shrink-0" />
+        <span>Menu</span>
+      </button>
+    </nav>
+  )
+}
+
 function Shell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-svh flex-col">
+    <div className="flex min-h-svh flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
       <AppHeader />
       <div className="flex min-h-0 flex-1 items-stretch">
         <AppSidebar />
@@ -542,6 +594,7 @@ function Shell({ children }: { children: ReactNode }) {
           <SiteFooter />
         </div>
       </div>
+      <MobileBottomNavigation />
       <EmailVerificationDialog />
     </div>
   )

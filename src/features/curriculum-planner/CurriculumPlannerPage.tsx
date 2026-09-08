@@ -827,6 +827,8 @@ export function CurriculumPlannerPage({
           plannedPeriodId={selectedCoursePeriodId}
           unallocated={selectedCourseUnallocated}
           completed={selectedCourseCompleted}
+          attempts={planner.studentCourseAttempts}
+          attemptsLoading={planner.studentCourseAttemptsLoading}
           periods={periods}
           planningStart={snapshot.plan.planningStart}
           disabled={planner.isDispatching}

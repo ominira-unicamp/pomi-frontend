@@ -23,7 +23,10 @@ import type {
   CurriculumDocument,
   CurriculumSummary,
 } from '@/features/curriculum-planner/data/curriculumPersistenceApi'
-import type { StudentProfile } from '@/features/student/data/studentApi'
+import type {
+  StudentCourseAttempt,
+  StudentProfile,
+} from '@/features/student/data/studentApi'
 import type { CurriculumDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { createCurriculumCatalogDataSource } from '@/catalog/data/curriculumCatalogApi'
@@ -93,6 +96,8 @@ export type CurriculumPlannerContextValue = Readonly<{
   backToSelection: () => void
   actionError?: string
   studentProfile?: StudentProfile
+  studentCourseAttempts: ReadonlyArray<StudentCourseAttempt>
+  studentCourseAttemptsLoading: boolean
 }>
 
 const CurriculumPlannerContext = createContext<
@@ -161,13 +166,14 @@ export function CurriculumPlannerProvider({
       ? 'editing'
       : entryState
 
-  const { remoteQuery, studentProfileQuery } = useCurriculumRemoteData({
+  const { remoteQuery, studentProfileQuery, attemptsQuery } =
+    useCurriculumRemoteData({
     isAuthenticated: auth.isAuthenticated,
     authInitialized: auth.initialized,
     injected: Boolean(injectedPlanner),
     activeCurriculumId,
     getAccessToken: auth.getAccessToken,
-  })
+    })
   useEffect(() => {
     const summaries = remoteQuery.data?.summaries
     if (!summaries) return
@@ -314,6 +320,12 @@ export function CurriculumPlannerProvider({
             } catch {
               setSaveStatus('error')
             }
+            await queryClient.invalidateQueries({
+              queryKey: privateQueryKeys.courseAttempts(
+                sessionSubject,
+                remoteQuery.data.studentId,
+              ),
+            })
           }
           if (!remoteDocument.current?.id) return true
           setSaveStatus('pending')
@@ -636,12 +648,16 @@ export function CurriculumPlannerProvider({
       deleteCurriculumPlan,
       actionError,
       studentProfile: studentProfileQuery.data,
+      studentCourseAttempts: attemptsQuery.data ?? [],
+      studentCourseAttemptsLoading: attemptsQuery.isLoading,
       entryState: effectiveEntryState,
       openAnonymousDraft,
       backToSelection,
     }),
     [
       actionError,
+      attemptsQuery.data,
+      attemptsQuery.isLoading,
       studentProfileQuery.data,
       activeCurriculumId,
       auth.initialized,
