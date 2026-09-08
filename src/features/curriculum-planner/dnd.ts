@@ -8,15 +8,11 @@ export function commandForCourseDrop(
   data: PlannerDragData,
   overId: string,
 ): CurriculumPlannerCommand | undefined {
+  if (overId.startsWith('curriculum-block:')) return undefined
   if (overId === 'unallocated') {
     return data.currentPeriodId
       ? { type: 'moveCourseToUnallocated', courseId: data.course.id }
       : undefined
-  }
-  if (overId === 'completed') {
-    return data.completed
-      ? undefined
-      : { type: 'markCourseCompleted', courseId: data.course.id }
   }
   if (!overId.startsWith('period:')) return undefined
   const periodId = overId.slice('period:'.length) as PlanningPeriodId

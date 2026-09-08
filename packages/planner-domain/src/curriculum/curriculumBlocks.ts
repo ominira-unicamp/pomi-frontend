@@ -21,6 +21,7 @@ export type CurriculumBlockView = Readonly<{
   title: string
   requiredCredits?: number
   requirement?: ElectiveCreditsRequirement
+  selectors: ReadonlyArray<CourseSelector>
   selectorLabels: ReadonlyArray<string>
   courses: ReadonlyArray<CurriculumCourseState>
 }>
@@ -62,7 +63,9 @@ function coursesForSelector(
     return courses.filter((course) => course.id === selector.courseId)
   }
   const prefix = selector.prefix.trim().toUpperCase()
-  return courses.filter((course) => course.code.toUpperCase().startsWith(prefix))
+  return courses.filter((course) =>
+    course.code.toUpperCase().startsWith(prefix),
+  )
 }
 
 function distinctCourses(
@@ -133,6 +136,9 @@ function groupDefinitionFromBlocks(
       ? {
           id: `${id}:mandatory`,
           title: 'Obrigatórias',
+          selectors: blocks.mandatory.map(
+            (requirement) => requirement.selector,
+          ),
           selectorLabels: [],
           courses: mandatoryCourses,
         }
@@ -142,6 +148,7 @@ function groupDefinitionFromBlocks(
       title: 'Bloco eletivo',
       requiredCredits: requirement.requiredCredits,
       requirement,
+      selectors: requirement.eligibleCourses,
       selectorLabels: electiveSelectorLabels(requirement.eligibleCourses),
       courses: distinctCourses(
         requirement.eligibleCourses.filter(

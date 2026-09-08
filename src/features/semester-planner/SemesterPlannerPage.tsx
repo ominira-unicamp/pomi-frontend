@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   buildGuideClassContext,
   createInMemorySemesterPlanner,
@@ -12,15 +12,9 @@ import {
   scheduleMinutes as minutes,
   numericId,
   programGuideBlocks,
-  scheduleCourseColor,
   selectorLabel,
   scheduleStartHour as startHour,
 } from '@pomi/planner-domain/semester'
-import {
-  parseSemesterPlanning,
-  resolveSemesterPlanningImport,
-  serializeSemesterPlanning,
-} from '@pomi/planner-domain/transfer'
 import type {
   GuideChanges,
   GuideMode,
@@ -47,7 +41,6 @@ import {
   updateSemesterPlanningVisibility,
 } from '@/features/semester-planner/data/semesterPlanningApi'
 import { createApiSemesterPlanner } from '@/features/semester-planner/data/apiSemesterPlanner'
-import { downloadSemesterPlanning } from '@/features/planning-shared/data/planningPlatform'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { useSemesterPlannerQueries } from '@/features/semester-planner/hooks/useSemesterPlannerQueries'
 import { ClassesGuidePanel } from '@/features/semester-planner/components/ClassesGuidePanel'
@@ -59,6 +52,7 @@ import { mostRecentStudyPeriodsFirst } from '@/features/student/data/studyPeriod
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import { useScheduleGridSelection } from '@/features/semester-planner/hooks/useScheduleGridSelection'
+import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
 
 type GuideTab = 'disciplines' | 'classes'
 
@@ -85,8 +79,8 @@ const visibilityOptions: ReadonlyArray<{
   },
 ]
 
-function courseColor(code: string) {
-  return scheduleCourseColor(code)
+function courseColor() {
+  return 'border-strong-border bg-background text-foreground'
 }
 
 export function SemesterPlannerPage({
@@ -178,7 +172,6 @@ export function SemesterPlannerPage({
         Readonly<{ semester: number; courseIds: ReadonlyArray<number> }>
       >
     >()
-  const importInput = useRef<HTMLInputElement>(null)
   const [document, setDocument] = useState<SemesterPlanningDocument>(
     draftBootstrap ?? {
       name: 'Novo planejamento de semestre',
@@ -287,10 +280,10 @@ export function SemesterPlannerPage({
     .filter(
       (catalogProgram) => catalogProgram.catalog.id === anonymousCatalogId,
     )
-    .sort((left, right) => left.program.name.localeCompare(right.program.name))
+    .sort((left, right) => compareProgramCodes(left.program, right.program))
   const programCatalogPrograms = anonymousCatalogPrograms
     .filter((catalogProgram) => catalogProgram.catalog.id === programCatalogId)
-    .sort((left, right) => left.program.name.localeCompare(right.program.name))
+    .sort((left, right) => compareProgramCodes(left.program, right.program))
   const selectedProgramCatalog = anonymousCatalogPrograms.find(
     (catalogProgram) => catalogProgram.id === programCatalogProgramId,
   )
@@ -617,58 +610,6 @@ export function SemesterPlannerPage({
     selectPlan(targetId)
   }, [activePlanId, planningId, planQuery.data, plansQuery.data])
 
-  function exportPlanning() {
-    const file = serializeSemesterPlanning(document, query.data!)
-    if (!file) {
-      setError('Escolha um período letivo antes de exportar o planejamento.')
-      return
-    }
-    downloadSemesterPlanning(file)
-  }
-
-  async function importPlanning(file: File | undefined) {
-    if (!file) return
-    try {
-      const parsed = parseSemesterPlanning(JSON.parse(await file.text()))
-      if (!parsed) throw new Error('invalid')
-      const resolved = resolveSemesterPlanningImport(parsed, query.data!)
-      if (!resolved) {
-        setError(
-          'O período do arquivo não está disponível nos dados carregados.',
-        )
-        return
-      }
-      if (resolved.document.studyPeriodId !== studyPeriodId) {
-        setError(
-          'Selecione o mesmo período do arquivo antes de importar. Isso garante que as turmas sejam resolvidas corretamente.',
-        )
-        return
-      }
-      if (
-        resolved.issues.length > 0 &&
-        !window.confirm(
-          `Algumas turmas não serão importadas:\n\n${resolved.issues.join('\n')}\n\nContinuar?`,
-        )
-      )
-        return
-      if (
-        !window.confirm(
-          'Importar substituirá as turmas deste planejamento. Continuar?',
-        )
-      )
-        return
-      setManualCourseIds([])
-      setManualCourseId('')
-      await dispatch({ type: 'importPlanning', data: resolved.document })
-    } catch {
-      setError(
-        'O arquivo não é compatível com o planejamento de semestre do POMI.',
-      )
-    } finally {
-      if (importInput.current) importInput.current.value = ''
-    }
-  }
-
   if (query.isLoading) {
     return (
       <PageContainer size="wide">
@@ -773,6 +714,7 @@ export function SemesterPlannerPage({
     guideCourses,
     selectedProgramBlocks,
     manualCourseIds,
+    courseById,
   )
   const manualCourseIdSet = new Set(manualCourseIds)
   function coursesForElectiveRequirement(
@@ -809,7 +751,7 @@ export function SemesterPlannerPage({
       ? [{ course, semester: 0 }]
       : []
   })
-  const guideClassContextKey = `${[...guideClassContext.courseIds].sort((a, b) => a - b).join(',')}|${guideClassContext.prefixes.join(',')}`
+  const guideClassContextKey = `${[...guideClassContext.courseIds].sort((a, b) => a - b).join(',')}|${guideClassContext.prefixes.join(',')}|${guideClassContext.courseCodes?.join(',') ?? ''}`
   const visibleDisciplineGroups = guideCourses
     .filter(
       ({ course }) =>
@@ -1120,7 +1062,7 @@ export function SemesterPlannerPage({
     >
       <button
         type="button"
-        className={`rounded-l px-2 py-1 text-xs font-black ${courseColor(course.code)}`}
+        className={`rounded-l px-2 py-1 text-xs font-black ${courseColor()}`}
         onClick={() => {
           setClassFilterCourseId(String(course.id))
           setGuideTab('classes')
@@ -1158,7 +1100,6 @@ export function SemesterPlannerPage({
         studyPeriods={query.data.studyPeriods}
         guideMode={guideMode}
         isSaving={isSaving}
-        importInputRef={importInput}
         onPeriodChange={changePeriod}
         onGuideModeChange={(mode) => updateGuide({ ...document.guide, mode })}
         onConfigureGuide={() => {
@@ -1171,8 +1112,6 @@ export function SemesterPlannerPage({
         onRename={() => void renamePlan()}
         visibility={visibility}
         onConfigureVisibility={openVisibilityDialog}
-        onExport={exportPlanning}
-        onImport={(file) => void importPlanning(file)}
         onRemove={() => void removePlan()}
       />
       {error && (
@@ -1631,7 +1570,7 @@ export function SemesterPlannerPage({
                       {group.courses.map(({ course }) => (
                         <button
                           key={course.id}
-                          className={`rounded border-2 px-2 py-1 text-xs font-black ${courseColor(course.code)}`}
+                          className={`rounded border-2 px-2 py-1 text-xs font-black ${courseColor()}`}
                           onClick={() => {
                             setClassFilterCourseId(String(course.id))
                             setGuideTab('classes')
@@ -1697,7 +1636,7 @@ export function SemesterPlannerPage({
                           return (
                             <button
                               key={`${group.title}-mandatory-${index}`}
-                              className={`w-full rounded border-2 px-2 py-1 text-center text-xs font-black ${courseColor(course.code)}`}
+                              className={`w-full rounded border-2 px-2 py-1 text-center text-xs font-black ${courseColor()}`}
                               onClick={() => {
                                 setClassFilterCourseId(String(course.id))
                                 setGuideTab('classes')
@@ -1738,7 +1677,7 @@ export function SemesterPlannerPage({
                               {courses.map((course) => (
                                 <button
                                   key={course.id}
-                                  className={`w-full rounded border-2 px-2 py-1 text-center text-xs font-black ${courseColor(course.code)}`}
+                                  className={`w-full rounded border-2 px-2 py-1 text-center text-xs font-black ${courseColor()}`}
                                   onClick={() => {
                                     setClassFilterCourseId(String(course.id))
                                     setGuideTab('classes')
@@ -1810,7 +1749,6 @@ export function SemesterPlannerPage({
       <SaveDraftDialog
         open={saveDraftDialogOpen}
         onOpenChange={setSaveDraftDialogOpen}
-        onExport={exportPlanning}
         onLogin={saveDraft}
       />
       <Dialog

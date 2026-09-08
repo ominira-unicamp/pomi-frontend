@@ -1,13 +1,4 @@
-import {
-  Download,
-  MoreHorizontal,
-  Pencil,
-  Save,
-  Share2,
-  Trash2,
-  Upload,
-} from 'lucide-react'
-import type { ChangeEvent, RefObject } from 'react'
+import { MoreHorizontal, Pencil, Save, Share2, Trash2 } from 'lucide-react'
 import type { GuideMode, StudyPeriod } from '@pomi/planner-domain/semester'
 
 import type { SemesterPlanningVisibility } from '@/features/semester-planner/data/semesterPlanningApi'
@@ -38,7 +29,6 @@ export function SemesterPlanningHeader({
   studyPeriods,
   guideMode,
   isSaving,
-  importInputRef,
   onPeriodChange,
   onGuideModeChange,
   onConfigureGuide,
@@ -46,8 +36,6 @@ export function SemesterPlanningHeader({
   onConfigureVisibility,
   onOpenSaveDraft,
   onRename,
-  onExport,
-  onImport,
   onRemove,
 }: {
   name: string
@@ -58,7 +46,6 @@ export function SemesterPlanningHeader({
   studyPeriods: ReadonlyArray<StudyPeriod>
   guideMode: GuideMode
   isSaving: boolean
-  importInputRef: RefObject<HTMLInputElement | null>
   onPeriodChange: (periodId: number) => void
   onGuideModeChange: (mode: GuideMode) => void
   onConfigureGuide: () => void
@@ -66,17 +53,11 @@ export function SemesterPlanningHeader({
   onConfigureVisibility: () => void
   onOpenSaveDraft: () => void
   onRename: () => void
-  onExport: () => void
-  onImport: (file?: File) => void
   onRemove: () => void
 }) {
   const selectedStudyPeriod = studyPeriods.find(
     (period) => period.id === studyPeriodId,
   )
-  const handleImport = (event: ChangeEvent<HTMLInputElement>) => {
-    onImport(event.target.files?.[0])
-  }
-
   return (
     <PageHeader
       compact
@@ -158,14 +139,6 @@ export function SemesterPlanningHeader({
                   <Pencil className="size-4" /> Editar nome
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem onSelect={onExport}>
-                <Download className="size-4" /> Exportar
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => importInputRef.current?.click()}
-              >
-                <Upload className="size-4" /> Importar
-              </DropdownMenuItem>
               {activePlanId && (
                 <>
                   <DropdownMenuSeparator />
@@ -179,13 +152,6 @@ export function SemesterPlanningHeader({
               )}
             </DropdownMenuContent>
           </DropdownMenu>
-          <input
-            ref={importInputRef}
-            className="hidden"
-            type="file"
-            accept="application/json,.json"
-            onChange={handleImport}
-          />
         </>
       }
     />

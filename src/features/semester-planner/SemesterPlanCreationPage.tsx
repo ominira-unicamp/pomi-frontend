@@ -1,12 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { useEffect, useRef, useState } from 'react'
-import { Upload } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
-import {
-  parseSemesterPlanning,
-  resolveSemesterPlanningImport,
-} from '@pomi/planner-domain/transfer'
 import type { CatalogProgramId } from '@pomi/planner-domain/curriculum'
 import type { InitialAcademicSelection } from '@/features/planning-shared/components/InitialAcademicSelectionFields'
 import type { SemesterDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
@@ -60,6 +55,7 @@ export function SemesterPlanCreationPage() {
   const [curriculumId, setCurriculumId] = useState('')
   const [selection, setSelection] = useState<InitialAcademicSelection>({
     catalogId: '',
+    programId: '',
     catalogProgramId: '',
     specializationId: '',
     languageId: '',
@@ -67,9 +63,6 @@ export function SemesterPlanCreationPage() {
   const [suggestionId, setSuggestionId] = useState('')
   const [error, setError] = useState<string>()
   const [submitting, setSubmitting] = useState(false)
-  const [importedDocument, setImportedDocument] =
-    useState<SemesterPlanningDocument>()
-  const importInputRef = useRef<HTMLInputElement>(null)
   const staticQuery = useQuery({
     queryKey: publicQueryKeys.semesterPlannerCreationStaticData(),
     queryFn: () => loadSemesterPlannerStaticData(),
@@ -113,13 +106,7 @@ export function SemesterPlanCreationPage() {
 
   useEffect(() => {
     const profile = profileQuery.data
-    if (
-      !profile ||
-      selection.catalogProgramId ||
-      importedDocument ||
-      !catalogQuery.data
-    )
-      return
+    if (!profile || selection.catalogProgramId || !catalogQuery.data) return
     const catalogProgram = catalogQuery.data.catalogPrograms.find(
       (item) =>
         Number(item.catalog.id) === profile.catalogId &&
@@ -128,6 +115,7 @@ export function SemesterPlanCreationPage() {
     if (!catalogProgram) return
     setSelection({
       catalogId: catalogProgram.catalog.id,
+      programId: catalogProgram.program.id,
       catalogProgramId: catalogProgram.id,
       specializationId: catalogProgram.specializations.some(
         (item) => Number(item.id) === profile.specializationId,
@@ -140,12 +128,7 @@ export function SemesterPlanCreationPage() {
         ? String(profile.languageId)
         : '',
     })
-  }, [
-    catalogQuery.data,
-    importedDocument,
-    profileQuery.data,
-    selection.catalogProgramId,
-  ])
+  }, [catalogQuery.data, profileQuery.data, selection.catalogProgramId])
 
   const validFirstStep = Boolean(name.trim() && studyPeriodId)
   const validGuideStep =
@@ -203,7 +186,7 @@ export function SemesterPlanCreationPage() {
       manualCourseIds: [],
     },
   }
-  const document = importedDocument ?? generatedDocument
+  const document = generatedDocument
 
   async function submit() {
     if (!document.studyPeriodId) return
@@ -248,35 +231,6 @@ export function SemesterPlanCreationPage() {
     }
   }
 
-  async function importPlanning(file: File | undefined) {
-    if (!file || !staticQuery.data) return
-    try {
-      const parsed = parseSemesterPlanning(JSON.parse(await file.text()))
-      if (!parsed) throw new Error('invalid')
-      const studyPeriod = staticQuery.data.studyPeriods.find(
-        (item) =>
-          item.id === parsed.semesterPlanning.studyPeriod.id ||
-          (item.year === parsed.semesterPlanning.studyPeriod.year &&
-            item.yearPeriod === parsed.semesterPlanning.studyPeriod.yearPeriod),
-      )
-      if (!studyPeriod) throw new Error('study-period')
-      const data = await loadSemesterPlannerStaticData(studyPeriod.id)
-      const resolved = resolveSemesterPlanningImport(parsed, data)
-      if (!resolved) throw new Error('invalid')
-      setImportedDocument(resolved.document)
-      setName(resolved.document.name)
-      setStudyPeriodId(String(resolved.document.studyPeriodId))
-      setError(undefined)
-      setStep(2)
-    } catch {
-      setError(
-        'Não foi possível importar o planejamento. Verifique se o arquivo foi exportado pelo POMI.',
-      )
-    } finally {
-      if (importInputRef.current) importInputRef.current.value = ''
-    }
-  }
-
   if (staticQuery.isLoading || catalogQuery.isLoading)
     return (
       <PageContainer>
@@ -306,21 +260,6 @@ export function SemesterPlanCreationPage() {
         title="Novo planejamento de semestre"
         description="Escolha o período e como o guia deve apresentar as disciplinas disponíveis."
       />
-      <div className="-mt-4 mb-5 flex justify-end">
-        <input
-          ref={importInputRef}
-          className="hidden"
-          type="file"
-          accept="application/json,.json"
-          onChange={(event) => void importPlanning(event.target.files?.[0])}
-        />
-        <Button
-          variant="outline"
-          onClick={() => importInputRef.current?.click()}
-        >
-          <Upload /> Importar planejamento
-        </Button>
-      </div>
       {error && (
         <p
           role="alert"

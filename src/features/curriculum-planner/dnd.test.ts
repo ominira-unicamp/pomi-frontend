@@ -39,20 +39,30 @@ describe('commandForCourseDrop', () => {
     })
   })
 
-  it('marks as completed and ignores drops that do not change state', () => {
+  it('ignores drops that do not change the planning state', () => {
     const data = {
       type: 'course',
       course,
       completed: false,
       currentPeriodId: 'first' as PlanningPeriodId,
     } satisfies PlannerDragData
-    expect(commandForCourseDrop(data, 'completed')).toEqual({
-      type: 'markCourseCompleted',
-      courseId: course.id,
-    })
+    expect(commandForCourseDrop(data, 'completed')).toBeUndefined()
     expect(commandForCourseDrop(data, 'period:first')).toBeUndefined()
     expect(
       commandForCourseDrop({ ...data, completed: true }, 'completed'),
+    ).toBeUndefined()
+  })
+
+  it('ignores drops back into a curriculum block', () => {
+    expect(
+      commandForCourseDrop(
+        {
+          type: 'course',
+          course,
+          completed: false,
+        },
+        'curriculum-block:base:mandatory',
+      ),
     ).toBeUndefined()
   })
 })

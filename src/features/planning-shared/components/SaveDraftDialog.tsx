@@ -1,4 +1,4 @@
-import { Download, LogIn } from 'lucide-react'
+import { LogIn } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -13,12 +13,10 @@ import {
 export function SaveDraftDialog({
   open,
   onOpenChange,
-  onExport,
   onLogin,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onExport: () => void
   onLogin: () => void
 }) {
   return (
@@ -28,14 +26,10 @@ export function SaveDraftDialog({
           <DialogTitle>Salve este planejamento</DialogTitle>
           <DialogDescription>
             Para salvar o planejamento na sua conta e acessá-lo depois, entre
-            ou crie uma conta. Você também pode exportar o arquivo e importá-lo
-            quando quiser.
+            ou crie uma conta.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
-          <Button variant="outline" onClick={onExport}>
-            <Download /> Exportar arquivo
-          </Button>
           <Button onClick={onLogin}>
             <LogIn /> Entrar e salvar
           </Button>

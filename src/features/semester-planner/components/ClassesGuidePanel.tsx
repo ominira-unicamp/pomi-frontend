@@ -4,6 +4,7 @@ import {
   scheduleDays as days,
   scheduleEndHour as endHour,
   matchesGuideClass,
+  matchesGuideCourse,
   scheduleMinutes as minutes,
   scheduleStartHour as startHour,
 } from '@pomi/planner-domain/semester'
@@ -67,8 +68,10 @@ export function ClassesGuidePanel({
   const courseById = new Map(courses.map((course) => [course.id, course]))
   const filterStart = classFilterStart ? minutes(classFilterStart) : undefined
   const filterEnd = classFilterEnd ? minutes(classFilterEnd) : undefined
-  const filteredClasses = classes.filter((classItem) => {
-    if (!matchesGuideClass(classItem, guideClassContext)) return false
+  const guideEligibleClasses = classes.filter((classItem) =>
+    matchesGuideClass(classItem, guideClassContext),
+  )
+  const filteredClasses = guideEligibleClasses.filter((classItem) => {
     if (
       disciplineFilterOpen &&
       classFilterCourseId &&
@@ -102,10 +105,12 @@ export function ClassesGuidePanel({
     }
     return true
   })
-  const courseOptions = courses.map((course) => ({
-    value: String(course.id),
-    label: `${course.code} — ${course.name}`,
-  }))
+  const courseOptions = courses
+    .filter((course) => matchesGuideCourse(course, guideClassContext))
+    .map((course) => ({
+      value: String(course.id),
+      label: `${course.code} — ${course.name}`,
+    }))
   const hourOptions = Array.from(
     { length: endHour - startHour + 1 },
     (_, index) => `${String(startHour + index).padStart(2, '0')}:00`,

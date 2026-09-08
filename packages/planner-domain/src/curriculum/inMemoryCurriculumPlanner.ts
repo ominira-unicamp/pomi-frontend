@@ -135,6 +135,18 @@ function findPeriod(state: MutableState, id: PlanningPeriodId) {
   return index === -1 ? undefined : index
 }
 
+function calendarPeriodIndex(year: number, semester: 1 | 2) {
+  return year * 2 + semester - 1
+}
+
+function planningStartFromCalendarIndex(index: number, semesterNumber: number) {
+  return {
+    year: Math.floor(index / 2),
+    semester: (index % 2 === 0 ? 1 : 2) as 1 | 2,
+    semesterNumber,
+  }
+}
+
 function executeCommand(
   state: MutableState,
   command: CurriculumPlannerCommand,
@@ -262,6 +274,138 @@ function executeCommand(
           : undefined,
         unallocatedCourseIds: [...new Set(unallocatedIds)],
       }
+      return ok(next)
+    }
+    case 'importStudentHistory': {
+      const knownCourseIds = new Set(
+        staticData.courses.map((course) => course.id),
+      )
+      const historyByCourse = new Map<
+        CourseId,
+        (typeof command.courses)[number]
+      >()
+      for (const historyCourse of command.courses) {
+        if (!knownCourseIds.has(historyCourse.courseId))
+          return notFound('course', historyCourse.courseId)
+        const current = historyByCourse.get(historyCourse.courseId)
+        if (!current || historyCourse.status === 'completed')
+          historyByCourse.set(historyCourse.courseId, historyCourse)
+      }
+
+      const historicalCourses = [...historyByCourse.values()]
+      const datedCourses = historicalCourses.filter(
+        (course) => course.period !== undefined,
+      )
+      const historicalIndexes = datedCourses.map((course) =>
+        calendarPeriodIndex(course.period!.year, course.period!.semester),
+      )
+      const configuredStart = next.plan.planningStart
+      const existingStartIndex = configuredStart
+        ? calendarPeriodIndex(configuredStart.year, configuredStart.semester)
+        : (historicalIndexes[0] ?? (next.plan.periods.length ? 0 : undefined))
+      const historicalStartIndex = historicalIndexes.length
+        ? Math.min(...historicalIndexes)
+        : existingStartIndex
+      const historicalEndIndex = historicalIndexes.length
+        ? Math.max(...historicalIndexes)
+        : existingStartIndex !== undefined && next.plan.periods.length
+          ? existingStartIndex + next.plan.periods.length - 1
+          : historicalStartIndex
+      const startIndex =
+        existingStartIndex !== undefined && historicalStartIndex !== undefined
+          ? Math.min(existingStartIndex, historicalStartIndex)
+          : historicalStartIndex
+      const endIndex =
+        existingStartIndex !== undefined && historicalEndIndex !== undefined
+          ? Math.max(
+              existingStartIndex + Math.max(next.plan.periods.length - 1, 0),
+              historicalEndIndex,
+            )
+          : historicalEndIndex
+      const historyCourseIds = new Set(historyByCourse.keys())
+      let periods = next.plan.periods.map((period) => ({
+        ...period,
+        items: period.items.filter(
+          (item) => !historyCourseIds.has(item.courseId),
+        ),
+      }))
+      let planningStart = next.plan.planningStart
+      if (startIndex !== undefined && endIndex !== undefined) {
+        const prependCount =
+          existingStartIndex === undefined
+            ? 0
+            : Math.max(existingStartIndex - startIndex, 0)
+        const appendCount = Math.max(
+          endIndex - startIndex + 1 - prependCount - periods.length,
+          0,
+        )
+        periods = [
+          ...Array.from({ length: prependCount }, () => ({
+            id: generateId() as PlanningPeriodId,
+            items: [],
+          })),
+          ...periods,
+          ...Array.from({ length: appendCount }, () => ({
+            id: generateId() as PlanningPeriodId,
+            items: [],
+          })),
+        ]
+        const semesterNumber = configuredStart
+          ? Math.max((configuredStart.semesterNumber ?? 1) - prependCount, 1)
+          : 1
+        planningStart = planningStartFromCalendarIndex(
+          startIndex,
+          semesterNumber,
+        )
+      }
+      const unallocatedCourseIds = (
+        next.plan.unallocatedCourseIds ?? []
+      ).filter((courseId) => !historyCourseIds.has(courseId))
+      for (const historyCourse of historicalCourses) {
+        if (!historyCourse.period) {
+          unallocatedCourseIds.push(historyCourse.courseId)
+          continue
+        }
+        const targetIndex =
+          startIndex === undefined
+            ? undefined
+            : calendarPeriodIndex(
+                historyCourse.period.year,
+                historyCourse.period.semester,
+              ) - startIndex
+        if (targetIndex === undefined || !periods[targetIndex]) {
+          unallocatedCourseIds.push(historyCourse.courseId)
+          continue
+        }
+        periods[targetIndex] = {
+          ...periods[targetIndex],
+          items: [
+            ...periods[targetIndex].items,
+            { type: 'course', courseId: historyCourse.courseId },
+          ],
+        }
+      }
+      const completedHistoryIds = new Set(
+        historicalCourses
+          .filter((course) => course.status === 'completed')
+          .map((course) => course.courseId),
+      )
+      const completedCourses = next.academicRecord.completedCourses.filter(
+        (course) =>
+          !historyCourseIds.has(course.courseId) ||
+          completedHistoryIds.has(course.courseId),
+      )
+      for (const courseId of completedHistoryIds) {
+        if (!completedCourses.some((course) => course.courseId === courseId))
+          completedCourses.push({ courseId })
+      }
+      next.plan = {
+        ...next.plan,
+        planningStart,
+        periods,
+        unallocatedCourseIds: [...new Set(unallocatedCourseIds)],
+      }
+      next.academicRecord = { completedCourses }
       return ok(next)
     }
     case 'addPlanningPeriod': {
@@ -431,6 +575,79 @@ function executeCommand(
       }
       return ok(next)
     }
+    case 'placeCoursesInPeriod': {
+      const targetIndex = findPeriod(next, command.periodId)
+      if (targetIndex === undefined)
+        return notFound('planningPeriod', command.periodId)
+      const courseIds = [...new Set(command.courseIds)]
+      if (!courseIds.length) return invalidInput('courseIds', 'required')
+      const knownCourseIds = new Set(
+        staticData.courses.map((course) => course.id),
+      )
+      const unknownCourseId = courseIds.find(
+        (courseId) => !knownCourseIds.has(courseId),
+      )
+      if (unknownCourseId) return notFound('course', unknownCourseId)
+      const selectedCourseIds = new Set(courseIds)
+      const targetCourseIds = new Set(
+        next.plan.periods[targetIndex].items.map((item) => item.courseId),
+      )
+      const periods = next.plan.periods.map((period, index) => ({
+        ...period,
+        items:
+          index === targetIndex
+            ? [
+                ...period.items,
+                ...courseIds
+                  .filter((courseId) => !targetCourseIds.has(courseId))
+                  .map((courseId) => ({
+                    type: 'course' as const,
+                    courseId,
+                  })),
+              ]
+            : period.items.filter(
+                (item) => !selectedCourseIds.has(item.courseId),
+              ),
+      }))
+      next.plan = {
+        ...next.plan,
+        periods,
+        unallocatedCourseIds: (next.plan.unallocatedCourseIds ?? []).filter(
+          (courseId) => !selectedCourseIds.has(courseId),
+        ),
+      }
+      return ok(next)
+    }
+    case 'placeCoursesInUnallocated': {
+      const courseIds = [...new Set(command.courseIds)]
+      if (!courseIds.length) return invalidInput('courseIds', 'required')
+      const knownCourseIds = new Set(
+        staticData.courses.map((course) => course.id),
+      )
+      const unknownCourseId = courseIds.find(
+        (courseId) => !knownCourseIds.has(courseId),
+      )
+      if (unknownCourseId) return notFound('course', unknownCourseId)
+      const selectedCourseIds = new Set(courseIds)
+      const currentUnallocated = next.plan.unallocatedCourseIds ?? []
+      const unallocatedCourseIds = [
+        ...currentUnallocated,
+        ...courseIds.filter(
+          (courseId) => !currentUnallocated.includes(courseId),
+        ),
+      ]
+      next.plan = {
+        ...next.plan,
+        periods: next.plan.periods.map((period) => ({
+          ...period,
+          items: period.items.filter(
+            (item) => !selectedCourseIds.has(item.courseId),
+          ),
+        })),
+        unallocatedCourseIds,
+      }
+      return ok(next)
+    }
     case 'removeCourseFromPlan': {
       const planned =
         next.plan.periods.some((period) =>
@@ -447,6 +664,24 @@ function executeCommand(
         })),
         unallocatedCourseIds: (next.plan.unallocatedCourseIds ?? []).filter(
           (id) => id !== command.courseId,
+        ),
+      }
+      return ok(next)
+    }
+    case 'removeCoursesFromPlan': {
+      const courseIds = [...new Set(command.courseIds)]
+      if (!courseIds.length) return invalidInput('courseIds', 'required')
+      const selectedCourseIds = new Set(courseIds)
+      next.plan = {
+        ...next.plan,
+        periods: next.plan.periods.map((period) => ({
+          ...period,
+          items: period.items.filter(
+            (item) => !selectedCourseIds.has(item.courseId),
+          ),
+        })),
+        unallocatedCourseIds: (next.plan.unallocatedCourseIds ?? []).filter(
+          (courseId) => !selectedCourseIds.has(courseId),
         ),
       }
       return ok(next)

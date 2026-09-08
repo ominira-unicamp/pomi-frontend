@@ -340,7 +340,7 @@ describe('HomePage', () => {
 
     renderHome()
 
-    fireEvent.click(await screen.findByRole('button', { name: 'Eu faltei' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Marcar falta' }))
 
     await waitFor(() =>
       expect(createStudentAbsence).toHaveBeenCalledWith(
@@ -489,8 +489,10 @@ describe('HomePage', () => {
 
     renderHome()
 
-    expect(await screen.findAllByText('Almoço')).toHaveLength(2)
-    expect(await screen.findAllByText('Jantar')).toHaveLength(2)
+    expect(await screen.findByText('Almoço')).toBeTruthy()
+    expect(await screen.findByText('Almoço vegano')).toBeTruthy()
+    expect(await screen.findByText('Jantar')).toBeTruthy()
+    expect(await screen.findByText('Jantar vegano')).toBeTruthy()
     expect(await screen.findByText('Arroz com feijão')).toBeTruthy()
     expect(await screen.findByText('Abóbora assada')).toBeTruthy()
     expect(await screen.findByText('Servido no RU')).toBeTruthy()

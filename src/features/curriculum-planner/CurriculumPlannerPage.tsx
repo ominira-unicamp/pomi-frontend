@@ -10,7 +10,7 @@ import {
   useSensors,
 } from '@dnd-kit/core'
 import {
-  Download,
+  History,
   MoreHorizontal,
   Pencil,
   Plus,
@@ -18,7 +18,6 @@ import {
   Save,
   Star,
   Trash2,
-  Upload,
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
@@ -27,18 +26,16 @@ import {
   evaluatePrerequisites,
   periodTitle,
 } from '@pomi/planner-domain/curriculum'
-import {
-  parsePlanning,
-  resolvePlanningImport,
-} from '@pomi/planner-domain/transfer'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 
 import type {
   CoursePrerequisiteResolver,
   PlannerDragData,
 } from '@/features/curriculum-planner/components/CourseCard'
-import type { CourseId } from '@pomi/planner-domain/curriculum'
-import type { ResolvedPlanningImport } from '@pomi/planner-domain/transfer'
+import type {
+  CourseId,
+  PlanningPeriodId,
+} from '@pomi/planner-domain/curriculum'
 import {
   ErrorState,
   LoadingState,
@@ -47,7 +44,6 @@ import {
 } from '@/components/PageLayout'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -64,13 +60,13 @@ import {
   DeleteCurriculumDialog,
   RenameCurriculumDialog,
 } from '@/features/curriculum-planner/components/CurriculumPlanActions'
-import { CurriculumSelectionPanel } from '@/features/curriculum-planner/components/CurriculumSelection'
+import { CurriculumSelectionFields } from '@/features/curriculum-planner/components/CurriculumSelection'
 import {
   ChangeSuggestionDialog,
   SuggestionOnboardingPanel,
+  StudentHistoryImportDialog,
 } from '@/features/curriculum-planner/components/CurriculumSuggestion'
 import { PlanningStartDialog } from '@/features/curriculum-planner/components/PlanningStartDialog'
-import { PlanningImportReviewDialog } from '@/features/curriculum-planner/components/PlanningImportReviewDialog'
 import { CurriculumPlanningSelection } from '@/features/curriculum-planner/components/CurriculumPlanningSelection'
 import {
   SemesterRow,
@@ -83,7 +79,6 @@ import { useCurriculumPlanner } from '@/features/curriculum-planner/CurriculumPl
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { saveDraftHandoff } from '@/features/planning-shared/data/planningDraftHandoff'
-import { downloadPlanning } from '@/features/planning-shared/data/planningPlatform'
 import { buildPlannerViewModel } from '@/features/curriculum-planner/viewModel'
 import { commandForCourseDrop } from '@/features/curriculum-planner/dnd'
 import {
@@ -115,32 +110,35 @@ export function CurriculumPlannerPage({
         : undefined,
     [planner.snapshot, planner.staticData],
   )
-  const getCourseOptions = useCallback(
+  const excludedCourseIds = useMemo(
     () =>
-      planner.staticData?.courses.map((course) => ({
-        value: course.id,
-        label: `${course.code} — ${course.name} (${String(course.credits).padStart(2, '0')} créditos)`,
-      })) ?? [],
-    [planner.staticData?.courses],
+      new Set<CourseId>([
+        ...(planner.snapshot?.academicRecord.completedCourses.map(
+          (course) => course.courseId,
+        ) ?? []),
+        ...(planner.snapshot?.plan.unallocatedCourseIds ?? []),
+        ...(planner.snapshot?.plan.periods.flatMap((period) =>
+          period.items.map((item) => item.courseId),
+        ) ?? []),
+      ]),
+    [planner.snapshot],
   )
   const [activeDrag, setActiveDrag] = useState<PlannerDragData>()
   const [selectedCourseId, setSelectedCourseId] = useState<CourseId>()
+  const [selectedCourseIds, setSelectedCourseIds] = useState<Set<CourseId>>(
+    () => new Set(),
+  )
+  const [selectionMode, setSelectionMode] = useState(false)
   const prerequisiteBoardRef = useRef<HTMLDivElement>(null)
-  const [showPrerequisiteRelations, setShowPrerequisiteRelations] =
-    useState(true)
   const [
     preferredPrerequisiteAlternatives,
     setPreferredPrerequisiteAlternatives,
   ] = useState<ReadonlyMap<CourseId, string>>(() => new Map())
   const prerequisiteYear = currentCatalogYear()
-  const shouldLoadPrerequisites =
-    showPrerequisiteRelations || selectedCourseId !== undefined
   const prerequisitesQuery = useQuery({
     queryKey: publicQueryKeys.curriculumPrerequisites(prerequisiteYear),
     queryFn: () => loadCurrentYearPrerequisites(),
-    enabled: Boolean(
-      planner.snapshot && planner.staticData && shouldLoadPrerequisites,
-    ),
+    enabled: Boolean(planner.snapshot && planner.staticData),
     staleTime: Infinity,
   })
   const prerequisiteEvaluation = useMemo(
@@ -193,11 +191,9 @@ export function CurriculumPlannerPage({
         ? 'loading'
         : prerequisitesQuery.isError
           ? 'error'
-          : !shouldLoadPrerequisites
-            ? 'loading'
-            : currentCatalogCourseIds.has(courseId)
-              ? 'ready'
-              : 'notInCatalog',
+          : currentCatalogCourseIds.has(courseId)
+            ? 'ready'
+            : 'notInCatalog',
       evaluation: prerequisiteEvaluation?.courses.get(courseId),
       preferredAlternativeKey: preferredPrerequisiteAlternatives.get(courseId),
       onAlternativeChange: changePrerequisiteAlternative,
@@ -210,7 +206,6 @@ export function CurriculumPlannerPage({
       prerequisiteYear,
       prerequisitesQuery.isError,
       prerequisitesQuery.isPending,
-      shouldLoadPrerequisites,
     ],
   )
   const selectedCourse = planner.staticData?.courses.find(
@@ -229,11 +224,80 @@ export function CurriculumPlannerPage({
       (course) => course.courseId === selectedCourseId,
     ),
   )
+  const toggleCourseSelection = useCallback((courseId: CourseId) => {
+    setSelectionMode(true)
+    setSelectedCourseIds((current) => {
+      const next = new Set(current)
+      if (next.has(courseId)) next.delete(courseId)
+      else next.add(courseId)
+      return next
+    })
+  }, [])
+  const toggleSelectionMode = useCallback(() => {
+    setSelectionMode((current) => {
+      if (current) setSelectedCourseIds(new Set())
+      return !current
+    })
+  }, [])
+  useEffect(() => {
+    if (!selectionMode && selectedCourseIds.size === 0) return
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return
+      setSelectedCourseIds(new Set())
+      setSelectionMode(false)
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [selectedCourseIds.size, selectionMode])
+  const placeSelectedCourses = useCallback(
+    async (periodId: PlanningPeriodId) => {
+      const courseIds = [...selectedCourseIds]
+      if (!courseIds.length) return
+      const succeeded = await planner.dispatch({
+        type: 'placeCoursesInPeriod',
+        courseIds,
+        periodId,
+      })
+      if (succeeded) setSelectedCourseIds(new Set())
+    },
+    [planner.dispatch, selectedCourseIds],
+  )
+  const placeSelectedCoursesInUnallocated = useCallback(async () => {
+    const courseIds = [...selectedCourseIds]
+    if (!courseIds.length) return
+    const succeeded = await planner.dispatch({
+      type: 'placeCoursesInUnallocated',
+      courseIds,
+    })
+    if (succeeded) setSelectedCourseIds(new Set())
+  }, [planner.dispatch, selectedCourseIds])
+  const plannedCourseIds = useMemo(
+    () =>
+      new Set<CourseId>([
+        ...(planner.snapshot?.plan.unallocatedCourseIds ?? []),
+        ...(planner.snapshot?.plan.periods.flatMap((period) =>
+          period.items.map((item) => item.courseId),
+        ) ?? []),
+      ]),
+    [planner.snapshot],
+  )
+  const removableSelectedCourseIds = useMemo(
+    () =>
+      [...selectedCourseIds].filter((courseId) =>
+        plannedCourseIds.has(courseId),
+      ),
+    [plannedCourseIds, selectedCourseIds],
+  )
+  const removeSelectedCourses = useCallback(async () => {
+    if (!removableSelectedCourseIds.length) return
+    const succeeded = await planner.dispatch({
+      type: 'removeCoursesFromPlan',
+      courseIds: removableSelectedCourseIds,
+    })
+    if (succeeded) setSelectedCourseIds(new Set())
+  }, [planner.dispatch, removableSelectedCourseIds])
   const studentDefaultsApplied = useRef<string | undefined>(undefined)
-  const [importError, setImportError] = useState<'parse' | 'dispatch'>()
-  const [selectionError, setSelectionError] = useState(false)
   const [saveDraftDialogOpen, setSaveDraftDialogOpen] = useState(false)
-  const [pendingImport, setPendingImport] = useState<ResolvedPlanningImport>()
   const [curriculumAction, setCurriculumAction] = useState<
     'rename' | 'delete'
   >()
@@ -248,10 +312,15 @@ export function CurriculumPlannerPage({
         return false
       }
     })
-  const importInputRef = useRef<HTMLInputElement>(null)
   useEffect(() => {
     setPreferredPrerequisiteAlternatives(new Map())
+    setSelectedCourseIds(new Set())
+    setSelectionMode(false)
   }, [planner.activeCurriculumId])
+  useEffect(() => {
+    setSelectedCourseIds(new Set())
+    setSelectionMode(false)
+  }, [planner.snapshot?.selection.catalogProgramId])
   useEffect(() => {
     if (!planner.snapshot || !planner.staticData || !planner.studentProfile)
       return
@@ -306,43 +375,6 @@ export function CurriculumPlannerPage({
     }),
     useSensor(KeyboardSensor),
   )
-  const importPlanning = async (file?: File) => {
-    if (!file) return
-    try {
-      if (file.size > 2 * 1024 * 1024) throw new Error('invalid')
-      const parsed = parsePlanning(JSON.parse(await file.text()))
-      if (!parsed || !planner.staticData) throw new Error('invalid')
-      setPendingImport(resolvePlanningImport(parsed, planner.staticData))
-      setImportError(undefined)
-    } catch {
-      setImportError('parse')
-    }
-  }
-  const confirmImport = async () => {
-    if (!pendingImport) return
-    const succeeded = await planner.dispatch({
-      type: 'importPlanning',
-      data: pendingImport.data,
-    })
-    if (!succeeded) {
-      setImportError('dispatch')
-      return
-    }
-    if (pendingImport.name) {
-      planner.setDraftName(pendingImport.name)
-      if (planner.activeCurriculumId)
-        await planner.renameCurriculum(pendingImport.name)
-    }
-    setPendingImport(undefined)
-    if (planner.entryState === 'selection') {
-      planner.openAnonymousDraft()
-      if (pendingImport.name) planner.setDraftName(pendingImport.name)
-      void navigate({
-        to: '/planejamentos-de-curriculo/$planejamentoId',
-        params: { planejamentoId: 'rascunho' },
-      })
-    }
-  }
   if (planner.isLoading) {
     return (
       <PageContainer size="wide">
@@ -369,22 +401,7 @@ export function CurriculumPlannerPage({
     )
   }
   if (['selection'].includes(planner.entryState)) {
-    return (
-      <CurriculumPlanningSelection
-        planner={planner}
-        importInputRef={importInputRef}
-        pendingImport={pendingImport}
-        importError={importError}
-        selectionError={selectionError}
-        onImport={(file) => void importPlanning(file)}
-        onConfirmImport={() => void confirmImport()}
-        onDismissImport={() => setPendingImport(undefined)}
-        onStartImport={() => {
-          setSelectionError(false)
-          importInputRef.current?.click()
-        }}
-      />
-    )
+    return <CurriculumPlanningSelection planner={planner} />
   }
   const { staticData, snapshot } = planner
   const activeCurriculum = planner.curricula.find(
@@ -399,7 +416,9 @@ export function CurriculumPlannerPage({
   const plannerView = viewModel!
   const periods = plannerView.periods
   const showSuggestionOnboarding =
-    !suggestionOnboardingDismissed && !snapshot.plan.periods.length
+    !suggestionOnboardingDismissed &&
+    !snapshot.plan.periods.length &&
+    !snapshot.academicRecord.completedCourses.length
   const dismissSuggestionOnboarding = () => {
     setSuggestionOnboardingDismissed(true)
     try {
@@ -460,50 +479,14 @@ export function CurriculumPlannerPage({
                 <Button
                   variant="outline"
                   aria-label="Ações do planejamento"
-                  title="Abra ações de importação, exportação e edição do currículo."
+                  title="Abra ações de edição do currículo."
                 >
                   <MoreHorizontal /> Ações
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <ChangeSuggestionDialog
-                  staticData={staticData}
-                  snapshot={snapshot}
-                  disabled={planner.isDispatching}
-                  dispatch={planner.dispatch}
-                  label="Usar sugestão"
-                  trigger={
-                    <DropdownMenuItem
-                      disabled={planner.isDispatching}
-                      onSelect={(event) => event.preventDefault()}
-                    >
-                      Usar sugestão
-                    </DropdownMenuItem>
-                  }
-                />
-                <ActionTooltip content="Substitua o conteúdo atual por um currículo de arquivo JSON.">
-                  <DropdownMenuItem
-                    onSelect={() => importInputRef.current?.click()}
-                  >
-                    <Upload /> Importar currículo
-                  </DropdownMenuItem>
-                </ActionTooltip>
-                <ActionTooltip content="Baixe este currículo em formato JSON.">
-                  <DropdownMenuItem
-                    onSelect={() =>
-                      downloadPlanning(
-                        snapshot,
-                        staticData,
-                        activeCurriculum?.name ?? planner.draftName,
-                      )
-                    }
-                  >
-                    <Download /> Exportar currículo
-                  </DropdownMenuItem>
-                </ActionTooltip>
                 {planner.isAuthenticated && (
                   <>
-                    <DropdownMenuSeparator />
                     <ActionTooltip
                       content={
                         activeCurriculum?.isFavorite
@@ -541,22 +524,56 @@ export function CurriculumPlannerPage({
                         <Pencil /> Editar nome
                       </DropdownMenuItem>
                     </ActionTooltip>
-                    <ActionTooltip content="Exclua permanentemente este currículo salvo.">
-                      <DropdownMenuItem
-                        className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-                        disabled={planner.isDispatching}
-                        onSelect={() => setCurriculumAction('delete')}
-                      >
-                        <Trash2 /> Apagar planejamento
-                      </DropdownMenuItem>
-                    </ActionTooltip>
+                    <StudentHistoryImportDialog
+                      attempts={planner.studentCourseAttempts}
+                      attemptsLoading={planner.studentCourseAttemptsLoading}
+                      disabled={planner.isDispatching}
+                      dispatch={planner.dispatch}
+                      trigger={
+                        <DropdownMenuItem
+                          disabled={planner.isDispatching}
+                          onSelect={(event) => event.preventDefault()}
+                        >
+                          <History /> Usar histórico
+                        </DropdownMenuItem>
+                      }
+                    />
                   </>
                 )}
-                <DropdownMenuSeparator />
+                {planner.isAuthenticated && <DropdownMenuSeparator />}
+                {planner.isAuthenticated && (
+                  <ActionTooltip content="Exclua permanentemente este currículo salvo.">
+                    <DropdownMenuItem
+                      className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                      disabled={planner.isDispatching}
+                      onSelect={() => setCurriculumAction('delete')}
+                    >
+                      <Trash2 /> Apagar planejamento
+                    </DropdownMenuItem>
+                  </ActionTooltip>
+                )}
+                <ChangeSuggestionDialog
+                  staticData={staticData}
+                  snapshot={snapshot}
+                  disabled={planner.isDispatching}
+                  dispatch={planner.dispatch}
+                  label="Usar sugestão"
+                  trigger={
+                    <DropdownMenuItem
+                      className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                      disabled={planner.isDispatching}
+                      onSelect={(event) => event.preventDefault()}
+                    >
+                      Usar sugestão
+                    </DropdownMenuItem>
+                  }
+                />
                 <ClearPlanningDialog
                   disabled={planner.isDispatching}
                   dispatch={planner.dispatch}
                   onCleared={() => {
+                    setSelectedCourseIds(new Set())
+                    setSelectionMode(false)
                     setSuggestionOnboardingDismissed(false)
                     try {
                       window.localStorage.removeItem(
@@ -578,14 +595,6 @@ export function CurriculumPlannerPage({
             </DropdownMenu>
           </>
         }
-      />
-      <PlanningImportReviewDialog
-        disabled={planner.isDispatching}
-        importResult={pendingImport}
-        onConfirm={() => void confirmImport()}
-        onOpenChange={(open) => {
-          if (!open) setPendingImport(undefined)
-        }}
       />
       {planner.isAuthenticated && (
         <>
@@ -618,27 +627,7 @@ export function CurriculumPlannerPage({
           />
         </>
       )}
-      <input
-        ref={importInputRef}
-        className="hidden"
-        type="file"
-        accept="application/json"
-        onChange={(event) => {
-          void importPlanning(event.target.files?.[0])
-          event.target.value = ''
-        }}
-      />
-      {importError && (
-        <Alert variant="destructive" className="mb-6">
-          <AlertTitle>Não foi possível importar</AlertTitle>
-          <AlertDescription>
-            {importError === 'parse'
-              ? 'O arquivo não é um planejamento JSON válido ou está em uma versão incompatível.'
-              : curriculumPlannerErrorText(planner.error ?? 'invalidInput')}
-          </AlertDescription>
-        </Alert>
-      )}
-      {planner.error && !importError && (
+      {planner.error && (
         <Alert variant="destructive" className="mb-6" aria-live="polite">
           <RotateCcw />
           <AlertTitle>Não foi possível concluir a ação</AlertTitle>
@@ -682,32 +671,47 @@ export function CurriculumPlannerPage({
             onDismiss={dismissSuggestionOnboarding}
           />
         )}
+        {(selectionMode || selectedCourseIds.size > 0) && (
+          <div
+            role="status"
+            className="sticky top-[4.5rem] z-40 mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border-2 border-primary bg-background px-3 py-2"
+          >
+            <p className="text-xs font-bold">
+              {selectedCourseIds.size > 0
+                ? `${selectedCourseIds.size} ${selectedCourseIds.size === 1 ? 'disciplina selecionada.' : 'disciplinas selecionadas.'} Clique em um semestre para posicionar.`
+                : 'Modo de seleção ativo. Clique nas disciplinas para selecionar.'}
+            </p>
+            {selectedCourseIds.size > 0 ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void removeSelectedCourses()}
+                  disabled={!removableSelectedCourseIds.length}
+                >
+                  <Trash2 /> Remover do planejamento
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSelectedCourseIds(new Set())}
+                >
+                  Limpar seleção
+                </Button>
+              </div>
+            ) : (
+              <Button size="sm" variant="outline" onClick={toggleSelectionMode}>
+                Sair do modo de seleção
+              </Button>
+            )}
+          </div>
+        )}
         <section className="mb-7" aria-labelledby="semesters-title">
           <div className="mb-4 flex items-center justify-between gap-3">
             <h2 id="semesters-title" className="text-xl font-extrabold">
               Semestres
             </h2>
             <div className="flex flex-wrap justify-end gap-2">
-              <ActionTooltip content="Mostre ou oculte as relações de pré-requisito entre as disciplinas planejadas.">
-                <Button
-                  variant="outline"
-                  aria-pressed={showPrerequisiteRelations}
-                  disabled={
-                    (shouldLoadPrerequisites && prerequisitesQuery.isPending) ||
-                    Boolean(
-                      prerequisiteEvaluation &&
-                      !prerequisiteEvaluation.links.length,
-                    )
-                  }
-                  onClick={() =>
-                    setShowPrerequisiteRelations((current) => !current)
-                  }
-                >
-                  {showPrerequisiteRelations
-                    ? 'Ocultar relações'
-                    : 'Mostrar relações'}
-                </Button>
-              </ActionTooltip>
               <PlanningStartDialog
                 year={snapshot.plan.planningStart?.year}
                 semester={snapshot.plan.planningStart?.semester}
@@ -716,22 +720,24 @@ export function CurriculumPlannerPage({
                 disabled={planner.isDispatching}
                 dispatch={planner.dispatch}
               />
-              <ActionTooltip content="Adicione o próximo semestre ao currículo.">
-                <Button
-                  variant="outline"
-                  onClick={addSemester}
-                  disabled={planner.isDispatching}
-                >
-                  <Plus /> Adicionar semestre
-                </Button>
-              </ActionTooltip>
+              <Button
+                variant={selectionMode ? 'default' : 'outline'}
+                aria-pressed={selectionMode}
+                onClick={toggleSelectionMode}
+                disabled={planner.isDispatching}
+                title="Ative para selecionar disciplinas sem segurar Shift."
+              >
+                {selectionMode
+                  ? 'Sair do modo de seleção'
+                  : 'Selecionar disciplinas'}
+              </Button>
             </div>
           </div>
           <div ref={prerequisiteBoardRef} className="relative">
             <PrerequisiteGraph
               rootRef={prerequisiteBoardRef}
               links={prerequisiteEvaluation?.links ?? []}
-              visible={showPrerequisiteRelations && !activeDrag}
+              visible
             />
             <div
               role="region"
@@ -739,32 +745,53 @@ export function CurriculumPlannerPage({
               className="divide-y-2 divide-strong-border overflow-hidden rounded-md border-2 border-strong-border bg-card shadow-[4px_4px_0_color-mix(in_srgb,var(--primary)_25%,transparent)]"
             >
               <UnallocatedCoursesPanel
-                courses={plannerView.completedCourses}
-                credits={plannerView.completedCredits}
-                getCourseOptions={getCourseOptions}
+                courses={plannerView.unallocatedCourses}
+                credits={plannerView.unallocatedCredits}
+                availableCourses={staticData.courses}
+                excludedCourseIds={excludedCourseIds}
                 periods={periods}
                 planningStart={snapshot.plan.planningStart}
                 disabled={planner.isDispatching}
                 dispatch={planner.dispatch}
                 onOpenCourseDetails={setSelectedCourseId}
+                selectedCourseIds={selectedCourseIds}
+                selectionMode={selectionMode}
+                onToggleCourseSelection={toggleCourseSelection}
+                onPlaceSelectedCourses={placeSelectedCoursesInUnallocated}
                 prerequisiteResolver={prerequisiteResolver}
               />
               {periods.length ? (
-                plannerView.semesters.map((semester, index) => (
-                  <SemesterRow
-                    key={semester.period.id}
-                    semester={semester}
-                    semesterIndex={index}
-                    title={periodTitle(index, snapshot.plan.planningStart)}
-                    periods={periods}
-                    getCourseOptions={getCourseOptions}
-                    planningStart={snapshot.plan.planningStart}
-                    disabled={planner.isDispatching}
-                    dispatch={planner.dispatch}
-                    onOpenCourseDetails={setSelectedCourseId}
-                    prerequisiteResolver={prerequisiteResolver}
-                  />
-                ))
+                plannerView.semesters
+                  .map((semester, index) => (
+                    <SemesterRow
+                      key={semester.period.id}
+                      semester={semester}
+                      title={periodTitle(index, snapshot.plan.planningStart)}
+                      periods={periods}
+                      availableCourses={staticData.courses}
+                      excludedCourseIds={excludedCourseIds}
+                      planningStart={snapshot.plan.planningStart}
+                      disabled={planner.isDispatching}
+                      dispatch={planner.dispatch}
+                      onOpenCourseDetails={setSelectedCourseId}
+                      selectedCourseIds={selectedCourseIds}
+                      selectionMode={selectionMode}
+                      onToggleCourseSelection={toggleCourseSelection}
+                      onPlaceSelectedCourses={placeSelectedCourses}
+                      prerequisiteResolver={prerequisiteResolver}
+                    />
+                  ))
+                  .concat(
+                    <button
+                      key="add-semester"
+                      type="button"
+                      className="flex min-h-14 w-full items-center justify-center gap-2 bg-background px-4 py-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
+                      onClick={addSemester}
+                      disabled={planner.isDispatching}
+                    >
+                      <Plus className="size-4" /> Adicionar semestre
+                    </button>,
+                  )
               ) : (
                 <section className="grid min-h-32 place-items-center px-6 py-8 text-center">
                   <div>
@@ -784,30 +811,35 @@ export function CurriculumPlannerPage({
             </div>
           </div>
         </section>
-        {!showSuggestionOnboarding && (
-          <CurriculumSelectionPanel
-            staticData={staticData}
-            snapshot={snapshot}
-            disabled={planner.isDispatching}
-            dispatch={planner.dispatch}
-          />
-        )}
-        {snapshot.selection.catalogProgramId ? (
-          <CurriculumBlocksPanel
-            staticData={staticData}
-            snapshot={snapshot}
-            disabled={planner.isDispatching}
-            onOpenCourseDetails={setSelectedCourseId}
-          />
-        ) : (
-          <Card className="mb-7 border-dashed shadow-none">
-            <CardContent className="p-4 text-sm text-muted-foreground">
+        <div className="mb-7 overflow-hidden rounded-md border-2 border-border bg-card">
+          {!showSuggestionOnboarding && (
+            <CurriculumSelectionFields
+              staticData={staticData}
+              snapshot={snapshot}
+              disabled={planner.isDispatching}
+              dispatch={planner.dispatch}
+              className="border-b-2 border-border p-4"
+            />
+          )}
+          {snapshot.selection.catalogProgramId ? (
+            <CurriculumBlocksPanel
+              staticData={staticData}
+              snapshot={snapshot}
+              disabled={planner.isDispatching}
+              dispatch={planner.dispatch}
+              onOpenCourseDetails={setSelectedCourseId}
+              selectedCourseIds={selectedCourseIds}
+              selectionMode={selectionMode}
+              onToggleCourseSelection={toggleCourseSelection}
+            />
+          ) : (
+            <div className="border-dashed p-4 text-sm text-muted-foreground">
               Você pode começar sem currículo: crie um semestre e adicione
               qualquer disciplina. Escolha catálogo e programa depois para
               exibir os blocos da grade.
-            </CardContent>
-          </Card>
-        )}
+            </div>
+          )}
+        </div>
         <DragOverlay>
           {activeDrag?.type === 'course' ? (
             <CompactVisual
@@ -828,7 +860,6 @@ export function CurriculumPlannerPage({
           unallocated={selectedCourseUnallocated}
           completed={selectedCourseCompleted}
           attempts={planner.studentCourseAttempts}
-          attemptsLoading={planner.studentCourseAttemptsLoading}
           periods={periods}
           planningStart={snapshot.plan.planningStart}
           disabled={planner.isDispatching}
@@ -844,7 +875,6 @@ export function CurriculumPlannerPage({
         <SaveDraftDialog
           open={saveDraftDialogOpen}
           onOpenChange={setSaveDraftDialogOpen}
-          onExport={() => downloadPlanning(snapshot, staticData, planningName)}
           onLogin={() => {
             saveDraftHandoff({
               version: 1,

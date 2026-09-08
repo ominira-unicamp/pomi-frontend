@@ -69,7 +69,7 @@ describe('PrerequisiteGraph', () => {
       card.dataset.courseId = courseId
       root.append(card)
     }
-    const { container } = render(
+    const { container, rerender } = render(
       <PrerequisiteGraph rootRef={{ current: root }} links={links} visible />,
     )
 
@@ -123,6 +123,23 @@ describe('PrerequisiteGraph', () => {
         ?.hasAttribute('data-prerequisite-tree'),
     ).toBe(false)
     expect(selectedCard?.hasAttribute('data-prerequisite-active')).toBe(true)
+
+    fireEvent.click(selectedCard!, { shiftKey: true })
+    await waitFor(() =>
+      expect(root.querySelectorAll('[data-prerequisite-tree]')).toHaveLength(0),
+    )
+
+    rerender(
+      <PrerequisiteGraph
+        rootRef={{ current: root }}
+        links={links}
+        visible={false}
+      />,
+    )
+    rerender(
+      <PrerequisiteGraph rootRef={{ current: root }} links={links} visible />,
+    )
+    expect(container.querySelectorAll('path[marker-end]')).toHaveLength(0)
   })
 
   it('keeps an inverted prerequisite route around intermediate cards', async () => {

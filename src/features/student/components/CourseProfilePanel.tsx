@@ -8,6 +8,7 @@ import { InlineMessage } from '@/components/patterns/InlineMessage'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
 
 export type CourseProfileValues = Readonly<{
   catalogId: number | null
@@ -54,9 +55,7 @@ export function CourseProfilePanel({
     () =>
       catalogPrograms
         .filter((item) => item.catalog.id === catalogId)
-        .sort((left, right) =>
-          left.program.name.localeCompare(right.program.name, 'pt-BR'),
-        )
+        .sort((left, right) => compareProgramCodes(left.program, right.program))
         .filter(
           (item, index, items) =>
             items.findIndex(
@@ -98,16 +97,16 @@ export function CourseProfilePanel({
   const values: CourseProfileValues = {
     catalogId: catalogId ? Number(catalogId) : null,
     programId: selectedProgram ? Number(selectedProgram.program.id) : null,
-    specializationId:
-      selectedProgram?.specializations.some(
-        (item) => item.id === specializationId,
-      )
-        ? Number(specializationId)
-        : null,
-    languageId:
-      selectedProgram?.languages.some((item) => item.id === languageId)
-        ? Number(languageId)
-        : null,
+    specializationId: selectedProgram?.specializations.some(
+      (item) => item.id === specializationId,
+    )
+      ? Number(specializationId)
+      : null,
+    languageId: selectedProgram?.languages.some(
+      (item) => item.id === languageId,
+    )
+      ? Number(languageId)
+      : null,
     entryYear: entryYear ? Number(entryYear) : null,
   }
   const hasChanges =

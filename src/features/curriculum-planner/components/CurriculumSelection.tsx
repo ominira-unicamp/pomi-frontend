@@ -9,6 +9,7 @@ import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { InlineMessage } from '@/components/patterns/InlineMessage'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
 
 type Dispatch = PlannerDispatch
 
@@ -48,9 +49,9 @@ export function CurriculumSelectionFields({
   ].sort((left, right) => right.label.localeCompare(left.label))
   const programs = staticData.catalogPrograms
     .filter((program) => program.catalog.id === catalogId)
-    .sort((left, right) => left.program.name.localeCompare(right.program.name))
+    .sort((left, right) => compareProgramCodes(left.program, right.program))
   const selectionWarningMessage =
-    'A troca do programa removeu a habilitação e a língua selecionadas, pois elas dependiam do programa anterior.'
+    'A troca do catálogo removeu opções que não existem na configuração selecionada.'
   const selectProgram = (value: string) => {
     if (
       value !== snapshot.selection.catalogProgramId &&
@@ -61,6 +62,49 @@ export function CurriculumSelectionFields({
       type: 'selectCatalogProgram',
       catalogProgramId: value ? (value as never) : null,
     })
+  }
+  const selectCatalog = async (value: string) => {
+    setCatalogId(value)
+    if (!value || selected?.catalog.id === value) return
+
+    const nextProgram = selected
+      ? staticData.catalogPrograms.find(
+          (program) =>
+            program.catalog.id === value &&
+            program.program.id === selected.program.id,
+        )
+      : undefined
+    const nextSpecialization = nextProgram?.specializations.find(
+      (option) => option.id === snapshot.selection.specializationId,
+    )
+    const nextLanguage = nextProgram?.languages.find(
+      (option) => option.id === snapshot.selection.languageId,
+    )
+    const hadIncompatibleSelection =
+      Boolean(snapshot.selection.specializationId) && !nextSpecialization
+    const hadIncompatibleLanguage =
+      Boolean(snapshot.selection.languageId) && !nextLanguage
+
+    const succeeded = await dispatch({
+      type: 'selectCatalogProgram',
+      catalogProgramId: nextProgram?.id ?? null,
+    })
+    if (!succeeded) return
+
+    if (nextSpecialization) {
+      await dispatch({
+        type: 'selectSpecialization',
+        specializationId: nextSpecialization.id,
+      })
+    }
+    if (nextLanguage) {
+      await dispatch({
+        type: 'selectLanguage',
+        languageId: nextLanguage.id,
+      })
+    }
+    if (!nextProgram || hadIncompatibleSelection || hadIncompatibleLanguage)
+      setSelectionWarning(selectionWarningMessage)
   }
   return (
     <div className={cn('grid gap-4 md:grid-cols-2 xl:grid-cols-4', className)}>
@@ -73,20 +117,7 @@ export function CurriculumSelectionFields({
           emptyLabel="Sem catálogo"
           options={catalogs}
           placeholder="Digite o ano do catálogo"
-          onValueChange={(value) => {
-            setCatalogId(value)
-            if (!value || selected?.catalog.id !== value) {
-              if (
-                snapshot.selection.specializationId ||
-                snapshot.selection.languageId
-              )
-                setSelectionWarning(selectionWarningMessage)
-              void dispatch({
-                type: 'selectCatalogProgram',
-                catalogProgramId: null,
-              })
-            }
-          }}
+          onValueChange={(value) => void selectCatalog(value)}
         />
       </label>
       <label className="space-y-2 text-sm font-bold">

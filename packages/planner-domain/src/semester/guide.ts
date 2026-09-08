@@ -21,6 +21,7 @@ export type GuideChanges = Readonly<{
 export type GuideClassContext = Readonly<{
   courseIds: ReadonlySet<number>
   prefixes: ReadonlyArray<string>
+  courseCodes?: ReadonlyArray<string>
 }>
 
 export function emptyGuide(): SemesterPlanningGuide {
@@ -86,37 +87,60 @@ export function buildGuideClassContext(
   guideCourses: ReadonlyArray<{ course: SemesterCourse }>,
   programBlocks: ReadonlyArray<Readonly<{ blocks: CurriculumBlocks }>>,
   manualCourseIds: ReadonlyArray<number>,
+  coursesById?: ReadonlyMap<number, SemesterCourse>,
 ): GuideClassContext {
   const courseIds = new Set<number>(manualCourseIds)
   const prefixes = new Set<string>()
+  const courseCodes = new Set<string>()
   if (mode === 'curriculum') {
-    for (const item of guideCourses) courseIds.add(item.course.id)
+    for (const item of guideCourses) {
+      courseIds.add(item.course.id)
+      courseCodes.add(normalizeCourseCode(item.course.code))
+    }
   }
   if (mode === 'program') {
     for (const group of programBlocks) {
       const requirements = [
-        ...group.blocks.mandatory,
+        ...group.blocks.mandatory.map((item) => item.selector),
         ...group.blocks.electives.flatMap((item) => item.eligibleCourses),
       ]
       for (const requirement of requirements) {
-        if (requirement.type === 'specificCourse')
+        if (requirement.type === 'specificCourse') {
           courseIds.add(Number(requirement.courseId))
+          const course = coursesById?.get(Number(requirement.courseId))
+          if (course) courseCodes.add(normalizeCourseCode(course.code))
+        }
         if (requirement.type === 'prefix')
           prefixes.add(normalizeCourseCode(requirement.prefix))
       }
     }
   }
-  return { courseIds, prefixes: [...prefixes] }
+  return {
+    courseIds,
+    prefixes: [...prefixes],
+    courseCodes: [...courseCodes],
+  }
 }
 
 export function matchesGuideClass(
   classItem: SemesterClass,
   context: GuideClassContext,
 ) {
+  return matchesGuideCourse(
+    { id: classItem.courseId, code: classItem.courseCode },
+    context,
+  )
+}
+
+export function matchesGuideCourse(
+  course: Pick<SemesterCourse, 'id' | 'code'>,
+  context: GuideClassContext,
+) {
   return (
-    context.courseIds.has(classItem.courseId) ||
+    context.courseIds.has(course.id) ||
+    (context.courseCodes ?? []).includes(normalizeCourseCode(course.code)) ||
     context.prefixes.some((prefix) =>
-      normalizeCourseCode(classItem.courseCode).startsWith(prefix),
+      normalizeCourseCode(course.code).startsWith(prefix),
     )
   )
 }

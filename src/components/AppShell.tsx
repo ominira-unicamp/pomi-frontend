@@ -588,7 +588,7 @@ function Shell({ children }: { children: ReactNode }) {
         <div className="min-w-0 flex-1">
           <main
             id="main-content"
-            className="min-h-[calc(100svh-4.5rem)] overflow-x-hidden"
+            className="min-h-[calc(100svh-4.5rem)] overflow-x-clip"
           >
             {children}
           </main>

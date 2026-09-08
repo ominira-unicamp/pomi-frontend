@@ -152,6 +152,7 @@ export function CurriculumPlannerProvider({
   )
   const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const saveQueue = useRef(Promise.resolve())
+  const dispatchQueue = useRef(Promise.resolve())
   const remoteDocument = useRef<CurriculumDocument | undefined>(undefined)
   const persistedPeriodIds = useRef(new Map<string, number>())
 
@@ -275,77 +276,78 @@ export function CurriculumPlannerProvider({
   )
 
   const dispatch = useCallback(
-    async (command: CurriculumPlannerCommand) => {
-      const snapshot = queryClient.getQueryData<CurriculumPlannerSnapshot>(
-        privateQueryKeys.curriculumPlannerSnapshot(
-          sessionSubject,
-          remoteQuery.data?.document?.id ?? 'draft',
-        ),
-      )
-      if (!snapshot) return false
-      try {
-        await unwrap(
-          planner.dispatch(command, { expectedRevision: snapshot.revision }),
-        )
-        const next = await unwrap(planner.getSnapshot())
-        queryClient.setQueryData(
-          privateQueryKeys.curriculumPlannerSnapshot(
-            sessionSubject,
-            remoteQuery.data?.document?.id ?? 'draft',
-          ),
-          next,
-        )
-        if (
-          auth.isAuthenticated &&
-          remoteQuery.data?.studentId &&
-          !injectedPlanner
-        ) {
+    (command: CurriculumPlannerCommand) => {
+      const operation = dispatchQueue.current.then(async () => {
+        try {
+          const snapshot = await unwrap(planner.getSnapshot())
+          await unwrap(
+            planner.dispatch(command, { expectedRevision: snapshot.revision }),
+          )
+          const next = await unwrap(planner.getSnapshot())
+          queryClient.setQueryData(
+            privateQueryKeys.curriculumPlannerSnapshot(
+              sessionSubject,
+              remoteQuery.data?.document?.id ?? 'draft',
+            ),
+            next,
+          )
           if (
-            command.type === 'markCourseCompleted' ||
-            command.type === 'unmarkCourseCompleted'
+            auth.isAuthenticated &&
+            remoteQuery.data?.studentId &&
+            !injectedPlanner
           ) {
-            try {
-              await setCourseCompleted(
-                remoteQuery.data.studentId,
-                command.courseId,
-                command.type === 'markCourseCompleted',
-                auth.getAccessToken,
-                command.type === 'markCourseCompleted'
-                  ? {
-                      studyPeriodId: command.studyPeriodId,
-                      grade: command.grade,
-                    }
-                  : undefined,
-              )
-            } catch {
-              setSaveStatus('error')
-            }
-            await queryClient.invalidateQueries({
-              queryKey: privateQueryKeys.courseAttempts(
-                sessionSubject,
-                remoteQuery.data.studentId,
-              ),
-            })
-          }
-          if (!remoteDocument.current?.id) return true
-          setSaveStatus('pending')
-          if (saveTimer.current) clearTimeout(saveTimer.current)
-          saveTimer.current = setTimeout(() => {
-            saveQueue.current = saveQueue.current.then(async () => {
-              setSaveStatus('saving')
+            if (
+              command.type === 'markCourseCompleted' ||
+              command.type === 'unmarkCourseCompleted'
+            ) {
               try {
-                await persist(next)
-                setSaveStatus('idle')
+                await setCourseCompleted(
+                  remoteQuery.data.studentId,
+                  command.courseId,
+                  command.type === 'markCourseCompleted',
+                  auth.getAccessToken,
+                  command.type === 'markCourseCompleted'
+                    ? {
+                        studyPeriodId: command.studyPeriodId,
+                        grade: command.grade,
+                      }
+                    : undefined,
+                )
               } catch {
                 setSaveStatus('error')
               }
-            })
-          }, 500)
+              await queryClient.invalidateQueries({
+                queryKey: privateQueryKeys.courseAttempts(
+                  sessionSubject,
+                  remoteQuery.data.studentId,
+                ),
+              })
+            }
+            if (!remoteDocument.current?.id) return true
+            setSaveStatus('pending')
+            if (saveTimer.current) clearTimeout(saveTimer.current)
+            saveTimer.current = setTimeout(() => {
+              saveQueue.current = saveQueue.current.then(async () => {
+                setSaveStatus('saving')
+                try {
+                  await persist(next)
+                  setSaveStatus('idle')
+                } catch {
+                  setSaveStatus('error')
+                }
+              })
+            }, 500)
+          }
+          return true
+        } catch {
+          return false
         }
-        return true
-      } catch {
-        return false
-      }
+      })
+      dispatchQueue.current = operation.then(
+        () => undefined,
+        () => undefined,
+      )
+      return operation
     },
     [
       auth.isAuthenticated,

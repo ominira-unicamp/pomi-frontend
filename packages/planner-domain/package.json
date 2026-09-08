@@ -5,8 +5,7 @@
   "type": "module",
   "exports": {
     "./curriculum": "./src/curriculum/index.ts",
-    "./semester": "./src/semester/index.ts",
-    "./transfer": "./src/transfer/index.ts"
+    "./semester": "./src/semester/index.ts"
   },
   "scripts": {
     "check": "tsc --noEmit -p tsconfig.json"

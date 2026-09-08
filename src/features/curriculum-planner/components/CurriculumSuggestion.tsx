@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Sparkles } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import {
   planningFromSuggestion,
@@ -9,10 +9,15 @@ import {
 import type { ReactNode } from 'react'
 import type {
   CatalogProgramId,
+  CourseId,
   CurriculumPlannerSnapshot,
   CurriculumPlannerStaticData,
 } from '@pomi/planner-domain/curriculum'
 import type { PlannerDispatch } from '@/features/curriculum-planner/types'
+import {
+  isApprovedStudentCourseAttempt,
+  type StudentCourseAttempt,
+} from '@/features/student/data/studentApi'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -29,6 +34,7 @@ import {
 } from '@/components/ui/dialog'
 import { loadCurriculumSuggestions } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
+import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
 
 type Dispatch = PlannerDispatch
 
@@ -69,7 +75,7 @@ export function SuggestionOnboardingPanel({
   ].sort((left, right) => right.label.localeCompare(left.label))
   const programs = staticData.catalogPrograms
     .filter((program) => program.catalog.id === catalogId)
-    .sort((left, right) => left.program.name.localeCompare(right.program.name))
+    .sort((left, right) => compareProgramCodes(left.program, right.program))
   const suggestionsQuery = useQuery({
     queryKey: publicQueryKeys.curriculumSuggestions(catalogProgramId),
     queryFn: () =>
@@ -257,6 +263,7 @@ export function ChangeSuggestionDialog({
   const [catalogProgramId, setCatalogProgramId] = useState('')
   const [suggestionId, setSuggestionId] = useState('')
   const [applyError, setApplyError] = useState<string>()
+  const [confirmationOpen, setConfirmationOpen] = useState(false)
   const planningStart = snapshot.plan.planningStart ?? {
     year: new Date().getFullYear(),
     semester: 1 as const,
@@ -278,7 +285,7 @@ export function ChangeSuggestionDialog({
   ].sort((left, right) => right.label.localeCompare(left.label))
   const programs = staticData.catalogPrograms
     .filter((program) => program.catalog.id === catalogId)
-    .sort((left, right) => left.program.name.localeCompare(right.program.name))
+    .sort((left, right) => compareProgramCodes(left.program, right.program))
 
   useEffect(() => {
     if (!open) return
@@ -286,6 +293,7 @@ export function ChangeSuggestionDialog({
     setCatalogProgramId(snapshot.selection.catalogProgramId ?? '')
     setSuggestionId('')
     setApplyError(undefined)
+    setConfirmationOpen(false)
   }, [
     open,
     selectedCatalogProgram?.catalog.id,
@@ -322,6 +330,7 @@ export function ChangeSuggestionDialog({
     const succeeded = await dispatch({ type: 'importPlanning', data })
     if (succeeded) {
       setOpen(false)
+      setConfirmationOpen(false)
       setSuggestionId('')
       setApplyError(undefined)
     } else
@@ -340,13 +349,18 @@ export function ChangeSuggestionDialog({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Usar sugestão curricular</DialogTitle>
+          <DialogTitle>
+            {confirmationOpen
+              ? 'Substituir planejamento?'
+              : 'Usar sugestão curricular'}
+          </DialogTitle>
           <DialogDescription>
-            A sugestão substituirá os períodos e as escolhas de currículo. O
-            histórico de disciplinas concluídas será preservado.
+            {confirmationOpen
+              ? `O planejamento atual será substituído pela sugestão ${selected?.name ?? ''}. O histórico de disciplinas concluídas será preservado.`
+              : 'A sugestão substituirá os períodos e as escolhas de currículo. O histórico de disciplinas concluídas será preservado.'}
           </DialogDescription>
         </DialogHeader>
-        {suggestionsQuery.isError ? (
+        {!confirmationOpen && suggestionsQuery.isError ? (
           <Alert variant="destructive">
             <AlertTitle>Não foi possível carregar as sugestões</AlertTitle>
             <AlertDescription>
@@ -359,7 +373,7 @@ export function ChangeSuggestionDialog({
               </Button>
             </AlertDescription>
           </Alert>
-        ) : (
+        ) : !confirmationOpen ? (
           <div className="grid gap-4">
             <label className="space-y-2 text-sm font-bold">
               <span>Catálogo</span>
@@ -423,20 +437,180 @@ export function ChangeSuggestionDialog({
               />
             </label>
           </div>
-        )}
+        ) : null}
         {applyError && (
           <p className="text-sm font-bold text-destructive">{applyError}</p>
         )}
         <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancelar</Button>
-          </DialogClose>
-          <Button
-            disabled={disabled || !selected}
-            onClick={() => void submit()}
-          >
-            Substituir planejamento
-          </Button>
+          {confirmationOpen ? (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setConfirmationOpen(false)}
+              >
+                Voltar
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={disabled || !selected}
+                onClick={() => void submit()}
+              >
+                Confirmar substituição
+              </Button>
+            </>
+          ) : (
+            <>
+              <DialogClose asChild>
+                <Button variant="outline">Cancelar</Button>
+              </DialogClose>
+              <Button
+                disabled={disabled || !selected}
+                onClick={() => setConfirmationOpen(true)}
+              >
+                Substituir planejamento
+              </Button>
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export function StudentHistoryImportDialog({
+  attempts,
+  attemptsLoading,
+  disabled,
+  dispatch,
+  trigger,
+}: {
+  attempts: ReadonlyArray<StudentCourseAttempt>
+  attemptsLoading: boolean
+  disabled: boolean
+  dispatch: Dispatch
+  trigger: ReactNode
+}) {
+  const [open, setOpen] = useState(false)
+  const [confirmationOpen, setConfirmationOpen] = useState(false)
+  const historyCourses = useMemo(() => {
+    const byCourse = new Map<
+      CourseId,
+      {
+        courseId: CourseId
+        status: 'completed' | 'inProgress'
+        period?: { year: number; semester: 1 | 2 }
+      }
+    >()
+    for (const attempt of attempts) {
+      const approved = isApprovedStudentCourseAttempt(attempt)
+      if (!approved && attempt.status !== 'ENROLLED') continue
+      const courseId = String(attempt.courseId) as CourseId
+      const current = byCourse.get(courseId)
+      if (current?.status === 'completed') continue
+      byCourse.set(courseId, {
+        courseId,
+        status: approved ? 'completed' : 'inProgress',
+        period: attempt.studyPeriod
+          ? {
+              year: attempt.studyPeriod.year,
+              semester:
+                attempt.studyPeriod.yearPeriod === 'SECOND_SEMESTER' ||
+                attempt.studyPeriod.yearPeriod === 'WINTER'
+                  ? 2
+                  : 1,
+            }
+          : undefined,
+      })
+    }
+    return [...byCourse.values()]
+  }, [attempts])
+  const completedCount = historyCourses.filter(
+    (course) => course.status === 'completed',
+  ).length
+  const inProgressCount = historyCourses.length - completedCount
+  const submit = async () => {
+    const succeeded = await dispatch({
+      type: 'importStudentHistory',
+      courses: historyCourses,
+    })
+    if (succeeded) {
+      setOpen(false)
+      setConfirmationOpen(false)
+    }
+  }
+
+  useEffect(() => {
+    if (open) setConfirmationOpen(false)
+  }, [open])
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{trigger}</DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>
+            {confirmationOpen
+              ? 'Usar histórico escolar?'
+              : 'Importar histórico escolar'}
+          </DialogTitle>
+          <DialogDescription>
+            {confirmationOpen
+              ? 'As disciplinas do histórico serão movidas para os respectivos semestres e o planejamento atual será ajustado para acomodar todo o período do histórico.'
+              : 'As disciplinas concluídas e cursando serão organizadas nos semestres correspondentes ao histórico escolar.'}
+          </DialogDescription>
+        </DialogHeader>
+        {confirmationOpen ? (
+          <p className="text-sm text-muted-foreground">
+            {historyCourses.length} disciplinas serão importadas:{' '}
+            {completedCount} concluídas e {inProgressCount} cursando.
+            Disciplinas sem período no histórico serão colocadas em “Não
+            alocadas”.
+          </p>
+        ) : attemptsLoading ? (
+          <p className="text-sm text-muted-foreground">
+            Carregando histórico escolar…
+          </p>
+        ) : historyCourses.length ? (
+          <p className="text-sm text-muted-foreground">
+            Foram encontradas {historyCourses.length} disciplinas:{' '}
+            {completedCount} concluídas e {inProgressCount} cursando.
+          </p>
+        ) : (
+          <p className="text-sm font-bold text-muted-foreground">
+            Nenhuma disciplina concluída ou cursando foi encontrada no
+            histórico.
+          </p>
+        )}
+        <DialogFooter>
+          {confirmationOpen ? (
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setConfirmationOpen(false)}
+              >
+                Voltar
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={disabled || !historyCourses.length}
+                onClick={() => void submit()}
+              >
+                Confirmar importação
+              </Button>
+            </>
+          ) : (
+            <>
+              <DialogClose asChild>
+                <Button variant="outline">Cancelar</Button>
+              </DialogClose>
+              <Button
+                disabled={disabled || attemptsLoading || !historyCourses.length}
+                onClick={() => setConfirmationOpen(true)}
+              >
+                Usar histórico
+              </Button>
+            </>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -273,6 +273,13 @@ export function PrerequisiteGraph({
   )
 
   useEffect(() => {
+    if (visible) return
+    setHoveredCourseId(undefined)
+    setFocusedCourseId(undefined)
+    setSelectedCourseId(undefined)
+  }, [visible])
+
+  useEffect(() => {
     const root = rootRef.current
     if (!root) return
     const cards = root.querySelectorAll<HTMLElement>('[data-course-id]')
@@ -304,8 +311,13 @@ export function PrerequisiteGraph({
       setFocusedCourseId(courseIdFromTarget(event.target))
     const handleFocusOut = (event: FocusEvent) =>
       setFocusedCourseId(courseIdFromTarget(event.relatedTarget))
-    const handleClick = (event: MouseEvent) =>
+    const handleClick = (event: MouseEvent) => {
+      if (event.shiftKey) {
+        setSelectedCourseId(undefined)
+        return
+      }
       setSelectedCourseId(courseIdFromTarget(event.target))
+    }
     root.addEventListener('pointerover', handlePointerOver)
     root.addEventListener('pointerout', handlePointerOut)
     root.addEventListener('focusin', handleFocusIn)

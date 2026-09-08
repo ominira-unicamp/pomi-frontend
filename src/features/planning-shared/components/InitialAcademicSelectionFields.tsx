@@ -1,8 +1,10 @@
 import type { CurriculumPlannerStaticData } from '@pomi/planner-domain/curriculum'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
+import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
 
 export type InitialAcademicSelection = Readonly<{
   catalogId: string
+  programId: string
   catalogProgramId: string
   specializationId: string
   languageId: string
@@ -29,14 +31,48 @@ export function InitialAcademicSelectionFields({
       ]),
     ).values(),
   ].sort((left, right) => right.label.localeCompare(left.label))
-  const programs = staticData.catalogPrograms
-    .filter((item) => item.catalog.id === value.catalogId)
-    .sort((left, right) => left.program.name.localeCompare(right.program.name))
+  const programs = [
+    ...new Map(
+      staticData.catalogPrograms.map((item) => [item.program.id, item.program]),
+    ).values(),
+  ].sort(compareProgramCodes)
+  const selectedProgramId =
+    value.programId ||
+    staticData.catalogPrograms.find(
+      (item) => item.id === value.catalogProgramId,
+    )?.program.id ||
+    ''
   const selected = staticData.catalogPrograms.find(
     (item) => item.id === value.catalogProgramId,
   )
   return (
     <div className="grid gap-5 sm:grid-cols-2">
+      <CreationSelect
+        label="Programa"
+        description="Define as disciplinas obrigatórias e os blocos de eletivas do curso."
+        ariaLabel="Programa inicial"
+        value={selectedProgramId}
+        emptyLabel="Definir depois"
+        placeholder="Escolha o programa"
+        options={programs.map((item) => ({
+          value: item.id,
+          label: `${item.code} — ${item.name}`,
+        }))}
+        onValueChange={(programId) => {
+          const catalogProgram = staticData.catalogPrograms.find(
+            (item) =>
+              item.catalog.id === value.catalogId &&
+              item.program.id === programId,
+          )
+          onChange({
+            ...value,
+            programId,
+            catalogProgramId: catalogProgram?.id ?? '',
+            specializationId: '',
+            languageId: '',
+          })
+        }}
+      />
       <CreationSelect
         label="Catálogo"
         description="Define a edição das regras acadêmicas que será usada como referência."
@@ -47,33 +83,14 @@ export function InitialAcademicSelectionFields({
         options={catalogs}
         onValueChange={(catalogId) =>
           onChange({
-            catalogId,
-            catalogProgramId: '',
-            specializationId: '',
-            languageId: '',
-          })
-        }
-      />
-      <CreationSelect
-        label="Programa"
-        description="Define as disciplinas obrigatórias e os blocos de eletivas do curso."
-        ariaLabel="Programa inicial"
-        value={value.catalogProgramId}
-        emptyLabel="Definir depois"
-        disabled={!value.catalogId}
-        placeholder={
-          value.catalogId
-            ? 'Escolha o programa'
-            : 'Escolha um catálogo primeiro'
-        }
-        options={programs.map((item) => ({
-          value: item.id,
-          label: `${item.program.code} — ${item.program.name}`,
-        }))}
-        onValueChange={(catalogProgramId) =>
-          onChange({
             ...value,
-            catalogProgramId,
+            catalogId,
+            catalogProgramId:
+              staticData.catalogPrograms.find(
+                (item) =>
+                  item.catalog.id === catalogId &&
+                  item.program.id === selectedProgramId,
+              )?.id ?? '',
             specializationId: '',
             languageId: '',
           })

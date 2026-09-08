@@ -42,7 +42,7 @@ export function CompactVisual({
   className,
 }: {
   code: string
-  credits: number
+  credits?: number
   planned?: boolean
   className?: string
 }) {
@@ -54,8 +54,16 @@ export function CompactVisual({
         className,
       )}
     >
-      <span className="text-center">{code}</span>
-      <span className="text-right">({String(credits).padStart(2, '0')})</span>
+      <span
+        className={
+          credits === undefined ? 'col-span-2 text-center' : 'text-center'
+        }
+      >
+        {code}
+      </span>
+      {credits !== undefined && (
+        <span className="text-right">({String(credits).padStart(2, '0')})</span>
+      )}
     </span>
   )
 }
@@ -98,6 +106,9 @@ export const CompactCourseCard = memo(function CompactCourseCard({
   planningStart,
   disabled,
   onOpenDetails,
+  selected = false,
+  selectionMode = false,
+  onToggleSelection,
   prerequisiteResolver,
 }: {
   dragId: string
@@ -106,6 +117,9 @@ export const CompactCourseCard = memo(function CompactCourseCard({
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   disabled: boolean
   onOpenDetails: (courseId: CourseId) => void
+  selected?: boolean
+  selectionMode?: boolean
+  onToggleSelection?: (courseId: CourseId) => void
   prerequisiteResolver?: CoursePrerequisiteResolver
 }) {
   const data: CourseDragData = {
@@ -145,20 +159,30 @@ export const CompactCourseCard = memo(function CompactCourseCard({
       )}
       aria-label={label}
       title={label}
-      onClick={() => {
+      onClick={(event) => {
         if (dragged.current) {
           dragged.current = false
+          return
+        }
+        if ((selectionMode || event.shiftKey) && onToggleSelection) {
+          onToggleSelection(state.course.id)
           return
         }
         onOpenDetails(state.course.id)
       }}
       {...attributes}
       {...listeners}
+      aria-pressed={onToggleSelection ? selected : undefined}
     >
       <CompactVisual
         code={state.course.code}
         credits={state.course.credits}
         planned={Boolean(state.plannedPeriodId) && !state.completed}
+        className={
+          selected
+            ? 'border-primary bg-primary text-primary-foreground'
+            : undefined
+        }
       />
       <PrerequisiteIssueMarkers prerequisites={prerequisites} />
     </button>

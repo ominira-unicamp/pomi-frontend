@@ -1,10 +1,10 @@
 import { useDroppable } from '@dnd-kit/core'
-import { useQuery } from '@tanstack/react-query'
-import { CheckCheck, GripVertical, Plus, Trash2 } from 'lucide-react'
-import { memo, useEffect, useMemo, useState } from 'react'
+import { GripVertical, Plus, Trash2 } from 'lucide-react'
+import { memo, useState } from 'react'
 
 import { insertCourseInPeriod } from '@pomi/planner-domain/curriculum'
 import { CompactCourseCard } from './CourseCard'
+import { CourseSearchDialog } from './CourseSearchDialog'
 import type { CoursePrerequisiteResolver } from './CourseCard'
 import type {
   Course,
@@ -14,7 +14,6 @@ import type {
 } from '@pomi/planner-domain/curriculum'
 import type { PlannerDispatch } from '@/features/curriculum-planner/types'
 import type { SemesterViewModel } from '@/features/curriculum-planner/viewModel'
-import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'
 import { ActionTooltip } from '@/features/curriculum-planner/components/ActionTooltip'
 import {
@@ -34,22 +33,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import { listStudyPeriods } from '@/features/student/data/studentApi'
-import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
-import { mostRecentStudyPeriodsFirst } from '@/features/student/data/studyPeriodOrdering'
 
 type Dispatch = PlannerDispatch
 
 function AddCourseToSemesterDialog({
-  getCourseOptions,
+  availableCourses,
+  excludedCourseIds,
   period,
   periods,
   title,
   disabled,
   dispatch,
 }: {
-  getCourseOptions: () => ReadonlyArray<{ value: string; label: string }>
+  availableCourses: ReadonlyArray<Course>
+  excludedCourseIds: ReadonlySet<CourseId>
   period: PlanningPeriod
   periods: ReadonlyArray<PlanningPeriod>
   title: string
@@ -57,19 +54,8 @@ function AddCourseToSemesterDialog({
   dispatch: Dispatch
 }) {
   const [open, setOpen] = useState(false)
-  const [courseId, setCourseId] = useState('')
-  const submit = async () => {
-    if (!courseId) return
-    const succeeded = await dispatch(
-      insertCourseInPeriod(courseId as Course['id'], period.id, periods),
-    )
-    if (succeeded) {
-      setCourseId('')
-      setOpen(false)
-    }
-  }
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <>
       <ActionTooltip content={`Adicione uma disciplina a ${title}.`}>
         <Button
           size="icon"
@@ -82,168 +68,36 @@ function AddCourseToSemesterDialog({
           <Plus />
         </Button>
       </ActionTooltip>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Adicionar disciplina</DialogTitle>
-          <DialogDescription>
-            Escolha a disciplina que será adicionada a {title}.
-          </DialogDescription>
-        </DialogHeader>
-        <AutocompleteSelect
-          ariaLabel={`Disciplina para ${title}`}
-          value={courseId}
-          onValueChange={setCourseId}
-          options={open ? getCourseOptions() : []}
-          placeholder="Clique ou digite o código ou nome"
-        />
-        <DialogFooter>
-          <ActionTooltip content="Feche sem adicionar uma disciplina.">
-            <DialogClose asChild>
-              <Button variant="outline">Cancelar</Button>
-            </DialogClose>
-          </ActionTooltip>
-          <ActionTooltip content="Adicione a disciplina selecionada a este semestre.">
-            <Button
-              disabled={disabled || !courseId}
-              onClick={() => void submit()}
-            >
-              Adicionar
-            </Button>
-          </ActionTooltip>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-function plannedStudyPeriodReference(
-  planningStart: CurriculumPlannerSnapshot['plan']['planningStart'],
-  semesterIndex: number,
-) {
-  if (!planningStart) return undefined
-  const semesterOffset = planningStart.semester - 1 + semesterIndex
-  return {
-    year: planningStart.year + Math.floor(semesterOffset / 2),
-    yearPeriod: semesterOffset % 2 === 0 ? 'FIRST_SEMESTER' : 'SECOND_SEMESTER',
-  } as const
-}
-
-function CompleteSemesterDialog({
-  courses,
-  title,
-  planningStart,
-  semesterIndex,
-  disabled,
-  dispatch,
-  open,
-  onOpenChange,
-}: {
-  courses: SemesterViewModel['courses']
-  title: string
-  planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
-  semesterIndex: number
-  disabled: boolean
-  dispatch: Dispatch
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}) {
-  const [studyPeriodId, setStudyPeriodId] = useState('')
-  const studyPeriodsQuery = useQuery({
-    queryKey: publicQueryKeys.studyPeriods(),
-    queryFn: listStudyPeriods,
-    staleTime: Infinity,
-    enabled: open,
-  })
-  const plannedStudyPeriod = plannedStudyPeriodReference(
-    planningStart,
-    semesterIndex,
-  )
-  const defaultStudyPeriodId = useMemo(
-    () =>
-      studyPeriodsQuery.data?.find(
-        (period) =>
-          period.year === plannedStudyPeriod?.year &&
-          period.yearPeriod === plannedStudyPeriod.yearPeriod,
-      )?.id,
-    [plannedStudyPeriod, studyPeriodsQuery.data],
-  )
-  const incompleteCourses = courses.filter((course) => !course.completed)
-  const studyPeriodOptions = mostRecentStudyPeriodsFirst(
-    studyPeriodsQuery.data ?? [],
-  ).map((period) => ({
-    value: String(period.id),
-    label: studyPeriodLabel(period),
-  }))
-
-  useEffect(() => {
-    if (open)
-      setStudyPeriodId(defaultStudyPeriodId ? String(defaultStudyPeriodId) : '')
-  }, [defaultStudyPeriodId, open])
-
-  const completeCourses = async () => {
-    for (const course of incompleteCourses) {
-      const succeeded = await dispatch({
-        type: 'markCourseCompleted',
-        courseId: course.course.id,
-        studyPeriodId: studyPeriodId ? Number(studyPeriodId) : undefined,
-      })
-      if (!succeeded) return
-    }
-    onOpenChange(false)
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent onOpenAutoFocus={(event) => event.preventDefault()}>
-        <DialogHeader>
-          <DialogTitle>Concluir disciplinas de {title}?</DialogTitle>
-          <DialogDescription>
-            {incompleteCourses.length === 1
-              ? 'A disciplina planejada neste semestre será marcada como concluída.'
-              : `${incompleteCourses.length} disciplinas planejadas neste semestre serão marcadas como concluídas.`}
-          </DialogDescription>
-        </DialogHeader>
-        <label className="block space-y-2 text-sm font-bold">
-          <span>Período em que foram concluídas</span>
-          <AutocompleteSelect
-            ariaLabel={`Período de conclusão de ${title}`}
-            value={studyPeriodId}
-            onValueChange={setStudyPeriodId}
-            options={studyPeriodOptions}
-            placeholder="Não informar período"
-            emptyLabel={
-              studyPeriodsQuery.isLoading
-                ? 'Carregando períodos...'
-                : 'Não informar período'
-            }
-          />
-        </label>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancelar</Button>
-          </DialogClose>
-          <Button
-            disabled={disabled || incompleteCourses.length === 0}
-            onClick={() => void completeCourses()}
-          >
-            <CheckCheck /> Marcar concluídas
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <CourseSearchDialog
+        open={open}
+        onOpenChange={setOpen}
+        courses={availableCourses}
+        excludedCourseIds={excludedCourseIds}
+        description={`Busque a disciplina que será adicionada a ${title}.`}
+        searchLabel={`Disciplina para ${title}`}
+        disabled={disabled}
+        onAdd={(courseId) =>
+          dispatch(insertCourseInPeriod(courseId, period.id, periods))
+        }
+      />
+    </>
   )
 }
 
 type SemesterRowProps = {
   semester: SemesterViewModel
-  semesterIndex: number
   title: string
   periods: ReadonlyArray<PlanningPeriod>
-  getCourseOptions: () => ReadonlyArray<{ value: string; label: string }>
+  availableCourses: ReadonlyArray<Course>
+  excludedCourseIds: ReadonlySet<CourseId>
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   disabled: boolean
   dispatch: Dispatch
   onOpenCourseDetails: (courseId: CourseId) => void
+  selectedCourseIds: ReadonlySet<CourseId>
+  selectionMode: boolean
+  onToggleCourseSelection: (courseId: CourseId) => void
+  onPlaceSelectedCourses: (periodId: PlanningPeriod['id']) => Promise<void>
   prerequisiteResolver?: CoursePrerequisiteResolver
 }
 
@@ -258,14 +112,18 @@ export function SemesterRow(props: SemesterRowProps) {
 
 const SemesterRowContent = memo(function SemesterRowContent({
   semester,
-  semesterIndex,
   title,
   periods,
-  getCourseOptions,
+  availableCourses,
+  excludedCourseIds,
   planningStart,
   disabled,
   dispatch,
   onOpenCourseDetails,
+  selectedCourseIds,
+  selectionMode,
+  onToggleCourseSelection,
+  onPlaceSelectedCourses,
   prerequisiteResolver,
   isOver,
   setNodeRef,
@@ -274,15 +132,28 @@ const SemesterRowContent = memo(function SemesterRowContent({
   setNodeRef: (node: HTMLElement | null) => void
 }) {
   const [removeOpen, setRemoveOpen] = useState(false)
-  const [completeOpen, setCompleteOpen] = useState(false)
   const { period, courses, credits, current } = semester
+  const selectionActive = selectedCourseIds.size > 0
   return (
     <article
       className={cn(
-        'relative grid bg-card lg:grid-cols-[11rem_1fr_7rem]',
+        'relative grid bg-card lg:grid-cols-[11rem_1fr]',
         current && 'bg-primary/5',
         isOver && 'z-10 ring-4 ring-inset ring-primary/40',
+        selectionActive &&
+          !disabled &&
+          'cursor-pointer hover:bg-primary/5 hover:ring-2 hover:ring-inset hover:ring-primary/40',
       )}
+      onClick={(event) => {
+        if (
+          !selectionActive ||
+          disabled ||
+          (event.target instanceof Element &&
+            event.target.closest('button, a, input, select, textarea'))
+        )
+          return
+        void onPlaceSelectedCourses(period.id)
+      }}
     >
       <header className="flex items-center justify-between gap-2 border-b-2 border-border bg-primary/10 p-2 lg:border-r-2 lg:border-b-0">
         <div>
@@ -292,6 +163,9 @@ const SemesterRowContent = memo(function SemesterRowContent({
               Atual
             </span>
           )}
+          <span className="mt-1 block text-sm text-muted-foreground">
+            <strong>{credits}</strong> créditos
+          </span>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <DropdownMenu>
@@ -335,15 +209,6 @@ const SemesterRowContent = memo(function SemesterRowContent({
                 </ActionTooltip>
               )}
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                disabled={
-                  disabled || !courses.some((course) => !course.completed)
-                }
-                onSelect={() => setCompleteOpen(true)}
-              >
-                <CheckCheck /> Marcar disciplinas como concluídas
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
               <ActionTooltip content="Remova este semestre e suas alocações do currículo.">
                 <DropdownMenuItem
                   className="text-destructive"
@@ -360,13 +225,14 @@ const SemesterRowContent = memo(function SemesterRowContent({
         ref={setNodeRef}
         data-prerequisite-course-area
         className={cn(
-          'min-h-0 border-b-2 border-border px-2 py-6 lg:border-r-2 lg:border-b-0',
+          'min-h-0 px-2 py-6 lg:border-r-2',
           isOver && 'bg-primary/10',
         )}
       >
         <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
           <AddCourseToSemesterDialog
-            getCourseOptions={getCourseOptions}
+            availableCourses={availableCourses}
+            excludedCourseIds={excludedCourseIds}
             period={period}
             periods={periods}
             title={title}
@@ -388,6 +254,9 @@ const SemesterRowContent = memo(function SemesterRowContent({
                   planningStart={planningStart}
                   disabled={disabled}
                   onOpenDetails={onOpenCourseDetails}
+                  selected={selectedCourseIds.has(state.course.id)}
+                  selectionMode={selectionMode}
+                  onToggleSelection={onToggleCourseSelection}
                   prerequisiteResolver={prerequisiteResolver}
                 />
               ))}
@@ -399,12 +268,6 @@ const SemesterRowContent = memo(function SemesterRowContent({
           )}
         </div>
       </div>
-      <aside className="flex items-center justify-between bg-muted/45 p-2 text-sm lg:block lg:text-center">
-        <div>
-          <strong className="block text-lg">{credits}</strong>
-          <span className="text-muted-foreground">créditos</span>
-        </div>
-      </aside>
       <Dialog open={removeOpen} onOpenChange={setRemoveOpen}>
         <DialogContent>
           <DialogHeader>
@@ -433,44 +296,24 @@ const SemesterRowContent = memo(function SemesterRowContent({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <CompleteSemesterDialog
-        courses={courses}
-        title={title}
-        planningStart={planningStart}
-        semesterIndex={semesterIndex}
-        disabled={disabled}
-        dispatch={dispatch}
-        open={completeOpen}
-        onOpenChange={setCompleteOpen}
-      />
     </article>
   )
 })
 
 const AddUnallocatedCourseDialog = memo(function AddUnallocatedCourseDialog({
-  getCourseOptions,
+  availableCourses,
+  excludedCourseIds,
   disabled,
   dispatch,
 }: {
-  getCourseOptions: () => ReadonlyArray<{ value: string; label: string }>
+  availableCourses: ReadonlyArray<Course>
+  excludedCourseIds: ReadonlySet<CourseId>
   disabled: boolean
   dispatch: Dispatch
 }) {
   const [open, setOpen] = useState(false)
-  const [courseId, setCourseId] = useState('')
-  const submit = async () => {
-    if (!courseId) return
-    const succeeded = await dispatch({
-      type: 'addCourseToUnallocated',
-      courseId: courseId as Course['id'],
-    })
-    if (succeeded) {
-      setCourseId('')
-      setOpen(false)
-    }
-  }
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <>
       <ActionTooltip content="Adicione uma disciplina sem vinculá-la a um semestre.">
         <Button
           size="icon"
@@ -483,49 +326,37 @@ const AddUnallocatedCourseDialog = memo(function AddUnallocatedCourseDialog({
           <Plus />
         </Button>
       </ActionTooltip>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Adicionar disciplina não alocada</DialogTitle>
-          <DialogDescription>
-            Escolha uma disciplina que ainda não foi alocada a um semestre.
-          </DialogDescription>
-        </DialogHeader>
-        <AutocompleteSelect
-          ariaLabel="Disciplina não alocada"
-          value={courseId}
-          onValueChange={setCourseId}
-          options={open ? getCourseOptions() : []}
-          placeholder="Clique ou digite o código ou nome"
-        />
-        <DialogFooter>
-          <ActionTooltip content="Feche sem adicionar uma disciplina.">
-            <DialogClose asChild>
-              <Button variant="outline">Cancelar</Button>
-            </DialogClose>
-          </ActionTooltip>
-          <ActionTooltip content="Guarde a disciplina para alocá-la depois.">
-            <Button
-              disabled={disabled || !courseId}
-              onClick={() => void submit()}
-            >
-              Adicionar
-            </Button>
-          </ActionTooltip>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      <CourseSearchDialog
+        open={open}
+        onOpenChange={setOpen}
+        courses={availableCourses}
+        excludedCourseIds={excludedCourseIds}
+        title="Adicionar disciplina não alocada"
+        description="Busque uma disciplina para adicionar sem vinculá-la a um semestre."
+        searchLabel="Disciplina não alocada"
+        disabled={disabled}
+        onAdd={(courseId) =>
+          dispatch({ type: 'addCourseToUnallocated', courseId })
+        }
+      />
+    </>
   )
 })
 
 type UnallocatedCoursesPanelProps = {
   courses: ReadonlyArray<Course>
   credits: number
-  getCourseOptions: () => ReadonlyArray<{ value: string; label: string }>
+  availableCourses: ReadonlyArray<Course>
+  excludedCourseIds: ReadonlySet<CourseId>
   periods: ReadonlyArray<PlanningPeriod>
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   disabled: boolean
   dispatch: Dispatch
   onOpenCourseDetails: (courseId: CourseId) => void
+  selectedCourseIds: ReadonlySet<CourseId>
+  selectionMode: boolean
+  onToggleCourseSelection: (courseId: CourseId) => void
+  onPlaceSelectedCourses: () => Promise<void>
   prerequisiteResolver?: CoursePrerequisiteResolver
 }
 
@@ -544,12 +375,17 @@ const UnallocatedCoursesPanelContent = memo(
   function UnallocatedCoursesPanelContent({
     courses,
     credits,
-    getCourseOptions,
+    availableCourses,
+    excludedCourseIds,
     periods,
     planningStart,
     disabled,
     dispatch,
     onOpenCourseDetails,
+    selectedCourseIds,
+    selectionMode,
+    onToggleCourseSelection,
+    onPlaceSelectedCourses,
     prerequisiteResolver,
     isOver,
     setNodeRef,
@@ -560,28 +396,45 @@ const UnallocatedCoursesPanelContent = memo(
     return (
       <article
         className={cn(
-          'relative grid bg-card lg:grid-cols-[11rem_1fr_7rem]',
+          'relative grid bg-card lg:grid-cols-[11rem_1fr]',
           isOver && 'z-10 ring-4 ring-inset ring-primary/40',
+          selectedCourseIds.size > 0 &&
+            !disabled &&
+            'cursor-pointer hover:bg-primary/5 hover:ring-2 hover:ring-inset hover:ring-primary/40',
         )}
+        onClick={(event) => {
+          if (
+            !selectedCourseIds.size ||
+            disabled ||
+            (event.target instanceof Element &&
+              event.target.closest('button, a, input, select, textarea'))
+          )
+            return
+          void onPlaceSelectedCourses()
+        }}
       >
         <header className="flex items-center border-b-2 border-border bg-primary/10 p-2 lg:border-r-2 lg:border-b-0">
           <div>
             <h3 className="whitespace-nowrap text-sm font-black">
               Não alocadas
             </h3>
+            <span className="mt-1 block text-sm text-muted-foreground">
+              <strong>{credits}</strong> créditos
+            </span>
           </div>
         </header>
         <div
           ref={setNodeRef}
           data-prerequisite-course-area
           className={cn(
-            'min-h-0 border-b-2 border-border px-2 py-6 lg:border-r-2 lg:border-b-0',
+            'min-h-0 px-2 py-6 lg:border-r-2',
             isOver && 'bg-primary/10',
           )}
         >
           <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
             <AddUnallocatedCourseDialog
-              getCourseOptions={getCourseOptions}
+              availableCourses={availableCourses}
+              excludedCourseIds={excludedCourseIds}
               disabled={disabled}
               dispatch={dispatch}
             />
@@ -597,6 +450,9 @@ const UnallocatedCoursesPanelContent = memo(
                 planningStart={planningStart}
                 disabled={disabled}
                 onOpenDetails={onOpenCourseDetails}
+                selected={selectedCourseIds.has(course.id)}
+                selectionMode={selectionMode}
+                onToggleSelection={onToggleCourseSelection}
                 prerequisiteResolver={prerequisiteResolver}
               />
             ))}
@@ -607,12 +463,6 @@ const UnallocatedCoursesPanelContent = memo(
             )}
           </div>
         </div>
-        <aside className="flex items-center justify-between bg-muted/45 p-2 text-sm lg:block lg:text-center">
-          <div>
-            <strong className="block text-lg">{credits}</strong>
-            <span className="text-muted-foreground">créditos</span>
-          </div>
-        </aside>
       </article>
     )
   },

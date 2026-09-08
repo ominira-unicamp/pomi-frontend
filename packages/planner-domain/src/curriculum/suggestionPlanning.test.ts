@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 
-import { planningFromSuggestion } from './suggestionPlanning'
+import {
+  planningFromSuggestion,
+  suggestionForAcademicSelection,
+} from './suggestionPlanning'
 import type { CurriculumSuggestion } from './suggestionPlanning'
 
 const suggestion: CurriculumSuggestion = {
@@ -59,5 +62,49 @@ describe('planningFromSuggestion', () => {
         { year: 2027, semester: 1, semesterNumber: 1 },
       ),
     ).toBeUndefined()
+  })
+})
+
+describe('suggestionForAcademicSelection', () => {
+  const general: CurriculumSuggestion = {
+    ...suggestion,
+    id: 'general',
+    type: 'GENERAL',
+  }
+  const preOption: CurriculumSuggestion = {
+    ...suggestion,
+    id: 'pre-option',
+    type: 'PRE_OPTION',
+  }
+  const specialization: CurriculumSuggestion = {
+    ...suggestion,
+    id: 'specialization',
+    type: 'SPECIALIZATION',
+    specialization: {
+      id: 'specialization-1' as never,
+      code: 'ESP',
+      name: 'Especialização',
+    },
+  }
+
+  it('uses the selected specialization before the general suggestion', () => {
+    expect(
+      suggestionForAcademicSelection(
+        [general, specialization],
+        'specialization-1',
+      ),
+    ).toBe(specialization)
+  })
+
+  it('uses the general suggestion when no specialization is selected', () => {
+    expect(
+      suggestionForAcademicSelection([preOption, general], undefined),
+    ).toBe(general)
+  })
+
+  it('falls back to the pre-option suggestion when it is the only compatible one', () => {
+    expect(suggestionForAcademicSelection([preOption], undefined)).toBe(
+      preOption,
+    )
   })
 })

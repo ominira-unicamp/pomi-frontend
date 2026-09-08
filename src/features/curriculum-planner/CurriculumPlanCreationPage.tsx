@@ -1,16 +1,14 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Upload } from 'lucide-react'
 
-import { planningFromSuggestion } from '@pomi/planner-domain/curriculum'
 import {
-  parsePlanning,
-  resolvePlanningImport,
-} from '@pomi/planner-domain/transfer'
+  planningFromSuggestion,
+  suggestionForAcademicSelection,
+} from '@pomi/planner-domain/curriculum'
 import type {
   CatalogProgramId,
-  CurriculumPlannerImport,
+  CourseId,
   CurriculumPlannerState,
   CurriculumPlannerStaticData,
   PlannerRevision,
@@ -34,11 +32,20 @@ import { InitialAcademicSelectionFields } from '@/features/planning-shared/compo
 import { persistCurriculumState } from '@/features/curriculum-planner/data/curriculumPersistenceAdapter'
 import { curriculumDraftBootstrapKey } from '@/features/planning-shared/data/planningDraftBootstrap'
 import { loadCurriculumSuggestions } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
-import { ensureCurrentStudent } from '@/features/student/data/studentApi'
+import {
+  ensureCurrentStudent,
+  isApprovedStudentCourseAttempt,
+  listStudentCourseAttempts,
+} from '@/features/student/data/studentApi'
+import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
 import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
-import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
+import {
+  privateQueryKeys,
+  publicQueryKeys,
+} from '@/integrations/tanstack-query/queryKeys'
 
-const steps = ['Identificação', 'Base acadêmica', 'Revisão']
+const steps = ['Base acadêmica', 'Identificação', 'Revisão']
+const currentYear = new Date().getFullYear()
 const semesterOptions = [
   { value: '1', label: '1º semestre' },
   { value: '2', label: '2º semestre' },
@@ -48,25 +55,26 @@ export function CurriculumPlanCreationPage() {
   const auth = useOptionalAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { profileQuery } = useStudentProfile()
+  const { profileQuery, studentId } = useStudentProfile()
   const [step, setStep] = useState(0)
   const [name, setName] = useState('Meu planejamento')
   const [semesterNumber, setSemesterNumber] = useState(1)
-  const [year, setYear] = useState(new Date().getFullYear())
+  const [year, setYear] = useState(currentYear)
   const [semester, setSemester] = useState('1')
   const [selection, setSelection] = useState<InitialAcademicSelection>({
     catalogId: '',
+    programId: '',
     catalogProgramId: '',
     specializationId: '',
     languageId: '',
   })
-  const [source, setSource] = useState<'blank' | 'suggestion'>('blank')
-  const [suggestionId, setSuggestionId] = useState('')
+  const [source, setSource] = useState<'blank' | 'suggestion' | 'history'>(
+    'blank',
+  )
   const [error, setError] = useState<string>()
   const [submitting, setSubmitting] = useState(false)
-  const [importedState, setImportedState] = useState<CurriculumPlannerState>()
-  const importInputRef = useRef<HTMLInputElement>(null)
   const profileSelectionInitialized = useRef(false)
+  const planningStartTouched = useRef(false)
   const staticQuery = useQuery({
     queryKey: publicQueryKeys.curriculumCatalog(),
     queryFn: async () => {
@@ -76,6 +84,36 @@ export function CurriculumPlanCreationPage() {
     },
     staleTime: Infinity,
   })
+  const sessionSubject = auth.sessionSubject ?? 'anonymous-session'
+  const historyStudentId = studentId ?? undefined
+  const attemptsQuery = useQuery({
+    queryKey: privateQueryKeys.courseAttempts(sessionSubject, historyStudentId),
+    queryFn: () =>
+      listStudentCourseAttempts(historyStudentId!, auth.getAccessToken),
+    enabled: auth.isAuthenticated && Boolean(historyStudentId),
+  })
+  const historyAttempts = useMemo(
+    () =>
+      (attemptsQuery.data ?? []).filter(
+        (attempt) =>
+          isApprovedStudentCourseAttempt(attempt) ||
+          attempt.status === 'ENROLLED',
+      ),
+    [attemptsQuery.data],
+  )
+  const completedCourseIds = useMemo(
+    () =>
+      [
+        ...new Set(
+          historyAttempts
+            .filter(isApprovedStudentCourseAttempt)
+            .map((attempt) => String(attempt.courseId)),
+        ),
+      ].map((courseId) => courseId as CourseId),
+    [historyAttempts],
+  )
+  const historyReady =
+    auth.isAuthenticated && Boolean(historyStudentId) && attemptsQuery.isSuccess
   const suggestionsQuery = useQuery({
     queryKey: publicQueryKeys.plannerCreationSuggestions(
       selection.catalogProgramId,
@@ -86,22 +124,22 @@ export function CurriculumPlanCreationPage() {
     retry: false,
   })
   const suggestions = suggestionsQuery.data ?? []
-  const suggestion = suggestions.find((item) => item.id === suggestionId)
-
-  useEffect(() => {
-    if (suggestions.length === 1) setSuggestionId(suggestions[0].id)
-    else if (!suggestions.some((item) => item.id === suggestionId))
-      setSuggestionId('')
-  }, [suggestionId, suggestions])
+  const suggestion = suggestionForAcademicSelection(
+    suggestions,
+    selection.specializationId || undefined,
+  )
+  const selectedCatalogYear = staticQuery.data?.catalogPrograms.find(
+    (item) => item.catalog.id === selection.catalogId,
+  )?.catalog.year
+  const historyStart =
+    source === 'history' ? earliestHistoryPeriod(historyAttempts) : undefined
+  const defaultPlanningYear =
+    historyStart?.year ?? selectedCatalogYear ?? currentYear
+  const defaultPlanningSemester = historyStart?.semester ?? 1
 
   useEffect(() => {
     const profile = profileQuery.data
-    if (
-      profileSelectionInitialized.current ||
-      !profile ||
-      importedState ||
-      !staticQuery.data
-    )
+    if (profileSelectionInitialized.current || !profile || !staticQuery.data)
       return
     profileSelectionInitialized.current = true
     const catalogProgram = staticQuery.data.catalogPrograms.find(
@@ -112,6 +150,7 @@ export function CurriculumPlanCreationPage() {
     if (!catalogProgram) return
     setSelection({
       catalogId: catalogProgram.catalog.id,
+      programId: catalogProgram.program.id,
       catalogProgramId: catalogProgram.id,
       specializationId: catalogProgram.specializations.some(
         (item) => Number(item.id) === profile.specializationId,
@@ -124,7 +163,13 @@ export function CurriculumPlanCreationPage() {
         ? String(profile.languageId)
         : '',
     })
-  }, [importedState, profileQuery.data, staticQuery.data])
+  }, [profileQuery.data, staticQuery.data])
+
+  useEffect(() => {
+    if (planningStartTouched.current) return
+    setYear(defaultPlanningYear)
+    setSemester(String(defaultPlanningSemester))
+  }, [defaultPlanningSemester, defaultPlanningYear])
 
   const generatedState = useMemo(
     () =>
@@ -134,11 +179,22 @@ export function CurriculumPlanCreationPage() {
         semesterNumber,
         selection,
         suggestion: source === 'suggestion' ? suggestion : undefined,
+        completedCourseIds: source === 'history' ? completedCourseIds : [],
+        historyAttempts: source === 'history' ? historyAttempts : [],
       }),
-    [semester, semesterNumber, selection, source, suggestion, year],
+    [
+      completedCourseIds,
+      historyAttempts,
+      semester,
+      semesterNumber,
+      selection,
+      source,
+      suggestion,
+      year,
+    ],
   )
-  const state = importedState ?? generatedState
-  const validFirstStep =
+  const state = generatedState
+  const validIdentificationStep =
     Boolean(name.trim()) &&
     Number.isInteger(year) &&
     year >= 1900 &&
@@ -147,7 +203,31 @@ export function CurriculumPlanCreationPage() {
     semesterNumber > 0 &&
     (semester === '1' || semester === '2')
   const validAcademicStep =
-    source === 'blank' || Boolean(selection.catalogProgramId && suggestion)
+    source === 'blank'
+      ? true
+      : source === 'history'
+        ? historyReady
+        : Boolean(selection.catalogProgramId && suggestion)
+  const suggestionRequirementMessage =
+    source !== 'suggestion'
+      ? undefined
+      : !selection.programId
+        ? 'Selecione um programa para usar uma sugestão curricular.'
+        : !selection.catalogId
+          ? 'Selecione um catálogo para usar uma sugestão curricular.'
+          : !selection.catalogProgramId
+            ? 'O catálogo selecionado não possui o programa escolhido.'
+            : suggestionsQuery.isLoading
+              ? 'Carregando sugestões curriculares...'
+              : suggestionsQuery.isError
+                ? 'Não foi possível carregar as sugestões curriculares.'
+                : suggestions.length === 0
+                  ? 'Não há sugestões curriculares disponíveis para o programa selecionado.'
+                  : !suggestion
+                    ? selection.specializationId
+                      ? 'Não foi possível deduzir uma sugestão para a habilitação selecionada.'
+                      : 'Não foi possível deduzir uma sugestão para a base acadêmica selecionada.'
+                    : undefined
 
   async function submit() {
     setSubmitting(true)
@@ -164,14 +244,14 @@ export function CurriculumPlanCreationPage() {
         })
         return
       }
-      const studentId = await ensureCurrentStudent(
+      const createdStudentId = await ensureCurrentStudent(
         String(
           auth.profile?.name ?? auth.profile?.preferred_username ?? 'Estudante',
         ),
         auth.getAccessToken,
       )
       const document = await persistCurriculumState({
-        studentId,
+        studentId: createdStudentId,
         state,
         name: name.trim(),
         getAccessToken: auth.getAccessToken,
@@ -186,40 +266,6 @@ export function CurriculumPlanCreationPage() {
       )
     } finally {
       setSubmitting(false)
-    }
-  }
-
-  async function importPlanning(file: File | undefined) {
-    if (!file || !staticQuery.data) return
-    try {
-      if (file.size > 2 * 1024 * 1024) throw new Error('invalid')
-      const parsed = parsePlanning(JSON.parse(await file.text()))
-      if (!parsed) throw new Error('invalid')
-      const resolved = resolvePlanningImport(parsed, staticQuery.data)
-      setImportedState(stateFromImport(resolved.data))
-      if (resolved.name) setName(resolved.name)
-      const catalogProgram = staticQuery.data.catalogPrograms.find(
-        (item) => item.id === resolved.data.selection.catalogProgramId,
-      )
-      setSelection({
-        catalogId: catalogProgram?.catalog.id ?? '',
-        catalogProgramId: resolved.data.selection.catalogProgramId ?? '',
-        specializationId: resolved.data.selection.specializationId ?? '',
-        languageId: resolved.data.selection.languageId ?? '',
-      })
-      if (resolved.data.planningStart) {
-        setYear(resolved.data.planningStart.year)
-        setSemester(String(resolved.data.planningStart.semester))
-        setSemesterNumber(resolved.data.planningStart.semesterNumber ?? 1)
-      }
-      setError(undefined)
-      setStep(2)
-    } catch {
-      setError(
-        'Não foi possível importar o currículo. Verifique se o arquivo foi exportado pelo POMI.',
-      )
-    } finally {
-      if (importInputRef.current) importInputRef.current.value = ''
     }
   }
 
@@ -246,21 +292,6 @@ export function CurriculumPlanCreationPage() {
         title="Novo planejamento de currículo"
         description="Defina as informações iniciais. Todas as escolhas acadêmicas poderão ser ajustadas depois."
       />
-      <div className="-mt-4 mb-5 flex justify-end">
-        <input
-          ref={importInputRef}
-          className="hidden"
-          type="file"
-          accept="application/json,.json"
-          onChange={(event) => void importPlanning(event.target.files?.[0])}
-        />
-        <Button
-          variant="outline"
-          onClick={() => importInputRef.current?.click()}
-        >
-          <Upload /> Importar currículo
-        </Button>
-      </div>
       {error && (
         <p
           role="alert"
@@ -273,7 +304,11 @@ export function CurriculumPlanCreationPage() {
         step={step}
         steps={steps}
         canContinue={
-          step === 0 ? validFirstStep : step === 1 ? validAcademicStep : true
+          step === 0
+            ? validAcademicStep
+            : step === 1
+              ? validIdentificationStep
+              : true
         }
         isSubmitting={submitting}
         submitLabel={
@@ -285,7 +320,7 @@ export function CurriculumPlanCreationPage() {
           step < 2 ? setStep((current) => current + 1) : void submit()
         }
       >
-        {step === 0 && (
+        {step === 1 && (
           <div className="space-y-5">
             <StepTitle
               title="Identificação e início"
@@ -316,7 +351,10 @@ export function CurriculumPlanCreationPage() {
                 value={year}
                 min={1900}
                 max={9999}
-                onChange={setYear}
+                onChange={(value) => {
+                  planningStartTouched.current = true
+                  setYear(value)
+                }}
               />
               <label className="space-y-2 text-sm font-bold">
                 <span>Período</span>
@@ -325,7 +363,10 @@ export function CurriculumPlanCreationPage() {
                   value={semester}
                   options={semesterOptions}
                   placeholder="Escolha o período"
-                  onValueChange={setSemester}
+                  onValueChange={(value) => {
+                    planningStartTouched.current = true
+                    setSemester(value)
+                  }}
                 />
                 <span className="block text-xs font-normal text-muted-foreground">
                   Primeiro ou segundo semestre letivo do ano.
@@ -334,7 +375,7 @@ export function CurriculumPlanCreationPage() {
             </div>
           </div>
         )}
-        {step === 1 && (
+        {step === 0 && (
           <div className="space-y-6">
             <StepTitle
               title="Base acadêmica"
@@ -346,12 +387,11 @@ export function CurriculumPlanCreationPage() {
               onChange={(next) => {
                 profileSelectionInitialized.current = true
                 setSelection(next)
-                setSuggestionId('')
               }}
             />
             <div className="space-y-3 border-t border-strong-border/30 pt-5">
               <h3 className="font-extrabold">Ponto de partida</h3>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-3">
                 <ChoiceButton
                   active={source === 'blank'}
                   title="Em branco"
@@ -361,37 +401,31 @@ export function CurriculumPlanCreationPage() {
                 <ChoiceButton
                   active={source === 'suggestion'}
                   title="Sugestão curricular"
-                  description="Distribui uma sugestão oficial de disciplinas, que continuará totalmente editável."
+                  description="Distribui automaticamente a sugestão compatível com a base acadêmica, que continuará totalmente editável."
                   onClick={() => setSource('suggestion')}
                 />
+                <ChoiceButton
+                  active={source === 'history'}
+                  title="Histórico do aluno"
+                  description={
+                    !auth.isAuthenticated
+                      ? 'Disponível somente para alunos autenticados.'
+                      : attemptsQuery.isError
+                        ? 'Não foi possível carregar o histórico acadêmico do aluno.'
+                        : !historyStudentId
+                          ? 'A conta ainda não possui um estudante associado.'
+                          : historyReady
+                            ? 'Usa as disciplinas do histórico escolar do aluno como já concluídas no planejamento.'
+                            : 'Carregando o histórico acadêmico do aluno.'
+                  }
+                  disabled={!historyReady}
+                  onClick={() => setSource('history')}
+                />
               </div>
-              {source === 'suggestion' && (
-                <label className="block space-y-2 text-sm font-bold">
-                  <span>Sugestão</span>
-                  <AutocompleteSelect
-                    ariaLabel="Sugestão inicial"
-                    value={suggestionId}
-                    disabled={
-                      !selection.catalogProgramId ||
-                      suggestionsQuery.isLoading ||
-                      suggestions.length === 1
-                    }
-                    options={suggestions.map((item) => ({
-                      value: item.id,
-                      label: `${item.code} — ${item.name}`,
-                    }))}
-                    placeholder={
-                      selection.catalogProgramId
-                        ? 'Escolha a sugestão'
-                        : 'Escolha catálogo e programa primeiro'
-                    }
-                    onValueChange={setSuggestionId}
-                  />
-                  <span className="block text-xs font-normal text-muted-foreground">
-                    A sugestão organiza disciplinas por semestre, sem impedir
-                    alterações posteriores.
-                  </span>
-                </label>
+              {suggestionRequirementMessage && (
+                <p role="status" className="text-sm text-muted-foreground">
+                  {suggestionRequirementMessage}
+                </p>
               )}
             </div>
           </div>
@@ -415,23 +449,33 @@ export function CurriculumPlanCreationPage() {
   )
 }
 
-function buildInitialState({
+export function buildInitialState({
   year,
   semester,
   semesterNumber,
   selection,
   suggestion,
+  completedCourseIds,
+  historyAttempts,
 }: {
   year: number
   semester: 1 | 2
   semesterNumber: number
   selection: InitialAcademicSelection
   suggestion?: Awaited<ReturnType<typeof loadCurriculumSuggestions>>[number]
+  completedCourseIds: ReadonlyArray<CourseId>
+  historyAttempts: ReadonlyArray<StudentCourseAttempt>
 }): CurriculumPlannerState {
   const planningStart = { year, semester, semesterNumber }
   const suggested = suggestion
     ? planningFromSuggestion(suggestion, planningStart)
     : undefined
+  const historyPeriods = periodsFromStudentHistory(
+    historyAttempts,
+    planningStart,
+  )
+  const initialPeriods =
+    suggested?.periods.map((period) => period.courses) ?? historyPeriods
   return {
     revision: crypto.randomUUID() as PlannerRevision,
     selection: {
@@ -447,43 +491,107 @@ function buildInitialState({
     },
     plan: {
       planningStart,
-      periods:
-        suggested?.periods.map((period) => ({
-          id: crypto.randomUUID() as PlanningPeriodId,
-          items: period.courses.map((courseId) => ({
-            type: 'course' as const,
-            courseId,
-          })),
-        })) ?? [],
+      periods: initialPeriods.map((courses) => ({
+        id: crypto.randomUUID() as PlanningPeriodId,
+        items: courses.map((courseId) => ({
+          type: 'course' as const,
+          courseId,
+        })),
+      })),
       unallocatedCourseIds: [],
     },
-    academicRecord: { completedCourses: [] },
+    academicRecord: {
+      completedCourses: completedCourseIds.map((courseId) => ({ courseId })),
+    },
   }
 }
 
-function stateFromImport(
-  data: CurriculumPlannerImport,
-): CurriculumPlannerState {
-  const periods = data.periods.map((period) => ({
-    id: crypto.randomUUID() as PlanningPeriodId,
-    items: period.courses.map((courseId) => ({
-      type: 'course' as const,
-      courseId,
-    })),
-  }))
-  return {
-    revision: crypto.randomUUID() as PlannerRevision,
-    selection: data.selection,
-    plan: {
-      planningStart: data.planningStart,
-      currentPeriodId: data.currentPeriodPosition
-        ? periods[data.currentPeriodPosition - 1]?.id
-        : undefined,
-      periods,
-      unallocatedCourseIds: data.unallocatedCourses ?? [],
-    },
-    academicRecord: { completedCourses: [] },
+function periodsFromStudentHistory(
+  attempts: ReadonlyArray<StudentCourseAttempt>,
+  planningStart: NonNullable<CurriculumPlannerState['plan']['planningStart']>,
+): ReadonlyArray<ReadonlyArray<CourseId>> {
+  const seenCourseIds = new Set<CourseId>()
+  const withoutPeriod: CourseId[] = []
+  const grouped = new Map<
+    string,
+    { year: number; yearPeriod: string; courseIds: CourseId[] }
+  >()
+
+  for (const attempt of attempts) {
+    const courseId = String(attempt.courseId) as CourseId
+    if (seenCourseIds.has(courseId)) continue
+    seenCourseIds.add(courseId)
+    const period = attempt.studyPeriod
+    if (!period) {
+      withoutPeriod.push(courseId)
+      continue
+    }
+    const key = `${period.year}:${period.yearPeriod}`
+    const group = grouped.get(key) ?? {
+      year: period.year,
+      yearPeriod: period.yearPeriod,
+      courseIds: [],
+    }
+    group.courseIds.push(courseId)
+    grouped.set(key, group)
   }
+
+  const periods = [...grouped.values()].sort(
+    (left, right) =>
+      left.year - right.year ||
+      historyPeriodOrder(left.yearPeriod) -
+        historyPeriodOrder(right.yearPeriod),
+  )
+  const alignedPeriods: Array<ReadonlyArray<CourseId>> = []
+  let lastCalendarPeriod = planningStart.year * 2 + planningStart.semester - 2
+  for (const period of periods) {
+    const calendarPeriod = historyCalendarPeriodIndex(
+      period.year,
+      period.yearPeriod,
+    )
+    if (calendarPeriod !== undefined) {
+      const emptyPeriods = calendarPeriod - lastCalendarPeriod - 1
+      for (let index = 0; index < emptyPeriods; index += 1)
+        alignedPeriods.push([])
+      lastCalendarPeriod = Math.max(lastCalendarPeriod, calendarPeriod)
+    }
+    alignedPeriods.push(period.courseIds)
+  }
+  return [...(withoutPeriod.length ? [withoutPeriod] : []), ...alignedPeriods]
+}
+
+function historyCalendarPeriodIndex(year: number, yearPeriod: string) {
+  if (yearPeriod === 'FIRST_SEMESTER') return year * 2
+  if (yearPeriod === 'SECOND_SEMESTER') return year * 2 + 1
+  return undefined
+}
+
+function historyPeriodOrder(yearPeriod: string) {
+  return (
+    {
+      SUMMER: 0,
+      FIRST_SEMESTER: 1,
+      WINTER: 2,
+      SECOND_SEMESTER: 3,
+    }[yearPeriod] ?? 4
+  )
+}
+
+function earliestHistoryPeriod(attempts: ReadonlyArray<StudentCourseAttempt>) {
+  const period = attempts
+    .map((attempt) => attempt.studyPeriod)
+    .filter((value): value is NonNullable<typeof value> => Boolean(value))
+    .sort(
+      (left, right) =>
+        left.year - right.year ||
+        historyPeriodOrder(left.yearPeriod) -
+          historyPeriodOrder(right.yearPeriod),
+    )[0]
+  if (!period) return undefined
+  return {
+    year: period.year,
+    semester: period.yearPeriod === 'SECOND_SEMESTER' ? 2 : 1,
+  } as const
 }
 
 function StepTitle({
@@ -537,17 +645,20 @@ function ChoiceButton({
   active,
   title,
   description,
+  disabled = false,
   onClick,
 }: {
   active: boolean
   title: string
   description: string
+  disabled?: boolean
   onClick: () => void
 }) {
   return (
     <Button
       type="button"
       variant={active ? 'default' : 'outline'}
+      disabled={disabled}
       className="h-auto items-start justify-start whitespace-normal p-4 text-left"
       onClick={onClick}
     >
@@ -575,7 +686,7 @@ function CurriculumReview({
   semesterNumber: number
   selection: InitialAcademicSelection
   staticData: CurriculumPlannerStaticData
-  source: 'blank' | 'suggestion'
+  source: 'blank' | 'suggestion' | 'history'
   suggestionLabel?: string
 }) {
   const selected = staticData.catalogPrograms.find(
@@ -604,7 +715,9 @@ function CurriculumReview({
       'Ponto de partida',
       source === 'suggestion'
         ? (suggestionLabel ?? 'Sugestão curricular')
-        : 'Em branco',
+        : source === 'history'
+          ? 'Histórico escolar do aluno'
+          : 'Em branco',
     ],
   ]
   return (

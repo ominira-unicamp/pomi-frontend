@@ -5,18 +5,13 @@ import {
   GraduationCap,
   Plus,
   Star,
-  Upload,
 } from 'lucide-react'
-import type { ChangeEvent, RefObject } from 'react'
-import type { ResolvedPlanningImport } from '@pomi/planner-domain/transfer'
 
 import type { CurriculumPlannerContextValue } from '@/features/curriculum-planner/CurriculumPlannerProvider'
 import { EmptyState, PageContainer, PageHeader } from '@/components/PageLayout'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ActionTooltip } from '@/features/curriculum-planner/components/ActionTooltip'
-import { PlanningImportReviewDialog } from '@/features/curriculum-planner/components/PlanningImportReviewDialog'
 import {
   curriculumSummaryDetails,
   curriculumUpdatedAtLabel,
@@ -24,30 +19,10 @@ import {
 
 export function CurriculumPlanningSelection({
   planner,
-  importInputRef,
-  pendingImport,
-  importError,
-  selectionError,
-  onImport,
-  onConfirmImport,
-  onDismissImport,
-  onStartImport,
 }: {
   planner: CurriculumPlannerContextValue
-  importInputRef: RefObject<HTMLInputElement | null>
-  pendingImport?: ResolvedPlanningImport
-  importError?: 'parse' | 'dispatch'
-  selectionError: boolean
-  onImport: (file?: File) => void
-  onConfirmImport: () => void
-  onDismissImport: () => void
-  onStartImport: () => void
 }) {
   const navigate = useNavigate()
-  const handleFile = (event: ChangeEvent<HTMLInputElement>) => {
-    onImport(event.target.files?.[0])
-    event.target.value = ''
-  }
 
   return (
     <PageContainer>
@@ -57,15 +32,10 @@ export function CurriculumPlanningSelection({
         description={
           planner.isAuthenticated
             ? 'Organize sua trajetória acadêmica, período a período.'
-            : 'Comece um rascunho nesta sessão ou importe um currículo existente.'
+            : 'Comece um rascunho nesta sessão e organize sua trajetória acadêmica.'
         }
         actions={
           <>
-            <ActionTooltip content="Importe um currículo salvo em um arquivo JSON.">
-              <Button variant="outline" onClick={onStartImport}>
-                <Upload /> Importar currículo
-              </Button>
-            </ActionTooltip>
             <ActionTooltip
               content={
                 planner.isAuthenticated
@@ -201,40 +171,8 @@ export function CurriculumPlanningSelection({
       {!planner.isAuthenticated && (
         <EmptyState
           title="Comece um rascunho"
-          description="Você pode planejar nesta sessão ou importar um currículo para retomar o trabalho depois."
+          description="Você pode planejar nesta sessão e organizar os próximos semestres."
         />
-      )}
-      <input
-        ref={importInputRef}
-        className="hidden"
-        type="file"
-        accept="application/json"
-        onChange={handleFile}
-      />
-      <PlanningImportReviewDialog
-        disabled={planner.isDispatching}
-        importResult={pendingImport}
-        onConfirm={onConfirmImport}
-        onOpenChange={(open) => {
-          if (!open) onDismissImport()
-        }}
-      />
-      {importError && (
-        <Alert className="mt-6" variant="destructive">
-          <AlertTitle>Não foi possível importar</AlertTitle>
-          <AlertDescription>
-            O arquivo não é um currículo válido ou é incompatível com os dados
-            atuais.
-          </AlertDescription>
-        </Alert>
-      )}
-      {selectionError && (
-        <Alert className="mt-6" variant="destructive">
-          <AlertTitle>Não foi possível criar o planejamento</AlertTitle>
-          <AlertDescription>
-            {planner.actionError ?? 'Verifique sua sessão e tente novamente.'}
-          </AlertDescription>
-        </Alert>
       )}
     </PageContainer>
   )

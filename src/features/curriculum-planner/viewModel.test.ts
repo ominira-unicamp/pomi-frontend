@@ -43,13 +43,21 @@ const snapshot = {
 } satisfies CurriculumPlannerSnapshot
 
 describe('buildPlannerViewModel', () => {
-  it('indexes courses once and displays planned completed courses only in their semester', () => {
+  it('indexes courses once and keeps completed courses out of unallocated courses', () => {
     const view = buildPlannerViewModel(staticData, snapshot)
     expect(view.semesters[0]).toMatchObject({ credits: 6, current: true })
     expect(view.semesters[0]?.courses[0]).toMatchObject({ completed: true })
-    expect(view.completedCourses.map((course) => course.id)).toEqual([
-      'completed',
-    ])
-    expect(view.completedCredits).toBe(6)
+    expect(view.unallocatedCourses).toEqual([])
+    expect(view.unallocatedCredits).toBe(0)
+  })
+
+  it('does not treat completed courses as unallocated after state normalization', () => {
+    const view = buildPlannerViewModel(staticData, {
+      ...snapshot,
+      plan: { ...snapshot.plan, unallocatedCourseIds: [] },
+    })
+
+    expect(view.unallocatedCourses).toEqual([])
+    expect(view.unallocatedCredits).toBe(0)
   })
 })

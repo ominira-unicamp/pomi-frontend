@@ -16,8 +16,8 @@ export type SemesterViewModel = Readonly<{
 export type PlannerViewModel = Readonly<{
   periods: ReadonlyArray<PlanningPeriod>
   semesters: ReadonlyArray<SemesterViewModel>
-  completedCourses: ReadonlyArray<Course>
-  completedCredits: number
+  unallocatedCourses: ReadonlyArray<Course>
+  unallocatedCredits: number
 }>
 
 export function buildPlannerViewModel(
@@ -31,11 +31,6 @@ export function buildPlannerViewModel(
     snapshot.academicRecord.completedCourses.map((course) => course.courseId),
   )
   const unallocatedIds = new Set(snapshot.plan.unallocatedCourseIds ?? [])
-  const plannedIds = new Set(
-    snapshot.plan.periods.flatMap((period) =>
-      period.items.map((item) => item.courseId),
-    ),
-  )
   const semesters = snapshot.plan.periods.map((period) => {
     const courses = period.items.flatMap((item) => {
       const course = courseById.get(item.courseId)
@@ -59,16 +54,14 @@ export function buildPlannerViewModel(
       current: snapshot.plan.currentPeriodId === period.id,
     }
   })
-  const completedCourses = staticData.courses.filter((course) =>
-    snapshot.plan.unallocatedCourseIds
-      ? unallocatedIds.has(course.id)
-      : completedIds.has(course.id) && !plannedIds.has(course.id),
+  const unallocatedCourses = staticData.courses.filter((course) =>
+    unallocatedIds.has(course.id),
   )
   return {
     periods: snapshot.plan.periods,
     semesters,
-    completedCourses,
-    completedCredits: completedCourses.reduce(
+    unallocatedCourses,
+    unallocatedCredits: unallocatedCourses.reduce(
       (total, course) => total + course.credits,
       0,
     ),

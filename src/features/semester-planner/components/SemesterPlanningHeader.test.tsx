@@ -29,7 +29,6 @@ function renderHeader(studyPeriodLocked = false) {
       studyPeriods={periods}
       guideMode="none"
       isSaving={false}
-      importInputRef={{ current: null }}
       onPeriodChange={onPeriodChange}
       onGuideModeChange={vi.fn()}
       onConfigureGuide={vi.fn()}
@@ -37,8 +36,6 @@ function renderHeader(studyPeriodLocked = false) {
       onConfigureVisibility={vi.fn()}
       onOpenSaveDraft={vi.fn()}
       onRename={vi.fn()}
-      onExport={vi.fn()}
-      onImport={vi.fn()}
       onRemove={vi.fn()}
     />,
   )
@@ -58,5 +55,12 @@ describe('SemesterPlanningHeader', () => {
     renderHeader(true)
     expect(screen.queryByLabelText('Período letivo')).toBeNull()
     expect(screen.getByText('2026s1')).toBeTruthy()
+  })
+
+  it('does not offer file import or export actions', () => {
+    renderHeader()
+    fireEvent.click(screen.getByRole('button', { name: /Ações/ }))
+    expect(screen.queryByText('Importar')).toBeNull()
+    expect(screen.queryByText('Exportar')).toBeNull()
   })
 })

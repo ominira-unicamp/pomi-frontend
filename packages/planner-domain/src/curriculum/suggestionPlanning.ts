@@ -49,6 +49,28 @@ export function compatibleSuggestions(
   )
 }
 
+export function suggestionForAcademicSelection(
+  suggestions: ReadonlyArray<CurriculumSuggestion>,
+  specializationId: string | undefined,
+) {
+  const compatible = compatibleSuggestions(suggestions, specializationId)
+  if (specializationId) {
+    return (
+      compatible.find(
+        (suggestion) =>
+          suggestion.type === 'SPECIALIZATION' &&
+          suggestion.specialization?.id === specializationId,
+      ) ??
+      compatible.find((suggestion) => suggestion.type === 'GENERAL') ??
+      compatible.find((suggestion) => suggestion.type === 'PRE_OPTION')
+    )
+  }
+  return (
+    compatible.find((suggestion) => suggestion.type === 'GENERAL') ??
+    compatible.find((suggestion) => suggestion.type === 'PRE_OPTION')
+  )
+}
+
 export function suggestionTypeLabel(type: CurriculumSuggestion['type']) {
   return {
     GENERAL: 'Geral',

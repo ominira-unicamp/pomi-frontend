@@ -65,9 +65,9 @@ const mealSlots: ReadonlyArray<
   readonly [DailyMeal['period'], DailyMeal['diet'], string]
 > = [
   ['LUNCH', 'TRADITIONAL', 'Almoço'],
-  ['LUNCH', 'VEGAN', 'Almoço'],
+  ['LUNCH', 'VEGAN', 'Almoço vegano'],
   ['DINNER', 'TRADITIONAL', 'Jantar'],
-  ['DINNER', 'VEGAN', 'Jantar'],
+  ['DINNER', 'VEGAN', 'Jantar vegano'],
 ]
 
 function classStatus(

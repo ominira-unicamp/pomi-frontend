@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { Rows3, Table2 } from 'lucide-react'
 import { memo, useMemo, useState } from 'react'
 
 import {
@@ -6,99 +6,168 @@ import {
   calculateElectiveCreditsBalances,
   curriculumAvailabilityKey,
 } from '@pomi/planner-domain/curriculum'
-import { CompactCourseCard } from './CourseCard'
+import { CurriculumBlockCourses } from './CurriculumBlockCourses'
+import { CourseSearchDialog } from './CourseSearchDialog'
 import type {
   CourseId,
-  CurriculumBlockView,
   CurriculumPlannerSnapshot,
   CurriculumPlannerStaticData,
+  ElectiveCreditsRequirement,
   PlanningPeriod,
 } from '@pomi/planner-domain/curriculum'
+import type { PlannerDispatch } from '@/features/curriculum-planner/types'
 import { Button } from '@/components/ui/button'
-import { ActionTooltip } from '@/features/curriculum-planner/components/ActionTooltip'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 const emptyPeriods: ReadonlyArray<PlanningPeriod> = []
 
-const CurriculumBlock = memo(function CurriculumBlock({
-  block,
-  groupId,
-  periods,
-  planningStart,
+function roman(value: number) {
+  return ['I', 'II', 'III', 'IV', 'V', 'VI'][value - 1] ?? String(value)
+}
+
+function RequirementHeading({
+  title,
+  subtitle,
+  requiredCredits,
   remainingCredits,
-  disabled,
-  onOpenCourseDetails,
 }: {
-  block: CurriculumBlockView
-  groupId: string
-  periods: ReadonlyArray<PlanningPeriod>
-  planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
+  title: string
+  subtitle?: string
+  requiredCredits?: number
   remainingCredits?: number
-  disabled: boolean
-  onOpenCourseDetails: (courseId: CourseId) => void
 }) {
-  const visibleCourses = block.courses
   return (
-    <section className="rounded-md border-2 border-border bg-background/60 p-3">
-      <div className="mb-3">
-        <h4 className="text-sm font-extrabold">{block.title}</h4>
-        {block.requiredCredits !== undefined && (
-          <p className="text-xs text-muted-foreground">
-            Exigência: {block.requiredCredits} créditos · Faltam:{' '}
-            {remainingCredits ?? block.requiredCredits} créditos
-          </p>
-        )}
-      </div>
-      {block.selectorLabels.length > 0 && (
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <span className="text-xs font-bold text-muted-foreground">
-            Elegíveis:
-          </span>
-          {block.selectorLabels.map((label) => (
-            <span
-              key={label}
-              className="rounded-sm border-2 border-strong-border bg-muted px-2 py-1 font-mono text-xs font-black"
-            >
-              {label}
-            </span>
-          ))}
-        </div>
-      )}
-      {visibleCourses.length ? (
-        <div className="flex flex-wrap gap-2">
-          {visibleCourses.map((state) => (
-            <CompactCourseCard
-              key={`${block.id}:${state.course.id}`}
-              dragId={`block:${groupId}:${block.id}:course:${state.course.id}`}
-              state={state}
-              periods={periods}
-              planningStart={planningStart}
-              disabled={disabled}
-              onOpenDetails={onOpenCourseDetails}
-            />
-          ))}
-        </div>
-      ) : !block.selectorLabels.length ? (
-        <p className="text-sm text-muted-foreground">
-          Nenhuma disciplina não concluída neste bloco.
+    <div>
+      <h4 className="text-base font-extrabold">{title}</h4>
+      {subtitle ? (
+        <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+      ) : requiredCredits !== undefined ? (
+        <p className="text-xs text-muted-foreground">
+          Exigência: {requiredCredits} créditos · Faltam:{' '}
+          {remainingCredits ?? requiredCredits} créditos
         </p>
       ) : null}
-    </section>
+    </div>
   )
-})
+}
+
+function CurriculumGroupBlocks({
+  group,
+  view,
+  periods,
+  planningStart,
+  remainingCreditsByRequirement,
+  disabled,
+  onOpenCourseDetails,
+  onOpenCourseSearch,
+  selectedCourseIds,
+  selectionMode,
+  onToggleCourseSelection,
+}: {
+  group: ReturnType<typeof buildCurriculumGroups>[number]
+  view: 'snip' | 'table'
+  periods: ReadonlyArray<PlanningPeriod>
+  planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
+  remainingCreditsByRequirement: ReadonlyMap<ElectiveCreditsRequirement, number>
+  disabled: boolean
+  onOpenCourseDetails: (courseId: CourseId) => void
+  onOpenCourseSearch: (prefix?: string) => void
+  selectedCourseIds: ReadonlySet<CourseId>
+  selectionMode: boolean
+  onToggleCourseSelection: (courseId: CourseId) => void
+}) {
+  return (
+    <div className="space-y-6">
+      {group.mandatory && (
+        <section className="space-y-3">
+          <RequirementHeading
+            title={
+              group.id === 'base'
+                ? 'Disciplinas obrigatórias'
+                : group.mandatory.title
+            }
+            requiredCredits={group.mandatory.requiredCredits}
+            remainingCredits={
+              group.mandatory.requirement
+                ? remainingCreditsByRequirement.get(group.mandatory.requirement)
+                : undefined
+            }
+          />
+          <CurriculumBlockCourses
+            block={group.mandatory}
+            groupId={group.id}
+            view={view}
+            periods={periods}
+            planningStart={planningStart}
+            disabled={disabled}
+            onOpenCourseDetails={onOpenCourseDetails}
+            onOpenCourseSearch={onOpenCourseSearch}
+            selectedCourseIds={selectedCourseIds}
+            selectionMode={selectionMode}
+            onToggleCourseSelection={onToggleCourseSelection}
+          />
+        </section>
+      )}
+      {group.electives.map((block, index) => (
+        <section key={block.id} className="space-y-3">
+          <RequirementHeading
+            title={
+              group.id === 'base'
+                ? `Disciplinas eletivas ${roman(index + 1)}`
+                : block.title
+            }
+            subtitle={
+              group.id === 'base'
+                ? `Obtenha ${block.requiredCredits} créditos dentre as opções abaixo.`
+                : undefined
+            }
+            requiredCredits={block.requiredCredits}
+            remainingCredits={
+              block.requirement
+                ? remainingCreditsByRequirement.get(block.requirement)
+                : undefined
+            }
+          />
+          <CurriculumBlockCourses
+            block={block}
+            groupId={group.id}
+            view={view}
+            periods={periods}
+            planningStart={planningStart}
+            disabled={disabled}
+            onOpenCourseDetails={onOpenCourseDetails}
+            onOpenCourseSearch={onOpenCourseSearch}
+            selectedCourseIds={selectedCourseIds}
+            selectionMode={selectionMode}
+            onToggleCourseSelection={onToggleCourseSelection}
+          />
+        </section>
+      ))}
+    </div>
+  )
+}
 
 export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
   staticData,
   snapshot,
   disabled,
+  dispatch,
   onOpenCourseDetails,
+  selectedCourseIds,
+  selectionMode,
+  onToggleCourseSelection,
 }: {
   staticData: CurriculumPlannerStaticData
   snapshot: CurriculumPlannerSnapshot
   disabled: boolean
+  dispatch: PlannerDispatch
   onOpenCourseDetails: (courseId: CourseId) => void
+  selectedCourseIds: ReadonlySet<CourseId>
+  selectionMode: boolean
+  onToggleCourseSelection: (courseId: CourseId) => void
 }) {
-  const [collapsed, setCollapsed] = useState(false)
+  const [baseView, setBaseView] = useState<'snip' | 'table'>('snip')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [searchPrefix, setSearchPrefix] = useState<string>()
   const availabilityKey = curriculumAvailabilityKey(snapshot)
   const groups = useMemo(
     () => buildCurriculumGroups(staticData, snapshot),
@@ -143,84 +212,95 @@ export const CurriculumBlocksPanel = memo(function CurriculumBlocksPanel({
       group.electives.reduce((sum, block) => sum + block.courses.length, 0),
     0,
   )
+  const openCourseSearch = (prefix?: string) => {
+    setSearchPrefix(prefix)
+    setSearchOpen(true)
+  }
   return (
-    <Card className="mb-7 overflow-hidden shadow-none">
-      <CardHeader className="flex-row items-center justify-between gap-4 p-4">
+    <section aria-labelledby="curriculum-blocks-title">
+      <div className="flex flex-row items-center justify-between gap-4 p-4">
         <div>
-          <CardTitle className="text-lg">Blocos da grade</CardTitle>
+          <h2 id="curriculum-blocks-title" className="text-lg font-extrabold">
+            Blocos da grade
+          </h2>
           <p className="text-sm text-muted-foreground">
             {count} disciplinas não concluídas
           </p>
         </div>
-        <ActionTooltip
-          content={
-            collapsed
-              ? 'Mostre as disciplinas organizadas por bloco curricular.'
-              : 'Oculte a lista de blocos curriculares.'
-          }
-        >
-          <Button
-            size="sm"
-            variant="ghost"
-            aria-expanded={!collapsed}
-            onClick={() => setCollapsed((value) => !value)}
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <div
+            className="flex rounded-md border-2 border-border p-0.5"
+            role="group"
+            aria-label="Visualização da base curricular"
           >
-            {collapsed ? <ChevronDown /> : <ChevronUp />}
-            {collapsed ? 'Expandir' : 'Recolher'}
-          </Button>
-        </ActionTooltip>
-      </CardHeader>
-      {!collapsed && (
-        <CardContent className="border-t-2 border-border p-4">
-          <div className="max-h-[30rem] space-y-5 overflow-y-auto pr-1">
-            {groups.map((group) => (
-              <section key={group.id} aria-labelledby={`group-${group.id}`}>
-                <h3
-                  id={`group-${group.id}`}
-                  className="mb-3 border-b-2 border-primary pb-2 text-sm font-black tracking-[0.08em] uppercase"
-                >
-                  {group.title}
-                </h3>
-                <div className="space-y-3">
-                  {group.mandatory && (
-                    <CurriculumBlock
-                      block={group.mandatory}
-                      groupId={group.id}
-                      periods={emptyPeriods}
-                      planningStart={undefined}
-                      remainingCredits={
-                        group.mandatory.requirement
-                          ? remainingCreditsByRequirement.get(
-                              group.mandatory.requirement,
-                            )
-                          : undefined
-                      }
-                      disabled={disabled}
-                      onOpenCourseDetails={onOpenCourseDetails}
-                    />
-                  )}
-                  {group.electives.map((block) => (
-                    <CurriculumBlock
-                      key={block.id}
-                      block={block}
-                      groupId={group.id}
-                      periods={emptyPeriods}
-                      planningStart={undefined}
-                      remainingCredits={
-                        block.requirement
-                          ? remainingCreditsByRequirement.get(block.requirement)
-                          : undefined
-                      }
-                      disabled={disabled}
-                      onOpenCourseDetails={onOpenCourseDetails}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
+            <Button
+              size="sm"
+              className="shadow-none hover:shadow-none"
+              variant={baseView === 'snip' ? 'default' : 'ghost'}
+              aria-pressed={baseView === 'snip'}
+              onClick={() => setBaseView('snip')}
+            >
+              <Rows3 /> Snip
+            </Button>
+            <Button
+              size="sm"
+              className="shadow-none hover:shadow-none"
+              variant={baseView === 'table' ? 'default' : 'ghost'}
+              aria-pressed={baseView === 'table'}
+              onClick={() => setBaseView('table')}
+            >
+              <Table2 /> Tabela
+            </Button>
           </div>
-        </CardContent>
-      )}
-    </Card>
+        </div>
+      </div>
+      <div className="border-t-2 border-border p-4">
+        <div className="space-y-5">
+          {groups.map((group) => (
+            <section key={group.id} aria-labelledby={`group-${group.id}`}>
+              <h3
+                id={`group-${group.id}`}
+                className="mb-3 border-b-2 border-primary pb-2 text-sm font-black tracking-[0.08em] uppercase"
+              >
+                {group.title}
+              </h3>
+              <CurriculumGroupBlocks
+                group={group}
+                view={group.id === 'base' ? baseView : 'snip'}
+                periods={emptyPeriods}
+                planningStart={undefined}
+                remainingCreditsByRequirement={remainingCreditsByRequirement}
+                disabled={disabled}
+                onOpenCourseDetails={onOpenCourseDetails}
+                onOpenCourseSearch={openCourseSearch}
+                selectedCourseIds={selectedCourseIds}
+                selectionMode={selectionMode}
+                onToggleCourseSelection={onToggleCourseSelection}
+              />
+            </section>
+          ))}
+        </div>
+      </div>
+      <CourseSearchDialog
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        courses={staticData.courses}
+        excludedCourseIds={availableCourseIds}
+        initialPrefix={searchPrefix}
+        title={
+          searchPrefix ? `Adicionar disciplina ${searchPrefix}---` : undefined
+        }
+        description={
+          searchPrefix
+            ? `Escolha uma disciplina que atenda ao prefixo ${searchPrefix}---.`
+            : 'Escolha uma disciplina para adicionar como não alocada.'
+        }
+        searchLabel="Buscar disciplina para o planejamento"
+        disabled={disabled}
+        onAdd={(courseId) =>
+          dispatch({ type: 'addCourseToUnallocated', courseId })
+        }
+      />
+    </section>
   )
 })

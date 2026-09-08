@@ -306,6 +306,15 @@ export type CurriculumPlannerImport = Readonly<{
   unallocatedCourses?: ReadonlyArray<CourseId>
 }>
 
+export type CurriculumPlannerHistoryCourse = Readonly<{
+  courseId: CourseId
+  status: 'completed' | 'inProgress'
+  period?: Readonly<{
+    year: number
+    semester: 1 | 2
+  }>
+}>
+
 export type CurriculumPlannerCommand =
   | Readonly<{
       type: 'clearPlanning'
@@ -356,8 +365,21 @@ export type CurriculumPlannerCommand =
       periodId: PlanningPeriodId
     }>
   | Readonly<{
+      type: 'placeCoursesInPeriod'
+      courseIds: ReadonlyArray<CourseId>
+      periodId: PlanningPeriodId
+    }>
+  | Readonly<{
+      type: 'placeCoursesInUnallocated'
+      courseIds: ReadonlyArray<CourseId>
+    }>
+  | Readonly<{
       type: 'removeCourseFromPlan'
       courseId: CourseId
+    }>
+  | Readonly<{
+      type: 'removeCoursesFromPlan'
+      courseIds: ReadonlyArray<CourseId>
     }>
   | Readonly<{
       type: 'moveCourseToUnallocated'
@@ -380,6 +402,10 @@ export type CurriculumPlannerCommand =
   | Readonly<{
       type: 'importPlanning'
       data: CurriculumPlannerImport
+    }>
+  | Readonly<{
+      type: 'importStudentHistory'
+      courses: ReadonlyArray<CurriculumPlannerHistoryCourse>
     }>
 
 export interface CurriculumPlanner {

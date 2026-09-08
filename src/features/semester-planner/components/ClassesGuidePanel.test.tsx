@@ -68,4 +68,37 @@ describe('ClassesGuidePanel', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Adicionar' }))
     expect(screen.getByRole('button', { name: 'Adicionar' })).toBeTruthy()
   })
+
+  it('lists only guide-eligible disciplines in the discipline filter', () => {
+    render(
+      <ClassesGuidePanel
+        courses={[
+          { id: 1, code: 'MC102', name: 'Algoritmos', credits: 6 },
+          { id: 2, code: 'MA111', name: 'Cálculo', credits: 6 },
+        ]}
+        classes={[classItem]}
+        meetings={[]}
+        selectedClassIds={new Set()}
+        classFilterCourseId=""
+        classFilterStart=""
+        classFilterEnd=""
+        classFilterDays={[]}
+        guideClassContext={{ courseIds: new Set([1]), prefixes: [] }}
+        guideClassContextKey="eligible-course-1"
+        professorEvaluationSummaries={new Map()}
+        onCourseFilterChange={vi.fn()}
+        onStartChange={vi.fn()}
+        onEndChange={vi.fn()}
+        onDaysChange={vi.fn()}
+        onDispatch={vi.fn()}
+        onPreview={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Disciplina' }))
+    fireEvent.focus(screen.getByRole('combobox', { name: 'Filtrar turmas por disciplina' }))
+
+    expect(screen.getByText('MC102 — Algoritmos')).toBeTruthy()
+    expect(screen.queryByText('MA111 — Cálculo')).toBeNull()
+  })
 })

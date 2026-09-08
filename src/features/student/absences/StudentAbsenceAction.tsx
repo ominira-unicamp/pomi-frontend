@@ -86,7 +86,7 @@ export function StudentAbsenceAction({
             : 'Registrando...'
           : absence
             ? 'Falta registrada'
-            : 'Eu faltei'}
+            : 'Marcar falta'}
       </Button>
       {error && (
         <p

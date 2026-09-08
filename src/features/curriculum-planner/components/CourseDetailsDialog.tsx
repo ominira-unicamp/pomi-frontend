@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { periodReference } from '@pomi/planner-domain/curriculum'
 import type {
   Course,
   CoursePrerequisiteEvaluation,
@@ -17,9 +18,9 @@ import type {
 } from '@pomi/planner-domain/curriculum'
 import type { CoursePrerequisiteMenuState } from '@/features/curriculum-planner/components/CourseCard'
 import type { CurriculumPlannerContextValue } from '@/features/curriculum-planner/CurriculumPlannerProvider'
+import type { CatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
 import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
-import { Badge } from '@/components/patterns/Badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -28,35 +29,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import {
-  CatalogCourseAcademicCard,
-  CatalogCoursePrerequisites,
-  CatalogCourseSelector,
-  CatalogCourseSyllabus,
-  selectCatalog,
-} from '@/features/course-catalog/CatalogCourseDetails'
-import { listCatalogCourses } from '@/features/course-catalog/data/courseCatalogApi'
+import { CatalogCourseDetailsContent } from '@/features/course-catalog/CatalogCourseDetailsContent'
+import { getCatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
 import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
-import { labelForStatus } from '@/features/course-situation/model/model'
-import {
-  isApprovedStudentCourseAttempt,
-  listStudyPeriods,
-} from '@/features/student/data/studentApi'
+import { isApprovedStudentCourseAttempt } from '@/features/student/data/studentApi'
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
-import { mostRecentStudyPeriodsFirst } from '@/features/student/data/studyPeriodOrdering'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 const outsideValue = '__outside__'
 const unallocatedValue = '__unallocated__'
-
-type CourseDetailsTab = 'planning' | 'academic' | 'history'
 
 function useDesktopLayout() {
   const [desktop, setDesktop] = useState(
@@ -107,23 +95,6 @@ function alternativeLabel(
   return alternative.items.map(prerequisiteItemLabel).join(' + ')
 }
 
-function plannedStudyPeriodReference(
-  plannedPeriodId: PlanningPeriodId | undefined,
-  periods: ReadonlyArray<PlanningPeriod>,
-  planningStart: CurriculumPlannerSnapshot['plan']['planningStart'],
-) {
-  if (!plannedPeriodId || !planningStart) return undefined
-  const periodIndex = periods.findIndex(
-    (period) => period.id === plannedPeriodId,
-  )
-  if (periodIndex < 0) return undefined
-  const semesterOffset = planningStart.semester - 1 + periodIndex
-  return {
-    year: planningStart.year + Math.floor(semesterOffset / 2),
-    yearPeriod: semesterOffset % 2 === 0 ? 'FIRST_SEMESTER' : 'SECOND_SEMESTER',
-  } as const
-}
-
 function PrerequisitePlanningSection({
   course,
   prerequisites,
@@ -137,7 +108,7 @@ function PrerequisitePlanningSection({
     (alternative) => alternative.key === evaluation.selectedAlternativeKey,
   )
   return (
-    <section className="space-y-3 rounded-sm border-2 border-border p-4">
+    <section className="space-y-3 border-t-2 border-border pt-4">
       <div>
         <h3 className="font-extrabold">Situação no planejamento</h3>
         <p className="text-sm text-muted-foreground">
@@ -165,11 +136,11 @@ function PrerequisitePlanningSection({
         </p>
       )}
       {selected && (
-        <ul className="space-y-2">
+        <ul className="divide-y divide-border">
           {selected.items.map((item) => (
             <li
               key={`${selected.key}:${prerequisiteItemLabel(item)}`}
-              className="flex items-center justify-between gap-4 rounded-sm bg-muted/60 px-3 py-2 text-sm"
+              className="flex items-center justify-between gap-4 py-2 text-sm"
             >
               <span className="font-mono font-black">
                 {prerequisiteItemLabel(item)}
@@ -228,41 +199,6 @@ function PlanningSection({
   prerequisites,
   onRemoved,
 }: CourseDetailsDialogProps & { course: Course }) {
-  const [completionOpen, setCompletionOpen] = useState(false)
-  const [completedStudyPeriodId, setCompletedStudyPeriodId] = useState('')
-  const [completedGrade, setCompletedGrade] = useState('')
-  const [gradeError, setGradeError] = useState('')
-  const studyPeriodsQuery = useQuery({
-    queryKey: publicQueryKeys.studyPeriods(),
-    queryFn: listStudyPeriods,
-    staleTime: Infinity,
-    enabled: completionOpen,
-  })
-  useEffect(() => {
-    setCompletionOpen(false)
-    setCompletedStudyPeriodId('')
-    setCompletedGrade('')
-    setGradeError('')
-  }, [course.id])
-  const plannedStudyPeriod = plannedStudyPeriodReference(
-    plannedPeriodId,
-    periods,
-    planningStart,
-  )
-  useEffect(() => {
-    if (!completionOpen || completedStudyPeriodId || !plannedStudyPeriod) return
-    const matchingPeriod = studyPeriodsQuery.data?.find(
-      (period) =>
-        period.year === plannedStudyPeriod.year &&
-        period.yearPeriod === plannedStudyPeriod.yearPeriod,
-    )
-    if (matchingPeriod) setCompletedStudyPeriodId(String(matchingPeriod.id))
-  }, [
-    completedStudyPeriodId,
-    completionOpen,
-    plannedStudyPeriod,
-    studyPeriodsQuery.data,
-  ])
   const planned = Boolean(plannedPeriodId || unallocated)
   const locationValue = plannedPeriodId
     ? String(plannedPeriodId)
@@ -305,41 +241,9 @@ function PlanningSection({
       periodId: value as PlanningPeriodId,
     })
   }
-  const complete = async () => {
-    const grade = completedGrade.trim() === '' ? null : Number(completedGrade)
-    if (
-      grade !== null &&
-      (!Number.isFinite(grade) || grade < 0 || grade > 10)
-    ) {
-      setGradeError('Informe uma nota entre 0 e 10.')
-      return
-    }
-    const succeeded = await dispatch({
-      type: 'markCourseCompleted',
-      courseId: course.id,
-      studyPeriodId: completedStudyPeriodId
-        ? Number(completedStudyPeriodId)
-        : undefined,
-      grade,
-    })
-    if (succeeded) setCompletionOpen(false)
-  }
-  const openCompletion = () => {
-    setCompletedStudyPeriodId('')
-    setCompletedGrade('')
-    setGradeError('')
-    setCompletionOpen(true)
-  }
-  const studyPeriodOptions = mostRecentStudyPeriodsFirst(
-    studyPeriodsQuery.data ?? [],
-  ).map((period) => ({
-    value: String(period.id),
-    label: studyPeriodLabel(period),
-  }))
-
   return (
     <div className="space-y-5">
-      <section className="space-y-3 rounded-sm border-2 border-border p-4">
+      <section className="space-y-3">
         <div>
           <h3 className="font-extrabold">Local no planejamento</h3>
           <p className="text-sm text-muted-foreground">
@@ -359,7 +263,7 @@ function PlanningSection({
           </p>
         )}
       </section>
-      <section className="space-y-3 rounded-sm border-2 border-border p-4">
+      <section className="space-y-3 border-t-2 border-border pt-4">
         <div>
           <h3 className="font-extrabold">Conclusão</h3>
           <p className="text-sm text-muted-foreground">
@@ -367,7 +271,7 @@ function PlanningSection({
           </p>
         </div>
         {approvedAttempt ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-sm bg-muted/60 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3">
             <span className="flex items-center gap-2 text-sm font-bold">
               <CircleCheck className="size-4" />
               Concluída
@@ -376,80 +280,15 @@ function PlanningSection({
               {approvedAttempt.grade !== null &&
                 ` · Nota ${approvedAttempt.grade}`}
             </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={disabled}
-              onClick={() =>
-                void dispatch({
-                  type: 'unmarkCourseCompleted',
-                  courseId: course.id,
-                })
-              }
-            >
-              Desmarcar
-            </Button>
           </div>
         ) : completed ? (
-          <div className="rounded-sm bg-muted/60 p-3 text-sm font-bold">
+          <div className="border-t border-border pt-3 text-sm font-bold">
             <CircleCheck className="mr-2 inline size-4" /> Concluída
           </div>
-        ) : completionOpen ? (
-          <div className="space-y-3 rounded-sm border-2 border-border p-3">
-            <label className="block space-y-2 text-sm font-bold">
-              <span>Período</span>
-              <AutocompleteSelect
-                ariaLabel="Período em que a disciplina foi concluída"
-                value={completedStudyPeriodId}
-                onValueChange={setCompletedStudyPeriodId}
-                options={studyPeriodOptions}
-                placeholder="Selecione o período"
-                emptyLabel={
-                  studyPeriodsQuery.isLoading
-                    ? 'Carregando períodos...'
-                    : 'Nenhum período disponível'
-                }
-              />
-            </label>
-            <label className="block space-y-2 text-sm font-bold">
-              <span>Nota (quando houver)</span>
-              <Input
-                type="number"
-                min="0"
-                max="10"
-                step="0.1"
-                value={completedGrade}
-                onChange={(event) => {
-                  setCompletedGrade(event.target.value)
-                  setGradeError('')
-                }}
-              />
-            </label>
-            {gradeError && (
-              <p className="text-sm font-semibold text-destructive" role="alert">
-                {gradeError}
-              </p>
-            )}
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setCompletionOpen(false)}
-              >
-                Cancelar
-              </Button>
-              <Button disabled={disabled} onClick={() => void complete()}>
-                Confirmar
-              </Button>
-            </div>
-          </div>
         ) : (
-          <Button
-            variant="outline"
-            disabled={disabled}
-            onClick={openCompletion}
-          >
-            <CircleCheck /> Marcar como concluída
-          </Button>
+          <p className="border-t border-border pt-3 text-sm text-muted-foreground">
+            Não concluída no histórico acadêmico.
+          </p>
         )}
       </section>
       <PrerequisitePlanningSection
@@ -472,72 +311,37 @@ function PlanningSection({
   )
 }
 
-function AcademicSection({
+function CatalogCourseFooter({
   course,
+  details,
   catalogYear,
 }: {
   course: Course
+  details?: CatalogCourseDetails | null
   catalogYear: number
 }) {
   const { openFeedback } = useFeedbackReport()
-  const [selectedYear, setSelectedYear] = useState(catalogYear)
-  const catalogQuery = useQuery({
-    queryKey: ['public', 'course-catalog', 'catalogs', course.id],
-    queryFn: () => listCatalogCourses(Number(course.id)),
-    staleTime: Infinity,
-  })
-  const catalogs = catalogQuery.data ?? []
-  const selectedCatalog = selectCatalog(catalogs, selectedYear)
-
-  useEffect(() => {
-    setSelectedYear(catalogYear)
-  }, [catalogYear, course.id])
-
-  useEffect(() => {
-    if (selectedCatalog && selectedYear !== selectedCatalog.catalogYear) {
-      setSelectedYear(selectedCatalog.catalogYear)
-    }
-  }, [selectedCatalog, selectedYear])
-
-  if (catalogQuery.isLoading)
-    return <p className="text-sm text-muted-foreground">Carregando catálogo...</p>
-  if (catalogQuery.isError)
-    return (
-      <p className="text-sm text-destructive">
-        Não foi possível carregar os dados acadêmicos desta disciplina.
-      </p>
-    )
-  if (!selectedCatalog)
-    return (
-      <p className="text-sm text-muted-foreground">
-        Esta disciplina não está disponível em um catálogo consultável.
-      </p>
-    )
-
   return (
-    <div className="space-y-5">
-      <CatalogCourseSelector
-        courses={catalogs}
-        selected={selectedCatalog}
-        loading={false}
-        onChange={setSelectedYear}
-      />
-      {selectedCatalog.syllabus && (
-        <CatalogCourseSyllabus text={selectedCatalog.syllabus} />
+    <div className="flex flex-wrap items-center gap-4 border-t-2 border-border pt-4">
+      {details?.sourceUrl && (
+        <a
+          className="inline-flex items-center gap-1 text-sm font-bold text-primary underline"
+          href={details.sourceUrl}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Ver fonte institucional <ExternalLink className="size-4" />
+        </a>
       )}
-      <CatalogCoursePrerequisites course={course} catalog={selectedCatalog} />
-      <CatalogCourseAcademicCard course={selectedCatalog} />
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-border pt-3">
-        {selectedCatalog.sourceUrl && (
-          <a
-            className="inline-flex items-center gap-1 text-sm font-bold text-primary underline"
-            href={selectedCatalog.sourceUrl}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Ver no catálogo <ExternalLink className="size-4" />
-          </a>
-        )}
+      <Link
+        className="text-sm font-bold text-primary underline"
+        to="/disciplinas/$courseId"
+        params={{ courseId: String(course.id) }}
+        search={{ catalogYear }}
+      >
+        Ver detalhes completos
+      </Link>
+      {details && (
         <Button
           variant="ghost"
           size="sm"
@@ -548,130 +352,61 @@ function AcademicSection({
               target: {
                 type: 'ACADEMIC_RESOURCE',
                 academicResourceType: 'CATALOG_COURSE',
-                academicResourceId: selectedCatalog.id,
+                academicResourceId: details.id,
               },
-              title: `Informação de ${selectedCatalog.code}`,
+              title: `Informação de ${details.code}`,
             })
           }
         >
           <MessageSquareWarning className="size-4" /> Reportar dado incorreto
         </Button>
-      </div>
+      )}
     </div>
-  )
-}
-
-function HistorySection({
-  course,
-  attempts,
-  loading,
-}: {
-  course: Course
-  attempts: ReadonlyArray<StudentCourseAttempt>
-  loading: boolean
-}) {
-  if (loading)
-    return <p className="text-sm text-muted-foreground">Carregando histórico...</p>
-  if (attempts.length === 0)
-    return (
-      <p className="text-sm text-muted-foreground">
-        Nenhuma tentativa registrada para esta disciplina.
-      </p>
-    )
-  return (
-    <section className="space-y-3">
-      <div>
-        <h3 className="font-extrabold">Tentativas de {course.code}</h3>
-        <p className="text-sm text-muted-foreground">
-          O histórico preserva tentativas de aprovação, reprovação e matrícula.
-        </p>
-      </div>
-      <div className="space-y-3">
-        {attempts.map((attempt) => (
-          <div
-            key={attempt.id}
-            className="rounded-sm border-2 border-border p-3"
-          >
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <span className="font-bold">
-                {attempt.studyPeriod
-                  ? studyPeriodLabel(attempt.studyPeriod)
-                  : 'Período não informado'}
-              </span>
-              <Badge
-                variant={
-                  isApprovedStudentCourseAttempt(attempt)
-                    ? 'success'
-                    : attempt.status === 'ENROLLED'
-                      ? 'warning'
-                      : 'destructive'
-                }
-              >
-                {labelForStatus(attempt.status)}
-              </Badge>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {attempt.grade !== null ? `Nota ${attempt.grade}` : 'Sem nota'}
-              {attempt.class ? ` · Turma ${attempt.class.code}` : ''}
-              {attempt.class?.professors.length
-                ? ` · ${attempt.class.professors.map((professor) => professor.name).join(', ')}`
-                : ''}
-            </p>
-          </div>
-        ))}
-      </div>
-    </section>
   )
 }
 
 function CourseDetailsBody({
   course,
-  activeTab,
-  setActiveTab,
   ...props
-}: CourseDetailsDialogProps & {
-  course: Course
-  activeTab: CourseDetailsTab
-  setActiveTab: (tab: CourseDetailsTab) => void
-}) {
-  const attempts = props.attempts.filter(
-    (attempt) => String(attempt.courseId) === String(course.id),
-  )
+}: CourseDetailsDialogProps & { course: Course }) {
+  const catalogQuery = useQuery({
+    queryKey: publicQueryKeys.courseDetails(
+      String(course.id),
+      props.catalogYear,
+    ),
+    queryFn: () =>
+      getCatalogCourseDetails(Number(course.id), props.catalogYear),
+    staleTime: Infinity,
+  })
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <div className="grid grid-cols-3 border-b-2 border-border px-5 sm:px-6">
-        {(
-          [
-            ['planning', 'Planejamento'],
-            ['academic', 'Acadêmico'],
-            ['history', 'Histórico'],
-          ] as const
-        ).map(([value, label]) => (
-          <button
-            key={value}
-            type="button"
-            role="tab"
-            aria-selected={activeTab === value}
-            className={`pomi-focus border-b-2 py-3 text-sm font-bold ${activeTab === value ? 'border-primary text-primary' : 'border-transparent text-muted-foreground'}`}
-            onClick={() => setActiveTab(value)}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-      <div className="min-h-0 flex-1 overflow-y-auto p-5 sm:p-6">
-        {activeTab === 'planning' && <PlanningSection {...props} course={course} />}
-        {activeTab === 'academic' && (
-          <AcademicSection course={course} catalogYear={props.catalogYear} />
+    <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5 sm:p-6">
+      <PlanningSection {...props} course={course} />
+      {catalogQuery.isLoading && (
+        <p className="text-sm text-muted-foreground" aria-live="polite">
+          Carregando informações acadêmicas...
+        </p>
+      )}
+      {catalogQuery.isError && (
+        <p className="text-sm text-destructive" role="alert">
+          Não foi possível carregar as informações acadêmicas desta disciplina.
+        </p>
+      )}
+      {!catalogQuery.isLoading &&
+        !catalogQuery.isError &&
+        !catalogQuery.data && (
+          <p className="text-sm text-muted-foreground">
+            Esta disciplina não possui informações acadêmicas no catálogo de{' '}
+            {props.catalogYear}.
+          </p>
         )}
-        {activeTab === 'history' && (
-          <HistorySection
-            course={course}
-            attempts={attempts}
-            loading={props.attemptsLoading}
-          />
-        )}
-      </div>
+      {catalogQuery.data && (
+        <CatalogCourseDetailsContent details={catalogQuery.data} />
+      )}
+      <CatalogCourseFooter
+        course={course}
+        details={catalogQuery.data}
+        catalogYear={props.catalogYear}
+      />
     </div>
   )
 }
@@ -684,7 +419,6 @@ export type CourseDetailsDialogProps = Readonly<{
   unallocated: boolean
   completed: boolean
   attempts: ReadonlyArray<StudentCourseAttempt>
-  attemptsLoading: boolean
   periods: ReadonlyArray<PlanningPeriod>
   planningStart: CurriculumPlannerSnapshot['plan']['planningStart']
   disabled: boolean
@@ -696,40 +430,21 @@ export type CourseDetailsDialogProps = Readonly<{
 
 export function CourseDetailsDialog(props: CourseDetailsDialogProps) {
   const desktop = useDesktopLayout()
-  const [activeTab, setActiveTab] = useState<CourseDetailsTab>('planning')
-  useEffect(() => {
-    if (props.course) setActiveTab('planning')
-  }, [props.course?.id])
   if (!props.course) return null
   const title = `${props.course.code} — ${props.course.name}`
-  const description = `${props.course.credits} créditos`
-  const body = (
-    <CourseDetailsBody
-      {...props}
-      course={props.course}
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
-    />
-  )
+  const description = `${props.course.credits} créditos · Catálogo ${props.catalogYear}`
+  const body = <CourseDetailsBody {...props} course={props.course} />
 
   if (desktop)
     return (
       <Dialog open={props.open} onOpenChange={props.onOpenChange}>
         <DialogContent
-          className="flex max-h-[90dvh] max-w-3xl flex-col overflow-hidden p-0"
+          className="flex max-h-[88dvh] max-w-2xl flex-col overflow-hidden p-0"
           onOpenAutoFocus={(event) => event.preventDefault()}
         >
-          <DialogHeader className="mb-0 border-b-2 border-strong-border p-5 pr-12">
+          <DialogHeader className="mb-0 border-b-2 border-strong-border p-5 pr-12 sm:p-6 sm:pr-12">
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
-            <Link
-              to="/disciplinas/$courseId"
-              params={{ courseId: String(props.course.id) }}
-              search={{}}
-              className="w-fit text-sm font-bold text-primary underline"
-            >
-              Ver disciplina completa
-            </Link>
           </DialogHeader>
           {body}
         </DialogContent>
@@ -740,37 +455,16 @@ export function CourseDetailsDialog(props: CourseDetailsDialogProps) {
     <Sheet open={props.open} onOpenChange={props.onOpenChange}>
       <SheetContent
         side="bottom"
-        className="flex max-h-[90dvh] flex-col rounded-t-xl bg-background text-foreground"
+        className="max-h-[88dvh] rounded-t-xl bg-background text-foreground"
         closeButtonClassName="text-foreground hover:bg-accent"
         onOpenAutoFocus={(event) => event.preventDefault()}
       >
         <SheetHeader className="border-b-2 border-strong-border pr-12">
           <SheetTitle>{title}</SheetTitle>
-          <p className="text-sm text-muted-foreground">{description}</p>
-          <Link
-            to="/disciplinas/$courseId"
-            params={{ courseId: String(props.course.id) }}
-            search={{}}
-            className="w-fit text-sm font-bold text-primary underline"
-          >
-            Ver disciplina completa
-          </Link>
+          <SheetDescription>{description}</SheetDescription>
         </SheetHeader>
         {body}
       </SheetContent>
     </Sheet>
   )
-}
-
-function periodReference(
-  period: PlanningPeriod,
-  periods: ReadonlyArray<PlanningPeriod>,
-  planningStart: CurriculumPlannerSnapshot['plan']['planningStart'],
-) {
-  if (!planningStart) return `Semestre ${periods.indexOf(period) + 1}`
-  const index = periods.findIndex((candidate) => candidate.id === period.id)
-  const offset = planningStart.semester - 1 + index
-  const year = planningStart.year + Math.floor(offset / 2)
-  const semester = offset % 2 === 0 ? 1 : 2
-  return `${year}/${semester}`
 }
