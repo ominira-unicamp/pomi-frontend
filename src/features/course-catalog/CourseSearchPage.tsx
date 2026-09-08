@@ -116,6 +116,16 @@ export function CourseSearchPage({
     onSearchChange({ ...search, ...change, page: 1 })
   }
 
+  useEffect(() => {
+    const normalizedQuery = query.trim() || undefined
+    if (normalizedQuery === search.q) return
+
+    const timeout = window.setTimeout(() => {
+      onSearchChange({ ...search, q: normalizedQuery, page: 1 })
+    }, 300)
+    return () => window.clearTimeout(timeout)
+  }, [onSearchChange, query, search])
+
   function addFilter(key: ActiveFilter) {
     setActiveFilters((current) =>
       current.includes(key) ? current : [...current, key],

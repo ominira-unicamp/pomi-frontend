@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageSquareWarning,
+  Network,
 } from 'lucide-react'
 import { Fragment, useEffect, useMemo, useState } from 'react'
 
@@ -13,8 +14,13 @@ import {
   suggestionTypeLabel,
 } from '@pomi/planner-domain/curriculum'
 import { CatalogProgramCourseDialog } from './CatalogProgramCourseDialog'
+import {
+  CatalogProgramDependencyTree,
+  catalogProgramTreeCourseIds,
+} from './CatalogProgramDependencyTree'
 import type {
   Course,
+  CourseId,
   CourseRequirement,
   CourseSelector,
   CurriculumBlocks,
@@ -37,6 +43,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { loadCurriculumCatalog } from '@/catalog/data/curriculumCatalogApi'
+import { loadCatalogPrerequisites } from '@/features/curriculum-planner/data/curriculumPrerequisiteApi'
 import { loadCurriculumSuggestions } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
 import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
 import {
@@ -49,13 +56,14 @@ import {
   publicQueryKeys,
 } from '@/integrations/tanstack-query/queryKeys'
 
-export type CatalogProgramTab = 'full' | 'proposal'
+export type CatalogProgramTab = 'full' | 'proposal' | 'dependencies'
 
 export type CatalogProgramSearch = Readonly<{
   catalogId?: number
   programId?: number
   catalogProgramId?: number
   specializationId?: number
+  dependencyCourseId?: number
   tab: CatalogProgramTab
 }>
 
@@ -177,6 +185,38 @@ export function CatalogProgramPage({
     enabled: Boolean(selectedProgram),
     staleTime: Infinity,
   })
+  const prerequisitesQuery = useQuery({
+    queryKey: publicQueryKeys.curriculumPrerequisites(
+      selectedProgram?.catalog.year ?? currentCatalogYear,
+    ),
+    queryFn: () => loadCatalogPrerequisites(selectedProgram!.catalog.year),
+    enabled: Boolean(selectedProgram),
+    staleTime: Infinity,
+  })
+  const connectedCourseIds = useMemo(() => {
+    const courseIds = new Set<string>()
+    if (!selectedProgram) return courseIds
+    const eligibleCourseIds = catalogProgramTreeCourseIds(
+      selectedProgram,
+      selectedSpecialization,
+      true,
+    )
+    for (const rule of prerequisitesQuery.data?.rules ?? []) {
+      if (!eligibleCourseIds.has(rule.courseId)) continue
+      for (const alternative of rule.alternatives) {
+        for (const item of alternative.allOf) {
+          if (
+            item.target.type !== 'course' ||
+            !eligibleCourseIds.has(item.target.courseId)
+          )
+            continue
+          courseIds.add(String(rule.courseId))
+          courseIds.add(String(item.target.courseId))
+        }
+      }
+    }
+    return courseIds
+  }, [prerequisitesQuery.data, selectedProgram, selectedSpecialization])
 
   const updateSearch = (
     change: Partial<CatalogProgramSearch>,
@@ -359,6 +399,9 @@ export function CatalogProgramPage({
             <TabsList aria-label="Informações curriculares do curso">
               <TabsTrigger value="full">Currículo pleno</TabsTrigger>
               <TabsTrigger value="proposal">Proposta de currículo</TabsTrigger>
+              <TabsTrigger value="dependencies">
+                Árvore de dependências
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="full">
               <FullCurriculum
@@ -368,6 +411,16 @@ export function CatalogProgramPage({
                 onOpenCourseDetails={setSelectedCourse}
                 completedCourseIds={completedCourseIds}
                 markCompleted={markCompleted}
+                connectedCourseIds={connectedCourseIds}
+                onOpenDependencyTree={(courseId) =>
+                  updateSearch(
+                    {
+                      tab: 'dependencies',
+                      dependencyCourseId: Number(courseId),
+                    },
+                    { resetScroll: false },
+                  )
+                }
               />
             </TabsContent>
             <TabsContent value="proposal">
@@ -380,7 +433,48 @@ export function CatalogProgramPage({
                 onOpenCourseDetails={setSelectedCourse}
                 completedCourseIds={completedCourseIds}
                 markCompleted={markCompleted}
+                connectedCourseIds={connectedCourseIds}
+                onOpenDependencyTree={(courseId) =>
+                  updateSearch(
+                    {
+                      tab: 'dependencies',
+                      dependencyCourseId: Number(courseId),
+                    },
+                    { resetScroll: false },
+                  )
+                }
               />
+            </TabsContent>
+            <TabsContent value="dependencies">
+              {prerequisitesQuery.isLoading && (
+                <LoadingState label="Carregando árvore de dependências" />
+              )}
+              {prerequisitesQuery.isError && (
+                <ErrorState
+                  title="Não foi possível carregar a árvore"
+                  description="Tente novamente para consultar as relações entre as disciplinas."
+                  action={{
+                    label: 'Tentar novamente',
+                    onClick: () => void prerequisitesQuery.refetch(),
+                  }}
+                />
+              )}
+              {prerequisitesQuery.data && (
+                <CatalogProgramDependencyTree
+                  key={search.dependencyCourseId ?? 'all'}
+                  program={selectedProgram}
+                  specialization={selectedSpecialization}
+                  courses={staticData.courses}
+                  rules={prerequisitesQuery.data.rules}
+                  completedCourseIds={completedCourseIds}
+                  focusedCourseId={
+                    search.dependencyCourseId
+                      ? (String(search.dependencyCourseId) as CourseId)
+                      : undefined
+                  }
+                  onOpenCourseDetails={setSelectedCourse}
+                />
+              )}
             </TabsContent>
           </Tabs>
           <CatalogProgramCourseDialog
@@ -481,6 +575,8 @@ function FullCurriculum({
   onOpenCourseDetails,
   completedCourseIds,
   markCompleted,
+  connectedCourseIds,
+  onOpenDependencyTree,
 }: {
   program: CurriculumPlannerStaticData['catalogPrograms'][number]
   courses: ReadonlyArray<Course>
@@ -488,6 +584,8 @@ function FullCurriculum({
   onOpenCourseDetails: (course: Course) => void
   completedCourseIds: ReadonlySet<number>
   markCompleted: boolean
+  connectedCourseIds: ReadonlySet<string>
+  onOpenDependencyTree: (courseId: CourseId) => void
 }) {
   return (
     <div className="space-y-8">
@@ -499,6 +597,8 @@ function FullCurriculum({
         onOpenCourseDetails={onOpenCourseDetails}
         completedCourseIds={completedCourseIds}
         markCompleted={markCompleted}
+        connectedCourseIds={connectedCourseIds}
+        onOpenDependencyTree={onOpenDependencyTree}
       />
       {program.languages.length > 0 && (
         <section aria-labelledby="language-options-title" className="space-y-5">
@@ -516,6 +616,8 @@ function FullCurriculum({
               onOpenCourseDetails={onOpenCourseDetails}
               completedCourseIds={completedCourseIds}
               markCompleted={markCompleted}
+              connectedCourseIds={connectedCourseIds}
+              onOpenDependencyTree={onOpenDependencyTree}
               nested
             />
           ))}
@@ -540,6 +642,8 @@ function FullCurriculum({
             onOpenCourseDetails={onOpenCourseDetails}
             completedCourseIds={completedCourseIds}
             markCompleted={markCompleted}
+            connectedCourseIds={connectedCourseIds}
+            onOpenDependencyTree={onOpenDependencyTree}
           />
         </section>
       )}
@@ -561,6 +665,8 @@ function CurriculumSection({
   onOpenCourseDetails,
   completedCourseIds,
   markCompleted,
+  connectedCourseIds,
+  onOpenDependencyTree,
   nested = false,
 }: {
   sectionKey: string
@@ -570,6 +676,8 @@ function CurriculumSection({
   onOpenCourseDetails: (course: Course) => void
   completedCourseIds: ReadonlySet<number>
   markCompleted: boolean
+  connectedCourseIds: ReadonlySet<string>
+  onOpenDependencyTree: (courseId: CourseId) => void
   nested?: boolean
 }) {
   return (
@@ -588,6 +696,8 @@ function CurriculumSection({
             onOpenCourseDetails={onOpenCourseDetails}
             completedCourseIds={completedCourseIds}
             markCompleted={markCompleted}
+            connectedCourseIds={connectedCourseIds}
+            onOpenDependencyTree={onOpenDependencyTree}
           />
         )}
         {blocks.electives.map((block, index) => (
@@ -605,6 +715,8 @@ function CurriculumSection({
             onOpenCourseDetails={onOpenCourseDetails}
             completedCourseIds={completedCourseIds}
             markCompleted={markCompleted}
+            connectedCourseIds={connectedCourseIds}
+            onOpenDependencyTree={onOpenDependencyTree}
           />
         ))}
       </div>
@@ -621,6 +733,8 @@ function RequirementTable({
   onOpenCourseDetails,
   completedCourseIds,
   markCompleted,
+  connectedCourseIds,
+  onOpenDependencyTree,
 }: {
   requirementKeyPrefix: string
   title: string
@@ -630,6 +744,8 @@ function RequirementTable({
   onOpenCourseDetails: (course: Course) => void
   completedCourseIds: ReadonlySet<number>
   markCompleted: boolean
+  connectedCourseIds: ReadonlySet<string>
+  onOpenDependencyTree: (courseId: CourseId) => void
 }) {
   return (
     <section>
@@ -663,6 +779,8 @@ function RequirementTable({
                 onOpenCourseDetails={onOpenCourseDetails}
                 completedCourseIds={completedCourseIds}
                 markCompleted={markCompleted}
+                connectedCourseIds={connectedCourseIds}
+                onOpenDependencyTree={onOpenDependencyTree}
               />
             ))}
           </tbody>
@@ -679,6 +797,8 @@ function RequirementRow({
   onOpenCourseDetails,
   completedCourseIds,
   markCompleted,
+  connectedCourseIds,
+  onOpenDependencyTree,
 }: {
   requirement: CourseRequirement
   requirementKey: string
@@ -686,6 +806,8 @@ function RequirementRow({
   onOpenCourseDetails: (course: Course) => void
   completedCourseIds: ReadonlySet<number>
   markCompleted: boolean
+  connectedCourseIds: ReadonlySet<string>
+  onOpenDependencyTree: (courseId: CourseId) => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const row = requirementRow(requirement.selector, courses)
@@ -750,7 +872,7 @@ function RequirementRow({
           )}
         </td>
         <td className="px-3 py-2 font-semibold">{row.credits ?? '—'}</td>
-        <td className={`relative px-3 py-2${isInteractive ? ' pr-10' : ''}`}>
+        <td className="relative h-12 px-3 py-2 pr-12">
           {row.name}
           {prefix && (
             <ChevronDown
@@ -760,11 +882,13 @@ function RequirementRow({
               }`}
             />
           )}
-          {course && !prefix && (
-            <ChevronRight
-              aria-hidden="true"
-              className="absolute top-1/2 right-3 size-4 -translate-y-1/2"
-            />
+          {course && connectedCourseIds.has(String(course.id)) && (
+            <span className="absolute top-1/2 right-2 -translate-y-1/2">
+              <DependencyTreeButton
+                course={course}
+                onOpenDependencyTree={onOpenDependencyTree}
+              />
+            </span>
           )}
         </td>
       </tr>
@@ -777,6 +901,8 @@ function RequirementRow({
               onOpenCourseDetails={onOpenCourseDetails}
               completedCourseIds={completedCourseIds}
               markCompleted={markCompleted}
+              connectedCourseIds={connectedCourseIds}
+              onOpenDependencyTree={onOpenDependencyTree}
             />
           </td>
         </tr>
@@ -793,12 +919,16 @@ function PrefixCourses({
   onOpenCourseDetails,
   completedCourseIds,
   markCompleted,
+  connectedCourseIds,
+  onOpenDependencyTree,
 }: {
   prefix: string
   courses: ReadonlyArray<Course>
   onOpenCourseDetails: (course: Course) => void
   completedCourseIds: ReadonlySet<number>
   markCompleted: boolean
+  connectedCourseIds: ReadonlySet<string>
+  onOpenDependencyTree: (courseId: CourseId) => void
 }) {
   const [page, setPage] = useState(1)
   const matchingCourses = courses.filter((course) =>
@@ -870,12 +1000,16 @@ function PrefixCourses({
                   </Link>
                 </td>
                 <td className="px-3 py-2 font-semibold">{course.credits}</td>
-                <td className="relative pr-10 pl-3 py-2">
+                <td className="relative h-12 px-3 py-2 pr-12">
                   {course.name}
-                  <ChevronRight
-                    aria-hidden="true"
-                    className="absolute top-1/2 right-3 size-4 -translate-y-1/2"
-                  />
+                  {connectedCourseIds.has(String(course.id)) && (
+                    <span className="absolute top-1/2 right-2 -translate-y-1/2">
+                      <DependencyTreeButton
+                        course={course}
+                        onOpenDependencyTree={onOpenDependencyTree}
+                      />
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}
@@ -949,6 +1083,8 @@ function CurriculumProposal({
   onOpenCourseDetails,
   completedCourseIds,
   markCompleted,
+  connectedCourseIds,
+  onOpenDependencyTree,
 }: {
   suggestions: ReadonlyArray<CurriculumSuggestion>
   specializationId?: SpecializationId
@@ -958,6 +1094,8 @@ function CurriculumProposal({
   onOpenCourseDetails: (course: Course) => void
   completedCourseIds: ReadonlySet<number>
   markCompleted: boolean
+  connectedCourseIds: ReadonlySet<string>
+  onOpenDependencyTree: (courseId: CourseId) => void
 }) {
   if (isLoading)
     return <LoadingState label="Carregando proposta de currículo" />
@@ -1072,12 +1210,16 @@ function CurriculumProposal({
                             <td className="px-3 py-2 font-semibold">
                               {course.credits}
                             </td>
-                            <td className="relative pr-10 pl-3 py-2">
+                            <td className="relative h-12 px-3 py-2 pr-12">
                               {course.name}
-                              <ChevronRight
-                                aria-hidden="true"
-                                className="absolute top-1/2 right-3 size-4 -translate-y-1/2"
-                              />
+                              {connectedCourseIds.has(String(course.id)) && (
+                                <span className="absolute top-1/2 right-2 -translate-y-1/2">
+                                  <DependencyTreeButton
+                                    course={course}
+                                    onOpenDependencyTree={onOpenDependencyTree}
+                                  />
+                                </span>
+                              )}
                             </td>
                           </tr>
                         ))}
@@ -1091,6 +1233,31 @@ function CurriculumProposal({
         </section>
       ))}
     </div>
+  )
+}
+
+function DependencyTreeButton({
+  course,
+  onOpenDependencyTree,
+}: {
+  course: Course
+  onOpenDependencyTree: (courseId: CourseId) => void
+}) {
+  return (
+    <Button
+      type="button"
+      variant="ghost"
+      size="icon"
+      className="size-8"
+      aria-label={`Ver ${course.code} na árvore de dependências`}
+      title="Ver na árvore de dependências"
+      onClick={(event) => {
+        event.stopPropagation()
+        onOpenDependencyTree(course.id)
+      }}
+    >
+      <Network aria-hidden="true" />
+    </Button>
   )
 }
 

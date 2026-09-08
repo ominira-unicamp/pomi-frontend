@@ -90,6 +90,30 @@ describe('buildPrerequisiteTreeGrid', () => {
       ],
     ])
   })
+
+  it('keeps a dependency chain aligned with its prerequisite', () => {
+    const levels = [
+      [id('A1'), id('B1'), id('C1'), id('D1')],
+      [id('A2'), id('B2'), id('C2')],
+      [id('A3')],
+      [id('A4')],
+    ]
+    const links = [
+      link('A1', 'A2'),
+      link('A2', 'A3'),
+      link('A3', 'A4'),
+      link('B1', 'B2'),
+      link('C1', 'C2'),
+    ]
+
+    const grid = buildPrerequisiteTreeGrid(levels, links)
+    const row = (courseId: string) =>
+      grid.flat().find((position) => position.courseId === id(courseId))?.row
+
+    expect(row('A2')).toBe(row('A1'))
+    expect(row('A3')).toBe(row('A2'))
+    expect(row('A4')).toBe(row('A3'))
+  })
 })
 
 describe('prerequisiteTreeCourseIds', () => {

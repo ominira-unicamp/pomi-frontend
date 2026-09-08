@@ -11,7 +11,7 @@ export type PrerequisiteTreeGridPosition = Readonly<{
   row: number
 }>
 
-export function prerequisiteTreeCourseIds(
+export function prerequisiteCourseIds(
   courseId: CourseId,
   links: ReadonlyArray<PrerequisiteLink>,
 ) {
@@ -28,6 +28,14 @@ export function prerequisiteTreeCourseIds(
       upstream.push(link.prerequisiteCourseId)
     }
   }
+  return courseIds
+}
+
+export function dependentCourseIds(
+  courseId: CourseId,
+  links: ReadonlyArray<PrerequisiteLink>,
+) {
+  const courseIds = new Set<CourseId>([courseId])
   const downstream = [courseId]
   const visitedDownstream = new Set<CourseId>()
   while (downstream.length) {
@@ -40,6 +48,16 @@ export function prerequisiteTreeCourseIds(
       downstream.push(link.dependentCourseId)
     }
   }
+  return courseIds
+}
+
+export function prerequisiteTreeCourseIds(
+  courseId: CourseId,
+  links: ReadonlyArray<PrerequisiteLink>,
+) {
+  const courseIds = prerequisiteCourseIds(courseId, links)
+  for (const dependentCourseId of dependentCourseIds(courseId, links))
+    courseIds.add(dependentCourseId)
   return courseIds
 }
 
@@ -158,6 +176,8 @@ export function buildPrerequisiteTreeGrid(
     for (let index = levels.length - 2; index >= 0; index -= 1)
       positionLevel(levels[index], outgoing)
   }
+  for (let index = 1; index < levels.length; index += 1)
+    positionLevel(levels[index], incoming)
   return levels.map((level) =>
     level.map((courseId) => ({ courseId, row: rows.get(courseId) ?? 1 })),
   )

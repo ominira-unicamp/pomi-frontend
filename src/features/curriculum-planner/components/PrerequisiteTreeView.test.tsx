@@ -43,8 +43,37 @@ describe('PrerequisiteTreeView', () => {
       />,
     )
 
+    fireEvent.click(screen.getByRole('button', { name: 'Selecionar MC102' }))
+
+    expect(onToggleCourseSelection).toHaveBeenCalledWith(id('course-1'))
+    expect(onOpenCourseDetails).not.toHaveBeenCalled()
+  })
+
+  it('activates selection behavior when Shift is held', () => {
+    const onOpenCourseDetails = vi.fn()
+    const onToggleCourseSelection = vi.fn()
+    const links: ReadonlyArray<PrerequisiteLink> = [
+      {
+        prerequisiteCourseId: id('course-1'),
+        dependentCourseId: id('course-2'),
+        status: 'plannedBefore',
+      },
+    ]
+
+    render(
+      <PrerequisiteTreeView
+        states={[state('course-1', 'MC102'), state('course-2', 'MC202')]}
+        links={links}
+        onOpenCourseDetails={onOpenCourseDetails}
+        onToggleCourseSelection={onToggleCourseSelection}
+      />,
+    )
+
     fireEvent.click(
-      screen.getByRole('button', { name: 'Selecionar MC102' }),
+      screen.getByRole('button', {
+        name: 'MC102, abrir detalhes da disciplina',
+      }),
+      { shiftKey: true },
     )
 
     expect(onToggleCourseSelection).toHaveBeenCalledWith(id('course-1'))

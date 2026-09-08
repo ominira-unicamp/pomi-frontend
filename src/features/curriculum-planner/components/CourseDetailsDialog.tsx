@@ -344,7 +344,10 @@ function CourseDetailsBody({
             </p>
           )}
         {catalogQuery.data && (
-          <CatalogCourseDetailsContent details={catalogQuery.data} />
+          <CatalogCourseDetailsContent
+            details={catalogQuery.data}
+            showPrerequisites={false}
+          />
         )}
         <CatalogCourseDetailsLinks details={catalogQuery.data} />
       </div>

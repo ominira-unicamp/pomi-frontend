@@ -16,6 +16,7 @@ import type { ReactNode } from 'react'
 
 const {
   getCatalogCourseDetails,
+  loadCatalogPrerequisites,
   loadCurriculumCatalog,
   loadCurriculumSuggestions,
   listStudentCourseAttempts,
@@ -23,6 +24,7 @@ const {
   useStudentProfile,
 } = vi.hoisted(() => ({
   getCatalogCourseDetails: vi.fn(),
+  loadCatalogPrerequisites: vi.fn(),
   loadCurriculumCatalog: vi.fn(),
   loadCurriculumSuggestions: vi.fn(),
   listStudentCourseAttempts: vi.fn(),
@@ -36,6 +38,10 @@ vi.mock('@/catalog/data/curriculumCatalogApi', () => ({
 
 vi.mock('@/features/curriculum-planner/data/curriculumSuggestionApi', () => ({
   loadCurriculumSuggestions,
+}))
+
+vi.mock('@/features/curriculum-planner/data/curriculumPrerequisiteApi', () => ({
+  loadCatalogPrerequisites,
 }))
 
 vi.mock('@/features/curriculum-planner/data/courseDetailsApi', () => ({
@@ -83,7 +89,10 @@ const staticData: CurriculumPlannerStaticData = {
             type: 'electiveCredits',
             source: { type: 'base' },
             requiredCredits: 4,
-            eligibleCourses: [{ type: 'prefix', prefix: 'MU' }],
+            eligibleCourses: [
+              { type: 'specificCourse', courseId: '2' as CourseId },
+              { type: 'prefix', prefix: 'MU' },
+            ],
           },
         ],
       },
@@ -233,7 +242,8 @@ type TestSearch = Readonly<{
   programId?: number
   catalogProgramId?: number
   specializationId?: number
-  tab: 'full' | 'proposal'
+  dependencyCourseId?: number
+  tab: 'full' | 'proposal' | 'dependencies'
 }>
 
 function renderPage(
@@ -261,6 +271,31 @@ describe('CatalogProgramPage', () => {
   beforeEach(() => {
     loadCurriculumCatalog.mockResolvedValue({ ok: true, value: staticData })
     loadCurriculumSuggestions.mockResolvedValue(suggestions)
+    loadCatalogPrerequisites.mockResolvedValue({
+      catalogId: 1,
+      year: 2026,
+      courseIds: ['1', '2'],
+      rules: [
+        {
+          courseId: '2',
+          alternatives: [
+            {
+              key: 'MU001',
+              allOf: [
+                {
+                  kind: 'FULL',
+                  target: {
+                    type: 'course',
+                    courseId: '1',
+                    code: 'MU001',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    })
     getCatalogCourseDetails.mockReset()
     getCatalogCourseDetails.mockResolvedValue(courseDetails)
     listStudentCourseAttempts.mockResolvedValue([])
@@ -377,6 +412,116 @@ describe('CatalogProgramPage', () => {
       },
       { resetScroll: false },
     )
+  })
+
+  it('opens the dependency tab from a connected course row', async () => {
+    const onSearchChange = renderPage()
+
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: 'Ver MU001 na árvore de dependências',
+      }),
+    )
+
+    expect(onSearchChange).toHaveBeenCalledWith(
+      {
+        catalogId: 1,
+        programId: 22,
+        catalogProgramId: 101,
+        specializationId: 7,
+        tab: 'dependencies',
+        dependencyCourseId: 1,
+      },
+      { resetScroll: false },
+    )
+    expect(
+      screen.queryByRole('button', {
+        name: 'Ver MU003 na árvore de dependências',
+      }),
+    ).toBeNull()
+  })
+
+  it('focuses a linked elective when opening its dependency tree', async () => {
+    renderPage({
+      catalogId: 1,
+      programId: 22,
+      catalogProgramId: 101,
+      specializationId: 7,
+      dependencyCourseId: 2,
+      tab: 'dependencies',
+    })
+
+    expect(
+      (
+        await screen.findByRole('button', {
+          name: 'Remover árvore de MU002',
+        })
+      ).getAttribute('aria-pressed'),
+    ).toBe('true')
+    expect(
+      screen
+        .getByRole('switch', { name: 'Mostrar eletivas' })
+        .getAttribute('aria-checked'),
+    ).toBe('true')
+  })
+
+  it('shows only connected courses and adds only explicit electives', async () => {
+    renderPage({
+      catalogId: 1,
+      programId: 22,
+      catalogProgramId: 101,
+      specializationId: 7,
+      tab: 'dependencies',
+    })
+
+    const tree = await screen.findByRole('region', {
+      name: 'Árvore de dependências',
+    })
+    expect(tree.textContent).not.toContain('MU001')
+    expect(tree.textContent).not.toContain('MU002')
+    expect(tree.textContent).not.toContain('MU003')
+
+    fireEvent.click(screen.getByRole('switch', { name: 'Mostrar eletivas' }))
+
+    expect(tree.textContent).toContain('MU001')
+    expect(tree.textContent).toContain('MU002')
+    expect(tree.textContent).not.toContain('MU003')
+    expect(loadCatalogPrerequisites).toHaveBeenCalledWith(2026)
+  })
+
+  it('hides completed courses in the dependency tree', async () => {
+    useOptionalAuth.mockReturnValue({
+      isAuthenticated: true,
+      sessionSubject: 'student-session',
+      getAccessToken: vi.fn(),
+    })
+    useStudentProfile.mockReturnValue({
+      studentId: 7,
+      profileQuery: { data: undefined },
+    })
+    listStudentCourseAttempts.mockResolvedValue([
+      { courseId: 1, status: 'APPROVED' },
+    ])
+    renderPage({
+      catalogId: 1,
+      programId: 22,
+      catalogProgramId: 101,
+      specializationId: 7,
+      tab: 'dependencies',
+    })
+
+    const tree = await screen.findByRole('region', {
+      name: 'Árvore de dependências',
+    })
+    fireEvent.click(screen.getByRole('switch', { name: 'Mostrar eletivas' }))
+    expect(tree.textContent).toContain('MU001')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Ocultar concluídas' }))
+
+    expect(tree.textContent).not.toContain('MU001')
+    expect(
+      screen.getByRole('button', { name: 'Mostrar concluídas' }),
+    ).toBeTruthy()
   })
 
   it('expands prefix requirements with local pagination', async () => {

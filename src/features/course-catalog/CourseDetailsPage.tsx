@@ -1,13 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { LogIn, MessageSquareWarning, Trash2 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
+import type {
+  CourseId,
+  CoursePrerequisiteRule,
+  Course as PlannerCourse,
+} from '@pomi/planner-domain/curriculum'
+import type { VisualPrerequisiteLink } from '@/features/curriculum-planner/prerequisiteTreeLayout'
 import type {
   Course,
   Tag,
 } from '@/features/course-catalog/data/courseCatalogApi'
 import { ContextBackLink } from '@/components/ContextBackLink'
+import { CatalogProgramCourseDialog } from '@/features/catalog-program/CatalogProgramCourseDialog'
+import { loadCurriculumCatalog } from '@/catalog/data/curriculumCatalogApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
   ErrorState,
@@ -25,7 +33,11 @@ import {
   CatalogCourseSyllabus,
   selectCatalog,
 } from '@/features/course-catalog/CatalogCourseDetails'
+import { prerequisiteCourseIds } from '@/features/curriculum-planner/prerequisiteTreeLayout'
 import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
+import { PrerequisiteTreeView } from '@/features/curriculum-planner/components/PrerequisiteTreeView'
+import { loadCatalogPrerequisites } from '@/features/curriculum-planner/data/curriculumPrerequisiteApi'
+import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import {
   deleteCourseTag,
   getCourse,
@@ -74,6 +86,25 @@ export function CourseDetailsPage({
 
   const catalogCourses = catalogQuery.data ?? []
   const selectedCatalog = selectCatalog(catalogCourses, search.catalogYear)
+  const [selectedDependencyCourse, setSelectedDependencyCourse] =
+    useState<PlannerCourse>()
+  const curriculumCatalogQuery = useQuery({
+    queryKey: publicQueryKeys.curriculumCatalog(),
+    queryFn: async () => {
+      const result = await loadCurriculumCatalog()
+      if (!result.ok) throw new Error(result.error.code)
+      return result.value
+    },
+    staleTime: Infinity,
+  })
+  const prerequisitesQuery = useQuery({
+    queryKey: publicQueryKeys.curriculumPrerequisites(
+      selectedCatalog?.catalogYear ?? 0,
+    ),
+    queryFn: () => loadCatalogPrerequisites(selectedCatalog!.catalogYear),
+    enabled: Boolean(selectedCatalog),
+    staleTime: Infinity,
+  })
   const courseTags = tagsQuery.data ?? []
   const relatedQuery = useQuery({
     queryKey: [
@@ -179,7 +210,10 @@ export function CourseDetailsPage({
           {selectedCatalog?.syllabus && (
             <CatalogCourseSyllabus text={selectedCatalog.syllabus} />
           )}
-          <CatalogCoursePrerequisites course={course} catalog={selectedCatalog} />
+          <CatalogCoursePrerequisites
+            course={course}
+            catalog={selectedCatalog}
+          />
           {selectedCatalog && (
             <CatalogCourseAcademicCard course={selectedCatalog} />
           )}
@@ -208,7 +242,128 @@ export function CourseDetailsPage({
           />
         </aside>
       </div>
+      <CourseDependencyTree
+        courseId={course.id}
+        catalogYear={selectedCatalog?.catalogYear}
+        courses={curriculumCatalogQuery.data?.courses ?? []}
+        rules={prerequisitesQuery.data?.rules ?? []}
+        loading={
+          Boolean(selectedCatalog) &&
+          (curriculumCatalogQuery.isLoading || prerequisitesQuery.isLoading)
+        }
+        error={curriculumCatalogQuery.isError || prerequisitesQuery.isError}
+        onOpenCourse={setSelectedDependencyCourse}
+      />
+      {selectedCatalog && (
+        <CatalogProgramCourseDialog
+          course={selectedDependencyCourse}
+          catalogYear={selectedCatalog.catalogYear}
+          onOpenChange={(open) => {
+            if (!open) setSelectedDependencyCourse(undefined)
+          }}
+        />
+      )}
     </PageContainer>
+  )
+}
+
+function CourseDependencyTree({
+  courseId,
+  catalogYear,
+  courses,
+  rules,
+  loading,
+  error,
+  onOpenCourse,
+}: {
+  courseId: number
+  catalogYear?: number
+  courses: ReadonlyArray<PlannerCourse>
+  rules: ReadonlyArray<CoursePrerequisiteRule>
+  loading: boolean
+  error: boolean
+  onOpenCourse: (course: PlannerCourse) => void
+}) {
+  const [showDependents, setShowDependents] = useState(false)
+  const focusedCourseId = String(courseId) as CourseId
+  const courseIds = useMemo(
+    () => new Set(courses.map((course) => course.id)),
+    [courses],
+  )
+  const links = useMemo(() => {
+    const result = new Map<string, VisualPrerequisiteLink>()
+    for (const rule of rules) {
+      if (!courseIds.has(rule.courseId)) continue
+      for (const alternative of rule.alternatives) {
+        for (const item of alternative.allOf) {
+          if (
+            item.target.type !== 'course' ||
+            !courseIds.has(item.target.courseId)
+          )
+            continue
+          const key = `${item.target.courseId}:${rule.courseId}`
+          result.set(key, {
+            prerequisiteCourseId: item.target.courseId,
+            dependentCourseId: rule.courseId,
+            status: 'plannedBefore',
+            alternative: rule.alternatives.length > 1,
+          })
+        }
+      }
+    }
+    return [...result.values()]
+  }, [courseIds, rules])
+  const visibleLinks = useMemo(() => {
+    if (showDependents) return links
+    const visibleCourseIds = prerequisiteCourseIds(focusedCourseId, links)
+    return links.filter(
+      (link) =>
+        visibleCourseIds.has(link.prerequisiteCourseId) &&
+        visibleCourseIds.has(link.dependentCourseId),
+    )
+  }, [focusedCourseId, links, showDependents])
+
+  if (!catalogYear) return null
+  if (loading) return <LoadingState label="Carregando árvore de dependências" />
+  if (error) {
+    return (
+      <ErrorState
+        title="Não foi possível carregar a árvore de dependências"
+        description="As demais informações da disciplina continuam disponíveis."
+      />
+    )
+  }
+
+  return (
+    <div className="mt-6">
+      <PrerequisiteTreeView
+        key={`${courseId}:${catalogYear}`}
+        states={courses.map((course) => ({ course, completed: false }))}
+        links={visibleLinks}
+        initialFocusedCourseIds={[focusedCourseId]}
+        allowTreeSelection={false}
+        showPlanningLegend={false}
+        showCompletedToggle={false}
+        title="Árvore de dependências"
+        description="Veja os pré-requisitos desta disciplina e as disciplinas que dependem dela."
+        headerAction={
+          <Button
+            size="sm"
+            variant={showDependents ? 'default' : 'outline'}
+            role="switch"
+            aria-checked={showDependents}
+            onClick={() => setShowDependents((current) => !current)}
+          >
+            Mostrar dependentes
+          </Button>
+        }
+        onOpenCourseDetails={(selectedCourseId) =>
+          onOpenCourse(
+            courses.find((course) => course.id === selectedCourseId)!,
+          )
+        }
+      />
+    </div>
   )
 }
 

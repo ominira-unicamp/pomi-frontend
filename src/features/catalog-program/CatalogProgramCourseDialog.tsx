@@ -86,6 +86,14 @@ export function CatalogProgramCourseDialog({
       )}
       {details && <CatalogCourseDetailsContent details={details} />}
       <div className="flex flex-wrap items-center gap-4 border-t-2 border-border pt-4">
+        <Link
+          className="pomi-focus inline-flex rounded-md bg-primary px-3 py-2 text-sm font-extrabold text-primary-foreground shadow-[2px_2px_0_var(--strong-border)] transition-colors hover:bg-primary/90"
+          to="/disciplinas/$courseId"
+          params={{ courseId: String(course.id) }}
+          search={{ catalogYear }}
+        >
+          Ver detalhes completos
+        </Link>
         {details?.sourceUrl && (
           <a
             className="inline-flex items-center gap-1 text-sm font-bold text-primary underline"
@@ -96,14 +104,6 @@ export function CatalogProgramCourseDialog({
             Ver fonte institucional <ExternalLink className="size-4" />
           </a>
         )}
-        <Link
-          className="text-sm font-bold text-primary underline"
-          to="/disciplinas/$courseId"
-          params={{ courseId: String(course.id) }}
-          search={{ catalogYear }}
-        >
-          Ver detalhes completos
-        </Link>
         {details && (
           <Button
             variant="ghost"

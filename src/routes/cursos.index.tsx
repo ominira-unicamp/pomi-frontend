@@ -12,7 +12,11 @@ export const Route = createFileRoute('/cursos/')({
     programId: readPositiveInteger(search.programId),
     catalogProgramId: readPositiveInteger(search.catalogProgramId),
     specializationId: readPositiveInteger(search.specializationId),
-    tab: search.tab === 'proposal' ? 'proposal' : 'full',
+    dependencyCourseId: readPositiveInteger(search.dependencyCourseId),
+    tab:
+      search.tab === 'proposal' || search.tab === 'dependencies'
+        ? search.tab
+        : 'full',
   }),
   component: CursosIndexRoute,
 })

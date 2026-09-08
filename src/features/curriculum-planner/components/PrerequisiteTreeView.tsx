@@ -1,6 +1,7 @@
 import { Network } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
+import type { ReactNode } from 'react'
 
 import type {
   CourseId,
@@ -36,29 +37,65 @@ function pathClass(status: VisualPrerequisiteLink['status']) {
   return 'stroke-primary'
 }
 
+function legendBorderClass(status: VisualPrerequisiteLink['status']) {
+  if (status === 'samePeriod') return 'border-destructive'
+  if (status === 'plannedAfter') return 'border-chart-4'
+  if (status === 'completed') return 'border-muted-foreground'
+  return 'border-primary'
+}
+
+const statusLabels: Readonly<Record<VisualPrerequisiteLink['status'], string>> =
+  {
+    completed: 'Pré-requisito concluído',
+    plannedBefore: 'Em ordem',
+    samePeriod: 'No mesmo semestre',
+    plannedAfter: 'Ordem invertida',
+  }
+
 export function PrerequisiteTreeView({
   states,
   links,
   onOpenCourseDetails,
-  selectedCourseIds,
-  selectionMode,
+  initialFocusedCourseIds = [],
+  selectedCourseIds = new Set(),
+  selectionMode = false,
   onToggleCourseSelection,
+  title = 'Árvore de pré-requisitos',
+  description = 'Clique nas disciplinas para organizar os caminhos relacionados.',
+  includeIsolated = false,
+  showCompletedToggle = true,
+  allowTreeSelection = true,
+  showPlanningLegend = true,
+  headerAction,
 }: {
   states: ReadonlyArray<CurriculumCourseState>
   links: ReadonlyArray<VisualPrerequisiteLink>
   onOpenCourseDetails: (courseId: CourseId) => void
-  selectedCourseIds: ReadonlySet<CourseId>
-  selectionMode: boolean
-  onToggleCourseSelection: (courseId: CourseId) => void
+  initialFocusedCourseIds?: ReadonlyArray<CourseId>
+  selectedCourseIds?: ReadonlySet<CourseId>
+  selectionMode?: boolean
+  onToggleCourseSelection?: (courseId: CourseId) => void
+  title?: string
+  description?: string
+  includeIsolated?: boolean
+  showCompletedToggle?: boolean
+  allowTreeSelection?: boolean
+  showPlanningLegend?: boolean
+  headerAction?: ReactNode
 }) {
   const rootRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const dragRef = useRef<
+    { pointerId: number; startX: number; scrollLeft: number } | undefined
+  >(undefined)
   const [paths, setPaths] = useState<ReadonlyArray<TreePath>>([])
   const [focusedCourseIds, setFocusedCourseIds] = useState<Set<CourseId>>(
-    () => new Set(),
+    () => new Set(initialFocusedCourseIds),
   )
   const [revealingAllCourses, setRevealingAllCourses] = useState(false)
   const [hideCompleted, setHideCompleted] = useState(false)
   const [hoveredCourseId, setHoveredCourseId] = useState<CourseId>()
+  const [isDragging, setIsDragging] = useState(false)
   const stateById = useMemo(
     () => new Map(states.map((state) => [state.course.id, state])),
     [states],
@@ -68,7 +105,9 @@ export function PrerequisiteTreeView({
     return combinedPrerequisiteTreeCourseIds(focusedCourseIds, links)
   }, [focusedCourseIds, links, revealingAllCourses])
   const treeCourseIds = useMemo(() => {
-    const courseIds = new Set<CourseId>()
+    const courseIds = new Set<CourseId>(
+      includeIsolated ? states.map((state) => state.course.id) : [],
+    )
     for (const link of links) {
       courseIds.add(link.prerequisiteCourseId)
       courseIds.add(link.dependentCourseId)
@@ -78,7 +117,7 @@ export function PrerequisiteTreeView({
         [...courseIds].filter((courseId) => visibleCourseIds.has(courseId)),
       )
     return courseIds
-  }, [links, visibleCourseIds])
+  }, [includeIsolated, links, states, visibleCourseIds])
   const layoutCourseIds = useMemo(() => {
     const candidateCourseIds = new Set(
       [...treeCourseIds].filter(
@@ -211,18 +250,17 @@ export function PrerequisiteTreeView({
   return (
     <div
       role="region"
-      aria-label="Árvore de pré-requisitos"
+      aria-label={title}
       className="rounded-md border-2 border-strong-border bg-card p-4"
     >
       <header className="sticky top-[4.5rem] z-30 -mx-4 -mt-4 mb-4 flex flex-wrap items-center justify-between gap-3 border-b-2 border-border bg-card px-4 py-3">
         <div>
-          <h3 className="font-extrabold">Árvore de pré-requisitos</h3>
-          <p className="text-xs text-muted-foreground">
-            Clique nas disciplinas para organizar os caminhos relacionados.
-          </p>
+          <h3 className="font-extrabold">{title}</h3>
+          <p className="text-xs text-muted-foreground">{description}</p>
         </div>
         <div className="flex flex-wrap items-center justify-end gap-2">
-          {focusedCourseIds.size > 0 && (
+          {headerAction}
+          {allowTreeSelection && focusedCourseIds.size > 0 && (
             <>
               <p className="mr-2 text-sm font-bold">
                 {revealingAllCourses
@@ -254,20 +292,61 @@ export function PrerequisiteTreeView({
               </Button>
             </>
           )}
-          <Button
-            size="sm"
-            variant={hideCompleted ? 'default' : 'outline'}
-            aria-pressed={hideCompleted}
-            onClick={() =>
-              updateTreeSelection(() => setHideCompleted((current) => !current))
-            }
-          >
-            {hideCompleted ? 'Mostrar concluídas' : 'Ocultar concluídas'}
-          </Button>
+          {showCompletedToggle && (
+            <Button
+              size="sm"
+              variant={hideCompleted ? 'default' : 'outline'}
+              aria-pressed={hideCompleted}
+              onClick={() =>
+                updateTreeSelection(() =>
+                  setHideCompleted((current) => !current),
+                )
+              }
+            >
+              {hideCompleted ? 'Mostrar concluídas' : 'Ocultar concluídas'}
+            </Button>
+          )}
         </div>
       </header>
       {gridLevels.length ? (
-        <div className="overflow-x-auto">
+        <div
+          ref={scrollRef}
+          className={cn(
+            'overflow-x-auto cursor-grab touch-pan-y',
+            isDragging && 'cursor-grabbing select-none',
+          )}
+          onPointerDown={(event) => {
+            if (event.button !== 0) return
+            if ((event.target as HTMLElement).closest('button,a')) return
+            const container = event.currentTarget
+            dragRef.current = {
+              pointerId: event.pointerId,
+              startX: event.clientX,
+              scrollLeft: container.scrollLeft,
+            }
+            container.setPointerCapture(event.pointerId)
+            setIsDragging(true)
+          }}
+          onPointerMove={(event) => {
+            const drag = dragRef.current
+            if (drag === undefined || drag.pointerId !== event.pointerId) return
+            event.preventDefault()
+            event.currentTarget.scrollLeft =
+              drag.scrollLeft - (event.clientX - drag.startX)
+          }}
+          onPointerUp={(event) => {
+            const drag = dragRef.current
+            if (drag === undefined || drag.pointerId !== event.pointerId) return
+            if (event.currentTarget.hasPointerCapture(event.pointerId))
+              event.currentTarget.releasePointerCapture(event.pointerId)
+            dragRef.current = undefined
+            setIsDragging(false)
+          }}
+          onPointerCancel={() => {
+            dragRef.current = undefined
+            setIsDragging(false)
+          }}
+        >
           <div
             ref={rootRef}
             className="relative grid min-h-64 items-center justify-items-center gap-x-12 gap-y-6 py-3 transition-[grid-template-columns,grid-template-rows,min-width] duration-200 ease-out"
@@ -319,9 +398,7 @@ export function PrerequisiteTreeView({
                           gridRow: row,
                           viewTransitionName: `prerequisite-${state.course.id}`,
                         }}
-                        onMouseEnter={() =>
-                          setHoveredCourseId(state.course.id)
-                        }
+                        onMouseEnter={() => setHoveredCourseId(state.course.id)}
                         onMouseLeave={() => setHoveredCourseId(undefined)}
                       >
                         <div
@@ -340,31 +417,44 @@ export function PrerequisiteTreeView({
                               selectedCourseIds.has(state.course.id) &&
                                 'bg-primary text-primary-foreground hover:bg-primary/90',
                             )}
-                            aria-label={`${selectedCourseIds.has(state.course.id) ? 'Desselecionar' : 'Selecionar'} ${state.course.code}`}
-                            aria-pressed={selectedCourseIds.has(
-                              state.course.id,
-                            )}
-                            onClick={() =>
-                              selectionMode
+                            aria-label={
+                              selectionMode && onToggleCourseSelection
+                                ? `${selectedCourseIds.has(state.course.id) ? 'Desselecionar' : 'Selecionar'} ${state.course.code}`
+                                : `${state.course.code}, abrir detalhes da disciplina`
+                            }
+                            aria-pressed={
+                              onToggleCourseSelection
+                                ? selectedCourseIds.has(state.course.id)
+                                : undefined
+                            }
+                            onClick={(event) =>
+                              (selectionMode || event.shiftKey) &&
+                              onToggleCourseSelection
                                 ? onToggleCourseSelection(state.course.id)
                                 : onOpenCourseDetails(state.course.id)
                             }
                           >
                             {state.course.code}
                           </button>
-                          <button
-                            type="button"
-                            className={cn(
-                              'pomi-focus grid w-8 place-items-center border-l-2 border-strong-border transition-colors hover:bg-accent',
-                              focusedCourseIds.has(state.course.id) &&
-                                'bg-primary text-primary-foreground hover:bg-primary/90',
-                            )}
-                            aria-label={`${focusedCourseIds.has(state.course.id) ? 'Remover' : 'Mostrar'} árvore de ${state.course.code}`}
-                            aria-pressed={focusedCourseIds.has(state.course.id)}
-                            onClick={() => toggleFocusedCourse(state.course.id)}
-                          >
-                            <Network className="size-4" />
-                          </button>
+                          {allowTreeSelection && (
+                            <button
+                              type="button"
+                              className={cn(
+                                'pomi-focus grid w-8 place-items-center border-l-2 border-strong-border transition-colors hover:bg-accent',
+                                focusedCourseIds.has(state.course.id) &&
+                                  'bg-primary text-primary-foreground hover:bg-primary/90',
+                              )}
+                              aria-label={`${focusedCourseIds.has(state.course.id) ? 'Remover' : 'Mostrar'} árvore de ${state.course.code}`}
+                              aria-pressed={focusedCourseIds.has(
+                                state.course.id,
+                              )}
+                              onClick={() =>
+                                toggleFocusedCourse(state.course.id)
+                              }
+                            >
+                              <Network className="size-4" />
+                            </button>
+                          )}
                         </div>
                       </div>,
                     ]
@@ -378,10 +468,46 @@ export function PrerequisiteTreeView({
           <div>
             <h3 className="font-extrabold">Nenhuma relação encontrada</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              As disciplinas do planejamento ainda não formam uma árvore de
-              pré-requisitos.
+              Não há disciplinas ou relações para exibir nesta árvore.
             </p>
           </div>
+        </div>
+      )}
+      {visibleLinks.length > 0 && (
+        <div
+          className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-border pt-3 text-xs font-semibold text-muted-foreground"
+          aria-label="Legenda da árvore de dependências"
+        >
+          {showPlanningLegend ? (
+            [...new Set(visibleLinks.map((link) => link.status))].map(
+              (status) => (
+                <span key={status} className="inline-flex items-center gap-2">
+                  <span
+                    aria-hidden="true"
+                    className={cn('w-7 border-t-2', legendBorderClass(status))}
+                  />
+                  {statusLabels[status]}
+                </span>
+              ),
+            )
+          ) : (
+            <span className="inline-flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                className="w-7 border-t-2 border-primary"
+              />
+              Pré-requisito
+            </span>
+          )}
+          {visibleLinks.some((link) => link.alternative) && (
+            <span className="inline-flex items-center gap-2">
+              <span
+                aria-hidden="true"
+                className="w-7 border-t-2 border-dashed border-primary"
+              />
+              Pré-requisito com alternativa
+            </span>
+          )}
         </div>
       )}
     </div>
