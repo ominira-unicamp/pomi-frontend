@@ -63,6 +63,7 @@ export function PrerequisiteTreeView({
   title = 'Árvore de pré-requisitos',
   description = 'Clique nas disciplinas para organizar os caminhos relacionados.',
   includeIsolated = false,
+  loading = false,
   showCompletedToggle = true,
   allowTreeSelection = true,
   showPlanningLegend = true,
@@ -78,6 +79,7 @@ export function PrerequisiteTreeView({
   title?: string
   description?: string
   includeIsolated?: boolean
+  loading?: boolean
   showCompletedToggle?: boolean
   allowTreeSelection?: boolean
   showPlanningLegend?: boolean
@@ -308,7 +310,13 @@ export function PrerequisiteTreeView({
           )}
         </div>
       </header>
-      {gridLevels.length ? (
+      {loading ? (
+        <div className="grid min-h-36 place-items-center rounded-md border-2 border-border bg-card p-6 text-center">
+          <p className="text-sm font-semibold text-muted-foreground">
+            Carregando relações de dependência...
+          </p>
+        </div>
+      ) : gridLevels.length ? (
         <div
           ref={scrollRef}
           className={cn(

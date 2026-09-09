@@ -801,6 +801,7 @@ export function CurriculumPlannerPage({
             <PrerequisiteTreeView
               states={prerequisiteTreeStates}
               links={visualPrerequisiteLinks}
+              loading={prerequisitesQuery.isLoading}
               onOpenCourseDetails={setSelectedCourseId}
               selectedCourseIds={selectedCourseIds}
               selectionMode={selectionMode}
