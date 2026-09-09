@@ -55,4 +55,30 @@ describe('AutocompleteSelect', () => {
     expect(onValueChange).toHaveBeenCalledWith('1')
     expect(onOpenChange).not.toHaveBeenCalled()
   })
+
+  it('scrolls its options inside a modal', () => {
+    render(
+      <Dialog open>
+        <DialogContent>
+          <DialogTitle>Selecionar programa</DialogTitle>
+          <AutocompleteSelect
+            ariaLabel="Programa"
+            value=""
+            options={Array.from({ length: 20 }, (_, index) => ({
+              value: String(index),
+              label: `Programa ${index}`,
+            }))}
+            onValueChange={vi.fn()}
+          />
+        </DialogContent>
+      </Dialog>,
+    )
+
+    fireEvent.focus(screen.getByRole('combobox', { name: 'Programa' }))
+    const list = screen.getByRole('listbox')
+
+    fireEvent.wheel(list, { deltaY: 80 })
+
+    expect(list.scrollTop).toBe(80)
+  })
 })
