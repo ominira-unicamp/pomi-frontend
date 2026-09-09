@@ -1,34 +1,47 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { appApiRequest, dataApiRequest } from './client'
+import { pomiApi } from './client'
 
-describe('API clients', () => {
+describe('API SDK adapter', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
   })
 
-  it('renews and sends the bearer token without persisting it', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }))
+  it('renews and sends the bearer token through an SDK operation', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(Response.json({ studentId: null }))
     vi.stubGlobal('fetch', fetchMock)
     const getAccessToken = vi.fn().mockResolvedValue('access-token')
 
-    await appApiRequest('/students', getAccessToken)
+    await pomiApi.student.getCurrentStudent(getAccessToken)
 
     expect(getAccessToken).toHaveBeenCalledOnce()
     const [, init] = fetchMock.mock.calls[0]
     expect(new Headers(init.headers).get('Authorization')).toBe(
       'Bearer access-token',
     )
-    expect(new URL(fetchMock.mock.calls[0][0]).origin).toBe('http://localhost:3001')
+    expect(new URL(fetchMock.mock.calls[0][0]).origin).toBe(
+      'http://localhost:3001',
+    )
   })
 
-  it('supports public API reads without requesting or sending a token', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(Response.json([]))
+  it('uses the SDK operation for public data reads', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json({
+        data: [],
+        quantity: 0,
+        total: 0,
+        _paths: { next: null, prev: null },
+      }),
+    )
     vi.stubGlobal('fetch', fetchMock)
 
-    await dataApiRequest('/courses')
+    await pomiApi.courseCatalog.listCourses({ page: 1 })
 
     const [, init] = fetchMock.mock.calls[0]
     expect(new Headers(init?.headers).has('Authorization')).toBe(false)
-    expect(new URL(fetchMock.mock.calls[0][0]).origin).toBe('http://localhost:3000')
+    expect(new URL(fetchMock.mock.calls[0][0]).origin).toBe(
+      'http://localhost:3000',
+    )
   })
 })

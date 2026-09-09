@@ -1,1 +1,7 @@
-export * from '@pomi/pomi-ts-sdk/student-interests'
+import { pomiApi } from '@/api/client'
+
+export const {
+  listStudentTagInterests,
+  putStudentTagInterest,
+  deleteStudentTagInterest,
+} = pomiApi.studentInterests
