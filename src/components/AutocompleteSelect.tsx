@@ -205,6 +205,10 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
                 height: listHeight,
                 pointerEvents: 'auto',
               }}
+              onWheelCapture={(event) => {
+                event.preventDefault()
+                event.currentTarget.scrollTop += event.deltaY
+              }}
               onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
             >
               {emptyLabel && (
