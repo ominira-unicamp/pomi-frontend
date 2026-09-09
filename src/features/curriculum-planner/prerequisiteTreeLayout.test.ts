@@ -114,6 +114,27 @@ describe('buildPrerequisiteTreeGrid', () => {
     expect(row('A3')).toBe(row('A2'))
     expect(row('A4')).toBe(row('A3'))
   })
+
+  it('orders a column by the vertical positions of its prerequisites', () => {
+    const grid = buildPrerequisiteTreeGrid(
+      [
+        [id('TOP'), id('BOTTOM')],
+        [id('MC020'), id('MS211')],
+      ],
+      [link('BOTTOM', 'MC020'), link('TOP', 'MS211')],
+    )
+
+    expect(grid).toEqual([
+      [
+        { courseId: id('TOP'), row: 1 },
+        { courseId: id('BOTTOM'), row: 2 },
+      ],
+      [
+        { courseId: id('MS211'), row: 1 },
+        { courseId: id('MC020'), row: 2 },
+      ],
+    ])
+  })
 })
 
 describe('prerequisiteTreeCourseIds', () => {

@@ -95,8 +95,13 @@ describe('ClassesGuidePanel', () => {
       />,
     )
 
+    fireEvent.click(screen.getByRole('button', { name: 'Filtros' }))
     fireEvent.click(screen.getByRole('button', { name: 'Disciplina' }))
-    fireEvent.focus(screen.getByRole('combobox', { name: 'Filtrar turmas por disciplina' }))
+    fireEvent.focus(
+      screen.getByRole('combobox', {
+        name: 'Filtrar turmas por disciplina',
+      }),
+    )
 
     expect(screen.getByText('MC102 — Algoritmos')).toBeTruthy()
     expect(screen.queryByText('MA111 — Cálculo')).toBeNull()

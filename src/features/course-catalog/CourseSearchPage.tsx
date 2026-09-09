@@ -1,13 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import {
-  BookOpen,
-  ChevronLeft,
-  ChevronRight,
-  Plus,
-  Search,
-  X,
-} from 'lucide-react'
+import { BookOpen, ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import {
@@ -18,13 +11,12 @@ import {
   PageHeader,
 } from '@/components/PageLayout'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
-import { Button } from '@/components/ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  AppliedFilters,
+  FilterViewHeader,
+  FiltersButton,
+} from '@/components/patterns/AppliedFilters'
+import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
@@ -68,20 +60,9 @@ export function CourseSearchPage({
   onSearchChange: (search: CourseSearch) => void
 }) {
   const [query, setQuery] = useState(search.q ?? '')
-  const [activeFilters, setActiveFilters] = useState<Array<ActiveFilter>>(() =>
-    filterOptions
-      .map(({ key }) => key)
-      .filter((key) => search[key] !== undefined),
-  )
+  const [filtersOpen, setFiltersOpen] = useState(false)
+  const [editingFilter, setEditingFilter] = useState<ActiveFilter>()
   useEffect(() => setQuery(search.q ?? ''), [search.q])
-  useEffect(() => {
-    setActiveFilters((current) => [
-      ...current,
-      ...filterOptions
-        .map(({ key }) => key)
-        .filter((key) => search[key] !== undefined && !current.includes(key)),
-    ])
-  }, [search.catalogYear, search.tagId, search.unitId])
 
   const unitsQuery = useQuery({
     queryKey: ['public', 'course-catalog', 'units'],
@@ -126,20 +107,13 @@ export function CourseSearchPage({
     return () => window.clearTimeout(timeout)
   }, [onSearchChange, query, search])
 
-  function addFilter(key: ActiveFilter) {
-    setActiveFilters((current) =>
-      current.includes(key) ? current : [...current, key],
-    )
-  }
-
   function updateFilter(key: ActiveFilter, value?: number) {
-    addFilter(key)
     changeFilters({ [key]: value })
   }
 
   function removeFilter(key: ActiveFilter) {
-    setActiveFilters((current) => current.filter((item) => item !== key))
     changeFilters({ [key]: undefined })
+    if (editingFilter === key) setEditingFilter(undefined)
   }
 
   function submit(event: React.FormEvent) {
@@ -149,13 +123,29 @@ export function CourseSearchPage({
 
   function clearFilters() {
     setQuery('')
-    setActiveFilters([])
+    setEditingFilter(undefined)
+    setFiltersOpen(false)
     onSearchChange({ page: 1 })
   }
 
+  const activeFilters = filterOptions
+    .map(({ key }) => key)
+    .filter((key) => search[key] !== undefined)
   const availableFilters = filterOptions.filter(
     ({ key }) => !activeFilters.includes(key),
   )
+  const appliedFilters = activeFilters.map((key) => ({
+    key,
+    label: filterOptions.find((option) => option.key === key)?.label ?? key,
+    summary:
+      key === 'unitId'
+        ? ((unitsQuery.data ?? []).find((unit) => unit.id === search.unitId)
+            ?.code ?? String(search.unitId))
+        : key === 'catalogYear'
+          ? String(search.catalogYear)
+          : ((tagsQuery.data ?? []).find((tag) => tag.id === search.tagId)
+              ?.name ?? String(search.tagId)),
+  }))
 
   return (
     <PageContainer>
@@ -178,92 +168,114 @@ export function CourseSearchPage({
           placeholder="Código ou nome, por exemplo MA141 ou Cálculo"
           className="h-11"
         />
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 gap-2 lg:flex">
           <Button type="submit" className="h-11">
             <Search /> Buscar
           </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11"
-                disabled={availableFilters.length === 0}
-              >
-                <Plus /> Mais filtros
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {availableFilters.map(({ key, label }) => (
-                <DropdownMenuItem key={key} onSelect={() => addFilter(key)}>
-                  {label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <FiltersButton
+            count={activeFilters.length}
+            onClick={() => {
+              setFiltersOpen((current) => !current)
+              setEditingFilter(undefined)
+            }}
+          />
         </div>
       </form>
 
-      {activeFilters.length > 0 && (
-        <div className="mb-8 grid gap-4 rounded-lg border-2 border-strong-border bg-muted/40 p-4 md:grid-cols-2 xl:grid-cols-3">
-          {activeFilters.map((key) => {
-            const label =
-              filterOptions.find((option) => option.key === key)?.label ?? key
-            return (
-              <div key={key} className="min-w-0">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="text-sm font-extrabold">{label}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="size-8"
-                    aria-label={`Remover filtro ${label}`}
-                    onClick={() => removeFilter(key)}
-                  >
-                    <X />
-                  </Button>
-                </div>
-                {key === 'unitId' ? (
-                  <FilterSelect
-                    label={label}
-                    value={search.unitId}
-                    placeholder="Todas as unidades"
-                    options={(unitsQuery.data ?? []).map((unit) => ({
-                      value: unit.id,
-                      label: `${unit.code} — ${unit.name}`,
-                    }))}
-                    showLabel={false}
-                    onChange={(value) => updateFilter(key, value)}
-                  />
-                ) : key === 'catalogYear' ? (
-                  <FilterSelect
-                    label={label}
-                    value={search.catalogYear}
-                    placeholder="Todos os catálogos"
-                    options={[...(catalogsQuery.data ?? [])]
-                      .sort((left, right) => right.year - left.year)
-                      .map((catalog) => ({
-                        value: catalog.year,
-                        label: String(catalog.year),
-                      }))}
-                    showLabel={false}
-                    onChange={(value) => updateFilter(key, value)}
-                  />
-                ) : (
-                  <TagFilterSelect
-                    label={label}
-                    value={search.tagId}
-                    options={(tagsQuery.data ?? []).map((tag) => ({
-                      value: tag.id,
-                      label: `${categoriesQuery.data?.find((category) => category.id === tag.categoryId)?.name ?? 'Categoria'}: ${tag.name}`,
-                    }))}
-                    onChange={(value) => updateFilter(key, value)}
-                  />
-                )}
+      <AppliedFilters
+        items={appliedFilters}
+        className="mb-4"
+        onEdit={(key) => {
+          setFiltersOpen(true)
+          setEditingFilter(key)
+        }}
+        onRemove={removeFilter}
+        onClear={clearFilters}
+        onAdd={() => {
+          setFiltersOpen(true)
+          setEditingFilter(undefined)
+        }}
+      />
+      {filtersOpen && (
+        <div className="mb-8 rounded-lg border-2 border-strong-border bg-card p-4 shadow-[4px_4px_0_var(--strong-border)]">
+          <FilterViewHeader
+            title={
+              editingFilter
+                ? `Editar ${filterOptions.find(({ key }) => key === editingFilter)?.label}`
+                : 'Filtros'
+            }
+            onBack={() =>
+              editingFilter
+                ? setEditingFilter(undefined)
+                : setFiltersOpen(false)
+            }
+            onClose={() => {
+              setEditingFilter(undefined)
+              setFiltersOpen(false)
+            }}
+          />
+          <div className="mt-4">
+            {!editingFilter ? (
+              <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                {[
+                  ...activeFilters,
+                  ...availableFilters.map(({ key }) => key),
+                ].map((key) => {
+                  const option = filterOptions.find((item) => item.key === key)!
+                  const applied = appliedFilters.find(
+                    (item) => item.key === key,
+                  )
+                  return (
+                    <Button
+                      key={key}
+                      variant="outline"
+                      className="h-auto min-h-11 justify-between whitespace-normal text-left"
+                      onClick={() => setEditingFilter(key)}
+                    >
+                      {option.label}
+                      <span className="text-xs text-muted-foreground">
+                        {applied?.summary ?? 'Não aplicado'}
+                      </span>
+                    </Button>
+                  )
+                })}
               </div>
-            )
-          })}
+            ) : editingFilter === 'unitId' ? (
+              <FilterSelect
+                label="Unidade"
+                value={search.unitId}
+                placeholder="Todas as unidades"
+                options={(unitsQuery.data ?? []).map((unit) => ({
+                  value: unit.id,
+                  label: `${unit.code} — ${unit.name}`,
+                }))}
+                onChange={(value) => updateFilter('unitId', value)}
+              />
+            ) : editingFilter === 'catalogYear' ? (
+              <FilterSelect
+                label="Catálogo"
+                value={search.catalogYear}
+                placeholder="Todos os catálogos"
+                options={[...(catalogsQuery.data ?? [])]
+                  .sort((a, b) => b.year - a.year)
+                  .map((catalog) => ({
+                    value: catalog.year,
+                    label: String(catalog.year),
+                  }))}
+                onChange={(value) => updateFilter('catalogYear', value)}
+              />
+            ) : (
+              <TagFilterSelect
+                label="Tag"
+                value={search.tagId}
+                options={(tagsQuery.data ?? []).map((tag) => ({
+                  value: tag.id,
+                  label: `${categoriesQuery.data?.find((category) => category.id === tag.categoryId)?.name ?? 'Categoria'}: ${tag.name}`,
+                }))}
+                onChange={(value) => updateFilter('tagId', value)}
+              />
+            )}
+          </div>
         </div>
       )}
 

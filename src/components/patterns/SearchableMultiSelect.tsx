@@ -24,6 +24,7 @@ export function SearchableMultiSelect<T extends string | number>({
   onChange,
   disabled = false,
   emptyLabel = 'Nenhuma opção disponível.',
+  inline = false,
 }: {
   label: string
   options: ReadonlyArray<MultiSelectOption<T>>
@@ -31,10 +32,11 @@ export function SearchableMultiSelect<T extends string | number>({
   onChange: (values: ReadonlyArray<T>) => void
   disabled?: boolean
   emptyLabel?: string
+  inline?: boolean
 }) {
   const listId = useId()
   const containerRef = useRef<HTMLDivElement>(null)
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(inline)
   const [query, setQuery] = useState('')
   const visibleOptions = useMemo(() => {
     const normalizedQuery = normalize(query.trim())
@@ -54,7 +56,7 @@ export function SearchableMultiSelect<T extends string | number>({
     : `Selecionar ${label.toLocaleLowerCase('pt-BR')}`
 
   useEffect(() => {
-    if (!open) return
+    if (!open || inline) return
     const closeWhenOutside = (event: PointerEvent) => {
       if (
         event.target instanceof Node &&
@@ -72,28 +74,34 @@ export function SearchableMultiSelect<T extends string | number>({
       document.removeEventListener('pointerdown', closeWhenOutside)
       document.removeEventListener('keydown', closeWithEscape)
     }
-  }, [open])
+  }, [inline, open])
 
   return (
     <div ref={containerRef} className="relative min-w-0">
-      <Button
-        className="w-full justify-between border-input bg-background font-medium hover:bg-background"
-        variant="outline"
-        disabled={disabled}
-        aria-expanded={open}
-        aria-controls={listId}
-        aria-haspopup="dialog"
-        onClick={() => setOpen((current) => !current)}
-      >
-        <span className="truncate">{selectionLabel}</span>
-        <ChevronDown className="shrink-0" />
-      </Button>
+      {!inline && (
+        <Button
+          className="w-full justify-between border-input bg-background font-medium hover:bg-background"
+          variant="outline"
+          disabled={disabled}
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-haspopup="dialog"
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className="truncate">{selectionLabel}</span>
+          <ChevronDown className="shrink-0" />
+        </Button>
+      )}
       {open && !disabled && (
         <div
           id={listId}
           role="dialog"
           aria-label={`Selecionar ${label}`}
-          className="absolute z-50 mt-1 w-full min-w-72 rounded-md border-2 border-strong-border bg-card p-3 text-card-foreground shadow-[5px_5px_0_var(--strong-border)]"
+          className={
+            inline
+              ? 'w-full'
+              : 'absolute z-50 mt-1 w-full min-w-72 rounded-md border-2 border-strong-border bg-card p-3 text-card-foreground shadow-[5px_5px_0_var(--strong-border)]'
+          }
         >
           <div className="mb-3 flex items-center gap-2">
             <div className="relative min-w-0 flex-1">

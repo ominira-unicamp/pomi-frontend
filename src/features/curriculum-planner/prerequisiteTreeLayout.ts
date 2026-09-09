@@ -127,6 +127,7 @@ export function buildPrerequisiteTreeGrid(
   levels: ReadonlyArray<PrerequisiteTreeLevel>,
   links: ReadonlyArray<PrerequisiteLink>,
 ): ReadonlyArray<ReadonlyArray<PrerequisiteTreeGridPosition>> {
+  const orderedLevels = levels.map((level) => [...level])
   const rowCount = Math.max(1, ...levels.map((level) => level.length))
   const rows = new Map<CourseId, number>()
   const incoming = new Map<CourseId, Set<CourseId>>()
@@ -139,7 +140,7 @@ export function buildPrerequisiteTreeGrid(
     dependents.add(link.dependentCourseId)
     outgoing.set(link.prerequisiteCourseId, dependents)
   }
-  for (const level of levels) {
+  for (const level of orderedLevels) {
     level.forEach((courseId, index) => {
       const row =
         level.length === 1
@@ -149,9 +150,33 @@ export function buildPrerequisiteTreeGrid(
     })
   }
   const positionLevel = (
-    level: PrerequisiteTreeLevel,
+    level: Array<CourseId>,
     relations: ReadonlyMap<CourseId, ReadonlySet<CourseId>>,
   ) => {
+    const originalOrder = new Map(
+      level.map((courseId, index) => [courseId, index]),
+    )
+    const relatedPosition = (courseId: CourseId) => {
+      const relatedRows = [...(relations.get(courseId) ?? [])].flatMap(
+        (relatedCourseId) => rows.get(relatedCourseId) ?? [],
+      )
+      return relatedRows.length
+        ? relatedRows.reduce((total, row) => total + row, 0) /
+            relatedRows.length
+        : undefined
+    }
+    level.sort((left, right) => {
+      const leftPosition = relatedPosition(left)
+      const rightPosition = relatedPosition(right)
+      if (leftPosition === undefined && rightPosition === undefined)
+        return (originalOrder.get(left) ?? 0) - (originalOrder.get(right) ?? 0)
+      if (leftPosition === undefined) return 1
+      if (rightPosition === undefined) return -1
+      return (
+        leftPosition - rightPosition ||
+        (originalOrder.get(left) ?? 0) - (originalOrder.get(right) ?? 0)
+      )
+    })
     let previousRow = 0
     level.forEach((courseId, index) => {
       const relatedRows = [...(relations.get(courseId) ?? [])].flatMap(
@@ -171,14 +196,14 @@ export function buildPrerequisiteTreeGrid(
     })
   }
   for (let iteration = 0; iteration < 4; iteration += 1) {
-    for (let index = 1; index < levels.length; index += 1)
-      positionLevel(levels[index], incoming)
-    for (let index = levels.length - 2; index >= 0; index -= 1)
-      positionLevel(levels[index], outgoing)
+    for (let index = 1; index < orderedLevels.length; index += 1)
+      positionLevel(orderedLevels[index], incoming)
+    for (let index = orderedLevels.length - 2; index >= 0; index -= 1)
+      positionLevel(orderedLevels[index], outgoing)
   }
-  for (let index = 1; index < levels.length; index += 1)
-    positionLevel(levels[index], incoming)
-  return levels.map((level) =>
+  for (let index = 1; index < orderedLevels.length; index += 1)
+    positionLevel(orderedLevels[index], incoming)
+  return orderedLevels.map((level) =>
     level.map((courseId) => ({ courseId, row: rows.get(courseId) ?? 1 })),
   )
 }

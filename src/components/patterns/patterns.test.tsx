@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
 
 import { ActionBar } from '@/components/patterns/ActionBar'
 import { Badge } from '@/components/patterns/Badge'
@@ -11,6 +11,7 @@ import {
   FieldLabel,
 } from '@/components/patterns/Field'
 import { InlineMessage } from '@/components/patterns/InlineMessage'
+import { AppliedFilters } from '@/components/patterns/AppliedFilters'
 import {
   Section,
   SectionContent,
@@ -64,5 +65,29 @@ describe('shared interface patterns', () => {
     expect(screen.getByRole('heading', { name: 'Histórico' })).toBeTruthy()
     expect(screen.getByText('Aprovada')).toBeTruthy()
     expect(screen.getByRole('button', { name: 'Editar' })).toBeTruthy()
+  })
+
+  it('summarizes, edits and removes applied filters', () => {
+    const onEdit = vi.fn()
+    const onRemove = vi.fn()
+    render(
+      <AppliedFilters
+        items={[{ key: 'prefix', label: 'Prefixo', summary: 'AC---' }]}
+        onEdit={onEdit}
+        onRemove={onRemove}
+      />,
+    )
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Editar filtro Prefixo: AC---',
+      }),
+    )
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Remover filtro Prefixo' }),
+    )
+
+    expect(onEdit).toHaveBeenCalledWith('prefix')
+    expect(onRemove).toHaveBeenCalledWith('prefix')
   })
 })

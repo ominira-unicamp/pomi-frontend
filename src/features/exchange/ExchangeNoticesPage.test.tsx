@@ -119,19 +119,22 @@ describe('ExchangeNoticesPage', () => {
   })
 
   it('adds and removes advanced filters individually', async () => {
+    mocks.listPlaces.mockResolvedValue([{ id: 3, name: 'Campinas' }])
     renderPage()
 
     await screen.findByText('Programa África')
-    fireEvent.pointerDown(
-      screen.getByRole('button', { name: 'Mais filtros' }),
-      {
-        button: 0,
-        ctrlKey: false,
-      },
-    )
-    fireEvent.click(await screen.findByRole('menuitem', { name: 'Locais' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Filtros' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar filtros' }))
+    expect(screen.queryByRole('button', { name: 'Locais' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Filtros' }))
+    fireEvent.click(screen.getByRole('button', { name: /Locais/ }))
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'Campinas' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Voltar' }))
 
-    expect(screen.getByText('Locais')).toBeTruthy()
+    expect(
+      screen.getByRole('button', { name: 'Editar filtro Locais: Campinas' }),
+    ).toBeTruthy()
     fireEvent.click(
       screen.getByRole('button', { name: 'Remover filtro Locais' }),
     )

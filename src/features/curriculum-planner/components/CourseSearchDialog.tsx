@@ -1,7 +1,12 @@
-import { ChevronLeft, ChevronRight, Plus, Search, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import type { Course, CourseId } from '@pomi/planner-domain/curriculum'
+import {
+  AppliedFilters,
+  FilterViewHeader,
+  FiltersButton,
+} from '@/components/patterns/AppliedFilters'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -18,12 +23,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -91,7 +90,9 @@ export function CourseSearchDialog({
   const [selectedCourseId, setSelectedCourseId] = useState<CourseId>()
   const [prefix, setPrefix] = useState<string>()
   const [credits, setCredits] = useState<number>()
-  const [activeFilters, setActiveFilters] = useState<Array<CourseFilter>>([])
+  const [filterView, setFilterView] = useState<
+    'results' | 'filters' | CourseFilter
+  >('results')
   const [page, setPage] = useState(1)
 
   useEffect(() => {
@@ -100,7 +101,7 @@ export function CourseSearchDialog({
     setSelectedCourseId(undefined)
     setPrefix(normalizedInitialPrefix)
     setCredits(undefined)
-    setActiveFilters(normalizedInitialPrefix ? ['prefix'] : [])
+    setFilterView('results')
     setPage(1)
   }, [normalizedInitialPrefix, open])
 
@@ -142,9 +143,10 @@ export function CourseSearchDialog({
   )
   const bodyRowCount = Math.max(visibleCourses.length, 1)
   const placeholderRowCount = Math.max(0, pageSize - bodyRowCount)
-  const availableFilters = filterOptions.filter(
-    ({ key }) => !activeFilters.includes(key),
-  )
+  const activeFilters: ReadonlyArray<CourseFilter> = [
+    ...(prefix ? (['prefix'] as const) : []),
+    ...(credits !== undefined ? (['credits'] as const) : []),
+  ]
   const selectedCourse = courses.find(
     (course) => course.id === selectedCourseId,
   )
@@ -159,16 +161,10 @@ export function CourseSearchDialog({
     setSelectedCourseId(undefined)
   }, [credits, normalizedQuery, prefix])
 
-  function addFilter(filter: CourseFilter) {
-    setActiveFilters((current) =>
-      current.includes(filter) ? current : [...current, filter],
-    )
-  }
-
   function removeFilter(filter: CourseFilter) {
-    setActiveFilters((current) => current.filter((item) => item !== filter))
     if (filter === 'prefix') setPrefix(undefined)
     if (filter === 'credits') setCredits(undefined)
+    if (filterView === filter) setFilterView('filters')
   }
 
   async function submit() {
@@ -202,7 +198,93 @@ export function CourseSearchDialog({
       </SheetDescription>
     </SheetHeader>
   )
-  const body = (
+  const appliedFilters = activeFilters.map((filter) => ({
+    key: filter,
+    label: filter === 'prefix' ? 'Prefixo' : 'Créditos',
+    summary: filter === 'prefix' ? `${prefix}---` : `${credits} créditos`,
+    removable: !(filter === 'prefix' && normalizedInitialPrefix),
+  }))
+  const filterEditor = (
+    <div className="space-y-4">
+      <FilterViewHeader
+        title={
+          filterView === 'filters'
+            ? 'Filtros'
+            : `Editar ${filterView === 'prefix' ? 'prefixo' : 'créditos'}`
+        }
+        onBack={() =>
+          setFilterView(filterView === 'filters' ? 'results' : 'filters')
+        }
+        onClose={() => setFilterView('results')}
+      />
+      {filterView === 'filters' ? (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {filterOptions.map(({ key, label }) => (
+            <Button
+              key={key}
+              variant="outline"
+              className="h-auto min-h-11 justify-between whitespace-normal text-left"
+              onClick={() => setFilterView(key)}
+            >
+              {label}
+              <span className="text-xs text-muted-foreground">
+                {appliedFilters.find((item) => item.key === key)?.summary ??
+                  'Não aplicado'}
+              </span>
+            </Button>
+          ))}
+        </div>
+      ) : filterView === 'prefix' ? (
+        <Select
+          value={prefix ?? 'all'}
+          onValueChange={(value) =>
+            setPrefix(value === 'all' ? undefined : value)
+          }
+        >
+          <SelectTrigger aria-label="Filtrar por prefixo">
+            <SelectValue placeholder="Todos os prefixos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os prefixos</SelectItem>
+            {prefixes.map((value) => (
+              <SelectItem key={value} value={value}>
+                {value}---
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : (
+        <Select
+          value={credits === undefined ? 'all' : String(credits)}
+          onValueChange={(value) =>
+            setCredits(value === 'all' ? undefined : Number(value))
+          }
+        >
+          <SelectTrigger aria-label="Filtrar por créditos">
+            <SelectValue placeholder="Todos os créditos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Todos os créditos</SelectItem>
+            {creditValues.map((value) => (
+              <SelectItem key={value} value={String(value)}>
+                {value} créditos
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+      {filterView !== 'results' &&
+        filterView !== 'filters' &&
+        appliedFilters.some(
+          (item) => item.key === filterView && item.removable,
+        ) && (
+          <Button variant="ghost" onClick={() => removeFilter(filterView)}>
+            Remover filtro
+          </Button>
+        )}
+    </div>
+  )
+  const resultsBody = (
     <div className="space-y-4">
       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
         <label className="relative block">
@@ -217,87 +299,21 @@ export function CourseSearchDialog({
             className="pl-9"
           />
         </label>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={availableFilters.length === 0}
-            >
-              <Plus /> Mais filtros
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {availableFilters.map(({ key, label }) => (
-              <DropdownMenuItem key={key} onSelect={() => addFilter(key)}>
-                {label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <FiltersButton
+          count={activeFilters.length}
+          onClick={() => setFilterView('filters')}
+        />
       </div>
-      {activeFilters.length > 0 && (
-        <div className="grid gap-3 rounded-md border-2 border-border bg-muted/30 p-3 sm:grid-cols-2">
-          {activeFilters.map((filter) => (
-            <div key={filter} className="min-w-0">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="text-sm font-extrabold">
-                  {filter === 'prefix' ? 'Prefixo' : 'Créditos'}
-                </span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-8"
-                  aria-label={`Remover filtro ${filter === 'prefix' ? 'Prefixo' : 'Créditos'}`}
-                  onClick={() => removeFilter(filter)}
-                >
-                  <X />
-                </Button>
-              </div>
-              {filter === 'prefix' ? (
-                <Select
-                  value={prefix ?? 'all'}
-                  onValueChange={(value) =>
-                    setPrefix(value === 'all' ? undefined : value)
-                  }
-                >
-                  <SelectTrigger aria-label="Filtrar por prefixo">
-                    <SelectValue placeholder="Todos os prefixos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os prefixos</SelectItem>
-                    {prefixes.map((value) => (
-                      <SelectItem key={value} value={value}>
-                        {value}---
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : (
-                <Select
-                  value={credits === undefined ? 'all' : String(credits)}
-                  onValueChange={(value) =>
-                    setCredits(value === 'all' ? undefined : Number(value))
-                  }
-                >
-                  <SelectTrigger aria-label="Filtrar por créditos">
-                    <SelectValue placeholder="Todos os créditos" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos os créditos</SelectItem>
-                    {creditValues.map((value) => (
-                      <SelectItem key={value} value={String(value)}>
-                        {value} créditos
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
+      <AppliedFilters
+        items={appliedFilters}
+        onEdit={setFilterView}
+        onRemove={removeFilter}
+        onAdd={() => setFilterView('filters')}
+        onClear={() => {
+          setPrefix(normalizedInitialPrefix)
+          setCredits(undefined)
+        }}
+      />
       <div className="overflow-x-auto rounded-md border-2 border-border">
         <table className="w-full table-fixed border-collapse text-left text-sm">
           <colgroup>
@@ -404,6 +420,7 @@ export function CourseSearchDialog({
       </nav>
     </div>
   )
+  const body = filterView === 'results' ? resultsBody : filterEditor
   const footer = (
     <DialogFooter>
       <Button
@@ -430,10 +447,18 @@ export function CourseSearchDialog({
   if (desktop)
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent
+          className="max-w-3xl"
+          onEscapeKeyDown={(event) => {
+            if (filterView !== 'results') {
+              event.preventDefault()
+              setFilterView(filterView === 'filters' ? 'results' : 'filters')
+            }
+          }}
+        >
           {header}
           {body}
-          {footer}
+          {filterView === 'results' && footer}
         </DialogContent>
       </Dialog>
     )
@@ -444,10 +469,16 @@ export function CourseSearchDialog({
         side="bottom"
         className="flex max-h-[88dvh] flex-col overflow-hidden rounded-t-xl bg-background text-foreground"
         closeButtonClassName="text-foreground hover:bg-accent"
+        onEscapeKeyDown={(event) => {
+          if (filterView !== 'results') {
+            event.preventDefault()
+            setFilterView(filterView === 'filters' ? 'results' : 'filters')
+          }
+        }}
       >
         {header}
         <div className="min-h-0 flex-1 overflow-y-auto p-5">{body}</div>
-        {footer}
+        {filterView === 'results' && footer}
       </SheetContent>
     </Sheet>
   )
