@@ -1,4 +1,4 @@
-import type { CreateStudentAbsenceInput } from '@pomi/pomi-ts-sdk/student-absences'
+import type { CreateStudentAbsenceInput } from '@ominira/pomi-sdk/student-absences'
 import { pomiApi } from '@/api/client'
 
 export type {
@@ -6,7 +6,7 @@ export type {
   StudentAbsence,
   StudentAbsenceDayOfWeek,
   StudyPeriodYearPeriod,
-} from '@pomi/pomi-ts-sdk/student-absences'
+} from '@ominira/pomi-sdk/student-absences'
 
 type GetAccessToken = () => Promise<string>
 

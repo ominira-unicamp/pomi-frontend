@@ -1,4 +1,4 @@
-import type { FeedbackReportInput } from '@pomi/pomi-ts-sdk/feedback'
+import type { FeedbackReportInput } from '@ominira/pomi-sdk/feedback'
 import { pomiApi } from '@/api/client'
 
 export type {
@@ -10,14 +10,14 @@ export type {
   FeedbackReportInput,
   FeedbackReportStatus,
   FeedbackTarget,
-} from '@pomi/pomi-ts-sdk/feedback'
+} from '@ominira/pomi-sdk/feedback'
 
 export {
   feedbackAcademicResourceTypes,
   feedbackFeatureKeys,
   feedbackKinds,
   feedbackReportStatuses,
-} from '@pomi/pomi-ts-sdk/feedback'
+} from '@ominira/pomi-sdk/feedback'
 
 type GetAccessToken = () => Promise<string>
 

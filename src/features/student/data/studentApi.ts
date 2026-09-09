@@ -13,9 +13,9 @@ export type {
   StudentHistoryImportSummary,
   StudentProfile,
   StudyPeriod,
-} from '@pomi/pomi-ts-sdk/student'
+} from '@ominira/pomi-sdk/student'
 
-import type { StudentCourseAttempt } from '@pomi/pomi-ts-sdk/student'
+import type { StudentCourseAttempt } from '@ominira/pomi-sdk/student'
 
 export const {
   getCurrentStudent,

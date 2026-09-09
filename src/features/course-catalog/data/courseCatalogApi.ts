@@ -11,7 +11,7 @@ export type {
   StudyPeriod,
   Tag,
   Unit,
-} from '@pomi/pomi-ts-sdk/course-catalog'
+} from '@ominira/pomi-sdk/course-catalog'
 
 export const {
   listCourses,

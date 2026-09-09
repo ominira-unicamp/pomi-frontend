@@ -5,7 +5,7 @@ export type {
   RelatedCourse,
   Tag,
   TagInput,
-} from '@pomi/pomi-ts-sdk/tag-taxonomy'
+} from '@ominira/pomi-sdk/tag-taxonomy'
 
 export const {
   listCategories,

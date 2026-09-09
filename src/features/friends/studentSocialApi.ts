@@ -5,12 +5,12 @@ export type {
   PublicPerson,
   PublicProfile,
   PublicProfileUpdate,
-} from '@pomi/pomi-ts-sdk/student-social'
+} from '@ominira/pomi-sdk/student-social'
 
 import type {
   PublicProfile,
   PublicProfileUpdate,
-} from '@pomi/pomi-ts-sdk/student-social'
+} from '@ominira/pomi-sdk/student-social'
 
 export function publicProfileUpdateInput(
   profile: PublicProfile,

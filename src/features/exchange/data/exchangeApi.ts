@@ -6,7 +6,7 @@ export type {
   ExchangeNoticeSubscription,
   ExchangeNoticeSubscriptionPatch,
   ExchangePlace,
-} from '@pomi/pomi-ts-sdk/exchange'
+} from '@ominira/pomi-sdk/exchange'
 
 export const {
   listExchangeNotices,

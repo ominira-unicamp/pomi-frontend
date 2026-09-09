@@ -1,7 +1,18 @@
 {
-  "name": "@pomi/pomi-ts-sdk",
-  "version": "0.1.0",
-  "private": true,
+  "name": "@ominira/pomi-sdk",
+  "version": "0.3.0",
+  "description": "Planejador da Ominira SDK",
+  "homepage": "https://github.com/ominira-unicamp/pomi-ts-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/ominira-unicamp/pomi-ts-sdk/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ominira-unicamp/pomi-ts-sdk.git"
+  },
+  "license": "MIT",
+  "author": "goliasvictor",
+  "private": false,
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
@@ -26,6 +37,17 @@
   },
   "scripts": {
     "architecture:check": "node scripts/check-architecture.mjs",
-    "check": "npm run architecture:check && tsc --noEmit -p tsconfig.json"
+    "check": "npm run architecture:check && tsc --noEmit -p tsconfig.json",
+    "prepublishOnly": "npm run check"
+  },
+  "keywords": [
+    "pomi",
+    "ominira",
+    "sdk",
+    "unicamp",
+    "typescript"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

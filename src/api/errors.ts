@@ -1,1 +1,1 @@
-export * from '@pomi/pomi-ts-sdk/errors'
+export * from '@ominira/pomi-sdk/errors'

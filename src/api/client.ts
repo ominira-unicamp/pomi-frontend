@@ -1,4 +1,4 @@
-import { createPomiApi } from '@pomi/pomi-ts-sdk'
+import { createPomiApi } from '@ominira/pomi-sdk'
 
 const configuredDataApiUrl = import.meta.env.VITE_DATA_API_URL?.trim()
 const configuredAppApiUrl = import.meta.env.VITE_APP_API_URL?.trim()

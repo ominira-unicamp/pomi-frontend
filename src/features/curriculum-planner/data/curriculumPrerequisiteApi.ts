@@ -9,7 +9,7 @@ import { pomiApi } from '@/api/client'
 import type {
   CurriculumApiCatalogCourse,
   CurriculumApiPrerequisiteItem,
-} from '@pomi/pomi-ts-sdk/curriculum-prerequisites'
+} from '@ominira/pomi-sdk/curriculum-prerequisites'
 
 export type CurrentYearPrerequisites = Readonly<{
   catalogId: number

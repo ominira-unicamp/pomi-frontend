@@ -3,7 +3,7 @@ import type {
   PlanningPeriodId,
 } from '@pomi/planner-domain/curriculum'
 import { pomiApi } from '@/api/client'
-import type { CurriculumApiEntity } from '@pomi/pomi-ts-sdk/curriculum-persistence'
+import type { CurriculumApiEntity } from '@ominira/pomi-sdk/curriculum-persistence'
 
 export type CurriculumDocument = Readonly<{
   id?: number

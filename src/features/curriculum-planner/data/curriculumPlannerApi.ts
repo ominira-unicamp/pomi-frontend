@@ -23,7 +23,7 @@ import type {
   CurriculumApiCourse as ApiCourse,
   CurriculumApiCourseRequirement as ApiCourseRequirement,
   CurriculumApiCoursesPage as ApiCoursesPage,
-} from '@pomi/pomi-ts-sdk/curriculum-planner'
+} from '@ominira/pomi-sdk/curriculum-planner'
 import { publicStaticDataCache } from '@/lib/publicStaticDataCache'
 
 const ok = <T>(value: T): PlannerResult<T> => ({ ok: true, value })
