@@ -206,6 +206,7 @@ function courseTagEndpoint(method: 'PUT' | 'DELETE') {
   return method === 'PUT'
     ? appAuthenticatedInterface.put<void, CourseTagInput>(
         '/courses/:courseId/tags/:tagId',
+        { response: 'empty' },
       )
     : appAuthenticatedInterface.remove<CourseTagInput>(
         '/courses/:courseId/tags/:tagId',

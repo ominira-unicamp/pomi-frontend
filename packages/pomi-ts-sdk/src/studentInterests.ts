@@ -10,7 +10,9 @@ const studentInterestsInterface = appApi.authenticated.interface(
 )
 const studentInterestsEndpoints = studentInterestsInterface.define({
   list: studentInterestsInterface.get<ReadonlyArray<Tag>, StudentInput>(),
-  put: studentInterestsInterface.put<void, StudentTagInput>('/:tagId'),
+  put: studentInterestsInterface.put<void, StudentTagInput>('/:tagId', {
+    response: 'empty',
+  }),
   remove: studentInterestsInterface.remove<StudentTagInput>('/:tagId'),
 })
 

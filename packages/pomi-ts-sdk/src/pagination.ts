@@ -1,4 +1,4 @@
-import { defineEndpoint, pathFromInput } from './endpoint'
+import { appApi, dataApi } from './endpoint'
 import type { ApiTarget } from './endpoint'
 import type { PomiClient } from './client'
 
@@ -9,26 +9,17 @@ export type ApiPage<T> = Readonly<{
 
 type ContinuationInput = Readonly<{ path: string }>
 
-const dataContinuationEndpoint = defineEndpoint<
-  ContinuationInput,
-  ApiPage<unknown>
->({
-  target: 'data',
-  method: 'GET',
-  path: pathFromInput<ContinuationInput>('path'),
-  authentication: 'public',
-  response: { kind: 'json' },
+const dataContinuationInterface = dataApi.interface('')
+const appContinuationInterface = appApi.public.interface('')
+const dataContinuationEndpoints = dataContinuationInterface.define({
+  next: dataContinuationInterface.get<ApiPage<unknown>, ContinuationInput>('', {
+    path: { fromInput: 'path' },
+  }),
 })
-
-const appContinuationEndpoint = defineEndpoint<
-  ContinuationInput,
-  ApiPage<unknown>
->({
-  target: 'app',
-  method: 'GET',
-  path: pathFromInput<ContinuationInput>('path'),
-  authentication: 'public',
-  response: { kind: 'json' },
+const appContinuationEndpoints = appContinuationInterface.define({
+  next: appContinuationInterface.get<ApiPage<unknown>, ContinuationInput>('', {
+    path: { fromInput: 'path' },
+  }),
 })
 
 export async function collectPages<T>(
@@ -37,12 +28,13 @@ export async function collectPages<T>(
   firstPage: Promise<ApiPage<T>>,
 ) {
   const items: Array<T> = []
+  const api = client.bind(
+    target === 'data' ? dataContinuationEndpoints : appContinuationEndpoints,
+  )
   let page = await firstPage
   items.push(...page.data)
   while (page._paths?.next) {
-    const endpoint =
-      target === 'data' ? dataContinuationEndpoint : appContinuationEndpoint
-    page = (await client.execute(endpoint, {
+    page = (await api.next({
       path: page._paths.next,
     })) as ApiPage<T>
     items.push(...page.data)

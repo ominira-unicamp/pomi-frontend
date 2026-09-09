@@ -4,13 +4,8 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
 type InputKey<TInput> = keyof TInput & string
 
-export type EndpointPathSegment<TInput> =
-  | string
-  | Readonly<{ parameter: InputKey<TInput> }>
-
 export type EndpointPath<TInput> =
   | string
-  | ReadonlyArray<EndpointPathSegment<TInput>>
   | Readonly<{ fromInput: InputKey<TInput> }>
 
 export type QueryValue =
@@ -52,23 +47,10 @@ export type EndpointRequestContext = Readonly<{
   getAccessToken?: () => Promise<string>
 }>
 
-export function pathParameter<TInput>(parameter: InputKey<TInput>) {
-  return { parameter } as const
-}
-
-export function pathFromInput<TInput>(fromInput: InputKey<TInput>) {
-  return { fromInput } as const
-}
-
-export function defineEndpoint<TInput, TOutput>(
-  definition: EndpointDefinition<TInput, TOutput>,
-) {
-  return definition
-}
-
 type EmptyInput = Record<never, never>
 
 type OperationOptions<TInput, TOutput> = Readonly<{
+  path?: EndpointPath<TInput>
   query?: (input: TInput) => Readonly<Record<string, QueryValue>>
   body?: (input: TInput) => unknown
   decode?: (value: unknown) => TOutput
@@ -96,12 +78,12 @@ class ApiInterface<
     suffix: string,
     options: OperationOptions<TInput, TOutput>,
     defaultResponse: 'json' | 'empty',
-  ) {
+  ): EndpointDefinition<TInput, TOutput> {
     const responseKind = options.response ?? defaultResponse
-    return defineEndpoint<TInput, TOutput>({
+    return {
       target: this.target,
       method,
-      path: joinPath(this.basePath, suffix),
+      path: options.path ?? joinPath(this.basePath, suffix),
       authentication: this.authentication,
       query: options.query,
       body: options.body,
@@ -109,7 +91,7 @@ class ApiInterface<
         responseKind === 'empty'
           ? { kind: 'empty' }
           : { kind: 'json', decode: options.decode },
-    })
+    }
   }
 
   get<TOutput, TInput = EmptyInput>(
@@ -196,16 +178,7 @@ export function buildEndpointPath<TInput>(
     })
   }
 
-  return `/${endpointPath
-    .map((segment) => {
-      if (typeof segment === 'string') return segment
-      const value = values[segment.parameter]
-      if (value === undefined || value === null || value === '') {
-        throw new TypeError(`Missing path parameter: ${segment.parameter}`)
-      }
-      return encodeURIComponent(String(value))
-    })
-    .join('/')}`
+  return endpointPath
 }
 
 export function buildEndpointQuery(
