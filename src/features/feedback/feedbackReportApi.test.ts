@@ -61,24 +61,28 @@ describe('feedbackReportApi', () => {
   })
 
   it('lists the authenticated student feedback reports', async () => {
-    const reports = [{
-      id: 3,
-      kind: 'BUG',
-      target: { type: 'GENERAL' },
-      title: 'Falha na página inicial',
-      description: 'A página inicial não carrega depois de entrar no POMI.',
-      sourcePath: '/',
-      status: 'OPEN',
-      adminMessage: null,
-      reporterStudentId: 7,
-      createdAt: '2026-09-01T12:00:00.000Z',
-      updatedAt: '2026-09-01T12:00:00.000Z',
-    }] as const
+    const reports = [
+      {
+        id: 3,
+        kind: 'BUG',
+        target: { type: 'GENERAL' },
+        title: 'Falha na página inicial',
+        description: 'A página inicial não carrega depois de entrar no POMI.',
+        sourcePath: '/',
+        status: 'OPEN',
+        adminMessage: null,
+        reporterStudentId: 7,
+        createdAt: '2026-09-01T12:00:00.000Z',
+        updatedAt: '2026-09-01T12:00:00.000Z',
+      },
+    ] as const
     const fetchMock = vi.fn().mockResolvedValue(Response.json(reports))
     vi.stubGlobal('fetch', fetchMock)
     const getAccessToken = vi.fn().mockResolvedValue('access-token')
 
-    await expect(listStudentFeedbackReports(7, getAccessToken)).resolves.toEqual(reports)
+    await expect(
+      listStudentFeedbackReports(7, getAccessToken),
+    ).resolves.toEqual(reports)
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining('/student/7/feedback-reports'),
       expect.objectContaining({ cache: 'no-store' }),

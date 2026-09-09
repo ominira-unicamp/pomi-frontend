@@ -1,4 +1,4 @@
-import { expectApiResponse } from './errors'
+import { appApi } from './endpoint'
 import type { PomiClient } from './client'
 
 export type CurriculumApiSelection = Readonly<{
@@ -51,30 +51,43 @@ export type CurriculumCreateInput = Readonly<{
   courses: ReadonlyArray<{ courseId: number; periodId: number | null }>
 }>
 
-async function requestJson<T>(
-  client: PomiClient,
-  path: string,
-  getAccessToken: () => Promise<string>,
-  init?: RequestInit,
-): Promise<T> {
-  const response = await client.appApiRequest(path, getAccessToken, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init?.headers },
-  })
-  await expectApiResponse(response)
-  return (await response.json()) as T
-}
+type StudentInput = Readonly<{ studentId: number }>
+type CurriculumInput = StudentInput & Readonly<{ curriculumId: number }>
+type CreateCurriculumEndpointInput = StudentInput &
+  Readonly<{ input: CurriculumCreateInput }>
+type PatchCurriculumEndpointInput = CurriculumInput &
+  Readonly<{ input: Record<string, unknown> }>
+
+const curriculaInterface = appApi.authenticated.interface(
+  '/student/:studentId/curricula',
+)
+const curriculaEndpoints = curriculaInterface.define({
+  list: curriculaInterface.get<
+    ReadonlyArray<CurriculumSummaryApiEntity>,
+    StudentInput
+  >(),
+  get: curriculaInterface.get<CurriculumApiEntity, CurriculumInput>(
+    '/:curriculumId',
+  ),
+  create: curriculaInterface.post<
+    CurriculumApiEntity,
+    CreateCurriculumEndpointInput
+  >('', { body: ({ input }) => input }),
+  patch: curriculaInterface.patch<
+    CurriculumApiEntity,
+    PatchCurriculumEndpointInput
+  >('/:curriculumId', { body: ({ input }) => input }),
+  remove: curriculaInterface.remove<CurriculumInput>('/:curriculumId'),
+})
 
 export function createCurriculumPersistenceApi(client: PomiClient) {
+  const api = client.bind(curriculaEndpoints)
+
   async function listCurricula(
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<ReadonlyArray<CurriculumSummaryApiEntity>>(
-      client,
-      `/student/${studentId}/curricula`,
-      getAccessToken,
-    )
+    return api.list({ studentId }, { getAccessToken })
   }
 
   async function getCurriculum(
@@ -82,11 +95,7 @@ export function createCurriculumPersistenceApi(client: PomiClient) {
     curriculumId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<CurriculumApiEntity>(
-      client,
-      `/student/${studentId}/curricula/${curriculumId}`,
-      getAccessToken,
-    )
+    return api.get({ studentId, curriculumId }, { getAccessToken })
   }
 
   async function createCurriculum(
@@ -94,12 +103,7 @@ export function createCurriculumPersistenceApi(client: PomiClient) {
     input: CurriculumCreateInput,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<CurriculumApiEntity>(
-      client,
-      `/student/${studentId}/curricula`,
-      getAccessToken,
-      { method: 'POST', body: JSON.stringify(input) },
-    )
+    return api.create({ studentId, input }, { getAccessToken })
   }
 
   async function patchCurriculum(
@@ -108,12 +112,7 @@ export function createCurriculumPersistenceApi(client: PomiClient) {
     input: Record<string, unknown>,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<CurriculumApiEntity>(
-      client,
-      `/student/${studentId}/curricula/${curriculumId}`,
-      getAccessToken,
-      { method: 'PATCH', body: JSON.stringify(input) },
-    )
+    return api.patch({ studentId, curriculumId, input }, { getAccessToken })
   }
 
   async function deleteCurriculum(
@@ -121,12 +120,7 @@ export function createCurriculumPersistenceApi(client: PomiClient) {
     curriculumId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    const response = await client.appApiRequest(
-      `/student/${studentId}/curricula/${curriculumId}`,
-      getAccessToken,
-      { method: 'DELETE' },
-    )
-    await expectApiResponse(response)
+    await api.remove({ studentId, curriculumId }, { getAccessToken })
   }
 
   return {

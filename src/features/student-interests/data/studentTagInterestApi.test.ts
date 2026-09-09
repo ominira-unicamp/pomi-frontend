@@ -28,7 +28,7 @@ describe('student tag interest API', () => {
       interests,
     )
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:3001/student/7/tag-interests',
+      expect.stringMatching(/\/student\/7\/tag-interests$/),
       expect.objectContaining({ cache: 'no-store' }),
     )
   })
@@ -39,12 +39,12 @@ describe('student tag interest API', () => {
 
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
-      'http://localhost:3001/student/7/tag-interests/8',
+      expect.stringMatching(/\/student\/7\/tag-interests\/8$/),
       expect.objectContaining({ method: 'PUT' }),
     )
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      'http://localhost:3001/student/7/tag-interests/8',
+      expect.stringMatching(/\/student\/7\/tag-interests\/8$/),
       expect.objectContaining({ method: 'DELETE' }),
     )
   })

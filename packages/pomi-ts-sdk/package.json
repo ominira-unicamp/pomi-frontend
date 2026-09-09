@@ -25,6 +25,7 @@
     "./tag-taxonomy": "./src/tagTaxonomy.ts"
   },
   "scripts": {
-    "check": "tsc --noEmit -p tsconfig.json"
+    "architecture:check": "node scripts/check-architecture.mjs",
+    "check": "npm run architecture:check && tsc --noEmit -p tsconfig.json"
   }
 }

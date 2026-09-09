@@ -1,4 +1,4 @@
-import { expectApiResponse } from './errors'
+import { appApi, dataApi } from './endpoint'
 import type { PomiClient } from './client'
 
 export type ExchangePlace = Readonly<{
@@ -37,42 +37,44 @@ export type ExchangeNoticeSubscriptionPatch = Readonly<{
   placeIds?: ReadonlyArray<number>
 }>
 
-export function createExchangeApi(client: PomiClient) {
-  async function publicJson<T>(path: string): Promise<T> {
-    const response = await client.dataApiRequest(path)
-    await expectApiResponse(response)
-    return (await response.json()) as T
-  }
+type StudentSubscriptionInput = Readonly<{ studentId: number }>
+type PatchSubscriptionInput = StudentSubscriptionInput &
+  Readonly<{ patch: ExchangeNoticeSubscriptionPatch }>
 
-  async function studentJson<T>(
-    path: string,
-    getAccessToken: () => Promise<string>,
-    init?: RequestInit,
-  ): Promise<T> {
-    const response = await client.appApiRequest(path, getAccessToken, {
-      ...init,
-      headers: { 'Content-Type': 'application/json', ...init?.headers },
-    })
-    await expectApiResponse(response)
-    return (await response.json()) as T
-  }
+const exchangeData = dataApi.interface('')
+const exchangeApp = appApi.authenticated.interface('/student/:studentId')
+
+const exchangeEndpoints = exchangeData.define({
+  listExchangeNotices:
+    exchangeData.get<ReadonlyArray<ExchangeNotice>>('/exchange-notices'),
+  listExchangePlaces:
+    exchangeData.get<ReadonlyArray<ExchangePlace>>('/exchange-places'),
+  getSubscription: exchangeApp.get<
+    ExchangeNoticeSubscription,
+    StudentSubscriptionInput
+  >('/exchange-notice-subscription'),
+  patchSubscription: exchangeApp.patch<
+    ExchangeNoticeSubscription,
+    PatchSubscriptionInput
+  >('/exchange-notice-subscription', { body: ({ patch }) => patch }),
+})
+
+export function createExchangeApi(client: PomiClient) {
+  const api = client.bind(exchangeEndpoints)
 
   function listExchangeNotices() {
-    return publicJson<ReadonlyArray<ExchangeNotice>>('/exchange-notices')
+    return api.listExchangeNotices({})
   }
 
   function listExchangePlaces() {
-    return publicJson<ReadonlyArray<ExchangePlace>>('/exchange-places')
+    return api.listExchangePlaces({})
   }
 
   function getExchangeNoticeSubscription(
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return studentJson<ExchangeNoticeSubscription>(
-      `/student/${studentId}/exchange-notice-subscription`,
-      getAccessToken,
-    )
+    return api.getSubscription({ studentId }, { getAccessToken })
   }
 
   function patchExchangeNoticeSubscription(
@@ -80,11 +82,7 @@ export function createExchangeApi(client: PomiClient) {
     patch: ExchangeNoticeSubscriptionPatch,
     getAccessToken: () => Promise<string>,
   ) {
-    return studentJson<ExchangeNoticeSubscription>(
-      `/student/${studentId}/exchange-notice-subscription`,
-      getAccessToken,
-      { method: 'PATCH', body: JSON.stringify(patch) },
-    )
+    return api.patchSubscription({ studentId, patch }, { getAccessToken })
   }
 
   function samePlaceIds(

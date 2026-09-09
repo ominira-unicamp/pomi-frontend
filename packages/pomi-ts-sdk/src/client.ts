@@ -1,3 +1,12 @@
+import { expectApiResponse } from './errors'
+import { buildEndpointUrl } from './endpoint'
+import type {
+  EndpointDefinition,
+  EndpointInput,
+  EndpointOutput,
+  EndpointRequestContext,
+} from './endpoint'
+
 export type PomiFetch = typeof fetch
 
 export type PomiClientOptions = Readonly<{
@@ -66,6 +75,60 @@ export class PomiClient {
       headers,
       cache: 'no-store',
     })
+  }
+
+  async execute<TInput, TOutput>(
+    definition: EndpointDefinition<TInput, TOutput>,
+    input: TInput,
+    context: EndpointRequestContext = {},
+  ): Promise<TOutput> {
+    const path = buildEndpointUrl(definition, input)
+    const init: RequestInit = {}
+    if (definition.method !== 'GET') init.method = definition.method
+    if (definition.body) {
+      init.body = JSON.stringify(definition.body(input))
+      init.headers = { 'Content-Type': 'application/json' }
+    }
+
+    let response: Response
+    if (definition.target === 'data') {
+      response = await this.dataApiRequest(path, init)
+    } else if (definition.authentication === 'required') {
+      response = context.getAccessToken
+        ? await this.appApiRequest(path, context.getAccessToken, init)
+        : await this.appApiRequest(path, init)
+    } else {
+      response = await this.appApiPublicRequest(path, init)
+    }
+
+    await expectApiResponse(response)
+    if (definition.response.kind === 'empty') return undefined as TOutput
+    const value: unknown = await response.json()
+    return definition.response.decode
+      ? definition.response.decode(value)
+      : (value as TOutput)
+  }
+
+  bind<TDefinitions extends Record<string, EndpointDefinition<any, any>>>(
+    definitions: TDefinitions,
+  ): {
+    [Name in keyof TDefinitions]: (
+      input: EndpointInput<TDefinitions[Name]>,
+      context?: EndpointRequestContext,
+    ) => Promise<EndpointOutput<TDefinitions[Name]>>
+  } {
+    return Object.fromEntries(
+      Object.entries(definitions).map(([name, definition]) => [
+        name,
+        (input: unknown, context?: EndpointRequestContext) =>
+          this.execute<any, any>(definition, input, context),
+      ]),
+    ) as {
+      [Name in keyof TDefinitions]: (
+        input: EndpointInput<TDefinitions[Name]>,
+        context?: EndpointRequestContext,
+      ) => Promise<EndpointOutput<TDefinitions[Name]>>
+    }
   }
 }
 

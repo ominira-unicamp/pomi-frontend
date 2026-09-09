@@ -1,4 +1,4 @@
-import { expectApiResponse } from './errors'
+import { appApi } from './endpoint'
 import type { PomiClient } from './client'
 
 export type SharedPeriodYearPeriod =
@@ -52,31 +52,62 @@ type SharedPeriodPlanningPage = Readonly<{
   total: number
 }>
 
+type ListSharedInput = Readonly<{ studentId: number; ownerPublicId: string }>
+type SharedInput = Readonly<{ shareId: string }>
+type StudentSharedInput = SharedInput & Readonly<{ studentId: number }>
+type CopySharedInput = Readonly<{
+  studentId: number
+  planning: Pick<SharedPeriodPlanning, 'name' | 'studyPeriodId' | 'classes'>
+}>
+
+const publicSharedInterface = appApi.public.interface(
+  '/shared-period-plannings',
+)
+const studentSharedInterface = appApi.authenticated.interface(
+  '/student/:studentId/shared-period-plannings',
+)
+const copySharedInterface = appApi.authenticated.interface(
+  '/student/:studentId/period-plannings',
+)
+const sharedEndpoints = publicSharedInterface.define({
+  getPublic: publicSharedInterface.get<SharedPeriodPlanning, SharedInput>(
+    '/:shareId',
+  ),
+  list: studentSharedInterface.get<SharedPeriodPlanningPage, ListSharedInput>(
+    '',
+    {
+      query: ({ ownerPublicId }) => ({ page: 1, pageSize: 20, ownerPublicId }),
+    },
+  ),
+  getStudent: studentSharedInterface.get<
+    SharedPeriodPlanning,
+    StudentSharedInput
+  >('/:shareId'),
+  copy: copySharedInterface.post<Readonly<{ id: number }>, CopySharedInput>(
+    '',
+    {
+      body: ({ planning }) => ({
+        name: `Cópia de ${planning.name}`,
+        studyPeriodId: planning.studyPeriodId,
+        classes: planning.classes.map((classItem) => classItem.id),
+      }),
+    },
+  ),
+})
+
 export function createSharedPeriodPlanningApi(client: PomiClient) {
+  const api = client.bind(sharedEndpoints)
+
   async function listSharedPeriodPlanningsForPerson(
     studentId: number,
     ownerPublicId: string,
     getAccessToken: () => Promise<string>,
   ) {
-    const params = new URLSearchParams({
-      page: '1',
-      pageSize: '20',
-      ownerPublicId,
-    })
-    const response = await client.appApiRequest(
-      `/student/${studentId}/shared-period-plannings?${params.toString()}`,
-      getAccessToken,
-    )
-    await expectApiResponse(response)
-    return (await response.json()) as SharedPeriodPlanningPage
+    return api.list({ studentId, ownerPublicId }, { getAccessToken })
   }
 
   async function getPublicSharedPeriodPlanning(shareId: string) {
-    const response = await client.appApiPublicRequest(
-      `/shared-period-plannings/${encodeURIComponent(shareId)}`,
-    )
-    await expectApiResponse(response)
-    return (await response.json()) as SharedPeriodPlanning
+    return api.getPublic({ shareId })
   }
 
   async function getSharedPeriodPlanningForStudent(
@@ -84,12 +115,7 @@ export function createSharedPeriodPlanningApi(client: PomiClient) {
     shareId: string,
     getAccessToken: () => Promise<string>,
   ) {
-    const response = await client.appApiRequest(
-      `/student/${studentId}/shared-period-plannings/${encodeURIComponent(shareId)}`,
-      getAccessToken,
-    )
-    await expectApiResponse(response)
-    return (await response.json()) as SharedPeriodPlanning
+    return api.getStudent({ studentId, shareId }, { getAccessToken })
   }
 
   async function copySharedPeriodPlanning(
@@ -97,21 +123,7 @@ export function createSharedPeriodPlanningApi(client: PomiClient) {
     planning: Pick<SharedPeriodPlanning, 'name' | 'studyPeriodId' | 'classes'>,
     getAccessToken: () => Promise<string>,
   ) {
-    const response = await client.appApiRequest(
-      `/student/${studentId}/period-plannings`,
-      getAccessToken,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: `Cópia de ${planning.name}`,
-          studyPeriodId: planning.studyPeriodId,
-          classes: planning.classes.map((classItem) => classItem.id),
-        }),
-      },
-    )
-    await expectApiResponse(response)
-    return (await response.json()) as Readonly<{ id: number }>
+    return api.copy({ studentId, planning }, { getAccessToken })
   }
 
   return {

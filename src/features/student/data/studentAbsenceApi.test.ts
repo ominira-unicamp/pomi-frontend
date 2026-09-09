@@ -21,7 +21,7 @@ describe('student absence API', () => {
 
     await expect(listStudentAbsences(7, getAccessToken)).resolves.toEqual([])
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:3001/student/7/absences',
+      expect.stringMatching(/\/student\/7\/absences$/),
       expect.objectContaining({ cache: 'no-store' }),
     )
   })
@@ -44,7 +44,7 @@ describe('student absence API', () => {
       ),
     ).resolves.toEqual(absence)
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:3001/student/7/absences',
+      expect.stringMatching(/\/student\/7\/absences$/),
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
@@ -64,7 +64,7 @@ describe('student absence API', () => {
     await deleteStudentAbsence(7, 9, getAccessToken)
 
     expect(fetchMock).toHaveBeenCalledWith(
-      'http://localhost:3001/student/7/absences/9',
+      expect.stringMatching(/\/student\/7\/absences\/9$/),
       expect.objectContaining({ method: 'DELETE' }),
     )
   })

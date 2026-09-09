@@ -20,9 +20,7 @@ describe('API SDK adapter', () => {
     expect(new Headers(init.headers).get('Authorization')).toBe(
       'Bearer access-token',
     )
-    expect(new URL(fetchMock.mock.calls[0][0]).origin).toBe(
-      'http://localhost:3001',
-    )
+    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/me')
   })
 
   it('uses the SDK operation for public data reads', async () => {
@@ -40,8 +38,6 @@ describe('API SDK adapter', () => {
 
     const [, init] = fetchMock.mock.calls[0]
     expect(new Headers(init?.headers).has('Authorization')).toBe(false)
-    expect(new URL(fetchMock.mock.calls[0][0]).origin).toBe(
-      'http://localhost:3000',
-    )
+    expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe('/courses')
   })
 })

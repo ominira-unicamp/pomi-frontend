@@ -1,4 +1,5 @@
-import { expectApiResponse } from './errors'
+import { appApi, dataApi } from './endpoint'
+import { collectPages } from './pagination'
 import type { PomiClient } from './client'
 
 export type StudyPeriodYearPeriod =
@@ -178,101 +179,187 @@ type CatalogCourseEvaluation = Readonly<{
   evaluation: StudentCourseEvaluationMode | null
 }>
 
+type StudentInput = Readonly<{ studentId: number }>
+type RegisterStudentInput = Readonly<{ name: string }>
+type StudentProfilePatch = Partial<
+  Pick<
+    StudentProfile,
+    | 'name'
+    | 'catalogId'
+    | 'programId'
+    | 'specializationId'
+    | 'entryYear'
+    | 'languageId'
+  >
+>
+type PatchProfileInput = StudentInput & Readonly<{ body: StudentProfilePatch }>
+type CourseYearInput = Readonly<{ courseId: number; year: number }>
+type CoursePeriodInput = Readonly<{ courseId: number; studyPeriodId: number }>
+type StudyPeriodInput = Readonly<{ studyPeriodId: number }>
+type HistoryInput = StudentInput & Readonly<{ body: StudentHistoryImport }>
+type ProfessorEvaluationInput = StudentInput &
+  Readonly<{ classId: number; professorId: number }>
+type ProfessorEvaluationBody = Pick<
+  ProfessorEvaluation,
+  'wouldTakeAgain' | 'fairness' | 'clarity' | 'difficulty'
+>
+type PutProfessorEvaluationInput = ProfessorEvaluationInput &
+  Readonly<{ body: ProfessorEvaluationBody }>
+type PendingEvaluationInput = StudentInput &
+  Readonly<{
+    period: Readonly<{
+      year: number
+      yearPeriod: 'FIRST_SEMESTER' | 'SECOND_SEMESTER'
+    }>
+  }>
+type StudentCourseAttemptBody = Readonly<{
+  courseId: number
+  studyPeriodId?: number | null
+  classId?: number | null
+  evaluationMode?: StudentCourseEvaluationMode
+  status: StudentCourseAttempt['status']
+  grade?: number | null
+}>
+type CreateAttemptInput = StudentInput &
+  Readonly<{ body: StudentCourseAttemptBody }>
+type AttemptInput = StudentInput & Readonly<{ attemptId: number }>
+type PatchAttemptInput = AttemptInput &
+  Readonly<{
+    body: Partial<
+      Pick<
+        StudentCourseAttempt,
+        'studyPeriodId' | 'classId' | 'evaluationMode' | 'status' | 'grade'
+      >
+    >
+  }>
+
+const studentApp = appApi.authenticated.interface('')
+const studentData = dataApi.interface('')
+const studentResource = appApi.authenticated.interface('/student/:studentId')
+const studentEndpointDefinitions = {
+  getCurrentStudent: studentApp.get<{ studentId: number | null }>('/me'),
+  registerStudent: studentApp.post<
+    { id: number; name: string },
+    RegisterStudentInput
+  >('/students', { body: ({ name }) => ({ name }) }),
+  getStudentProfile: studentApp.get<StudentProfile, StudentInput>(
+    '/students/:studentId',
+  ),
+  patchStudentProfile: studentApp.patch<StudentProfile, PatchProfileInput>(
+    '/students/:studentId',
+    { body: ({ body }) => body },
+  ),
+  listStudyPeriods:
+    studentData.get<ReadonlyArray<StudyPeriod>>('/study-periods'),
+  getCourseEvaluation: studentData.get<
+    ApiPage<CatalogCourseEvaluation>,
+    CourseYearInput
+  >('/catalog-courses', {
+    query: ({ courseId, year }) => ({
+      courseId,
+      catalogYear: year,
+      page: 1,
+      pageSize: 1,
+    }),
+  }),
+  listClasses: studentData.get<
+    ApiPage<StudentCourseAttemptClass>,
+    CoursePeriodInput
+  >('/classes', {
+    query: ({ courseId, studyPeriodId }) => ({
+      courseId,
+      studyPeriodId,
+      page: 1,
+      pageSize: 100,
+    }),
+  }),
+  listSchedules: studentData.get<
+    ApiPage<StudentClassSchedule>,
+    StudyPeriodInput
+  >('/class-schedules', {
+    query: ({ studyPeriodId }) => ({ studyPeriodId, page: 1, pageSize: 1000 }),
+  }),
+  listAttempts:
+    studentResource.get<ReadonlyArray<StudentCourseAttempt>>(
+      '/course-attempts',
+    ),
+  importHistory: studentResource.post<
+    StudentHistoryImportSummary,
+    HistoryInput
+  >('/course-history', { body: ({ body }) => body }),
+  getProfessorEvaluation: studentResource.get<
+    ProfessorEvaluationEligibility,
+    ProfessorEvaluationInput
+  >('/classes/:classId/professors/:professorId/evaluation'),
+  putProfessorEvaluation: studentResource.put<
+    ProfessorEvaluation,
+    PutProfessorEvaluationInput
+  >('/classes/:classId/professors/:professorId/evaluation', {
+    body: ({ body }) => body,
+  }),
+  listPendingEvaluations: studentResource.get<
+    ReadonlyArray<PendingProfessorEvaluation>,
+    PendingEvaluationInput
+  >('/professor-evaluations/pending', {
+    query: ({ period }) => ({
+      year: period.year,
+      yearPeriod: period.yearPeriod,
+    }),
+  }),
+  createAttempt: studentResource.post<StudentCourseAttempt, CreateAttemptInput>(
+    '/course-attempts',
+    { body: ({ body }) => body },
+  ),
+  patchAttempt: studentResource.patch<StudentCourseAttempt, PatchAttemptInput>(
+    '/course-attempts/:attemptId',
+    { body: ({ body }) => body },
+  ),
+  deleteAttempt: studentResource.remove<AttemptInput>(
+    '/course-attempts/:attemptId',
+  ),
+}
+
 export function createStudentApi(client: PomiClient) {
-  async function requestJson<T>(
-    path: string,
-    getAccessToken: () => Promise<string>,
-    init?: RequestInit,
-  ): Promise<T> {
-    const response = await client.appApiRequest(path, getAccessToken, {
-      ...init,
-      headers: { 'Content-Type': 'application/json', ...init?.headers },
-    })
-    await expectApiResponse(response)
-    return (await response.json()) as T
-  }
+  const api = client.bind(studentEndpointDefinitions)
 
   function getCurrentStudent(getAccessToken: () => Promise<string>) {
-    return requestJson<{ studentId: number | null }>('/me', getAccessToken)
+    return api.getCurrentStudent({}, { getAccessToken })
   }
 
   function registerCurrentStudent(
     name: string,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<{ id: number; name: string }>(
-      '/students',
-      getAccessToken,
-      {
-        method: 'POST',
-        body: JSON.stringify({ name }),
-      },
-    )
+    return api.registerStudent({ name }, { getAccessToken })
   }
 
   function getStudentProfile(
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<StudentProfile>(`/students/${studentId}`, getAccessToken)
+    return api.getStudentProfile({ studentId }, { getAccessToken })
   }
 
   function patchStudentProfile(
     studentId: number,
-    body: Partial<
-      Pick<
-        StudentProfile,
-        | 'name'
-        | 'catalogId'
-        | 'programId'
-        | 'specializationId'
-        | 'entryYear'
-        | 'languageId'
-      >
-    >,
+    body: StudentProfilePatch,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<StudentProfile>(
-      `/students/${studentId}`,
-      getAccessToken,
-      {
-        method: 'PATCH',
-        body: JSON.stringify(body),
-      },
-    )
+    return api.patchStudentProfile({ studentId, body }, { getAccessToken })
   }
 
-  async function listStudyPeriods(): Promise<ReadonlyArray<StudyPeriod>> {
-    const response = await client.dataApiRequest('/study-periods')
-    await expectApiResponse(response)
-    return (await response.json()) as ReadonlyArray<StudyPeriod>
-  }
-
-  async function listPublicPages<T>(initialPath: string) {
-    const items: Array<T> = []
-    let path: string | null = initialPath
-    while (path) {
-      const response = await client.dataApiRequest(path)
-      await expectApiResponse(response)
-      const page = (await response.json()) as Readonly<{
-        data: ReadonlyArray<T>
-        _paths: Readonly<{ next: string | null }>
-      }>
-      items.push(...page.data)
-      path = page._paths.next
-    }
-    return items
+  function listStudyPeriods(): Promise<ReadonlyArray<StudyPeriod>> {
+    return api.listStudyPeriods({})
   }
 
   async function getCourseEvaluationForStudyPeriod(
     courseId: number,
     year: number,
   ): Promise<StudentCourseEvaluationMode | null> {
-    const response = await client.dataApiRequest(
-      `/catalog-courses?courseId=${courseId}&catalogYear=${year}&page=1&pageSize=1`,
-    )
-    await expectApiResponse(response)
-    const page = (await response.json()) as ApiPage<CatalogCourseEvaluation>
+    const page = await api.getCourseEvaluation({
+      courseId,
+      year,
+    })
     return page.data[0]?.evaluation ?? null
   }
 
@@ -280,36 +367,29 @@ export function createStudentApi(client: PomiClient) {
     courseId: number,
     studyPeriodId: number,
   ): Promise<ReadonlyArray<StudentCourseAttemptClass>> {
-    return listPublicPages<StudentCourseAttemptClass>(
-      `/classes?courseId=${courseId}&studyPeriodId=${studyPeriodId}&page=1&pageSize=100`,
+    return collectPages(
+      client,
+      'data',
+      api.listClasses({ courseId, studyPeriodId }),
     )
   }
 
   function listClassSchedulesByStudyPeriod(studyPeriodId: number) {
-    return listPublicPages<StudentClassSchedule>(
-      `/class-schedules?studyPeriodId=${studyPeriodId}&page=1&pageSize=1000`,
-    )
+    return collectPages(client, 'data', api.listSchedules({ studyPeriodId }))
   }
 
   function listStudentCourseAttempts(
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<ReadonlyArray<StudentCourseAttempt>>(
-      `/student/${studentId}/course-attempts`,
-      getAccessToken,
-    )
+    return api.listAttempts({ studentId }, { getAccessToken })
   }
   function importStudentHistory(
     studentId: number,
     body: StudentHistoryImport,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<StudentHistoryImportSummary>(
-      `/student/${studentId}/course-history`,
-      getAccessToken,
-      { method: 'POST', body: JSON.stringify(body) },
-    )
+    return api.importHistory({ studentId, body }, { getAccessToken })
   }
 
   function getProfessorEvaluation(
@@ -318,9 +398,9 @@ export function createStudentApi(client: PomiClient) {
     professorId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<ProfessorEvaluationEligibility>(
-      `/student/${studentId}/classes/${classId}/professors/${professorId}/evaluation`,
-      getAccessToken,
+    return api.getProfessorEvaluation(
+      { studentId, classId, professorId },
+      { getAccessToken },
     )
   }
 
@@ -328,16 +408,12 @@ export function createStudentApi(client: PomiClient) {
     studentId: number,
     classId: number,
     professorId: number,
-    body: Pick<
-      ProfessorEvaluation,
-      'wouldTakeAgain' | 'fairness' | 'clarity' | 'difficulty'
-    >,
+    body: ProfessorEvaluationBody,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<ProfessorEvaluation>(
-      `/student/${studentId}/classes/${classId}/professors/${professorId}/evaluation`,
-      getAccessToken,
-      { method: 'PUT', body: JSON.stringify(body) },
+    return api.putProfessorEvaluation(
+      { studentId, classId, professorId, body },
+      { getAccessToken },
     )
   }
 
@@ -349,47 +425,24 @@ export function createStudentApi(client: PomiClient) {
     }>,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<ReadonlyArray<PendingProfessorEvaluation>>(
-      `/student/${studentId}/professor-evaluations/pending?year=${period.year}&yearPeriod=${period.yearPeriod}`,
-      getAccessToken,
-    )
+    return api.listPendingEvaluations({ studentId, period }, { getAccessToken })
   }
 
   function createStudentCourseAttempt(
     studentId: number,
-    body: Readonly<{
-      courseId: number
-      studyPeriodId?: number | null
-      classId?: number | null
-      evaluationMode?: StudentCourseEvaluationMode
-      status: StudentCourseAttempt['status']
-      grade?: number | null
-    }>,
+    body: StudentCourseAttemptBody,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<StudentCourseAttempt>(
-      `/student/${studentId}/course-attempts`,
-      getAccessToken,
-      { method: 'POST', body: JSON.stringify(body) },
-    )
+    return api.createAttempt({ studentId, body }, { getAccessToken })
   }
 
   function patchStudentCourseAttempt(
     studentId: number,
     attemptId: number,
-    body: Partial<
-      Pick<
-        StudentCourseAttempt,
-        'studyPeriodId' | 'classId' | 'evaluationMode' | 'status' | 'grade'
-      >
-    >,
+    body: PatchAttemptInput['body'],
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<StudentCourseAttempt>(
-      `/student/${studentId}/course-attempts/${attemptId}`,
-      getAccessToken,
-      { method: 'PATCH', body: JSON.stringify(body) },
-    )
+    return api.patchAttempt({ studentId, attemptId, body }, { getAccessToken })
   }
 
   async function deleteStudentCourseAttempt(
@@ -397,12 +450,7 @@ export function createStudentApi(client: PomiClient) {
     attemptId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    const response = await client.appApiRequest(
-      `/student/${studentId}/course-attempts/${attemptId}`,
-      getAccessToken,
-      { method: 'DELETE' },
-    )
-    await expectApiResponse(response)
+    await api.deleteAttempt({ studentId, attemptId }, { getAccessToken })
   }
 
   return {

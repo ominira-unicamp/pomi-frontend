@@ -1,4 +1,4 @@
-import { expectApiResponse } from './errors'
+import { appApi } from './endpoint'
 import type { PomiClient } from './client'
 
 export const feedbackKinds = ['BUG', 'SUGGESTION', 'DATA_ISSUE'] as const
@@ -65,56 +65,38 @@ export type FeedbackReport = Readonly<{
   updatedAt: string
 }>
 
+type FeedbackInput = Readonly<{ input: FeedbackReportInput }>
+type StudentFeedbackInput = Readonly<{
+  studentId: number
+  input?: FeedbackReportInput
+}>
+
+const publicFeedbackInterface = appApi.public.interface('/feedback-reports')
+const studentFeedbackInterface = appApi.authenticated.interface(
+  '/student/:studentId/feedback-reports',
+)
+
+const publicFeedbackEndpoints = publicFeedbackInterface.define({
+  submitAnonymousFeedbackReport: publicFeedbackInterface.post<
+    FeedbackReceipt,
+    FeedbackInput
+  >('', { body: ({ input }) => input }),
+})
+
+const studentFeedbackEndpoints = studentFeedbackInterface.define({
+  submitStudentFeedbackReport: studentFeedbackInterface.post<
+    FeedbackReceipt,
+    Required<StudentFeedbackInput>
+  >('', { body: ({ input }) => input }),
+  listStudentFeedbackReports: studentFeedbackInterface.get<
+    ReadonlyArray<FeedbackReport>,
+    Pick<StudentFeedbackInput, 'studentId'>
+  >(),
+})
+
 export function createFeedbackApi(client: PomiClient) {
-  async function responseJson<T>(response: Promise<Response>): Promise<T> {
-    const resolvedResponse = await response
-    await expectApiResponse(resolvedResponse)
-    return (await resolvedResponse.json()) as T
-  }
-
-  function submitAnonymousFeedbackReport(input: FeedbackReportInput) {
-    return responseJson<FeedbackReceipt>(
-      client.appApiPublicRequest('/feedback-reports', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(input),
-      }),
-    )
-  }
-
-  function submitStudentFeedbackReport(
-    studentId: number,
-    input: FeedbackReportInput,
-    getAccessToken: () => Promise<string>,
-  ) {
-    return responseJson<FeedbackReceipt>(
-      client.appApiRequest(
-        `/student/${studentId}/feedback-reports`,
-        getAccessToken,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(input),
-        },
-      ),
-    )
-  }
-
-  function listStudentFeedbackReports(
-    studentId: number,
-    getAccessToken: () => Promise<string>,
-  ) {
-    return responseJson<ReadonlyArray<FeedbackReport>>(
-      client.appApiRequest(
-        `/student/${studentId}/feedback-reports`,
-        getAccessToken,
-      ),
-    )
-  }
-
   return {
-    submitAnonymousFeedbackReport,
-    submitStudentFeedbackReport,
-    listStudentFeedbackReports,
+    ...client.bind(publicFeedbackEndpoints),
+    ...client.bind(studentFeedbackEndpoints),
   }
 }

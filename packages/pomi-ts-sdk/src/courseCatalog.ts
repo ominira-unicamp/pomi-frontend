@@ -1,4 +1,5 @@
-import { expectApiResponse } from './errors'
+import { appApi, dataApi } from './endpoint'
+import { collectPages } from './pagination'
 import type { PomiClient } from './client'
 
 export type Course = Readonly<{
@@ -105,7 +106,7 @@ export type ClassSchedule = Readonly<{
   roomCode: string
 }>
 
-type ApiPage<T> = Readonly<{
+type CourseCatalogPage<T> = Readonly<{
   data: ReadonlyArray<T>
   total?: number
   page?: number
@@ -114,106 +115,178 @@ type ApiPage<T> = Readonly<{
   _paths?: Readonly<{ next: string | null; previous?: string | null }>
 }>
 
+type ListCoursesInput = Readonly<{
+  q?: string
+  unitId?: number
+  catalogYear?: number
+  tagId?: number
+  page: number
+  pageSize?: number
+}>
+type CourseInput = Readonly<{ courseId: number }>
+type CoursePeriodInput = CourseInput & Readonly<{ studyPeriodId: number }>
+type TagInput = Readonly<{ tagId: number }>
+type CourseTagInput = CourseInput & TagInput
+
+const dataInterface = dataApi.interface('')
+const appPublicInterface = appApi.public.interface('')
+const appAuthenticatedInterface = appApi.authenticated.interface('')
+const listCoursesEndpoint = dataInterface.get<CoursePage, ListCoursesInput>(
+  '/courses',
+  {
+    query: ({ q, unitId, catalogYear, tagId, page, pageSize }) => ({
+      page,
+      pageSize: pageSize ?? 20,
+      q: q || undefined,
+      unitId: unitId || undefined,
+      catalogYear: catalogYear || undefined,
+      tagId: tagId || undefined,
+    }),
+  },
+)
+
+const getCourseEndpoint = dataInterface.get<Course, CourseInput>(
+  '/courses/:courseId',
+)
+
+function dataListEndpoint<TOutput>(path: string) {
+  return dataInterface.get<TOutput>(`/${path}`)
+}
+
+function appListEndpoint<TOutput>(path: string) {
+  return appPublicInterface.get<TOutput>(`/${path}`)
+}
+
+const listUnitsEndpoint = dataListEndpoint<ReadonlyArray<Unit>>('units')
+const listCatalogsEndpoint =
+  dataListEndpoint<ReadonlyArray<Catalog>>('catalogs')
+const listCategoriesEndpoint =
+  appListEndpoint<ReadonlyArray<Category>>('categories')
+const listTagsEndpoint = appListEndpoint<ReadonlyArray<Tag>>('tags')
+
+const listCourseTagsEndpoint = appPublicInterface.get<
+  ReadonlyArray<Tag>,
+  CourseInput
+>('/courses/:courseId/tags')
+
+const listCatalogCoursesEndpoint = dataInterface.get<
+  CourseCatalogPage<CatalogCourse>,
+  CourseInput
+>('/catalog-courses', {
+  query: ({ courseId }) => ({ courseId, page: 1, pageSize: 100 }),
+})
+
+const listStudyPeriodsEndpoint =
+  dataListEndpoint<ReadonlyArray<StudyPeriod>>('study-periods')
+
+function coursePeriodEndpoint<TOutput>(path: string) {
+  return dataInterface.get<CourseCatalogPage<TOutput>, CoursePeriodInput>(
+    `/${path}`,
+    {
+      query: ({ courseId, studyPeriodId }) => ({
+        courseId,
+        studyPeriodId,
+        page: 1,
+        pageSize: 100,
+      }),
+    },
+  )
+}
+
+const listCourseClassesEndpoint = coursePeriodEndpoint<CourseClass>('classes')
+const listCourseSchedulesEndpoint =
+  coursePeriodEndpoint<ClassSchedule>('class-schedules')
+
+const listRelatedCoursesEndpoint = appPublicInterface.get<
+  CourseCatalogPage<Course>,
+  TagInput
+>('/tags/:tagId/courses', { query: () => ({ page: 1, pageSize: 100 }) })
+
+function courseTagEndpoint(method: 'PUT' | 'DELETE') {
+  return method === 'PUT'
+    ? appAuthenticatedInterface.put<void, CourseTagInput>(
+        '/courses/:courseId/tags/:tagId',
+      )
+    : appAuthenticatedInterface.remove<CourseTagInput>(
+        '/courses/:courseId/tags/:tagId',
+      )
+}
+
+const putCourseTagEndpoint = courseTagEndpoint('PUT')
+const deleteCourseTagEndpoint = courseTagEndpoint('DELETE')
+
 export function createCourseCatalogApi(client: PomiClient) {
-  async function dataJson<T>(path: string) {
-    const response = await client.dataApiRequest(path)
-    await expectApiResponse(response)
-    return response.json() as Promise<T>
-  }
+  const api = client.bind({
+    listCourses: listCoursesEndpoint,
+    getCourse: getCourseEndpoint,
+    listUnits: listUnitsEndpoint,
+    listCatalogs: listCatalogsEndpoint,
+    listCategories: listCategoriesEndpoint,
+    listTags: listTagsEndpoint,
+    listCourseTags: listCourseTagsEndpoint,
+    listCatalogCourses: listCatalogCoursesEndpoint,
+    listStudyPeriods: listStudyPeriodsEndpoint,
+    listCourseClasses: listCourseClassesEndpoint,
+    listCourseSchedules: listCourseSchedulesEndpoint,
+    listRelatedCourses: listRelatedCoursesEndpoint,
+    putCourseTag: putCourseTagEndpoint,
+    deleteCourseTag: deleteCourseTagEndpoint,
+  })
 
-  async function appPublicJson<T>(path: string) {
-    const response = await client.appApiPublicRequest(path)
-    await expectApiResponse(response)
-    return response.json() as Promise<T>
-  }
-
-  async function listAllPages<T>(
-    initialPath: string,
-    request: (path: string) => Promise<ApiPage<T>>,
-  ) {
-    const items: Array<T> = []
-    let path: string | null = initialPath
-    while (path) {
-      const page = await request(path)
-      items.push(...page.data)
-      path = page._paths?.next ?? null
-    }
-    return items
-  }
-
-  function listCourses(input: {
-    q?: string
-    unitId?: number
-    catalogYear?: number
-    tagId?: number
-    page: number
-    pageSize?: number
-  }) {
-    const params = new URLSearchParams({
-      page: String(input.page),
-      pageSize: String(input.pageSize ?? 20),
-    })
-    if (input.q) params.set('q', input.q)
-    if (input.unitId) params.set('unitId', String(input.unitId))
-    if (input.catalogYear) params.set('catalogYear', String(input.catalogYear))
-    if (input.tagId) params.set('tagId', String(input.tagId))
-    return dataJson<CoursePage>(`/courses?${params}`)
+  function listCourses(input: ListCoursesInput) {
+    return api.listCourses(input)
   }
 
   function getCourse(courseId: number) {
-    return dataJson<Course>(`/courses/${courseId}`)
+    return api.getCourse({ courseId })
   }
 
   function listUnits() {
-    return dataJson<ReadonlyArray<Unit>>('/units')
+    return api.listUnits({})
   }
 
   function listCatalogs() {
-    return dataJson<ReadonlyArray<Catalog>>('/catalogs')
+    return api.listCatalogs({})
   }
 
   function listCategories() {
-    return appPublicJson<ReadonlyArray<Category>>('/categories')
+    return api.listCategories({})
   }
 
   function listTags() {
-    return appPublicJson<ReadonlyArray<Tag>>('/tags')
+    return api.listTags({})
   }
 
   function listCourseTags(courseId: number) {
-    return appPublicJson<ReadonlyArray<Tag>>(`/courses/${courseId}/tags`)
+    return api.listCourseTags({ courseId })
   }
 
   function listCatalogCourses(courseId: number) {
-    return listAllPages<CatalogCourse>(
-      `/catalog-courses?courseId=${courseId}&page=1&pageSize=100`,
-      dataJson,
-    )
+    return collectPages(client, 'data', api.listCatalogCourses({ courseId }))
   }
 
   function listStudyPeriods() {
-    return dataJson<ReadonlyArray<StudyPeriod>>('/study-periods')
+    return api.listStudyPeriods({})
   }
 
   function listCourseClasses(courseId: number, studyPeriodId: number) {
-    return listAllPages<CourseClass>(
-      `/classes?courseId=${courseId}&studyPeriodId=${studyPeriodId}&page=1&pageSize=100`,
-      dataJson,
+    return collectPages(
+      client,
+      'data',
+      api.listCourseClasses({ courseId, studyPeriodId }),
     )
   }
 
   function listCourseSchedules(courseId: number, studyPeriodId: number) {
-    return listAllPages<ClassSchedule>(
-      `/class-schedules?courseId=${courseId}&studyPeriodId=${studyPeriodId}&page=1&pageSize=100`,
-      dataJson,
+    return collectPages(
+      client,
+      'data',
+      api.listCourseSchedules({ courseId, studyPeriodId }),
     )
   }
 
   function listRelatedCourses(tagId: number) {
-    return listAllPages<Course>(
-      `/tags/${tagId}/courses?page=1&pageSize=100`,
-      appPublicJson,
-    )
+    return collectPages(client, 'app', api.listRelatedCourses({ tagId }))
   }
 
   async function putCourseTag(
@@ -221,24 +294,14 @@ export function createCourseCatalogApi(client: PomiClient) {
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    const response = await client.appApiRequest(
-      `/courses/${courseId}/tags/${tagId}`,
-      getAccessToken,
-      { method: 'PUT' },
-    )
-    await expectApiResponse(response)
+    await api.putCourseTag({ courseId, tagId }, { getAccessToken })
   }
   async function deleteCourseTag(
     courseId: number,
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    const response = await client.appApiRequest(
-      `/courses/${courseId}/tags/${tagId}`,
-      getAccessToken,
-      { method: 'DELETE' },
-    )
-    await expectApiResponse(response)
+    await api.deleteCourseTag({ courseId, tagId }, { getAccessToken })
   }
 
   return {

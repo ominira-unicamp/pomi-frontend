@@ -1,4 +1,5 @@
-import { expectApiResponse } from './errors'
+import { appApi } from './endpoint'
+import { collectPages } from './pagination'
 import type { PomiClient } from './client'
 
 export type Category = Readonly<{ id: number; name: string }>
@@ -23,71 +24,63 @@ export type TagInput = Readonly<{
   parentTagId: number | null
 }>
 
-type ApiPage<T> = Readonly<{
+type TagPage<T> = Readonly<{
   data: ReadonlyArray<T>
   _paths?: Readonly<{ next: string | null }>
 }>
+type CategoryInput = Readonly<{ categoryId: number }>
+type CategoryNameInput = Readonly<{ name: string }>
+type UpdateCategoryInput = CategoryInput & CategoryNameInput
+type TagIdInput = Readonly<{ tagId: number }>
+type CreateTagInput = Readonly<{ input: TagInput }>
+type UpdateTagInput = TagIdInput & CreateTagInput
+
+const publicInterface = appApi.public.interface('')
+const authenticatedInterface = appApi.authenticated.interface('')
+const tagEndpoints = publicInterface.define({
+  listCategories: publicInterface.get<ReadonlyArray<Category>>('/categories'),
+  listTags: publicInterface.get<ReadonlyArray<Tag>>('/tags'),
+  listRelatedCourses: publicInterface.get<TagPage<RelatedCourse>, TagIdInput>(
+    '/tags/:tagId/courses',
+    { query: () => ({ page: 1, pageSize: 100 }) },
+  ),
+  createCategory: authenticatedInterface.post<Category, CategoryNameInput>(
+    '/categories',
+    { body: ({ name }) => ({ name }) },
+  ),
+  updateCategory: authenticatedInterface.put<Category, UpdateCategoryInput>(
+    '/categories/:categoryId',
+    { body: ({ name }) => ({ name }) },
+  ),
+  deleteCategory: authenticatedInterface.remove<CategoryInput>(
+    '/categories/:categoryId',
+  ),
+  createTag: authenticatedInterface.post<Tag, CreateTagInput>('/tags', {
+    body: ({ input }) => input,
+  }),
+  updateTag: authenticatedInterface.put<Tag, UpdateTagInput>('/tags/:tagId', {
+    body: ({ input }) => input,
+  }),
+  deleteTag: authenticatedInterface.remove<TagIdInput>('/tags/:tagId'),
+})
 
 export function createTagTaxonomyApi(client: PomiClient) {
-  async function publicJson<T>(path: string) {
-    const response = await client.appApiPublicRequest(path)
-    await expectApiResponse(response)
-    return response.json() as Promise<T>
-  }
-
-  async function authenticatedJson<T>(
-    path: string,
-    getAccessToken: () => Promise<string>,
-    init: RequestInit = {},
-  ) {
-    const response = await client.appApiRequest(path, getAccessToken, {
-      ...init,
-      headers: { 'Content-Type': 'application/json', ...init.headers },
-    })
-    await expectApiResponse(response)
-    return response.json() as Promise<T>
-  }
-
-  async function authenticatedNoContent(
-    path: string,
-    getAccessToken: () => Promise<string>,
-  ) {
-    const response = await client.appApiRequest(path, getAccessToken, {
-      method: 'DELETE',
-    })
-    await expectApiResponse(response)
-  }
-
-  async function listAllPages<T>(initialPath: string): Promise<Array<T>> {
-    const items: Array<T> = []
-    let path: string | null = initialPath
-    while (path) {
-      const page: ApiPage<T> = await publicJson<ApiPage<T>>(path)
-      items.push(...page.data)
-      path = page._paths?.next ?? null
-    }
-    return items
-  }
+  const api = client.bind(tagEndpoints)
 
   function listCategories() {
-    return publicJson<ReadonlyArray<Category>>('/categories')
+    return api.listCategories({})
   }
 
   function listTags() {
-    return publicJson<ReadonlyArray<Tag>>('/tags')
+    return api.listTags({})
   }
 
   function listRelatedCourses(tagId: number) {
-    return listAllPages<RelatedCourse>(
-      `/tags/${tagId}/courses?page=1&pageSize=100`,
-    )
+    return collectPages(client, 'app', api.listRelatedCourses({ tagId }))
   }
 
   function createCategory(name: string, getAccessToken: () => Promise<string>) {
-    return authenticatedJson<Category>('/categories', getAccessToken, {
-      method: 'POST',
-      body: JSON.stringify({ name }),
-    })
+    return api.createCategory({ name }, { getAccessToken })
   }
 
   function updateCategory(
@@ -95,25 +88,18 @@ export function createTagTaxonomyApi(client: PomiClient) {
     name: string,
     getAccessToken: () => Promise<string>,
   ) {
-    return authenticatedJson<Category>(
-      `/categories/${categoryId}`,
-      getAccessToken,
-      { method: 'PUT', body: JSON.stringify({ name }) },
-    )
+    return api.updateCategory({ categoryId, name }, { getAccessToken })
   }
 
   function deleteCategory(
     categoryId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return authenticatedNoContent(`/categories/${categoryId}`, getAccessToken)
+    return api.deleteCategory({ categoryId }, { getAccessToken })
   }
 
   function createTag(input: TagInput, getAccessToken: () => Promise<string>) {
-    return authenticatedJson<Tag>('/tags', getAccessToken, {
-      method: 'POST',
-      body: JSON.stringify(input),
-    })
+    return api.createTag({ input }, { getAccessToken })
   }
 
   function updateTag(
@@ -121,14 +107,11 @@ export function createTagTaxonomyApi(client: PomiClient) {
     input: TagInput,
     getAccessToken: () => Promise<string>,
   ) {
-    return authenticatedJson<Tag>(`/tags/${tagId}`, getAccessToken, {
-      method: 'PUT',
-      body: JSON.stringify(input),
-    })
+    return api.updateTag({ tagId, input }, { getAccessToken })
   }
 
   function deleteTag(tagId: number, getAccessToken: () => Promise<string>) {
-    return authenticatedNoContent(`/tags/${tagId}`, getAccessToken)
+    return api.deleteTag({ tagId }, { getAccessToken })
   }
 
   return {

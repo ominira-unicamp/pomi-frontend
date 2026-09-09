@@ -1,4 +1,5 @@
-import { expectApiResponse } from './errors'
+import { appApi, dataApi } from './endpoint'
+import { collectPages } from './pagination'
 import type { PomiClient } from './client'
 
 export type SemesterApiStudyPeriod = Readonly<{
@@ -121,95 +122,147 @@ function guideToApi(guide: SemesterPlanningGuideInput) {
   }
 }
 
-async function requestJson<T>(
-  client: PomiClient,
-  path: string,
-  getAccessToken: () => Promise<string>,
-  init: RequestInit = {},
-): Promise<T> {
-  const response = await client.appApiRequest(path, getAccessToken, {
-    ...init,
-    headers: { 'Content-Type': 'application/json', ...init.headers },
-  })
-  await expectApiResponse(response)
-  return response.json() as Promise<T>
-}
-
 type ApiPage<T> = Readonly<{
   data: ReadonlyArray<T>
   _paths?: Readonly<{ next: string | null }>
 }>
 
-async function listAllPages<T>(client: PomiClient, initialPath: string) {
-  const data: Array<T> = []
-  let page = 1
-  const path = initialPath
-  let result = await getDataJson<ApiPage<T>>(client, path)
-  data.push(...result.data)
-  while (result._paths?.next) {
-    page += 1
-    const url = new URL(path, 'https://data.pomi.local')
-    url.searchParams.set('page', String(page))
-    result = await getDataJson<ApiPage<T>>(
-      client,
-      `${url.pathname}${url.search}`,
-    )
-    data.push(...result.data)
-  }
-  return data
+type StudyPeriodInput = Readonly<{ studyPeriodId: number }>
+type StudentInput = Readonly<{ studentId: number }>
+type PlanningInput = StudentInput & Readonly<{ planId: number }>
+type CreatePlanningInput = StudentInput &
+  Readonly<{ document: SemesterPlanningDocumentInput }>
+type PatchPlanningInput = PlanningInput &
+  Readonly<{
+    document: Omit<SemesterPlanningDocumentInput, 'studyPeriodId'>
+  }>
+type VisibilityInput = PlanningInput &
+  Readonly<{ visibility: SemesterPlanningVisibility }>
+
+const semesterDataInterface = dataApi.interface('')
+const semesterAppInterface = appApi.authenticated.interface(
+  '/student/:studentId/period-plannings',
+)
+
+function dataListEndpoint<TInput, TOutput>(
+  path: string,
+  query?: (input: TInput) => Readonly<Record<string, string | number>>,
+) {
+  return semesterDataInterface.get<ApiPage<TOutput>, TInput>(`/${path}`, {
+    query,
+  })
 }
 
-async function getDataJson<T>(client: PomiClient, path: string): Promise<T> {
-  const response = await client.dataApiRequest(path)
-  await expectApiResponse(response)
-  return response.json() as Promise<T>
-}
+const listStudyPeriodsEndpoint =
+  semesterDataInterface.get<ReadonlyArray<SemesterApiStudyPeriod>>(
+    '/study-periods',
+  )
+
+const listCoursesEndpoint = dataListEndpoint<
+  Record<never, never>,
+  SemesterApiCourse
+>('courses', () => ({ page: 1, pageSize: 1000 }))
+const listClassesEndpoint = dataListEndpoint<
+  StudyPeriodInput,
+  SemesterApiClass
+>('classes', ({ studyPeriodId }) => ({
+  studyPeriodId,
+  page: 1,
+  pageSize: 1000,
+}))
+const listMeetingsEndpoint = dataListEndpoint<
+  StudyPeriodInput,
+  SemesterApiMeeting
+>('class-schedules', ({ studyPeriodId }) => ({
+  studyPeriodId,
+  page: 1,
+  pageSize: 1000,
+}))
+const listProfessorEvaluationsEndpoint = dataListEndpoint<
+  Record<never, never>,
+  ProfessorEvaluationSummary
+>('professors/evaluation-summaries', () => ({ page: 1, pageSize: 100 }))
+
+const listPlanningsEndpoint = semesterAppInterface.get<
+  ReadonlyArray<PersistedSemesterPlanning>,
+  StudentInput
+>()
+const getPlanningEndpoint = semesterAppInterface.get<
+  PersistedSemesterPlanning,
+  PlanningInput
+>('/:planId')
+const createPlanningEndpoint = semesterAppInterface.post<
+  PersistedSemesterPlanning,
+  CreatePlanningInput
+>('', {
+  body: ({ document }) => ({
+    name: document.name,
+    studyPeriodId: document.studyPeriodId,
+    curriculumId: document.curriculumId,
+    classes: document.classIds,
+    guide: guideToApi(document.guide),
+  }),
+})
+
+const patchPlanningEndpoint = semesterAppInterface.patch<
+  PersistedSemesterPlanning,
+  PatchPlanningInput
+>('/:planId', {
+  body: ({ document }) => ({
+    name: document.name,
+    curriculumId: document.curriculumId,
+    classes: { set: document.classIds },
+    guide: guideToApi(document.guide),
+  }),
+})
+
+const updateVisibilityEndpoint = semesterAppInterface.patch<
+  PersistedSemesterPlanning,
+  VisibilityInput
+>('/:planId', { body: ({ visibility }) => ({ visibility }) })
+
+const deletePlanningEndpoint =
+  semesterAppInterface.remove<PlanningInput>('/:planId')
 
 export function createSemesterPlanningApi(client: PomiClient) {
+  const api = client.bind({
+    listStudyPeriods: listStudyPeriodsEndpoint,
+    listCourses: listCoursesEndpoint,
+    listClasses: listClassesEndpoint,
+    listMeetings: listMeetingsEndpoint,
+    listProfessorEvaluations: listProfessorEvaluationsEndpoint,
+    listPlannings: listPlanningsEndpoint,
+    getPlanning: getPlanningEndpoint,
+    createPlanning: createPlanningEndpoint,
+    patchPlanning: patchPlanningEndpoint,
+    updateVisibility: updateVisibilityEndpoint,
+    deletePlanning: deletePlanningEndpoint,
+  })
   function listStudyPeriods() {
-    return getDataJson<ReadonlyArray<SemesterApiStudyPeriod>>(
-      client,
-      '/study-periods',
-    )
+    return api.listStudyPeriods({})
   }
 
   function listCourses() {
-    return listAllPages<SemesterApiCourse>(
-      client,
-      '/courses?page=1&pageSize=1000',
-    )
+    return collectPages(client, 'data', api.listCourses({}))
   }
 
   function listClasses(studyPeriodId: number) {
-    return listAllPages<SemesterApiClass>(
-      client,
-      `/classes?studyPeriodId=${studyPeriodId}&page=1&pageSize=1000`,
-    )
+    return collectPages(client, 'data', api.listClasses({ studyPeriodId }))
   }
 
   function listMeetings(studyPeriodId: number) {
-    return listAllPages<SemesterApiMeeting>(
-      client,
-      `/class-schedules?studyPeriodId=${studyPeriodId}&page=1&pageSize=1000`,
-    )
+    return collectPages(client, 'data', api.listMeetings({ studyPeriodId }))
   }
 
   function listProfessorEvaluationSummaries() {
-    return listAllPages<ProfessorEvaluationSummary>(
-      client,
-      '/professors/evaluation-summaries?page=1&pageSize=100',
-    )
+    return collectPages(client, 'data', api.listProfessorEvaluations({}))
   }
 
   function listSemesterPlannings(
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<ReadonlyArray<PersistedSemesterPlanning>>(
-      client,
-      `/student/${studentId}/period-plannings`,
-      getAccessToken,
-    )
+    return api.listPlannings({ studentId }, { getAccessToken })
   }
 
   function getSemesterPlanning(
@@ -217,11 +270,7 @@ export function createSemesterPlanningApi(client: PomiClient) {
     planId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<PersistedSemesterPlanning>(
-      client,
-      `/student/${studentId}/period-plannings/${planId}`,
-      getAccessToken,
-    )
+    return api.getPlanning({ studentId, planId }, { getAccessToken })
   }
 
   function createSemesterPlanning(
@@ -229,21 +278,7 @@ export function createSemesterPlanningApi(client: PomiClient) {
     document: SemesterPlanningDocumentInput,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<PersistedSemesterPlanning>(
-      client,
-      `/student/${studentId}/period-plannings`,
-      getAccessToken,
-      {
-        method: 'POST',
-        body: JSON.stringify({
-          name: document.name,
-          studyPeriodId: document.studyPeriodId,
-          curriculumId: document.curriculumId,
-          classes: document.classIds,
-          guide: guideToApi(document.guide),
-        }),
-      },
-    )
+    return api.createPlanning({ studentId, document }, { getAccessToken })
   }
 
   function patchSemesterPlanning(
@@ -252,19 +287,9 @@ export function createSemesterPlanningApi(client: PomiClient) {
     document: Omit<SemesterPlanningDocumentInput, 'studyPeriodId'>,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<PersistedSemesterPlanning>(
-      client,
-      `/student/${studentId}/period-plannings/${planId}`,
-      getAccessToken,
-      {
-        method: 'PATCH',
-        body: JSON.stringify({
-          name: document.name,
-          curriculumId: document.curriculumId,
-          classes: { set: document.classIds },
-          guide: guideToApi(document.guide),
-        }),
-      },
+    return api.patchPlanning(
+      { studentId, planId, document },
+      { getAccessToken },
     )
   }
 
@@ -274,11 +299,9 @@ export function createSemesterPlanningApi(client: PomiClient) {
     visibility: SemesterPlanningVisibility,
     getAccessToken: () => Promise<string>,
   ) {
-    return requestJson<PersistedSemesterPlanning>(
-      client,
-      `/student/${studentId}/period-plannings/${planId}`,
-      getAccessToken,
-      { method: 'PATCH', body: JSON.stringify({ visibility }) },
+    return api.updateVisibility(
+      { studentId, planId, visibility },
+      { getAccessToken },
     )
   }
 
@@ -287,12 +310,7 @@ export function createSemesterPlanningApi(client: PomiClient) {
     planId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    const response = await client.appApiRequest(
-      `/student/${studentId}/period-plannings/${planId}`,
-      getAccessToken,
-      { method: 'DELETE' },
-    )
-    await expectApiResponse(response)
+    await api.deletePlanning({ studentId, planId }, { getAccessToken })
   }
 
   return {

@@ -1,0 +1,107 @@
+import { describe, expect, it, vi } from 'vitest'
+
+import { appApi, dataApi } from './endpoint'
+import { createPomiClient } from './client'
+
+describe('declarative endpoint interfaces', () => {
+  it('binds a data endpoint with path and query serialization', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ data: [] }))
+    const client = createPomiClient({
+      dataApiUrl: 'https://data.pomi.test',
+      appApiUrl: 'https://app.pomi.test',
+      fetch: fetchMock,
+    })
+    type Input = Readonly<{
+      courseCode: string
+      page: number
+      active: boolean
+      tags: ReadonlyArray<number>
+    }>
+    const courses = dataApi.interface('/courses/:courseCode')
+    const api = client.bind(
+      courses.define({
+        list: courses.get<{ data: [] }, Input>('', {
+          query: ({ page, active, tags }) => ({ page, active, tags }),
+        }),
+      }),
+    )
+
+    await api.list({
+      courseCode: 'MC 102',
+      page: 0,
+      active: false,
+      tags: [2, 5],
+    })
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://data.pomi.test/courses/MC%20102?page=0&active=false&tags=2&tags=5',
+      {},
+    )
+  })
+
+  it('applies authentication and serializes JSON bodies', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ id: 4 }))
+    const getAccessToken = vi.fn().mockResolvedValue('access-token')
+    const client = createPomiClient({
+      dataApiUrl: 'https://data.pomi.test',
+      appApiUrl: 'https://app.pomi.test',
+      fetch: fetchMock,
+    })
+    type Input = Readonly<{ studentId: number; name: string }>
+    const students = appApi.authenticated.interface('/students/:studentId')
+    const api = client.bind(
+      students.define({
+        update: students.patch<{ id: number }, Input>('', {
+          body: ({ name }) => ({ name }),
+        }),
+      }),
+    )
+
+    await expect(
+      api.update({ studentId: 7, name: 'Ada' }, { getAccessToken }),
+    ).resolves.toEqual({ id: 4 })
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('https://app.pomi.test/students/7')
+    expect(init).toMatchObject({
+      method: 'PATCH',
+      body: JSON.stringify({ name: 'Ada' }),
+      cache: 'no-store',
+    })
+    expect(new Headers(init.headers).get('Authorization')).toBe(
+      'Bearer access-token',
+    )
+    expect(new Headers(init.headers).get('Content-Type')).toBe(
+      'application/json',
+    )
+  })
+
+  it('returns undefined for bound remove operations', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(null, { status: 204 }))
+    const client = createPomiClient({
+      dataApiUrl: 'https://data.pomi.test',
+      appApiUrl: 'https://app.pomi.test',
+      getAccessToken: () => Promise.resolve('token'),
+      fetch: fetchMock,
+    })
+    type Input = Readonly<{ studentId: number; absenceId: number }>
+    const absences = appApi.authenticated.interface(
+      '/student/:studentId/absences',
+    )
+    const api = client.bind(
+      absences.define({
+        remove: absences.remove<Input>('/:absenceId'),
+      }),
+    )
+
+    await expect(api.remove({ studentId: 7, absenceId: 9 })).resolves.toBe(
+      undefined,
+    )
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://app.pomi.test/student/7/absences/9',
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+})

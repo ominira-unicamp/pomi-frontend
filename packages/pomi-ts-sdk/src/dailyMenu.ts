@@ -1,4 +1,4 @@
-import { expectApiResponse } from './errors'
+import { dataApi } from './endpoint'
 import type { PomiClient } from './client'
 
 export type DailyMeal = Readonly<{
@@ -21,16 +21,18 @@ export type DailyMenu = Readonly<{
   _paths: Readonly<{ self: string }>
 }>
 
-export function createDailyMenuApi(client: PomiClient) {
-  async function listDailyMenus(
-    startDate: string,
-    endDate = startDate,
-  ): Promise<ReadonlyArray<DailyMenu>> {
-    const query = new URLSearchParams({ startDate, endDate })
-    const response = await client.dataApiRequest(`/daily-menus?${query}`)
-    await expectApiResponse(response)
-    return (await response.json()) as ReadonlyArray<DailyMenu>
-  }
+type ListDailyMenusInput = Readonly<{ startDate: string; endDate: string }>
 
-  return { listDailyMenus }
+const dailyMenuInterface = dataApi.interface('/daily-menus')
+const dailyMenuEndpoints = dailyMenuInterface.define({
+  listDailyMenus: dailyMenuInterface.get<
+    ReadonlyArray<DailyMenu>,
+    ListDailyMenusInput
+  >('', {
+    query: ({ startDate, endDate }) => ({ startDate, endDate }),
+  }),
+})
+
+export function createDailyMenuApi(client: PomiClient) {
+  return client.bind(dailyMenuEndpoints)
 }

@@ -1,4 +1,5 @@
-import { expectApiResponse } from './errors'
+import { dataApi } from './endpoint'
+import { collectPages } from './pagination'
 import type { PomiClient } from './client'
 
 export type CurriculumApiCatalog = Readonly<{ id: number; year: number }>
@@ -16,41 +17,39 @@ export type CurriculumApiCatalogCourse = Readonly<{
   }>
 }>
 
-type ApiPage<T> = Readonly<{
+type PrerequisitePage<T> = Readonly<{
   data: ReadonlyArray<T>
   _paths?: Readonly<{ next: string | null }>
 }>
 
-async function getJson<T>(client: PomiClient, path: string): Promise<T> {
-  const response = await client.dataApiRequest(path)
-  await expectApiResponse(response)
-  return (await response.json()) as T
-}
+type CatalogYearInput = Readonly<{ year: number }>
+type CatalogInput = Readonly<{ catalogId: number }>
 
-async function listAllPages<T>(client: PomiClient, path: string) {
-  const items: Array<T> = []
-  let next: string | null = path
-  while (next) {
-    const page: ApiPage<T> = await getJson<ApiPage<T>>(client, next)
-    items.push(...page.data)
-    next = page._paths?.next ?? null
-  }
-  return items
-}
+const catalogInterface = dataApi.interface('/catalogs')
+const catalogCourseInterface = dataApi.interface('/catalog-courses')
+const listCatalogsEndpoint = catalogInterface.get<
+  ReadonlyArray<CurriculumApiCatalog>,
+  CatalogYearInput
+>('', { query: ({ year }) => ({ year }) })
+
+const listCatalogCoursesEndpoint = catalogCourseInterface.get<
+  PrerequisitePage<CurriculumApiCatalogCourse>,
+  CatalogInput
+>('', {
+  query: ({ catalogId }) => ({ catalogId, page: 1, pageSize: 1000 }),
+})
 
 export function createCurriculumPrerequisitesApi(client: PomiClient) {
+  const api = client.bind({
+    listCatalogs: listCatalogsEndpoint,
+    listCatalogCourses: listCatalogCoursesEndpoint,
+  })
   function listCatalogs(year: number) {
-    return getJson<ReadonlyArray<CurriculumApiCatalog>>(
-      client,
-      `/catalogs?year=${year}`,
-    )
+    return api.listCatalogs({ year })
   }
 
   function listCatalogCourses(catalogId: number) {
-    return listAllPages<CurriculumApiCatalogCourse>(
-      client,
-      `/catalog-courses?catalogId=${catalogId}&page=1&pageSize=1000`,
-    )
+    return collectPages(client, 'data', api.listCatalogCourses({ catalogId }))
   }
 
   return { listCatalogs, listCatalogCourses }

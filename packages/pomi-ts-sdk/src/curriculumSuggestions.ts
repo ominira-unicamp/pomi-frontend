@@ -1,4 +1,4 @@
-import { expectApiResponse } from './errors'
+import { dataApi } from './endpoint'
 import type { PomiClient } from './client'
 
 export type CurriculumSuggestionApiType =
@@ -24,18 +24,30 @@ export type CurriculumSuggestionApi = Readonly<{
   >
 }>
 
-export function createCurriculumSuggestionsApi(client: PomiClient) {
-  async function listCurriculumSuggestions(catalogProgramId: number) {
-    const query = new URLSearchParams({
-      catalogProgramId: String(catalogProgramId),
-    })
-    const response = await client.dataApiRequest(
-      `/curriculum-suggestions?${query}`,
-    )
-    await expectApiResponse(response)
-    const value: unknown = await response.json()
+type ListCurriculumSuggestionsInput = Readonly<{ catalogProgramId: number }>
+
+const curriculumSuggestionsInterface = dataApi.interface(
+  '/curriculum-suggestions',
+)
+const listCurriculumSuggestionsEndpoint = curriculumSuggestionsInterface.get<
+  ReadonlyArray<CurriculumSuggestionApi>,
+  ListCurriculumSuggestionsInput
+>('', {
+  query: ({ catalogProgramId }) => ({ catalogProgramId }),
+  decode: (value) => {
     if (!Array.isArray(value)) throw new TypeError('Expected suggestions')
     return value as ReadonlyArray<CurriculumSuggestionApi>
+  },
+})
+
+export function createCurriculumSuggestionsApi(client: PomiClient) {
+  const api = client.bind({
+    listCurriculumSuggestions: listCurriculumSuggestionsEndpoint,
+  })
+  async function listCurriculumSuggestions(catalogProgramId: number) {
+    return api.listCurriculumSuggestions({
+      catalogProgramId,
+    })
   }
 
   return { listCurriculumSuggestions }

@@ -12,6 +12,14 @@ export {
   type ApiProblemField,
 } from './errors'
 export { createPomiApi } from './api'
+export type {
+  ApiTarget,
+  AuthenticationMode,
+  EndpointDefinition,
+  EndpointRequestContext,
+  HttpMethod,
+  QueryValue,
+} from './endpoint'
 export * as courseCatalog from './courseCatalog'
 export * as curriculumPersistence from './curriculumPersistence'
 export * as curriculumPlanner from './curriculumPlanner'

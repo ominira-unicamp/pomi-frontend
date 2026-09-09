@@ -1,4 +1,4 @@
-import { expectApiResponse } from './errors'
+import { dataApi } from './endpoint'
 import type { PomiClient } from './client'
 
 export type CurriculumApiCourseRequirement = Readonly<{
@@ -56,22 +56,24 @@ export type CurriculumApiCoursesPage = Readonly<{
   _paths: Readonly<{ next: string | null }>
 }>
 
-async function getJson<T>(client: PomiClient, path: string): Promise<T> {
-  const response = await client.dataApiRequest(path)
-  await expectApiResponse(response)
-  return (await response.json()) as T
-}
+const catalogProgramInterface = dataApi.interface('/catalog-program')
+const courseInterface = dataApi.interface('/courses')
+const listCatalogProgramsEndpoint =
+  catalogProgramInterface.get<ReadonlyArray<CurriculumApiCatalogProgram>>()
+
+const listCoursesEndpoint = courseInterface.get<CurriculumApiCoursesPage>()
 
 export function createCurriculumPlannerApi(client: PomiClient) {
+  const api = client.bind({
+    listCatalogPrograms: listCatalogProgramsEndpoint,
+    listCourses: listCoursesEndpoint,
+  })
   function listCatalogPrograms() {
-    return getJson<ReadonlyArray<CurriculumApiCatalogProgram>>(
-      client,
-      '/catalog-program',
-    )
+    return api.listCatalogPrograms({})
   }
 
   function listCourses() {
-    return getJson<CurriculumApiCoursesPage>(client, '/courses')
+    return api.listCourses({})
   }
 
   return { listCatalogPrograms, listCourses }

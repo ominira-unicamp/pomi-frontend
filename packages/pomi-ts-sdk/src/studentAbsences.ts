@@ -1,4 +1,4 @@
-import { expectApiResponse } from './errors'
+import { appApi } from './endpoint'
 import type { PomiClient } from './client'
 
 export type StudyPeriodYearPeriod =
@@ -48,54 +48,27 @@ export type CreateStudentAbsenceInput = Readonly<{
   date: string
 }>
 
+type StudentInput = Readonly<{ studentId: number }>
+type CreateAbsenceEndpointInput = StudentInput &
+  Readonly<{ input: CreateStudentAbsenceInput }>
+type DeleteAbsenceEndpointInput = StudentInput & Readonly<{ absenceId: number }>
+
+const studentAbsenceInterface = appApi.authenticated.interface(
+  '/student/:studentId/absences',
+)
+const studentAbsenceEndpoints = studentAbsenceInterface.define({
+  listStudentAbsences: studentAbsenceInterface.get<
+    ReadonlyArray<StudentAbsence>,
+    StudentInput
+  >(),
+  createStudentAbsence: studentAbsenceInterface.post<
+    StudentAbsence,
+    CreateAbsenceEndpointInput
+  >('', { body: ({ input }) => input }),
+  deleteStudentAbsence:
+    studentAbsenceInterface.remove<DeleteAbsenceEndpointInput>('/:absenceId'),
+})
+
 export function createStudentAbsencesApi(client: PomiClient) {
-  async function requestJson<T>(
-    path: string,
-    getAccessToken: () => Promise<string>,
-    init?: RequestInit,
-  ): Promise<T> {
-    const response = await client.appApiRequest(path, getAccessToken, {
-      ...init,
-      headers: { 'Content-Type': 'application/json', ...init?.headers },
-    })
-    await expectApiResponse(response)
-    return (await response.json()) as T
-  }
-
-  function listStudentAbsences(
-    studentId: number,
-    getAccessToken: () => Promise<string>,
-  ) {
-    return requestJson<ReadonlyArray<StudentAbsence>>(
-      `/student/${studentId}/absences`,
-      getAccessToken,
-    )
-  }
-
-  function createStudentAbsence(
-    studentId: number,
-    input: CreateStudentAbsenceInput,
-    getAccessToken: () => Promise<string>,
-  ) {
-    return requestJson<StudentAbsence>(
-      `/student/${studentId}/absences`,
-      getAccessToken,
-      { method: 'POST', body: JSON.stringify(input) },
-    )
-  }
-
-  async function deleteStudentAbsence(
-    studentId: number,
-    absenceId: number,
-    getAccessToken: () => Promise<string>,
-  ) {
-    const response = await client.appApiRequest(
-      `/student/${studentId}/absences/${absenceId}`,
-      getAccessToken,
-      { method: 'DELETE' },
-    )
-    await expectApiResponse(response)
-  }
-
-  return { listStudentAbsences, createStudentAbsence, deleteStudentAbsence }
+  return client.bind(studentAbsenceEndpoints)
 }

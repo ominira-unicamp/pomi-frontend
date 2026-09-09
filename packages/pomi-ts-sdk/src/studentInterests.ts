@@ -1,29 +1,27 @@
-import { expectApiResponse } from './errors'
+import { appApi } from './endpoint'
 import type { Tag } from './tagTaxonomy'
 import type { PomiClient } from './client'
 
+type StudentInput = Readonly<{ studentId: number }>
+type StudentTagInput = StudentInput & Readonly<{ tagId: number }>
+
+const studentInterestsInterface = appApi.authenticated.interface(
+  '/student/:studentId/tag-interests',
+)
+const studentInterestsEndpoints = studentInterestsInterface.define({
+  list: studentInterestsInterface.get<ReadonlyArray<Tag>, StudentInput>(),
+  put: studentInterestsInterface.put<void, StudentTagInput>('/:tagId'),
+  remove: studentInterestsInterface.remove<StudentTagInput>('/:tagId'),
+})
+
 export function createStudentInterestsApi(client: PomiClient) {
-  async function authenticatedNoContent(
-    path: string,
-    getAccessToken: () => Promise<string>,
-    method: 'PUT' | 'DELETE',
-  ) {
-    const response = await client.appApiRequest(path, getAccessToken, {
-      method,
-    })
-    await expectApiResponse(response)
-  }
+  const api = client.bind(studentInterestsEndpoints)
 
   function listStudentTagInterests(
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client
-      .appApiRequest(`/student/${studentId}/tag-interests`, getAccessToken)
-      .then(async (response) => {
-        await expectApiResponse(response)
-        return (await response.json()) as ReadonlyArray<Tag>
-      })
+    return api.list({ studentId }, { getAccessToken })
   }
 
   function putStudentTagInterest(
@@ -31,11 +29,7 @@ export function createStudentInterestsApi(client: PomiClient) {
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return authenticatedNoContent(
-      `/student/${studentId}/tag-interests/${tagId}`,
-      getAccessToken,
-      'PUT',
-    )
+    return api.put({ studentId, tagId }, { getAccessToken })
   }
 
   function deleteStudentTagInterest(
@@ -43,11 +37,7 @@ export function createStudentInterestsApi(client: PomiClient) {
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return authenticatedNoContent(
-      `/student/${studentId}/tag-interests/${tagId}`,
-      getAccessToken,
-      'DELETE',
-    )
+    return api.remove({ studentId, tagId }, { getAccessToken })
   }
 
   return {
