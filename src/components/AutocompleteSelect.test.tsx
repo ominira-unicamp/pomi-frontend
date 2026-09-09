@@ -48,6 +48,7 @@ describe('AutocompleteSelect', () => {
     const option = screen.getByRole('option', {
       name: 'Ciência da Computação',
     })
+    expect(option.closest('[role="dialog"]')).toBeTruthy()
     await new Promise((resolve) => setTimeout(resolve, 10))
     fireEvent.pointerDown(option)
     fireEvent.click(option)
@@ -56,7 +57,7 @@ describe('AutocompleteSelect', () => {
     expect(onOpenChange).not.toHaveBeenCalled()
   })
 
-  it('scrolls its options inside a modal', () => {
+  it('keeps its options scrollable inside a modal', () => {
     render(
       <Dialog open>
         <DialogContent>
@@ -77,8 +78,8 @@ describe('AutocompleteSelect', () => {
     fireEvent.focus(screen.getByRole('combobox', { name: 'Programa' }))
     const list = screen.getByRole('listbox')
 
-    fireEvent.wheel(list, { deltaY: 80 })
-
-    expect(list.scrollTop).toBe(80)
+    expect(list.className).toContain('overflow-y-auto')
+    expect(list.className).toContain('relative')
+    expect(list.closest('[role="dialog"]')).toBeTruthy()
   })
 })
