@@ -20,9 +20,11 @@ import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'
 import {
   AppliedFilters,
+  FilterPropertyList,
   FilterViewHeader,
   FiltersButton,
 } from '@/components/patterns/AppliedFilters'
+import { ResponsiveFilterSurface } from '@/components/patterns/ResponsiveFilterSurface'
 
 export function ClassesGuidePanel({
   courses,
@@ -170,17 +172,113 @@ export function ClassesGuidePanel({
     if (key === 'days') classFilterDays.forEach((day) => onDaysChange(day))
     if (filterView === key) setFilterView('filters')
   }
+  const filterContent = (
+    <>
+      <FilterViewHeader
+        title={
+          filterView === 'filters' || filterView === 'results'
+            ? 'Filtros de turmas'
+            : `Editar ${filterView === 'discipline' ? 'disciplina' : filterView === 'time' ? 'horário' : 'dias'}`
+        }
+        onBack={() =>
+          setFilterView(filterView === 'filters' ? 'results' : 'filters')
+        }
+        onClose={() => setFilterView('results')}
+        closeClassName="sm:hidden"
+      />
+      {filterView === 'filters' || filterView === 'results' ? (
+        <div className="mt-3">
+          <FilterPropertyList
+            items={(['discipline', 'time', 'days'] as const).map((key) => ({
+              key,
+              label:
+                key === 'discipline'
+                  ? 'Disciplina'
+                  : key === 'time'
+                    ? 'Horário'
+                    : 'Dias',
+              summary: appliedFilters.find((item) => item.key === key)?.summary,
+            }))}
+            onSelect={setFilterView}
+          />
+        </div>
+      ) : filterView === 'discipline' ? (
+        <div className="mt-3">
+          <AutocompleteSelect
+            ariaLabel="Filtrar turmas por disciplina"
+            value={classFilterCourseId}
+            emptyLabel="Todas as disciplinas"
+            options={courseOptions}
+            placeholder="Disciplina"
+            onValueChange={onCourseFilterChange}
+          />
+        </div>
+      ) : filterView === 'time' ? (
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <label className="text-xs font-bold">
+            A partir de
+            <select
+              value={classFilterStart}
+              onChange={(event) => onStartChange(event.target.value)}
+              className="mt-1 h-9 w-full rounded-md border-2 border-input bg-background px-2 text-sm"
+            >
+              <option value="">Qualquer</option>
+              {hourOptions.map((hour) => (
+                <option key={hour} value={hour}>
+                  {hour}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="text-xs font-bold">
+            Até
+            <select
+              value={classFilterEnd}
+              onChange={(event) => onEndChange(event.target.value)}
+              className="mt-1 h-9 w-full rounded-md border-2 border-input bg-background px-2 text-sm"
+            >
+              <option value="">Qualquer</option>
+              {hourOptions.map((hour) => (
+                <option key={hour} value={hour}>
+                  {hour}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      ) : (
+        <div className="mt-3 flex flex-wrap gap-1">
+          {days.map(([day, label]) => (
+            <button
+              key={day}
+              type="button"
+              className={`min-h-10 rounded border px-3 py-1 text-xs font-bold ${classFilterDays.includes(day) ? 'border-primary bg-primary text-primary-foreground' : 'border-strong-border'}`}
+              onClick={() => onDaysChange(day)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+    </>
+  )
 
   return (
     <section className="space-y-3">
       <div className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          <FiltersButton
-            count={appliedFilters.length}
-            onClick={() =>
-              setFilterView(filterView === 'results' ? 'filters' : 'results')
+          <ResponsiveFilterSurface
+            open={filterView !== 'results'}
+            onOpenChange={(open) => setFilterView(open ? 'filters' : 'results')}
+            title={
+              appliedFilters.length === 0
+                ? 'Nenhum filtro'
+                : `${appliedFilters.length} ${appliedFilters.length === 1 ? 'filtro' : 'filtros'}`
             }
-          />
+            trigger={<FiltersButton count={appliedFilters.length} />}
+          >
+            {filterContent}
+          </ResponsiveFilterSurface>
           <AppliedFilters
             items={appliedFilters}
             onEdit={setFilterView}
@@ -190,95 +288,6 @@ export function ClassesGuidePanel({
             }}
           />
         </div>
-        {filterView !== 'results' && (
-          <div className="rounded-md border-2 border-strong-border bg-card p-3 shadow-[3px_3px_0_var(--strong-border)]">
-            <FilterViewHeader
-              title={
-                filterView === 'filters'
-                  ? 'Filtros de turmas'
-                  : `Editar ${filterView === 'discipline' ? 'disciplina' : filterView === 'time' ? 'horário' : 'dias'}`
-              }
-              onBack={() =>
-                setFilterView(filterView === 'filters' ? 'results' : 'filters')
-              }
-              onClose={() => setFilterView('results')}
-            />
-            {filterView === 'filters' ? (
-              <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                {(['discipline', 'time', 'days'] as const).map((key) => (
-                  <Button
-                    key={key}
-                    variant="outline"
-                    onClick={() => setFilterView(key)}
-                  >
-                    {key === 'discipline'
-                      ? 'Disciplina'
-                      : key === 'time'
-                        ? 'Horário'
-                        : 'Dias'}
-                  </Button>
-                ))}
-              </div>
-            ) : filterView === 'discipline' ? (
-              <div className="mt-3">
-                <AutocompleteSelect
-                  ariaLabel="Filtrar turmas por disciplina"
-                  value={classFilterCourseId}
-                  emptyLabel="Todas as disciplinas"
-                  options={courseOptions}
-                  placeholder="Disciplina"
-                  onValueChange={onCourseFilterChange}
-                />
-              </div>
-            ) : filterView === 'time' ? (
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <label className="text-xs font-bold">
-                  A partir de
-                  <select
-                    value={classFilterStart}
-                    onChange={(event) => onStartChange(event.target.value)}
-                    className="mt-1 h-9 w-full rounded-md border-2 border-input bg-background px-2 text-sm"
-                  >
-                    <option value="">Qualquer</option>
-                    {hourOptions.map((hour) => (
-                      <option key={hour} value={hour}>
-                        {hour}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="text-xs font-bold">
-                  Até
-                  <select
-                    value={classFilterEnd}
-                    onChange={(event) => onEndChange(event.target.value)}
-                    className="mt-1 h-9 w-full rounded-md border-2 border-input bg-background px-2 text-sm"
-                  >
-                    <option value="">Qualquer</option>
-                    {hourOptions.map((hour) => (
-                      <option key={hour} value={hour}>
-                        {hour}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-            ) : (
-              <div className="mt-3 flex flex-wrap gap-1">
-                {days.map(([day, label]) => (
-                  <button
-                    key={day}
-                    type="button"
-                    className={`rounded border px-2 py-1 text-xs font-bold ${classFilterDays.includes(day) ? 'border-primary bg-primary text-primary-foreground' : 'border-strong-border'}`}
-                    onClick={() => onDaysChange(day)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
       <p className="text-xs font-semibold text-muted-foreground">
         {filteredClasses.length} turma{filteredClasses.length === 1 ? '' : 's'}{' '}

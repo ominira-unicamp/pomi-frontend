@@ -96,7 +96,7 @@ describe('ClassesGuidePanel', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: 'Filtros' }))
-    fireEvent.click(screen.getByRole('button', { name: 'Disciplina' }))
+    fireEvent.click(screen.getByRole('button', { name: /^Disciplina/ }))
     fireEvent.focus(
       screen.getByRole('combobox', {
         name: 'Filtrar turmas por disciplina',

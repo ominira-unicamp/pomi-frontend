@@ -6,9 +6,11 @@ import type { ExchangeNoticeFilters } from '@/features/exchange/data/exchangeNot
 import { SearchableMultiSelect } from '@/components/patterns/SearchableMultiSelect'
 import {
   AppliedFilters,
+  FilterPropertyList,
   FilterViewHeader,
   FiltersButton,
 } from '@/components/patterns/AppliedFilters'
+import { ResponsiveFilterSurface } from '@/components/patterns/ResponsiveFilterSurface'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -84,6 +86,65 @@ export function ExchangeCatalogFilters({
             )
           : formatDate(filters[key]),
   }))
+  const filterContent = (
+    <>
+      <FilterViewHeader
+        title={
+          filterView === 'filters'
+            ? 'Filtros'
+            : `Editar ${filterOptions.find(({ key }) => key === filterView)?.label}`
+        }
+        onBack={() =>
+          setFilterView(filterView === 'filters' ? 'results' : 'filters')
+        }
+        onClose={() => setFilterView('results')}
+        closeClassName="sm:hidden"
+      />
+      <div className="mt-4">
+        {filterView === 'filters' || filterView === 'results' ? (
+          <FilterPropertyList
+            items={filterOptions.map(({ key, label }) => ({
+              key,
+              label,
+              summary: appliedFilters.find((item) => item.key === key)?.summary,
+            }))}
+            onSelect={setFilterView}
+          />
+        ) : filterView === 'issuers' ? (
+          <SearchableMultiSelect
+            inline
+            label="Órgãos emissores"
+            options={issuers.map((issuer) => ({
+              value: issuer,
+              label: issuer,
+            }))}
+            selected={filters.issuers}
+            onChange={(values) => update('issuers', values)}
+          />
+        ) : filterView === 'placeIds' ? (
+          <SearchableMultiSelect
+            inline
+            label="Locais"
+            options={places.map((place) => ({
+              value: place.id,
+              label: place.name,
+            }))}
+            selected={filters.placeIds}
+            onChange={(values) => update('placeIds', values)}
+          />
+        ) : (
+          <Input
+            aria-label={
+              filterOptions.find(({ key }) => key === filterView)?.label
+            }
+            type="date"
+            value={filters[filterView]}
+            onChange={(event) => update(filterView, event.target.value)}
+          />
+        )}
+      </div>
+    </>
+  )
 
   return (
     <div className="mb-6 space-y-4">
@@ -98,12 +159,18 @@ export function ExchangeCatalogFilters({
             onChange={(event) => update('search', event.target.value)}
           />
         </label>
-        <FiltersButton
-          count={activeFilters.length}
-          onClick={() =>
-            setFilterView(filterView === 'results' ? 'filters' : 'results')
+        <ResponsiveFilterSurface
+          open={filterView !== 'results'}
+          onOpenChange={(open) => setFilterView(open ? 'filters' : 'results')}
+          title={
+            activeFilters.length === 0
+              ? 'Nenhum filtro'
+              : `${activeFilters.length} ${activeFilters.length === 1 ? 'filtro' : 'filtros'}`
           }
-        />
+          trigger={<FiltersButton count={activeFilters.length} />}
+        >
+          {filterContent}
+        </ResponsiveFilterSurface>
         <Button
           variant="outline"
           onClick={() => {
@@ -153,72 +220,6 @@ export function ExchangeCatalogFilters({
         onClear={() => onChange(defaultExchangeNoticeFilters)}
         onAdd={() => setFilterView('filters')}
       />
-      {filterView !== 'results' && (
-        <div className="rounded-lg border-2 border-strong-border bg-card p-4 shadow-[4px_4px_0_var(--strong-border)]">
-          <FilterViewHeader
-            title={
-              filterView === 'filters'
-                ? 'Filtros'
-                : `Editar ${filterOptions.find(({ key }) => key === filterView)?.label}`
-            }
-            onBack={() =>
-              setFilterView(filterView === 'filters' ? 'results' : 'filters')
-            }
-            onClose={() => setFilterView('results')}
-          />
-          <div className="mt-4">
-            {filterView === 'filters' ? (
-              <div className="grid gap-2 sm:grid-cols-2">
-                {filterOptions.map(({ key, label }) => (
-                  <Button
-                    key={key}
-                    variant="outline"
-                    className="h-auto min-h-11 justify-between whitespace-normal text-left"
-                    onClick={() => setFilterView(key)}
-                  >
-                    {label}
-                    <span className="text-xs text-muted-foreground">
-                      {appliedFilters.find((item) => item.key === key)
-                        ?.summary ?? 'Não aplicado'}
-                    </span>
-                  </Button>
-                ))}
-              </div>
-            ) : filterView === 'issuers' ? (
-              <SearchableMultiSelect
-                inline
-                label="Órgãos emissores"
-                options={issuers.map((issuer) => ({
-                  value: issuer,
-                  label: issuer,
-                }))}
-                selected={filters.issuers}
-                onChange={(values) => update('issuers', values)}
-              />
-            ) : filterView === 'placeIds' ? (
-              <SearchableMultiSelect
-                inline
-                label="Locais"
-                options={places.map((place) => ({
-                  value: place.id,
-                  label: place.name,
-                }))}
-                selected={filters.placeIds}
-                onChange={(values) => update('placeIds', values)}
-              />
-            ) : (
-              <Input
-                aria-label={
-                  filterOptions.find(({ key }) => key === filterView)?.label
-                }
-                type="date"
-                value={filters[filterView]}
-                onChange={(event) => update(filterView, event.target.value)}
-              />
-            )}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

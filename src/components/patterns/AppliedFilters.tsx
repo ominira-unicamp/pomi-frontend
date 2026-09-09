@@ -1,7 +1,17 @@
-import { ChevronLeft, Pencil, Plus, SlidersHorizontal, X } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Pencil,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react'
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
 export type AppliedFilterItem<TKey extends string = string> = Readonly<{
@@ -76,7 +86,7 @@ export function FiltersButton({
   onClick,
 }: {
   count: number
-  onClick: () => void
+  onClick?: () => void
 }) {
   return (
     <Button type="button" variant="outline" onClick={onClick}>
@@ -89,11 +99,15 @@ export function FilterViewHeader({
   title,
   onBack,
   onClose,
+  closeLabel,
+  closeClassName,
   actions,
 }: {
   title: string
   onBack: () => void
   onClose?: () => void
+  closeLabel?: string
+  closeClassName?: string
   actions?: ReactNode
 }) {
   return (
@@ -115,13 +129,64 @@ export function FilterViewHeader({
         <Button
           type="button"
           variant="ghost"
-          size="icon"
-          aria-label="Fechar filtros"
+          size={closeLabel ? 'sm' : 'icon'}
+          className={cn(closeLabel && 'px-2', closeClassName)}
+          aria-label={closeLabel ?? 'Fechar filtros'}
           onClick={onClose}
         >
-          <X />
+          {closeLabel ?? <X />}
         </Button>
       )}
+    </div>
+  )
+}
+
+export function FilterPropertyList<TKey extends string>({
+  items,
+  onSelect,
+}: {
+  items: ReadonlyArray<Readonly<{ key: TKey; label: string; summary?: string }>>
+  onSelect: (key: TKey) => void
+}) {
+  const [query, setQuery] = useState('')
+  const normalizedQuery = query.trim().toLocaleLowerCase('pt-BR')
+  const visibleItems = items.filter(({ label }) =>
+    label.toLocaleLowerCase('pt-BR').includes(normalizedQuery),
+  )
+
+  return (
+    <div className="space-y-3">
+      <label className="relative block">
+        <span className="sr-only">Buscar filtro</span>
+        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={query}
+          placeholder="Buscar filtro..."
+          className="pl-9"
+          onChange={(event) => setQuery(event.target.value)}
+        />
+      </label>
+      <div className="overflow-hidden rounded-md border-2 border-strong-border">
+        {visibleItems.map(({ key, label, summary }) => (
+          <button
+            key={key}
+            type="button"
+            className="pomi-focus flex min-h-12 w-full items-center gap-3 border-b border-border px-3 text-left last:border-b-0 hover:bg-muted"
+            onClick={() => onSelect(key)}
+          >
+            <span className="min-w-0 flex-1 font-bold">{label}</span>
+            <span className="max-w-36 truncate text-xs text-muted-foreground">
+              {summary ?? 'Não aplicado'}
+            </span>
+            <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+          </button>
+        ))}
+        {!visibleItems.length && (
+          <p className="px-3 py-4 text-sm text-muted-foreground">
+            Nenhum filtro encontrado.
+          </p>
+        )}
+      </div>
     </div>
   )
 }

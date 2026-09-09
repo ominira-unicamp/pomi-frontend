@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CourseSearchDialog } from './CourseSearchDialog'
@@ -12,6 +12,39 @@ const courses = Array.from({ length: 6 }, (_, index) => ({
 })) as Array<Course>
 
 describe('CourseSearchDialog', () => {
+  it('opens its filters editor inside the desktop dialog', () => {
+    const matchMedia = vi.mocked(window.matchMedia)
+    matchMedia.mockReturnValue({
+      matches: true,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    } as unknown as MediaQueryList)
+
+    render(
+      <CourseSearchDialog
+        open
+        onOpenChange={vi.fn()}
+        courses={courses}
+        excludedCourseIds={new Set()}
+        description="Escolha uma disciplina."
+        searchLabel="Disciplina"
+        disabled={false}
+        onAdd={vi.fn(() => Promise.resolve(true))}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Filtros' }))
+    expect(screen.getByPlaceholderText('Buscar filtro...')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar filtro' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Mais filtros' }))
+    expect(screen.getByPlaceholderText('Buscar filtro...')).toBeTruthy()
+    matchMedia.mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    } as unknown as MediaQueryList)
+  })
+
   it('shows five rows per page and keeps the table five rows tall', () => {
     render(
       <CourseSearchDialog

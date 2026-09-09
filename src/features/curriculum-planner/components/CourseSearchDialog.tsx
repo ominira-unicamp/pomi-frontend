@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Course, CourseId } from '@pomi/planner-domain/curriculum'
 import {
   AppliedFilters,
+  FilterPropertyList,
   FilterViewHeader,
   FiltersButton,
 } from '@/components/patterns/AppliedFilters'
@@ -216,24 +217,17 @@ export function CourseSearchDialog({
           setFilterView(filterView === 'filters' ? 'results' : 'filters')
         }
         onClose={() => setFilterView('results')}
+        closeLabel="Fechar filtro"
       />
       {filterView === 'filters' ? (
-        <div className="grid gap-2 sm:grid-cols-2">
-          {filterOptions.map(({ key, label }) => (
-            <Button
-              key={key}
-              variant="outline"
-              className="h-auto min-h-11 justify-between whitespace-normal text-left"
-              onClick={() => setFilterView(key)}
-            >
-              {label}
-              <span className="text-xs text-muted-foreground">
-                {appliedFilters.find((item) => item.key === key)?.summary ??
-                  'Não aplicado'}
-              </span>
-            </Button>
-          ))}
-        </div>
+        <FilterPropertyList
+          items={filterOptions.map(({ key, label }) => ({
+            key,
+            label,
+            summary: appliedFilters.find((item) => item.key === key)?.summary,
+          }))}
+          onSelect={setFilterView}
+        />
       ) : filterView === 'prefix' ? (
         <Select
           value={prefix ?? 'all'}
