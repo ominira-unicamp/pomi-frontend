@@ -91,6 +91,7 @@ export function CatalogProgramCourseDialog({
           to="/disciplinas/$courseId"
           params={{ courseId: String(course.id) }}
           search={{ catalogYear }}
+          onClick={() => onOpenChange(false)}
         >
           Ver detalhes completos
         </Link>
