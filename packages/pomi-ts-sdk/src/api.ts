@@ -1,4 +1,4 @@
-import { createPomiClient } from './client'
+import { createPomiSdk } from './generatedClient'
 import { createCourseCatalogApi } from './courseCatalog'
 import { createCurriculumPersistenceApi } from './curriculumPersistence'
 import { createCurriculumPlannerApi } from './curriculumPlanner'
@@ -14,14 +14,14 @@ import { createStudentSocialApi } from './studentSocial'
 import { createStudentApi } from './student'
 import { createSemesterPlanningApi } from './semesterPlanning'
 import { createTagTaxonomyApi } from './tagTaxonomy'
-import type { PomiClientOptions } from './client'
+import type { PomiSdkOptions } from './generatedClient'
 
-export function createPomiApi(options: PomiClientOptions) {
-  const client = createPomiClient(options)
+export function createPomiApi(options: PomiSdkOptions) {
+  const client = createPomiSdk(options)
 
   return {
     documentation: {
-      publicDocsUrl: () => client.dataApiUrlFor('/public-docs'),
+      publicDocsUrl: () => new URL('/public-docs', options.dataApiUrl).href,
     },
     courseCatalog: createCourseCatalogApi(client),
     curriculumPersistence: createCurriculumPersistenceApi(client),

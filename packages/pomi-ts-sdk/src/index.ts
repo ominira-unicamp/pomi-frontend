@@ -19,6 +19,7 @@ export {
   type AppOperationApi,
   type DataOperationApi,
   type PomiFetch as GeneratedPomiFetch,
+  type PomiRequestContext,
   type PomiSdkClient,
   type PomiSdkOptions,
 } from './generatedClient'

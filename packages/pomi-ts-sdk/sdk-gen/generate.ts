@@ -72,7 +72,10 @@ const specs = [
     target: 'app' as const,
     path: resolve(
       process.env.APP_OPENAPI_PATH ??
-        resolve(workspaceDirectory, 'pomi-backend/packages/app/app-openapi.json'),
+        resolve(
+          workspaceDirectory,
+          'pomi-backend/packages/app/app-openapi.json',
+        ),
     ),
   },
 ]
@@ -140,25 +143,35 @@ function contentTypeEntries(response: OpenApiResponse) {
   return Object.entries(response.content ?? {})
 }
 
-function operationSuccessType(operation: OpenApiOperation, operationType: string) {
-  const types = responseEntries(operation, true).flatMap(([status, response]) => {
-    const contents = contentTypeEntries(response)
-    if (contents.length === 0) return ['void']
-    return contents.map(
-      ([contentType]) =>
-        `${operationType}['responses'][${typeIndex(status)}]['content']${contentTypeIndex(contentType)}`,
-    )
-  })
-  if (types.length === 0) throw new Error('Operation has no successful response')
+function operationSuccessType(
+  operation: OpenApiOperation,
+  operationType: string,
+) {
+  const types = responseEntries(operation, true).flatMap(
+    ([status, response]) => {
+      const contents = contentTypeEntries(response)
+      if (contents.length === 0) return ['void']
+      return contents.map(
+        ([contentType]) =>
+          `${operationType}['responses'][${typeIndex(status)}]['content']${contentTypeIndex(contentType)}`,
+      )
+    },
+  )
+  if (types.length === 0)
+    throw new Error('Operation has no successful response')
   return [...new Set(types)].join(' | ')
 }
 
-function operationProblemType(operation: OpenApiOperation, operationType: string) {
-  const types = responseEntries(operation, false).flatMap(([status, response]) =>
-    contentTypeEntries(response).map(
-      ([contentType]) =>
-        `${operationType}['responses'][${typeIndex(status)}]['content']${contentTypeIndex(contentType)}`,
-    ),
+function operationProblemType(
+  operation: OpenApiOperation,
+  operationType: string,
+) {
+  const types = responseEntries(operation, false).flatMap(
+    ([status, response]) =>
+      contentTypeEntries(response).map(
+        ([contentType]) =>
+          `${operationType}['responses'][${typeIndex(status)}]['content']${contentTypeIndex(contentType)}`,
+      ),
   )
   return types.length > 0 ? [...new Set(types)].join(' | ') : 'never'
 }
@@ -235,17 +248,19 @@ function responseMetadata(
   operation: OpenApiOperation,
   document: OpenApiDocument,
 ) {
-  return Object.entries(operation.responses ?? {}).map(([status, response]) => ({
-    status: /^\d+$/.test(status) ? Number(status) : status,
-    success: /^2\d\d$/.test(status),
-    contents: contentTypeEntries(response).map(([contentType, content]) => ({
-      contentType,
-      schema: content.schema ?? null,
-    })),
-    problemTypes: /^2\d\d$/.test(status)
-      ? []
-      : problemTypesForResponse(response, document),
-  }))
+  return Object.entries(operation.responses ?? {}).map(
+    ([status, response]) => ({
+      status: /^\d+$/.test(status) ? Number(status) : status,
+      success: /^2\d\d$/.test(status),
+      contents: contentTypeEntries(response).map(([contentType, content]) => ({
+        contentType,
+        schema: content.schema ?? null,
+      })),
+      problemTypes: /^2\d\d$/.test(status)
+        ? []
+        : problemTypesForResponse(response, document),
+    }),
+  )
 }
 
 function queryMetadata(operation: OpenApiOperation) {
@@ -298,7 +313,9 @@ function createOperationsSource(entries: Array<OperationEntry>) {
   for (const entry of entries) {
     const operationId = entry.operation.operationId
     if (!operationId) {
-      throw new Error(`Operation without operationId: ${entry.method} ${entry.path}`)
+      throw new Error(
+        `Operation without operationId: ${entry.method} ${entry.path}`,
+      )
     }
     const operationType = `operations[${JSON.stringify(operationId)}]`
     const bodyRequired = entry.operation.requestBody?.required === true
@@ -379,30 +396,49 @@ export const filterCapabilities = ${JSON.stringify(metadata, null, 2)} as const
 `
 }
 
-function createProblemsSource(document: OpenApiDocument, entries: Array<OperationEntry>) {
+function createProblemsSource(
+  document: OpenApiDocument,
+  entries: Array<OperationEntry>,
+) {
   const schemas = document.components?.schemas ?? {}
   const catalog = Object.fromEntries(
     Object.entries(schemas).flatMap(([schemaName, schema]) => {
       const type = problemTypeForSchema(schema)
       if (!type) return []
       const properties = isRecord(schema.properties) ? schema.properties : {}
-      const statusProperty = isRecord(properties.status) ? properties.status : {}
+      const statusProperty = isRecord(properties.status)
+        ? properties.status
+        : {}
       const titleProperty = isRecord(properties.title) ? properties.title : {}
-      return [[type, {
-        schemaName,
-        type,
-        status: Array.isArray(statusProperty.enum) ? statusProperty.enum[0] ?? null : null,
-        title: Array.isArray(titleProperty.enum) ? titleProperty.enum[0] ?? null : null,
-        hasFields: isRecord(schema.properties) && 'fields' in schema.properties,
-      }]]
+      return [
+        [
+          type,
+          {
+            schemaName,
+            type,
+            status: Array.isArray(statusProperty.enum)
+              ? (statusProperty.enum[0] ?? null)
+              : null,
+            title: Array.isArray(titleProperty.enum)
+              ? (titleProperty.enum[0] ?? null)
+              : null,
+            hasFields:
+              isRecord(schema.properties) && 'fields' in schema.properties,
+          },
+        ],
+      ]
     }),
   )
   const operationProblems = Object.fromEntries(
     entries.map((entry) => [
       entry.operation.operationId!,
-      [...new Set(responseEntries(entry.operation, false).flatMap(([, response]) =>
-        problemTypesForResponse(response, document),
-      ))],
+      [
+        ...new Set(
+          responseEntries(entry.operation, false).flatMap(([, response]) =>
+            problemTypesForResponse(response, document),
+          ),
+        ),
+      ],
     ]),
   )
   return `export const problemCatalog = ${JSON.stringify(catalog, null, 2)} as const
@@ -439,10 +475,50 @@ function collectEnums(document: OpenApiDocument) {
       visit(child, [...path, key])
     }
   }
-  for (const [name, schema] of Object.entries(document.components?.schemas ?? {})) {
+  for (const [name, schema] of Object.entries(
+    document.components?.schemas ?? {},
+  )) {
     visit(schema, [name])
   }
   return enums
+}
+
+function enumIdentifier(path: string) {
+  const segments = path
+    .split('.')
+    .filter((segment) => segment !== 'oneOf')
+    .map((segment) =>
+      segment.replace(/\[\]$/u, 'Array').replace(/[^A-Za-z0-9]+/gu, ' '),
+    )
+    .flatMap((segment) => segment.split(' ').filter(Boolean))
+    .map((segment) => segment[0].toUpperCase() + segment.slice(1))
+  const name = segments.join('')
+  if (!name) throw new Error(`Could not derive enum name from ${path}`)
+  return `${name[0].toLowerCase()}${name.slice(1)}Values`
+}
+
+function createEnumsSource(document: OpenApiDocument) {
+  const enums = collectEnums(document)
+  const names = new Map<string, number>()
+  const entries = Object.entries(enums).map(([path, values]) => {
+    const baseName = enumIdentifier(path)
+    const occurrence = (names.get(baseName) ?? 0) + 1
+    names.set(baseName, occurrence)
+    const name = occurrence === 1 ? baseName : `${baseName}${occurrence}`
+    const typeName = `${name[0].toUpperCase()}${name.slice(1).replace(/Values$/u, '')}`
+    return { path, values, name, typeName }
+  })
+  const valueNames = Object.fromEntries(
+    entries.map(({ path, name }) => [path, name]),
+  )
+  return `${entries
+    .map(
+      ({ values, name, typeName }) =>
+        `export const ${name} = ${JSON.stringify(values)} as const\nexport type ${typeName} = (typeof ${name})[number]`,
+    )
+    .join(
+      '\n\n',
+    )}\n\nexport const enumValueNames = ${JSON.stringify(valueNames, null, 2)} as const\n`
 }
 
 function createPathsSource(entries: Array<OperationEntry>) {
@@ -459,9 +535,15 @@ ${functions.map((definition) => `  ${definition},`).join('\n')}
 `
 }
 
-function createMetadataSource(document: OpenApiDocument, entries: Array<OperationEntry>) {
+function createMetadataSource(
+  document: OpenApiDocument,
+  entries: Array<OperationEntry>,
+) {
   const queryCapabilities = Object.fromEntries(
-    entries.map((entry) => [entry.operation.operationId!, queryMetadata(entry.operation)]),
+    entries.map((entry) => [
+      entry.operation.operationId!,
+      queryMetadata(entry.operation),
+    ]),
   )
   return `export const componentSchemas = ${JSON.stringify(document.components?.schemas ?? {}, null, 2)} as const
 
@@ -475,7 +557,8 @@ export type EnumName = keyof typeof enumValues
 }
 
 function createTargetIndexSource() {
-  return `export * from './filters.js'
+  return `export * from './enums.js'
+export * from './filters.js'
 export * from './metadata.js'
 export * from './openapi.js'
 export * from './operations.js'
@@ -490,23 +573,33 @@ async function loadSpec(target: ApiTarget, path: string) {
     throw new Error(`Expected an OpenAPI 3 document: ${path}`)
   }
   const entries = operationEntries(target, document)
-  if (entries.length === 0) throw new Error(`No HTTP operations found in ${path}`)
+  if (entries.length === 0)
+    throw new Error(`No HTTP operations found in ${path}`)
   const ids = new Set<string>()
   for (const entry of entries) {
     const id = entry.operation.operationId
-    if (!id) throw new Error(`Operation without operationId: ${entry.method} ${entry.path}`)
-    if (ids.has(id)) throw new Error(`Duplicate operationId in ${target}: ${id}`)
+    if (!id)
+      throw new Error(
+        `Operation without operationId: ${entry.method} ${entry.path}`,
+      )
+    if (ids.has(id))
+      throw new Error(`Duplicate operationId in ${target}: ${id}`)
     ids.add(id)
   }
   return { target, path, document, entries }
 }
 
 async function main() {
-  const loaded = await Promise.all(specs.map((spec) => loadSpec(spec.target, spec.path)))
+  const loaded = await Promise.all(
+    specs.map((spec) => loadSpec(spec.target, spec.path)),
+  )
   await rm(generatedDirectory, { recursive: true, force: true })
   const project = new Project({
     compilerOptions: { target: 99, module: 99, strict: true },
-    manipulationSettings: { quoteKind: QuoteKind.Single, useTrailingCommas: true },
+    manipulationSettings: {
+      quoteKind: QuoteKind.Single,
+      useTrailingCommas: true,
+    },
   })
 
   for (const spec of loaded) {
@@ -517,12 +610,41 @@ async function main() {
       removeGeneratedComments(astToString(openApiAst)),
       { overwrite: true },
     )
-    project.createSourceFile(resolve(directory, 'operations.ts'), createOperationsSource(spec.entries), { overwrite: true })
-    project.createSourceFile(resolve(directory, 'filters.ts'), createFiltersSource(spec.entries), { overwrite: true })
-    project.createSourceFile(resolve(directory, 'problems.ts'), createProblemsSource(spec.document, spec.entries), { overwrite: true })
-    project.createSourceFile(resolve(directory, 'metadata.ts'), createMetadataSource(spec.document, spec.entries), { overwrite: true })
-    project.createSourceFile(resolve(directory, 'paths.ts'), createPathsSource(spec.entries), { overwrite: true })
-    project.createSourceFile(resolve(directory, 'index.ts'), createTargetIndexSource(), { overwrite: true })
+    project.createSourceFile(
+      resolve(directory, 'operations.ts'),
+      createOperationsSource(spec.entries),
+      { overwrite: true },
+    )
+    project.createSourceFile(
+      resolve(directory, 'enums.ts'),
+      createEnumsSource(spec.document),
+      { overwrite: true },
+    )
+    project.createSourceFile(
+      resolve(directory, 'filters.ts'),
+      createFiltersSource(spec.entries),
+      { overwrite: true },
+    )
+    project.createSourceFile(
+      resolve(directory, 'problems.ts'),
+      createProblemsSource(spec.document, spec.entries),
+      { overwrite: true },
+    )
+    project.createSourceFile(
+      resolve(directory, 'metadata.ts'),
+      createMetadataSource(spec.document, spec.entries),
+      { overwrite: true },
+    )
+    project.createSourceFile(
+      resolve(directory, 'paths.ts'),
+      createPathsSource(spec.entries),
+      { overwrite: true },
+    )
+    project.createSourceFile(
+      resolve(directory, 'index.ts'),
+      createTargetIndexSource(),
+      { overwrite: true },
+    )
   }
 
   project.createSourceFile(
@@ -537,12 +659,16 @@ async function main() {
   )
 
   for (const sourceFile of project.getSourceFiles()) {
-    if (!sourceFile.getFilePath().endsWith('/openapi.ts')) sourceFile.formatText()
+    if (!sourceFile.getFilePath().endsWith('/openapi.ts'))
+      sourceFile.formatText()
   }
   await project.save()
   console.log(
     loaded
-      .map((spec) => `Generated ${spec.entries.length} ${spec.target} operations from ${spec.path}`)
+      .map(
+        (spec) =>
+          `Generated ${spec.entries.length} ${spec.target} operations from ${spec.path}`,
+      )
       .join('\n'),
   )
 }

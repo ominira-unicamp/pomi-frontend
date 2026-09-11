@@ -1,29 +1,23 @@
-import { appApi } from './endpoint'
-import type { Tag } from './tagTaxonomy'
-import type { PomiClient } from './client'
+import type { listStudentTagInterestsOutput } from './generated/app/operations.js'
+import type { PomiRequestContext, PomiSdkClient } from './generatedClient.js'
 
-type StudentInput = Readonly<{ studentId: number }>
-type StudentTagInput = StudentInput & Readonly<{ tagId: number }>
+export type StudentInterestTag = Readonly<listStudentTagInterestsOutput[number]>
 
-const studentInterestsInterface = appApi.authenticated.interface(
-  '/student/:studentId/tag-interests',
-)
-const studentInterestsEndpoints = studentInterestsInterface.define({
-  list: studentInterestsInterface.get<ReadonlyArray<Tag>, StudentInput>(),
-  put: studentInterestsInterface.put<void, StudentTagInput>('/:tagId', {
-    response: 'empty',
-  }),
-  remove: studentInterestsInterface.remove<StudentTagInput>('/:tagId'),
-})
-
-export function createStudentInterestsApi(client: PomiClient) {
-  const api = client.bind(studentInterestsEndpoints)
+export function createStudentInterestsApi(client: PomiSdkClient) {
+  const context = (
+    getAccessToken: () => Promise<string>,
+  ): PomiRequestContext => ({
+    getAccessToken,
+  })
 
   function listStudentTagInterests(
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.list({ studentId }, { getAccessToken })
+    return client.app.listStudentTagInterests(
+      { sid: String(studentId) },
+      context(getAccessToken),
+    )
   }
 
   function putStudentTagInterest(
@@ -31,7 +25,10 @@ export function createStudentInterestsApi(client: PomiClient) {
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.put({ studentId, tagId }, { getAccessToken })
+    return client.app.updateStudentTagInterests(
+      { sid: String(studentId), tagId: String(tagId) },
+      { ...context(getAccessToken), allowUndocumentedSuccess: true },
+    )
   }
 
   function deleteStudentTagInterest(
@@ -39,7 +36,10 @@ export function createStudentInterestsApi(client: PomiClient) {
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.remove({ studentId, tagId }, { getAccessToken })
+    return client.app.deleteStudentTagInterests(
+      { sid: String(studentId), tagId: String(tagId) },
+      context(getAccessToken),
+    )
   }
 
   return {

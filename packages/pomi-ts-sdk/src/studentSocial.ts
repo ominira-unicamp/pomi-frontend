@@ -1,44 +1,15 @@
-import { appApi } from './endpoint'
-import type { PomiClient } from './client'
+import type {
+  getStudentPeopleOutput,
+  listStudentFriendshipsOutput,
+  listStudentPublicProfileOutput,
+  updateStudentPublicProfileInput,
+} from './generated/app/operations.js'
+import type { PomiSdkClient } from './generatedClient.js'
 
-export type PublicPerson = Readonly<{
-  publicId: string
-  displayName: string
-  bio: string | null
-  interests: ReadonlyArray<Readonly<{ id: number; name: string }>>
-  currentCourses: ReadonlyArray<
-    Readonly<{
-      courseCode: string
-      courseName: string
-      classCode: string | null
-      schedules: ReadonlyArray<
-        Readonly<{
-          id: number
-          dayOfWeek:
-            | 'MONDAY'
-            | 'TUESDAY'
-            | 'WEDNESDAY'
-            | 'THURSDAY'
-            | 'FRIDAY'
-            | 'SATURDAY'
-            | 'SUNDAY'
-          start: string
-          end: string
-          roomCode: string
-        }>
-      >
-    }>
-  >
-  program: Readonly<{ code: string | number; name: string }> | null
-  specialization: Readonly<{ code: string | number; name: string }> | null
-  entryYear: number | null
-}>
-
-export type PublicProfile = PublicPerson &
-  Readonly<{
-    enabled: boolean
-    currentCoursesVisibility: 'PRIVATE' | 'FRIENDS' | 'PUBLIC'
-  }>
+export type PublicPerson = Readonly<Omit<getStudentPeopleOutput, '_paths'>>
+export type PublicProfile = Readonly<
+  Omit<listStudentPublicProfileOutput, '_paths'>
+>
 
 export type PublicProfileUpdate = Readonly<
   Pick<
@@ -47,92 +18,70 @@ export type PublicProfileUpdate = Readonly<
   >
 >
 
-export type Friendship = Readonly<{
-  id: number
-  status: 'PENDING' | 'ACCEPTED'
-  direction: 'INCOMING' | 'OUTGOING' | 'NONE'
-  friend: PublicPerson
-  createdAt: string
-  acceptedAt: string | null
-}>
+type GeneratedFriendship = listStudentFriendshipsOutput[number]
+export type Friendship = Readonly<
+  Omit<GeneratedFriendship, '_paths' | 'friend'> & { friend: PublicPerson }
+>
 
-type StudentInput = Readonly<{ studentId: number }>
-type ProfileUpdateInput = StudentInput &
-  Readonly<{ body: Partial<PublicProfileUpdate> }>
-type SearchPeopleInput = StudentInput & Readonly<{ query?: string }>
-type PersonInput = StudentInput & Readonly<{ publicId: string }>
-type FriendshipRequestInput = StudentInput &
-  Readonly<{ targetPublicId: string }>
-type FriendshipInput = StudentInput & Readonly<{ id: number }>
-
-const socialInterface = appApi.authenticated.interface('/student/:studentId')
-const socialEndpoints = socialInterface.define({
-  getPublicProfile: socialInterface.get<PublicProfile>('/public-profile'),
-  updatePublicProfile: socialInterface.patch<PublicProfile, ProfileUpdateInput>(
-    '/public-profile',
-    { body: ({ body }) => body },
-  ),
-  searchPeople: socialInterface.get<
-    { items: ReadonlyArray<PublicPerson>; total: number },
-    SearchPeopleInput
-  >('/people', {
-    query: ({ query }) => ({
-      page: 1,
-      pageSize: 20,
-      query: query?.trim() || undefined,
-    }),
-  }),
-  getPerson: socialInterface.get<PublicPerson, PersonInput>(
-    '/people/:publicId',
-  ),
-  listFriendships:
-    socialInterface.get<ReadonlyArray<Friendship>>('/friendships'),
-  requestFriendship: socialInterface.post<Friendship, FriendshipRequestInput>(
-    '/friendships',
-    { body: ({ targetPublicId }) => ({ targetPublicId }) },
-  ),
-  acceptFriendship: socialInterface.post<Friendship, FriendshipInput>(
-    '/friendships/:id/accept',
-  ),
-  removeFriendship: socialInterface.remove<FriendshipInput>('/friendships/:id'),
-})
-
-export function createStudentSocialApi(client: PomiClient) {
-  const api = client.bind(socialEndpoints)
-
+export function createStudentSocialApi(client: PomiSdkClient) {
   const getPublicProfile = (studentId: number, token: () => Promise<string>) =>
-    api.getPublicProfile({ studentId }, { getAccessToken: token })
+    client.app.listStudentPublicProfile(
+      { sid: String(studentId) },
+      { getAccessToken: token },
+    ) as Promise<PublicProfile>
 
   const updatePublicProfile = (
     studentId: number,
     body: Partial<PublicProfileUpdate>,
     token: () => Promise<string>,
-  ) => api.updatePublicProfile({ studentId, body }, { getAccessToken: token })
+  ) =>
+    client.app.updateStudentPublicProfile(
+      {
+        sid: String(studentId),
+        body: body as updateStudentPublicProfileInput['body'],
+      },
+      { getAccessToken: token },
+    )
 
   const searchPeople = (
     studentId: number,
     query: string | undefined,
     token: () => Promise<string>,
   ) => {
-    return api.searchPeople({ studentId, query }, { getAccessToken: token })
+    return client.app.listStudentPeople(
+      {
+        sid: String(studentId),
+        page: '1',
+        pageSize: '20',
+        query: query?.trim() || undefined,
+      },
+      { getAccessToken: token },
+    )
   }
 
   const getPerson = (
     studentId: number,
     publicId: string,
     token: () => Promise<string>,
-  ) => api.getPerson({ studentId, publicId }, { getAccessToken: token })
+  ) =>
+    client.app.getStudentPeople(
+      { sid: String(studentId), publicId },
+      { getAccessToken: token },
+    ) as Promise<PublicPerson>
 
   const listFriendships = (studentId: number, token: () => Promise<string>) =>
-    api.listFriendships({ studentId }, { getAccessToken: token })
+    client.app.listStudentFriendships(
+      { sid: String(studentId) },
+      { getAccessToken: token },
+    ) as Promise<ReadonlyArray<Friendship>>
 
   const requestFriendship = (
     studentId: number,
     targetPublicId: string,
     token: () => Promise<string>,
   ) =>
-    api.requestFriendship(
-      { studentId, targetPublicId },
+    client.app.createStudentFriendships(
+      { sid: String(studentId), body: { targetPublicId } },
       { getAccessToken: token },
     )
 
@@ -140,14 +89,21 @@ export function createStudentSocialApi(client: PomiClient) {
     studentId: number,
     id: number,
     token: () => Promise<string>,
-  ) => api.acceptFriendship({ studentId, id }, { getAccessToken: token })
+  ) =>
+    client.app.createStudentFriendshipsAccept(
+      { sid: String(studentId), id: String(id) },
+      { getAccessToken: token },
+    )
 
   async function removeFriendship(
     studentId: number,
     id: number,
     token: () => Promise<string>,
   ) {
-    await api.removeFriendship({ studentId, id }, { getAccessToken: token })
+    await client.app.deleteStudentFriendships(
+      { sid: String(studentId), id: String(id) },
+      { getAccessToken: token },
+    )
   }
 
   return {

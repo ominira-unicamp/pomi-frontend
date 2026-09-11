@@ -1,86 +1,41 @@
-import { appApi } from './endpoint'
-import { collectPages } from './pagination'
-import type { PomiClient } from './client'
+import { collectPages } from './generatedPagination.js'
+import type {
+  createCategoriesInput,
+  createTagsInput,
+  listCategoriesOutput,
+  listTagsCoursesOutput,
+  listTagsOutput,
+  updateCategoriesInput,
+  updateTagsInput,
+} from './generated/app/operations.js'
+import type { PomiSdkClient } from './generatedClient.js'
 
-export type Category = Readonly<{ id: number; name: string }>
+export type Category = Readonly<listCategoriesOutput[number]>
+export type Tag = Readonly<listTagsOutput[number]>
+export type RelatedCourse = Readonly<listTagsCoursesOutput['data'][number]>
 
-export type Tag = Readonly<{
-  id: number
-  name: string
-  categoryId: number
-  parentTagId: number | null
-}>
+export type TagInput = Readonly<createTagsInput['body']>
 
-export type RelatedCourse = Readonly<{
-  id: number
-  code: string
-  name: string
-  credits: number
-}>
-
-export type TagInput = Readonly<{
-  name: string
-  categoryId: number
-  parentTagId: number | null
-}>
-
-type TagPage<T> = Readonly<{
-  data: ReadonlyArray<T>
-  _paths?: Readonly<{ next: string | null }>
-}>
-type CategoryInput = Readonly<{ categoryId: number }>
-type CategoryNameInput = Readonly<{ name: string }>
-type UpdateCategoryInput = CategoryInput & CategoryNameInput
-type TagIdInput = Readonly<{ tagId: number }>
-type CreateTagInput = Readonly<{ input: TagInput }>
-type UpdateTagInput = TagIdInput & CreateTagInput
-
-const publicInterface = appApi.public.interface('')
-const authenticatedInterface = appApi.authenticated.interface('')
-const tagEndpoints = publicInterface.define({
-  listCategories: publicInterface.get<ReadonlyArray<Category>>('/categories'),
-  listTags: publicInterface.get<ReadonlyArray<Tag>>('/tags'),
-  listRelatedCourses: publicInterface.get<TagPage<RelatedCourse>, TagIdInput>(
-    '/tags/:tagId/courses',
-    { query: () => ({ page: 1, pageSize: 100 }) },
-  ),
-  createCategory: authenticatedInterface.post<Category, CategoryNameInput>(
-    '/categories',
-    { body: ({ name }) => ({ name }) },
-  ),
-  updateCategory: authenticatedInterface.put<Category, UpdateCategoryInput>(
-    '/categories/:categoryId',
-    { body: ({ name }) => ({ name }) },
-  ),
-  deleteCategory: authenticatedInterface.remove<CategoryInput>(
-    '/categories/:categoryId',
-  ),
-  createTag: authenticatedInterface.post<Tag, CreateTagInput>('/tags', {
-    body: ({ input }) => input,
-  }),
-  updateTag: authenticatedInterface.put<Tag, UpdateTagInput>('/tags/:tagId', {
-    body: ({ input }) => input,
-  }),
-  deleteTag: authenticatedInterface.remove<TagIdInput>('/tags/:tagId'),
-})
-
-export function createTagTaxonomyApi(client: PomiClient) {
-  const api = client.bind(tagEndpoints)
-
+export function createTagTaxonomyApi(client: PomiSdkClient) {
   function listCategories() {
-    return api.listCategories({})
+    return client.app.listCategories({})
   }
 
   function listTags() {
-    return api.listTags({})
+    return client.app.listTags({})
   }
 
   function listRelatedCourses(tagId: number) {
-    return collectPages(client, 'app', api.listRelatedCourses({ tagId }))
+    return collectPages(
+      client,
+      'app',
+      client.app.listTagsCourses({ id: tagId, page: 1, pageSize: 100 }),
+    )
   }
 
   function createCategory(name: string, getAccessToken: () => Promise<string>) {
-    return api.createCategory({ name }, { getAccessToken })
+    const input: createCategoriesInput = { body: { name } }
+    return client.app.createCategories(input, { getAccessToken })
   }
 
   function updateCategory(
@@ -88,18 +43,20 @@ export function createTagTaxonomyApi(client: PomiClient) {
     name: string,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.updateCategory({ categoryId, name }, { getAccessToken })
+    const input: updateCategoriesInput = { id: categoryId, body: { name } }
+    return client.app.updateCategories(input, { getAccessToken })
   }
 
   function deleteCategory(
     categoryId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.deleteCategory({ categoryId }, { getAccessToken })
+    return client.app.deleteCategories({ id: categoryId }, { getAccessToken })
   }
 
   function createTag(input: TagInput, getAccessToken: () => Promise<string>) {
-    return api.createTag({ input }, { getAccessToken })
+    const request: createTagsInput = { body: input }
+    return client.app.createTags(request, { getAccessToken })
   }
 
   function updateTag(
@@ -107,11 +64,12 @@ export function createTagTaxonomyApi(client: PomiClient) {
     input: TagInput,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.updateTag({ tagId, input }, { getAccessToken })
+    const request: updateTagsInput = { id: tagId, body: input }
+    return client.app.updateTags(request, { getAccessToken })
   }
 
   function deleteTag(tagId: number, getAccessToken: () => Promise<string>) {
-    return api.deleteTag({ tagId }, { getAccessToken })
+    return client.app.deleteTags({ id: tagId }, { getAccessToken })
   }
 
   return {

@@ -2,7 +2,11 @@ import type { GeneratedOperationDefinition } from './operation.js'
 
 type QueryRecord = Readonly<Record<string, unknown>>
 
-function appendValue(parameters: URLSearchParams, name: string, value: unknown) {
+function appendValue(
+  parameters: URLSearchParams,
+  name: string,
+  value: unknown,
+) {
   if (value === undefined || value === null) return
   if (Array.isArray(value)) {
     for (const item of value) appendValue(parameters, name, item)
@@ -22,7 +26,13 @@ export function buildQuery(
   queryParameters: ReadonlyArray<string>,
 ) {
   const parameters = new URLSearchParams()
-  for (const name of queryParameters) appendValue(parameters, name, input[name])
+  const orderedParameters = [...queryParameters].sort((left, right) => {
+    const priority = (name: string) =>
+      name === 'page' ? 0 : name === 'pageSize' ? 1 : 2
+    return priority(left) - priority(right)
+  })
+  for (const name of orderedParameters)
+    appendValue(parameters, name, input[name])
   return parameters.toString()
 }
 

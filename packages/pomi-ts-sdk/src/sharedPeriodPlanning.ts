@@ -1,113 +1,70 @@
-import { appApi } from './endpoint'
-import type { PomiClient } from './client'
+import type {
+  createStudentPeriodPlanningsInput,
+  getSharedPeriodPlanningsOutput,
+} from './generated/app/operations.js'
+import type { PomiSdkClient } from './generatedClient.js'
 
-export type SharedPeriodYearPeriod =
-  | 'SUMMER'
-  | 'FIRST_SEMESTER'
-  | 'WINTER'
-  | 'SECOND_SEMESTER'
-
+type GeneratedSharedPeriodPlanning = getSharedPeriodPlanningsOutput
+type GeneratedSharedClass = GeneratedSharedPeriodPlanning['classes'][number]
+type GeneratedSharedSchedule = GeneratedSharedClass['classSchedules'][number]
 export type SharedPeriodPlanning = Readonly<{
-  shareId: string
-  name: string
-  visibility: 'FRIENDS' | 'PUBLIC'
-  studyPeriodId: number
-  studyPeriodYear: number
-  studyPeriodYearPeriod: SharedPeriodYearPeriod
-  owner: Readonly<{ publicId: string; displayName: string }> | null
+  shareId: GeneratedSharedPeriodPlanning['shareId']
+  name: GeneratedSharedPeriodPlanning['name']
+  visibility: GeneratedSharedPeriodPlanning['visibility']
+  studyPeriodId: GeneratedSharedPeriodPlanning['studyPeriodId']
+  studyPeriodYear: GeneratedSharedPeriodPlanning['studyPeriodYear']
+  studyPeriodYearPeriod: GeneratedSharedPeriodPlanning['studyPeriodYearPeriod']
+  owner: GeneratedSharedPeriodPlanning['owner']
   classes: ReadonlyArray<
     Readonly<{
-      id: number
-      code: string
-      courseCode: string
-      courseCredits: number
-      professors: ReadonlyArray<Readonly<{ id: number; name: string }>>
+      id: GeneratedSharedClass['id']
+      code: GeneratedSharedClass['code']
+      courseCode: GeneratedSharedClass['courseCode']
+      courseCredits: GeneratedSharedClass['courseCredits']
+      professors: GeneratedSharedClass['professors']
       classSchedules: ReadonlyArray<
-        Readonly<{
-          id: number
-          dayOfWeek:
-            | 'MONDAY'
-            | 'TUESDAY'
-            | 'WEDNESDAY'
-            | 'THURSDAY'
-            | 'FRIDAY'
-            | 'SATURDAY'
-            | 'SUNDAY'
-          start: string
-          end: string
-          roomId: number
-          roomCode: string
-        }>
+        Readonly<
+          Pick<
+            GeneratedSharedSchedule,
+            'id' | 'dayOfWeek' | 'start' | 'end' | 'roomId' | 'roomCode'
+          >
+        >
       >
     }>
   >
-  createdAt: string
-  updatedAt: string
+  createdAt: GeneratedSharedPeriodPlanning['createdAt']
+  updatedAt: GeneratedSharedPeriodPlanning['updatedAt']
 }>
-
-type SharedPeriodPlanningPage = Readonly<{
-  items: ReadonlyArray<SharedPeriodPlanning>
-  page: number
-  pageSize: number
-  total: number
-}>
-
-type ListSharedInput = Readonly<{ studentId: number; ownerPublicId: string }>
-type SharedInput = Readonly<{ shareId: string }>
-type StudentSharedInput = SharedInput & Readonly<{ studentId: number }>
-type CopySharedInput = Readonly<{
-  studentId: number
-  planning: Pick<SharedPeriodPlanning, 'name' | 'studyPeriodId' | 'classes'>
-}>
-
-const publicSharedInterface = appApi.public.interface(
-  '/shared-period-plannings',
-)
-const studentSharedInterface = appApi.authenticated.interface(
-  '/student/:studentId/shared-period-plannings',
-)
-const copySharedInterface = appApi.authenticated.interface(
-  '/student/:studentId/period-plannings',
-)
-const sharedEndpoints = publicSharedInterface.define({
-  getPublic: publicSharedInterface.get<SharedPeriodPlanning, SharedInput>(
-    '/:shareId',
-  ),
-  list: studentSharedInterface.get<SharedPeriodPlanningPage, ListSharedInput>(
-    '',
-    {
-      query: ({ ownerPublicId }) => ({ page: 1, pageSize: 20, ownerPublicId }),
-    },
-  ),
-  getStudent: studentSharedInterface.get<
-    SharedPeriodPlanning,
-    StudentSharedInput
-  >('/:shareId'),
-  copy: copySharedInterface.post<Readonly<{ id: number }>, CopySharedInput>(
-    '',
-    {
-      body: ({ planning }) => ({
-        name: `Cópia de ${planning.name}`,
-        studyPeriodId: planning.studyPeriodId,
-        classes: planning.classes.map((classItem) => classItem.id),
-      }),
-    },
-  ),
-})
-
-export function createSharedPeriodPlanningApi(client: PomiClient) {
-  const api = client.bind(sharedEndpoints)
-
+export type SharedPeriodYearPeriod =
+  SharedPeriodPlanning['studyPeriodYearPeriod']
+export function createSharedPeriodPlanningApi(client: PomiSdkClient) {
   async function listSharedPeriodPlanningsForPerson(
     studentId: number,
     ownerPublicId: string,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.list({ studentId, ownerPublicId }, { getAccessToken })
+    return client.app.listStudentSharedPeriodPlannings(
+      {
+        sid: String(studentId),
+        page: '1',
+        pageSize: '20',
+        filter: { ownerPublicId },
+      },
+      { getAccessToken },
+    ) as Promise<
+      Readonly<{
+        items: ReadonlyArray<SharedPeriodPlanning>
+        page: number
+        pageSize: number
+        total: number
+      }>
+    >
   }
 
   async function getPublicSharedPeriodPlanning(shareId: string) {
-    return api.getPublic({ shareId })
+    return client.app.getSharedPeriodPlannings({
+      shareId,
+    }) as Promise<SharedPeriodPlanning>
   }
 
   async function getSharedPeriodPlanningForStudent(
@@ -115,7 +72,10 @@ export function createSharedPeriodPlanningApi(client: PomiClient) {
     shareId: string,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.getStudent({ studentId, shareId }, { getAccessToken })
+    return client.app.getStudentSharedPeriodPlannings(
+      { sid: String(studentId), shareId },
+      { getAccessToken },
+    ) as Promise<SharedPeriodPlanning>
   }
 
   async function copySharedPeriodPlanning(
@@ -123,7 +83,15 @@ export function createSharedPeriodPlanningApi(client: PomiClient) {
     planning: Pick<SharedPeriodPlanning, 'name' | 'studyPeriodId' | 'classes'>,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.copy({ studentId, planning }, { getAccessToken })
+    const body: createStudentPeriodPlanningsInput['body'] = {
+      name: `Cópia de ${planning.name}`,
+      studyPeriodId: planning.studyPeriodId,
+      classes: planning.classes.map((classItem) => classItem.id),
+    }
+    return client.app.createStudentPeriodPlannings(
+      { sid: String(studentId), body },
+      { getAccessToken },
+    )
   }
 
   return {

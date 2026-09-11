@@ -1,119 +1,55 @@
-import { appApi, dataApi } from './endpoint'
-import { collectPages } from './pagination'
-import type { PomiClient } from './client'
+import { collectPages } from './generatedPagination.js'
+import type {
+  listCatalogCoursesOutput,
+  listCatalogsOutput,
+  listClassSchedulesOutput,
+  listClassesOutput,
+  listCoursesInput,
+  listCoursesOutput,
+  listStudyPeriodsOutput,
+  listUnitsOutput,
+} from './generated/data/operations.js'
+import type {
+  listCategoriesOutput,
+  listCoursesTagsOutput,
+} from './generated/app/operations.js'
+import type { PomiSdkClient } from './generatedClient.js'
 
-export type Course = Readonly<{
-  id: number
-  code: string
-  name: string
-  credits: number
-  prefix: string
-  unitId: number | null
-  unitCode: string | null
-}>
-
+type GeneratedCourse = listCoursesOutput['data'][number]
+export type Course = Readonly<
+  Pick<
+    GeneratedCourse,
+    'id' | 'code' | 'name' | 'credits' | 'prefix' | 'unitId' | 'unitCode'
+  >
+>
 export type CoursePage = Readonly<{
   data: ReadonlyArray<Course>
   quantity: number
   total: number
-  _paths: Readonly<{ next: string | null; prev: string | null }>
+  _paths: Readonly<Pick<listCoursesOutput['_paths'], 'next' | 'prev'>>
 }>
-
-export type Unit = Readonly<{ id: number; code: string; name: string }>
-export type Catalog = Readonly<{ id: number; year: number }>
-export type Category = Readonly<{ id: number; name: string }>
-export type Tag = Readonly<{
-  id: number
-  name: string
-  categoryId: number
-  parentTagId: number | null
-}>
-
-export type CatalogCourse = Readonly<{
-  id: number
-  catalogId: number
-  catalogYear: number
-  courseId: number
-  code: string
-  name: string
-  credits: number
-  coordinator: Readonly<{ id: number; name: string }> | null
-  workload: Readonly<{
-    theoreticalHours: number | null
-    practicalHours: number | null
-    laboratoryHours: number | null
-    guidedActivityHours: number | null
-    distanceHours: number | null
-    guidedExtensionHours: number | null
-    practicalExtensionHours: number | null
-    weeks: number | null
-    weeklyClassHours: number | null
-    classroomHours: number | null
-  }>
-  offeringPeriod:
-    | 'ALL_PERIODS'
-    | 'ODD_PERIODS'
-    | 'EVEN_PERIODS'
-    | 'UNIT_DISCRETION'
-    | null
-  evaluation: string | null
-  finalExam: boolean | null
-  minimumAttendancePercent: number | null
-  syllabus: string | null
-  bibliography: string | null
-  sourceUrl: string | null
-  prerequisites: Readonly<{
-    any: ReadonlyArray<
-      Readonly<{
-        all: ReadonlyArray<
-          Readonly<{
-            code: string
-            kind: 'FULL' | 'PARTIAL' | 'SPECIAL'
-            courseId: number | null
-          }>
-        >
-      }>
-    >
-  }>
-}>
-
-export type StudyPeriod = Readonly<{
-  id: number
-  year: number
-  yearPeriod: 'SUMMER' | 'FIRST_SEMESTER' | 'WINTER' | 'SECOND_SEMESTER'
-  startDate: string
-}>
-
-export type CourseClass = Readonly<{
-  id: number
-  code: string
-  professors: ReadonlyArray<Readonly<{ id: number; name: string }>>
-}>
-
-export type ClassSchedule = Readonly<{
-  id: number
-  classId: number
-  dayOfWeek:
-    | 'MONDAY'
-    | 'TUESDAY'
-    | 'WEDNESDAY'
-    | 'THURSDAY'
-    | 'FRIDAY'
-    | 'SATURDAY'
-    | 'SUNDAY'
-  start: string
-  end: string
-  roomCode: string
-}>
-
-type CourseCatalogPage<T> = Readonly<{
-  data: ReadonlyArray<T>
-  total?: number
-  page?: number
-  pageSize?: number
-  totalPages?: number
-  _paths?: Readonly<{ next: string | null; previous?: string | null }>
-}>
+export type Unit = Readonly<
+  Pick<listUnitsOutput[number], 'id' | 'code' | 'name'>
+>
+export type Catalog = Readonly<Pick<listCatalogsOutput[number], 'id' | 'year'>>
+export type Category = Readonly<listCategoriesOutput[number]>
+export type Tag = Readonly<listCoursesTagsOutput[number]>
+export type CatalogCourse = Readonly<listCatalogCoursesOutput['data'][number]>
+export type StudyPeriod = Readonly<
+  Pick<
+    listStudyPeriodsOutput[number],
+    'id' | 'year' | 'yearPeriod' | 'startDate'
+  >
+>
+export type CourseClass = Readonly<
+  Pick<listClassesOutput['data'][number], 'id' | 'code' | 'professors'>
+>
+export type ClassSchedule = Readonly<
+  Pick<
+    listClassSchedulesOutput['data'][number],
+    'id' | 'classId' | 'dayOfWeek' | 'start' | 'end' | 'roomCode'
+  >
+>
 
 type ListCoursesInput = Readonly<{
   q?: string
@@ -123,158 +59,70 @@ type ListCoursesInput = Readonly<{
   page: number
   pageSize?: number
 }>
-type CourseInput = Readonly<{ courseId: number }>
-type CoursePeriodInput = CourseInput & Readonly<{ studyPeriodId: number }>
-type TagInput = Readonly<{ tagId: number }>
-type CourseTagInput = CourseInput & TagInput
-
-const dataInterface = dataApi.interface('')
-const appPublicInterface = appApi.public.interface('')
-const appAuthenticatedInterface = appApi.authenticated.interface('')
-const listCoursesEndpoint = dataInterface.get<CoursePage, ListCoursesInput>(
-  '/courses',
-  {
-    query: ({ q, unitId, catalogYear, tagId, page, pageSize }) => ({
-      page,
-      pageSize: pageSize ?? 20,
-      q: q || undefined,
-      unitId: unitId || undefined,
-      catalogYear: catalogYear || undefined,
-      tagId: tagId || undefined,
-    }),
-  },
-)
-
-const getCourseEndpoint = dataInterface.get<Course, CourseInput>(
-  '/courses/:courseId',
-)
-
-function dataListEndpoint<TOutput>(path: string) {
-  return dataInterface.get<TOutput>(`/${path}`)
-}
-
-function appListEndpoint<TOutput>(path: string) {
-  return appPublicInterface.get<TOutput>(`/${path}`)
-}
-
-const listUnitsEndpoint = dataListEndpoint<ReadonlyArray<Unit>>('units')
-const listCatalogsEndpoint =
-  dataListEndpoint<ReadonlyArray<Catalog>>('catalogs')
-const listCategoriesEndpoint =
-  appListEndpoint<ReadonlyArray<Category>>('categories')
-const listTagsEndpoint = appListEndpoint<ReadonlyArray<Tag>>('tags')
-
-const listCourseTagsEndpoint = appPublicInterface.get<
-  ReadonlyArray<Tag>,
-  CourseInput
->('/courses/:courseId/tags')
-
-const listCatalogCoursesEndpoint = dataInterface.get<
-  CourseCatalogPage<CatalogCourse>,
-  CourseInput
->('/catalog-courses', {
-  query: ({ courseId }) => ({ courseId, page: 1, pageSize: 100 }),
-})
-
-const listStudyPeriodsEndpoint =
-  dataListEndpoint<ReadonlyArray<StudyPeriod>>('study-periods')
-
-function coursePeriodEndpoint<TOutput>(path: string) {
-  return dataInterface.get<CourseCatalogPage<TOutput>, CoursePeriodInput>(
-    `/${path}`,
-    {
-      query: ({ courseId, studyPeriodId }) => ({
-        courseId,
-        studyPeriodId,
-        page: 1,
-        pageSize: 100,
-      }),
-    },
-  )
-}
-
-const listCourseClassesEndpoint = coursePeriodEndpoint<CourseClass>('classes')
-const listCourseSchedulesEndpoint =
-  coursePeriodEndpoint<ClassSchedule>('class-schedules')
-
-const listRelatedCoursesEndpoint = appPublicInterface.get<
-  CourseCatalogPage<Course>,
-  TagInput
->('/tags/:tagId/courses', { query: () => ({ page: 1, pageSize: 100 }) })
-
-function courseTagEndpoint(method: 'PUT' | 'DELETE') {
-  return method === 'PUT'
-    ? appAuthenticatedInterface.put<void, CourseTagInput>(
-        '/courses/:courseId/tags/:tagId',
-        { response: 'empty' },
-      )
-    : appAuthenticatedInterface.remove<CourseTagInput>(
-        '/courses/:courseId/tags/:tagId',
-      )
-}
-
-const putCourseTagEndpoint = courseTagEndpoint('PUT')
-const deleteCourseTagEndpoint = courseTagEndpoint('DELETE')
-
-export function createCourseCatalogApi(client: PomiClient) {
-  const api = client.bind({
-    listCourses: listCoursesEndpoint,
-    getCourse: getCourseEndpoint,
-    listUnits: listUnitsEndpoint,
-    listCatalogs: listCatalogsEndpoint,
-    listCategories: listCategoriesEndpoint,
-    listTags: listTagsEndpoint,
-    listCourseTags: listCourseTagsEndpoint,
-    listCatalogCourses: listCatalogCoursesEndpoint,
-    listStudyPeriods: listStudyPeriodsEndpoint,
-    listCourseClasses: listCourseClassesEndpoint,
-    listCourseSchedules: listCourseSchedulesEndpoint,
-    listRelatedCourses: listRelatedCoursesEndpoint,
-    putCourseTag: putCourseTagEndpoint,
-    deleteCourseTag: deleteCourseTagEndpoint,
-  })
-
+export function createCourseCatalogApi(client: PomiSdkClient) {
   function listCourses(input: ListCoursesInput) {
-    return api.listCourses(input)
+    const filter = {
+      ...(input.q ? { code: input.q } : {}),
+      ...(input.unitId ? { unit: { id: input.unitId } } : {}),
+      ...(input.catalogYear ? { catalogYear: input.catalogYear } : {}),
+      ...(input.tagId ? { tagId: input.tagId } : {}),
+    } satisfies NonNullable<listCoursesInput['filter']>
+    return client.data.listCourses({
+      page: input.page,
+      pageSize: input.pageSize ?? 20,
+      filter,
+    })
   }
 
   function getCourse(courseId: number) {
-    return api.getCourse({ courseId })
+    return client.data.getCourses({ id: courseId })
   }
 
   function listUnits() {
-    return api.listUnits({})
+    return client.data.listUnits({})
   }
 
   function listCatalogs() {
-    return api.listCatalogs({})
+    return client.data.listCatalogs({})
   }
 
   function listCategories() {
-    return api.listCategories({})
+    return client.app.listCategories({})
   }
 
   function listTags() {
-    return api.listTags({})
+    return client.app.listTags({})
   }
 
   function listCourseTags(courseId: number) {
-    return api.listCourseTags({ courseId })
+    return client.app.listCoursesTags({ courseId })
   }
 
   function listCatalogCourses(courseId: number) {
-    return collectPages(client, 'data', api.listCatalogCourses({ courseId }))
+    return collectPages(
+      client,
+      'data',
+      client.data.listCatalogCourses({
+        page: 1,
+        pageSize: 100,
+        filter: { courseId },
+      }),
+    )
   }
 
   function listStudyPeriods() {
-    return api.listStudyPeriods({})
+    return client.data.listStudyPeriods({})
   }
 
   function listCourseClasses(courseId: number, studyPeriodId: number) {
     return collectPages(
       client,
       'data',
-      api.listCourseClasses({ courseId, studyPeriodId }),
+      client.data.listClasses({
+        page: 1,
+        pageSize: 100,
+        filter: { courseId, studyPeriodId },
+      }),
     )
   }
 
@@ -282,12 +130,23 @@ export function createCourseCatalogApi(client: PomiClient) {
     return collectPages(
       client,
       'data',
-      api.listCourseSchedules({ courseId, studyPeriodId }),
+      client.data.listClassSchedules({
+        page: 1,
+        pageSize: 100,
+        filter: {
+          course: { id: courseId },
+          studyPeriod: { id: studyPeriodId },
+        },
+      }),
     )
   }
 
   function listRelatedCourses(tagId: number) {
-    return collectPages(client, 'app', api.listRelatedCourses({ tagId }))
+    return collectPages(
+      client,
+      'app',
+      client.app.listTagsCourses({ id: tagId, page: 1, pageSize: 100 }),
+    ) as unknown as Promise<ReadonlyArray<Course>>
   }
 
   async function putCourseTag(
@@ -295,14 +154,14 @@ export function createCourseCatalogApi(client: PomiClient) {
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    await api.putCourseTag({ courseId, tagId }, { getAccessToken })
+    await client.app.updateCoursesTags({ courseId, tagId }, { getAccessToken })
   }
   async function deleteCourseTag(
     courseId: number,
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    await api.deleteCourseTag({ courseId, tagId }, { getAccessToken })
+    await client.app.deleteCoursesTags({ courseId, tagId }, { getAccessToken })
   }
 
   return {

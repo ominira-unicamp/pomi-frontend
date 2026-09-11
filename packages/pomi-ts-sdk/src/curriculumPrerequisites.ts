@@ -1,55 +1,32 @@
-import { dataApi } from './endpoint'
-import { collectPages } from './pagination'
-import type { PomiClient } from './client'
+import { collectPages } from './generatedPagination.js'
+import type {
+  listCatalogCoursesOutput,
+  listCatalogsOutput,
+} from './generated/data/operations.js'
+import type { PomiSdkClient } from './generatedClient.js'
 
-export type CurriculumApiCatalog = Readonly<{ id: number; year: number }>
-export type CurriculumApiPrerequisiteItem = Readonly<{
-  code: string
-  kind: 'FULL' | 'PARTIAL' | 'SPECIAL'
-  courseId: number | null
-}>
-export type CurriculumApiCatalogCourse = Readonly<{
-  courseId: number
-  prerequisites: Readonly<{
-    any: ReadonlyArray<
-      Readonly<{ all: ReadonlyArray<CurriculumApiPrerequisiteItem> }>
-    >
-  }>
-}>
+export type CurriculumApiCatalog = Readonly<listCatalogsOutput[number]>
+export type CurriculumApiCatalogCourse = Readonly<
+  listCatalogCoursesOutput['data'][number]
+>
+export type CurriculumApiPrerequisiteItem =
+  CurriculumApiCatalogCourse['prerequisites']['any'][number]['all'][number]
 
-type PrerequisitePage<T> = Readonly<{
-  data: ReadonlyArray<T>
-  _paths?: Readonly<{ next: string | null }>
-}>
-
-type CatalogYearInput = Readonly<{ year: number }>
-type CatalogInput = Readonly<{ catalogId: number }>
-
-const catalogInterface = dataApi.interface('/catalogs')
-const catalogCourseInterface = dataApi.interface('/catalog-courses')
-const listCatalogsEndpoint = catalogInterface.get<
-  ReadonlyArray<CurriculumApiCatalog>,
-  CatalogYearInput
->('', { query: ({ year }) => ({ year }) })
-
-const listCatalogCoursesEndpoint = catalogCourseInterface.get<
-  PrerequisitePage<CurriculumApiCatalogCourse>,
-  CatalogInput
->('', {
-  query: ({ catalogId }) => ({ catalogId, page: 1, pageSize: 1000 }),
-})
-
-export function createCurriculumPrerequisitesApi(client: PomiClient) {
-  const api = client.bind({
-    listCatalogs: listCatalogsEndpoint,
-    listCatalogCourses: listCatalogCoursesEndpoint,
-  })
+export function createCurriculumPrerequisitesApi(client: PomiSdkClient) {
   function listCatalogs(year: number) {
-    return api.listCatalogs({ year })
+    return client.data.listCatalogs({ filter: { year } })
   }
 
   function listCatalogCourses(catalogId: number) {
-    return collectPages(client, 'data', api.listCatalogCourses({ catalogId }))
+    return collectPages(
+      client,
+      'data',
+      client.data.listCatalogCourses({
+        page: 1,
+        pageSize: 1000,
+        filter: { catalogId },
+      }),
+    )
   }
 
   return { listCatalogs, listCatalogCourses }

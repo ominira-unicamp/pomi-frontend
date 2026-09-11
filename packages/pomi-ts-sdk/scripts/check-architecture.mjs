@@ -4,20 +4,19 @@ const sourceDirectory = new URL('../src/', import.meta.url)
 const modules = (await readdir(sourceDirectory))
   .filter((file) => file.endsWith('.ts'))
   .filter((file) => !file.endsWith('.test.ts'))
-  .filter((file) =>
-    ![
-      'api.ts',
-      'client.ts',
-      'endpoint.ts',
-      'errors.ts',
-      'generatedClient.ts',
-      'generatedPagination.ts',
-      'legacyQuery.ts',
-      'index.ts',
-      'pagination.ts',
-    ].includes(
-      file,
-    ),
+  .filter(
+    (file) =>
+      ![
+        'api.ts',
+        'client.ts',
+        'endpoint.ts',
+        'errors.ts',
+        'generatedClient.ts',
+        'generatedPagination.ts',
+        'legacyQuery.ts',
+        'index.ts',
+        'pagination.ts',
+      ].includes(file),
   )
 const forbidden = [
   'dataApiRequest',
@@ -35,8 +34,11 @@ for (const module of modules) {
   for (const token of forbidden) {
     if (source.includes(token)) violations.push(`${module}: ${token}`)
   }
-  if (!source.includes('.interface(') || !source.includes('client.bind(')) {
-    violations.push(`${module}: interface/binding declaration`)
+  if (!source.includes('client.app.') && !source.includes('client.data.')) {
+    violations.push(`${module}: generated operation call`)
+  }
+  if (source.includes('.interface(') || source.includes('client.bind(')) {
+    violations.push(`${module}: legacy interface/binding declaration`)
   }
   if (source.includes('client.request(')) {
     violations.push(`${module}: direct client request`)

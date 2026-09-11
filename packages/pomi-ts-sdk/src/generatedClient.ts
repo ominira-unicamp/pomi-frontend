@@ -24,6 +24,10 @@ import type {
 import { buildOperationUrl } from './runtime/query.js'
 
 export type PomiFetch = typeof fetch
+export type PomiRequestContext = Readonly<{
+  getAccessToken?: () => Promise<string>
+  allowUndocumentedSuccess?: boolean
+}>
 export type PomiSdkOptions = Readonly<{
   dataApiUrl: string
   appApiUrl: string
@@ -36,7 +40,10 @@ type OperationApi<
   Inputs extends Record<Names, unknown>,
   Outputs extends Record<Names, unknown>,
 > = {
-  [Name in Names]: (input: Inputs[Name]) => Promise<Outputs[Name]>
+  [Name in Names]: (
+    input: Inputs[Name],
+    context?: PomiRequestContext,
+  ) => Promise<Outputs[Name]>
 }
 
 export type DataOperationApi = OperationApi<
@@ -58,6 +65,7 @@ export type PomiSdkClient = Readonly<{
     target: ApiTarget,
     path: string,
     authentication?: AuthenticationMode,
+    context?: PomiRequestContext,
   ): Promise<T>
 }>
 
@@ -94,20 +102,24 @@ export class PomiSdk {
   executeData<Name extends DataOperationName>(
     name: Name,
     input: DataOperationInputs[Name],
+    context?: PomiRequestContext,
   ): Promise<DataOperationOutputs[Name]> {
     return this.execute<DataOperationOutputs[Name]>(
       dataOperationDefinitions[name],
       input as Record<string, unknown>,
+      context,
     )
   }
 
   executeApp<Name extends AppOperationName>(
     name: Name,
     input: AppOperationInputs[Name],
+    context?: PomiRequestContext,
   ): Promise<AppOperationOutputs[Name]> {
     return this.execute<AppOperationOutputs[Name]>(
       appOperationDefinitions[name],
       input as Record<string, unknown>,
+      context,
     )
   }
 
@@ -115,6 +127,7 @@ export class PomiSdk {
     target: ApiTarget,
     path: string,
     authentication: AuthenticationMode = 'public',
+    context?: PomiRequestContext,
   ): Promise<T> {
     return this.request<T>(
       {
@@ -137,20 +150,23 @@ export class PomiSdk {
       },
       {},
       false,
+      context,
     )
   }
 
   private execute<T>(
     definition: GeneratedOperationDefinition,
     input: Record<string, unknown>,
+    context?: PomiRequestContext,
   ) {
-    return this.request<T>(definition, input, true)
+    return this.request<T>(definition, input, true, context)
   }
 
   private async request<T>(
     definition: GeneratedOperationDefinition,
     input: Record<string, unknown>,
     requireDocumentedSuccess: boolean,
+    context?: PomiRequestContext,
   ): Promise<T> {
     const path = buildOperationUrl(definition, input)
     const url = new URL(
@@ -162,10 +178,13 @@ export class PomiSdk {
         ? (input.headers as HeadersInit)
         : undefined,
     )
-    const init: RequestInit = { method: definition.method, headers }
+    const init: RequestInit =
+      definition.target === 'app' ? { cache: 'no-store' } : {}
+    if (definition.method !== 'GET') init.method = definition.method
     if (definition.authentication === 'required') {
-      if (!this.getAccessToken) throw new Error('Authentication is required.')
-      headers.set('Authorization', `Bearer ${await this.getAccessToken()}`)
+      const getAccessToken = context?.getAccessToken ?? this.getAccessToken
+      if (!getAccessToken) throw new Error('Authentication is required.')
+      headers.set('Authorization', `Bearer ${await getAccessToken()}`)
     }
     if (definition.requestBody?.required && input.body === undefined) {
       throw new TypeError(
@@ -179,9 +198,10 @@ export class PomiSdk {
           ? JSON.stringify(input.body)
           : String(input.body)
     }
+    if ([...headers].length > 0) init.headers = headers
 
-    const response = await this.fetcher(url, init)
-    const text = await response.text()
+    const response = await this.fetcher(url.href, init)
+    const text = await response.clone().text()
     if (!response.ok) {
       const body = httpBody(text)
       throw new ApiError(
@@ -196,26 +216,38 @@ export class PomiSdk {
     const documented = definition.responses.find(
       (item) => item.success && item.status === response.status,
     )
-    if (requireDocumentedSuccess && !documented) {
+    if (
+      requireDocumentedSuccess &&
+      !documented &&
+      !context?.allowUndocumentedSuccess
+    ) {
       throw new UnexpectedResponseError(definition.operationId, response.status)
     }
     if (!text || documented?.contents.length === 0) return undefined as T
     const actualContentType = responseContentType(response)
     const content =
-      documented?.contents.find((item) => item.contentType === actualContentType) ??
-      documented?.contents[0]
-    return (content?.contentType.includes('json')
-      ? (JSON.parse(text) as unknown)
-      : text) as T
+      documented?.contents.find(
+        (item) => item.contentType === actualContentType,
+      ) ?? documented?.contents[0]
+    return (
+      content?.contentType.includes('json') || !documented
+        ? (JSON.parse(text) as unknown)
+        : text
+    ) as T
   }
 }
 
 function bindDataOperations(client: PomiSdk) {
   return Object.fromEntries(
-    (Object.keys(dataOperationDefinitions) as DataOperationName[]).map((name) => [
-      name,
-      (input: DataOperationInputs[typeof name]) => client.executeData(name, input),
-    ]),
+    (Object.keys(dataOperationDefinitions) as DataOperationName[]).map(
+      (name) => [
+        name,
+        (
+          input: DataOperationInputs[typeof name],
+          context?: PomiRequestContext,
+        ) => client.executeData(name, input, context),
+      ],
+    ),
   ) as unknown as DataOperationApi
 }
 
@@ -223,7 +255,8 @@ function bindAppOperations(client: PomiSdk) {
   return Object.fromEntries(
     (Object.keys(appOperationDefinitions) as AppOperationName[]).map((name) => [
       name,
-      (input: AppOperationInputs[typeof name]) => client.executeApp(name, input),
+      (input: AppOperationInputs[typeof name], context?: PomiRequestContext) =>
+        client.executeApp(name, input, context),
     ]),
   ) as unknown as AppOperationApi
 }
@@ -234,7 +267,7 @@ export function createPomiSdk(options: PomiSdkOptions): PomiSdkClient {
     data: bindDataOperations(client),
     app: bindAppOperations(client),
     metadata: sdkManifest,
-    requestPath: (target, path, authentication) =>
-      client.requestPath(target, path, authentication),
+    requestPath: (target, path, authentication, context) =>
+      client.requestPath(target, path, authentication, context),
   }
 }

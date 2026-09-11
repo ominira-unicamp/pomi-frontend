@@ -1,53 +1,42 @@
-import { appApi, dataApi } from './endpoint'
-import { collectPages } from './pagination'
-import type { PomiClient } from './client'
+import { collectPages } from './generatedPagination.js'
+import type {
+  createStudentPeriodPlanningsInput,
+  getStudentPeriodPlanningsOutput,
+  updateStudentPeriodPlanningsInput,
+} from './generated/app/operations.js'
+import type {
+  listClassSchedulesOutput,
+  listClassesOutput,
+  listCoursesOutput,
+  listProfessorsEvaluationSummariesOutput,
+  listStudyPeriodsOutput,
+} from './generated/data/operations.js'
+import type { PomiSdkClient } from './generatedClient.js'
 
-export type SemesterApiStudyPeriod = Readonly<{
-  id: number
-  year: number
-  yearPeriod: 'FIRST_SEMESTER' | 'SECOND_SEMESTER' | 'SUMMER' | 'WINTER'
-  startDate: string
-}>
-
-export type SemesterApiCourse = Readonly<{
-  id: number
-  code: string
-  name: string
-  credits: number
-}>
-
-export type SemesterApiClass = Readonly<{
-  id: number
-  code: string
-  courseId: number
-  courseCode: string
-  professors: ReadonlyArray<Readonly<{ id: number; name: string }>>
-}>
-
-export type SemesterApiMeeting = Readonly<{
-  id: number
-  classId: number
-  dayOfWeek:
-    | 'MONDAY'
-    | 'TUESDAY'
-    | 'WEDNESDAY'
-    | 'THURSDAY'
-    | 'FRIDAY'
-    | 'SATURDAY'
-    | 'SUNDAY'
-  start: string
-  end: string
-  roomCode: string
-}>
-
-export type ProfessorEvaluationSummary = Readonly<{
-  professor: Readonly<{ id: number; name: string }>
-  responseCount: number
-  wouldTakeAgain: number
-  fairness: number
-  clarity: number
-  difficulty: number
-}>
+export type SemesterApiStudyPeriod = Readonly<
+  Pick<
+    listStudyPeriodsOutput[number],
+    'id' | 'year' | 'yearPeriod' | 'startDate'
+  >
+>
+export type SemesterApiCourse = Readonly<
+  Pick<listCoursesOutput['data'][number], 'id' | 'code' | 'name' | 'credits'>
+>
+export type SemesterApiClass = Readonly<
+  Pick<
+    listClassesOutput['data'][number],
+    'id' | 'code' | 'courseId' | 'courseCode' | 'professors'
+  >
+>
+export type SemesterApiMeeting = Readonly<
+  Pick<
+    listClassSchedulesOutput['data'][number],
+    'id' | 'classId' | 'dayOfWeek' | 'start' | 'end' | 'roomCode'
+  >
+>
+export type ProfessorEvaluationSummary = Readonly<
+  listProfessorsEvaluationSummariesOutput['data'][number]
+>
 
 export type SemesterPlanningVisibility = 'PRIVATE' | 'FRIENDS' | 'PUBLIC'
 
@@ -67,34 +56,39 @@ export type SemesterPlanningGuideInput = Readonly<{
   manualCourseIds: ReadonlyArray<number>
 }>
 
+type GeneratedPlanning = getStudentPeriodPlanningsOutput
+type GeneratedPlanningClass = GeneratedPlanning['classes'][number]
+type GeneratedPlanningGuide = GeneratedPlanning['guide']
 export type PersistedSemesterPlanning = Readonly<{
-  id: number
-  name: string
-  createdAt: string
-  updatedAt: string
-  studyPeriodId: number
-  studyPeriodYear: number
-  studyPeriodYearPeriod: SemesterApiStudyPeriod['yearPeriod']
-  curriculumId: number | null
-  visibility: SemesterPlanningVisibility
+  id: GeneratedPlanning['id']
+  name: GeneratedPlanning['name']
+  createdAt: GeneratedPlanning['createdAt']
+  updatedAt: GeneratedPlanning['updatedAt']
+  studyPeriodId: GeneratedPlanning['studyPeriodId']
+  studyPeriodYear: GeneratedPlanning['studyPeriodYear']
+  studyPeriodYearPeriod: GeneratedPlanning['studyPeriodYearPeriod']
+  curriculumId: GeneratedPlanning['curriculumId']
+  visibility: GeneratedPlanning['visibility']
   classes: ReadonlyArray<
-    Readonly<{
-      id: number
-      code: string
-      courseCode: string
-      courseCredits: number
-    }>
+    Readonly<
+      Pick<
+        GeneratedPlanningClass,
+        'id' | 'code' | 'courseCode' | 'courseCredits'
+      >
+    >
   >
   guide: Readonly<{
-    mode: 'CURRICULUM' | 'PROGRAM' | 'NONE'
-    curriculumSource: 'SAVED' | 'SUGGESTION' | null
-    curriculumId: number | null
-    suggestionId: number | null
-    suggestionCatalogProgramId: number | null
-    catalogProgramId: number | null
-    specializationId: number | null
-    languageId: number | null
-    manualCourseIds: ReadonlyArray<number>
+    mode: GeneratedPlanningGuide['mode']
+    curriculumSource: GeneratedPlanningGuide['curriculumSource']
+    curriculumId: GeneratedPlanningGuide['curriculumId']
+    suggestionId: GeneratedPlanningGuide['suggestionId']
+    suggestionCatalogProgramId: NonNullable<
+      GeneratedPlanningGuide['suggestionCatalogProgramId']
+    > | null
+    catalogProgramId: GeneratedPlanningGuide['catalogProgramId']
+    specializationId: GeneratedPlanningGuide['specializationId']
+    languageId: GeneratedPlanningGuide['languageId']
+    manualCourseIds: GeneratedPlanningGuide['manualCourseIds']
   }>
 }>
 
@@ -122,147 +116,62 @@ function guideToApi(guide: SemesterPlanningGuideInput) {
   }
 }
 
-type ApiPage<T> = Readonly<{
-  data: ReadonlyArray<T>
-  _paths?: Readonly<{ next: string | null }>
-}>
-
-type StudyPeriodInput = Readonly<{ studyPeriodId: number }>
-type StudentInput = Readonly<{ studentId: number }>
-type PlanningInput = StudentInput & Readonly<{ planId: number }>
-type CreatePlanningInput = StudentInput &
-  Readonly<{ document: SemesterPlanningDocumentInput }>
-type PatchPlanningInput = PlanningInput &
-  Readonly<{
-    document: Omit<SemesterPlanningDocumentInput, 'studyPeriodId'>
-  }>
-type VisibilityInput = PlanningInput &
-  Readonly<{ visibility: SemesterPlanningVisibility }>
-
-const semesterDataInterface = dataApi.interface('')
-const semesterAppInterface = appApi.authenticated.interface(
-  '/student/:studentId/period-plannings',
-)
-
-function dataListEndpoint<TInput, TOutput>(
-  path: string,
-  query?: (input: TInput) => Readonly<Record<string, string | number>>,
-) {
-  return semesterDataInterface.get<ApiPage<TOutput>, TInput>(`/${path}`, {
-    query,
-  })
-}
-
-const listStudyPeriodsEndpoint =
-  semesterDataInterface.get<ReadonlyArray<SemesterApiStudyPeriod>>(
-    '/study-periods',
-  )
-
-const listCoursesEndpoint = dataListEndpoint<
-  Record<never, never>,
-  SemesterApiCourse
->('courses', () => ({ page: 1, pageSize: 1000 }))
-const listClassesEndpoint = dataListEndpoint<
-  StudyPeriodInput,
-  SemesterApiClass
->('classes', ({ studyPeriodId }) => ({
-  studyPeriodId,
-  page: 1,
-  pageSize: 1000,
-}))
-const listMeetingsEndpoint = dataListEndpoint<
-  StudyPeriodInput,
-  SemesterApiMeeting
->('class-schedules', ({ studyPeriodId }) => ({
-  studyPeriodId,
-  page: 1,
-  pageSize: 1000,
-}))
-const listProfessorEvaluationsEndpoint = dataListEndpoint<
-  Record<never, never>,
-  ProfessorEvaluationSummary
->('professors/evaluation-summaries', () => ({ page: 1, pageSize: 100 }))
-
-const listPlanningsEndpoint = semesterAppInterface.get<
-  ReadonlyArray<PersistedSemesterPlanning>,
-  StudentInput
->()
-const getPlanningEndpoint = semesterAppInterface.get<
-  PersistedSemesterPlanning,
-  PlanningInput
->('/:planId')
-const createPlanningEndpoint = semesterAppInterface.post<
-  PersistedSemesterPlanning,
-  CreatePlanningInput
->('', {
-  body: ({ document }) => ({
-    name: document.name,
-    studyPeriodId: document.studyPeriodId,
-    curriculumId: document.curriculumId,
-    classes: document.classIds,
-    guide: guideToApi(document.guide),
-  }),
-})
-
-const patchPlanningEndpoint = semesterAppInterface.patch<
-  PersistedSemesterPlanning,
-  PatchPlanningInput
->('/:planId', {
-  body: ({ document }) => ({
-    name: document.name,
-    curriculumId: document.curriculumId,
-    classes: { set: document.classIds },
-    guide: guideToApi(document.guide),
-  }),
-})
-
-const updateVisibilityEndpoint = semesterAppInterface.patch<
-  PersistedSemesterPlanning,
-  VisibilityInput
->('/:planId', { body: ({ visibility }) => ({ visibility }) })
-
-const deletePlanningEndpoint =
-  semesterAppInterface.remove<PlanningInput>('/:planId')
-
-export function createSemesterPlanningApi(client: PomiClient) {
-  const api = client.bind({
-    listStudyPeriods: listStudyPeriodsEndpoint,
-    listCourses: listCoursesEndpoint,
-    listClasses: listClassesEndpoint,
-    listMeetings: listMeetingsEndpoint,
-    listProfessorEvaluations: listProfessorEvaluationsEndpoint,
-    listPlannings: listPlanningsEndpoint,
-    getPlanning: getPlanningEndpoint,
-    createPlanning: createPlanningEndpoint,
-    patchPlanning: patchPlanningEndpoint,
-    updateVisibility: updateVisibilityEndpoint,
-    deletePlanning: deletePlanningEndpoint,
-  })
+export function createSemesterPlanningApi(client: PomiSdkClient) {
   function listStudyPeriods() {
-    return api.listStudyPeriods({})
+    return client.data.listStudyPeriods({})
   }
 
   function listCourses() {
-    return collectPages(client, 'data', api.listCourses({}))
+    return collectPages(
+      client,
+      'data',
+      client.data.listCourses({ page: 1, pageSize: 1000 }),
+    )
   }
 
   function listClasses(studyPeriodId: number) {
-    return collectPages(client, 'data', api.listClasses({ studyPeriodId }))
+    return collectPages(
+      client,
+      'data',
+      client.data.listClasses({
+        page: 1,
+        pageSize: 1000,
+        filter: { studyPeriodId },
+      }),
+    )
   }
 
   function listMeetings(studyPeriodId: number) {
-    return collectPages(client, 'data', api.listMeetings({ studyPeriodId }))
+    return collectPages(
+      client,
+      'data',
+      client.data.listClassSchedules({
+        page: 1,
+        pageSize: 1000,
+        filter: { studyPeriod: { id: studyPeriodId } },
+      }),
+    )
   }
 
   function listProfessorEvaluationSummaries() {
-    return collectPages(client, 'data', api.listProfessorEvaluations({}))
+    return collectPages(
+      client,
+      'data',
+      client.data.listProfessorsEvaluationSummaries({
+        page: 1,
+        pageSize: 100,
+      }),
+    )
   }
 
   function listSemesterPlannings(
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.listPlannings({ studentId }, { getAccessToken })
+    return client.app.listStudentPeriodPlannings(
+      { sid: String(studentId) },
+      { getAccessToken },
+    ) as Promise<ReadonlyArray<PersistedSemesterPlanning>>
   }
 
   function getSemesterPlanning(
@@ -270,7 +179,10 @@ export function createSemesterPlanningApi(client: PomiClient) {
     planId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.getPlanning({ studentId, planId }, { getAccessToken })
+    return client.app.getStudentPeriodPlannings(
+      { sid: String(studentId), id: String(planId) },
+      { getAccessToken },
+    ) as Promise<PersistedSemesterPlanning>
   }
 
   function createSemesterPlanning(
@@ -278,7 +190,17 @@ export function createSemesterPlanningApi(client: PomiClient) {
     document: SemesterPlanningDocumentInput,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.createPlanning({ studentId, document }, { getAccessToken })
+    const body: createStudentPeriodPlanningsInput['body'] = {
+      name: document.name,
+      studyPeriodId: document.studyPeriodId,
+      curriculumId: document.curriculumId,
+      classes: [...document.classIds],
+      guide: guideToApi(document.guide),
+    }
+    return client.app.createStudentPeriodPlannings(
+      { sid: String(studentId), body },
+      { getAccessToken },
+    ) as Promise<PersistedSemesterPlanning>
   }
 
   function patchSemesterPlanning(
@@ -287,10 +209,16 @@ export function createSemesterPlanningApi(client: PomiClient) {
     document: Omit<SemesterPlanningDocumentInput, 'studyPeriodId'>,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.patchPlanning(
-      { studentId, planId, document },
+    const body: updateStudentPeriodPlanningsInput['body'] = {
+      name: document.name,
+      curriculumId: document.curriculumId,
+      classes: { set: [...document.classIds] },
+      guide: guideToApi(document.guide),
+    }
+    return client.app.updateStudentPeriodPlannings(
+      { sid: String(studentId), id: String(planId), body },
       { getAccessToken },
-    )
+    ) as Promise<PersistedSemesterPlanning>
   }
 
   function updateSemesterPlanningVisibility(
@@ -299,10 +227,14 @@ export function createSemesterPlanningApi(client: PomiClient) {
     visibility: SemesterPlanningVisibility,
     getAccessToken: () => Promise<string>,
   ) {
-    return api.updateVisibility(
-      { studentId, planId, visibility },
+    return client.app.updateStudentPeriodPlannings(
+      {
+        sid: String(studentId),
+        id: String(planId),
+        body: { visibility },
+      },
       { getAccessToken },
-    )
+    ) as Promise<PersistedSemesterPlanning>
   }
 
   async function deleteSemesterPlanning(
@@ -310,7 +242,10 @@ export function createSemesterPlanningApi(client: PomiClient) {
     planId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    await api.deletePlanning({ studentId, planId }, { getAccessToken })
+    await client.app.deleteStudentPeriodPlannings(
+      { sid: String(studentId), id: String(planId) },
+      { getAccessToken },
+    )
   }
 
   return {
