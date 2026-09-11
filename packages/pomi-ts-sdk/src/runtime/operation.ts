@@ -32,4 +32,15 @@ export type GeneratedOperationDefinition = Readonly<{
     parameters: ReadonlyArray<unknown>
     filter: unknown
   }>
+  sdk: Readonly<{
+    resource: string
+    action: 'list' | 'get' | 'create' | 'update' | 'delete'
+    pathParameters?: Readonly<Record<string, string>>
+  }> | null
+  pagination: Readonly<{
+    itemsField: string
+    nextField: string
+    defaultPageSize: number
+    maxPageSize: number
+  }> | null
 }>

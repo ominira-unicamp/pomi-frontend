@@ -173,10 +173,7 @@ export function createStudentApi(client: PomiSdkClient) {
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.listStudentCourseAttempts(
-      { sid: String(studentId) },
-      { getAccessToken },
-    )
+    return client.app.courseAttempts.list(studentId, {}, { getAccessToken })
   }
 
   function importStudentHistory(
@@ -246,10 +243,9 @@ export function createStudentApi(client: PomiSdkClient) {
     body: StudentCourseAttemptBody,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.createStudentCourseAttempts(
-      { sid: String(studentId), body },
-      { getAccessToken },
-    )
+    return client.app.courseAttempts.create(studentId, body, {
+      getAccessToken,
+    })
   }
 
   function patchStudentCourseAttempt(
@@ -258,10 +254,9 @@ export function createStudentApi(client: PomiSdkClient) {
     body: PatchAttemptBody,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.updateStudentCourseAttempts(
-      { sid: String(studentId), id: String(attemptId), body },
-      { getAccessToken },
-    )
+    return client.app.courseAttempts.update(studentId, attemptId, body, {
+      getAccessToken,
+    })
   }
 
   async function deleteStudentCourseAttempt(
@@ -269,10 +264,9 @@ export function createStudentApi(client: PomiSdkClient) {
     attemptId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    await client.app.deleteStudentCourseAttempts(
-      { sid: String(studentId), id: String(attemptId) },
-      { getAccessToken },
-    )
+    await client.app.courseAttempts.delete(studentId, attemptId, {
+      getAccessToken,
+    })
   }
 
   return {

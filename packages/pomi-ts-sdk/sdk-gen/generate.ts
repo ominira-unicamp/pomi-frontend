@@ -38,6 +38,17 @@ type OpenApiOperation = JsonObject & {
   parameters?: ReadonlyArray<OpenApiParameter>
   requestBody?: OpenApiRequestBody
   responses?: Readonly<Record<string, OpenApiResponse>>
+  'x-pomi-sdk'?: {
+    resource: string
+    action: 'list' | 'get' | 'create' | 'update' | 'delete'
+    pathParameters?: Readonly<Record<string, string>>
+  }
+  'x-pomi-pagination'?: {
+    itemsField: string
+    nextField: string
+    defaultPageSize: number
+    maxPageSize: number
+  }
 }
 
 type OpenApiDocument = OpenAPI3 & {
@@ -300,6 +311,8 @@ function operationMetadata(entry: OperationEntry) {
     requestBody: requestBodyMetadata(operation),
     responses: responseMetadata(operation, entry.document),
     query: queryMetadata(operation),
+    sdk: operation['x-pomi-sdk'] ?? null,
+    pagination: operation['x-pomi-pagination'] ?? null,
   }
 }
 
@@ -370,6 +383,145 @@ ${definitions.map((definition) => `  ${definition},`).join('\n')}
 } as const satisfies Record<string, GeneratedOperationDefinition>
 
 export type OperationName = keyof typeof operationDefinitions
+`
+}
+
+function createResourcesSource(
+  target: ApiTarget,
+  entries: Array<OperationEntry>,
+) {
+  const selected = entries.filter((entry) => entry.operation['x-pomi-sdk'])
+  const imports = selected.flatMap((entry) => {
+    const operationId = entry.operation.operationId!
+    return [`${operationId}Input`, `${operationId}Output`]
+  })
+  const grouped = new Map<string, Array<OperationEntry>>()
+  for (const entry of selected) {
+    const resource = entry.operation['x-pomi-sdk']!.resource
+    grouped.set(resource, [...(grouped.get(resource) ?? []), entry])
+  }
+
+  function paths(entry: OperationEntry) {
+    const metadata = entry.operation['x-pomi-sdk']!
+    return parameterNames(entry.operation, 'path').map((wireName) => ({
+      wireName,
+      publicName: metadata.pathParameters?.[wireName] ?? wireName,
+    }))
+  }
+
+  function argumentsFor(entry: OperationEntry) {
+    const operationId = entry.operation.operationId!
+    const pathArguments = paths(entry)
+    const args = pathArguments.map(({ publicName }) => `${publicName}: number`)
+    if (entry.operation['x-pomi-sdk']!.action === 'list') {
+      const omitted =
+        pathArguments
+          .map(({ wireName }) => JSON.stringify(wireName))
+          .join(' | ') || 'never'
+      args.push(`input: Omit<${operationId}Input, ${omitted}> = {}`)
+    } else if (entry.operation.requestBody) {
+      args.push(`body: ${operationId}Input['body']`)
+    }
+    args.push('context?: PomiRequestContext')
+    return args.join(', ')
+  }
+
+  function inputFor(entry: OperationEntry, inputExpression = 'input') {
+    const operationId = entry.operation.operationId!
+    const pathFields = paths(entry).map(
+      ({ wireName, publicName }) =>
+        `${JSON.stringify(wireName)}: ${publicName}`,
+    )
+    const action = entry.operation['x-pomi-sdk']!.action
+    const fields =
+      action === 'list'
+        ? [...pathFields, `...${inputExpression}`]
+        : entry.operation.requestBody
+          ? [...pathFields, 'body']
+          : pathFields
+    return `{ ${fields.join(', ')} } as unknown as ${operationId}Input`
+  }
+
+  const resourceSources = [...grouped.entries()].map(
+    ([resource, operations]) => {
+      const methodDeclarations = operations.map((entry) => {
+        const operationId = entry.operation.operationId!
+        const action = entry.operation['x-pomi-sdk']!.action
+        const variableName = action === 'delete' ? 'deleteOperation' : action
+        return `const ${variableName} = withMetadata((${argumentsFor(entry)}) => operations.${operationId}(${inputFor(entry)}, context), definitions.${operationId}, operationProblemTypes.${operationId})`
+      })
+      const methodNames: Array<string> = operations.map((entry) => {
+        const action = entry.operation['x-pomi-sdk']!.action
+        return action === 'delete' ? 'delete: deleteOperation' : action
+      })
+      const paginated = operations.find(
+        (entry) => entry.operation['x-pomi-pagination'],
+      )
+      if (paginated) {
+        const operationId = paginated.operation.operationId!
+        const pagination = paginated.operation['x-pomi-pagination']!
+        const defaultedInput = `withPaginationDefaults(input, ${pagination.defaultPageSize})`
+        methodDeclarations.push(
+          `const pages = (${argumentsFor(paginated)}) => paginate<${operationId}Output>(operations.${operationId}(${inputFor(paginated, defaultedInput)}, context), ${JSON.stringify(target)}, definitions.${operationId}.authentication, ${JSON.stringify(pagination.nextField)}, requestPath, context)`,
+          `const listAll = async (${argumentsFor(paginated)}) => { const items: Array<${operationId}Output[${JSON.stringify(pagination.itemsField)}][number]> = []; for await (const page of pages(input, context)) items.push(...page[${JSON.stringify(pagination.itemsField)}]); return items }`,
+        )
+        methodNames.push('pages', 'listAll')
+      }
+      return `${JSON.stringify(resource)}: (() => { ${methodDeclarations.join('\n')}\nreturn { ${methodNames.join(', ')} } })()`
+    },
+  )
+
+  const hasPagination = selected.some(
+    (entry) => entry.operation['x-pomi-pagination'],
+  )
+  const paginationHelpers = hasPagination
+    ? `function withPaginationDefaults<Input extends { page?: number; pageSize?: number }>(input: Input, pageSize: number) {
+  return { ...input, page: input.page ?? 1, pageSize: input.pageSize ?? pageSize }
+}
+
+function valueAtPath(value: unknown, path: string) {
+  return path.split('.').reduce<unknown>((current, key) => typeof current === 'object' && current !== null ? (current as Record<string, unknown>)[key] : undefined, value)
+}
+
+async function* paginate<Page>(firstPage: Promise<Page>, target: ${JSON.stringify(target)}, authentication: AuthenticationMode, nextField: string, requestPath: RequestPath, context?: PomiRequestContext): AsyncIterable<Page> {
+  let page = await firstPage
+  yield page
+  let next = valueAtPath(page, nextField)
+  while (typeof next === 'string' && next.length > 0) {
+    page = await requestPath<Page>(target, next, authentication, context)
+    yield page
+    next = valueAtPath(page, nextField)
+  }
+}
+`
+    : ''
+
+  return `import type { PomiRequestContext } from '../../runtime/client.js'
+import type { AuthenticationMode } from '../../runtime/operation.js'
+import { operationDefinitions as definitions } from './operations.js'
+import type { ${imports.join(', ')} } from './operations.js'
+import { operationProblemTypes } from './problems.js'
+
+type OperationFunction<Input, Output> = (input: Input, context?: PomiRequestContext) => Promise<Output>
+type Operations = {
+${selected.map((entry) => `  ${entry.operation.operationId}: OperationFunction<${entry.operation.operationId}Input, ${entry.operation.operationId}Output>`).join('\n')}
+}
+type RequestPath = <T>(target: ${JSON.stringify(target)}, path: string, authentication?: AuthenticationMode, context?: PomiRequestContext) => Promise<T>
+
+function withMetadata<FunctionType extends (...args: any[]) => unknown, Definition, Problems>(fn: FunctionType, meta: Definition, problemTypes: Problems) {
+  return Object.assign(fn, { meta, problemTypes })
+}
+
+${paginationHelpers}
+
+export function bindResources(operations: Operations, requestPath: RequestPath) {
+  ${hasPagination ? '' : 'void requestPath'}
+  return {
+${resourceSources.map((source) => `    ${source},`).join('\n')}
+  }
+}
+
+export type Resources = ReturnType<typeof bindResources>
 `
 }
 
@@ -564,6 +716,7 @@ export * from './openapi.js'
 export * from './operations.js'
 export * from './paths.js'
 export * from './problems.js'
+export * from './resources.js'
 `
 }
 
@@ -576,6 +729,7 @@ async function loadSpec(target: ApiTarget, path: string) {
   if (entries.length === 0)
     throw new Error(`No HTTP operations found in ${path}`)
   const ids = new Set<string>()
+  const resources = new Set<string>()
   for (const entry of entries) {
     const id = entry.operation.operationId
     if (!id)
@@ -585,6 +739,33 @@ async function loadSpec(target: ApiTarget, path: string) {
     if (ids.has(id))
       throw new Error(`Duplicate operationId in ${target}: ${id}`)
     ids.add(id)
+    const sdk = entry.operation['x-pomi-sdk']
+    const pagination = entry.operation['x-pomi-pagination']
+    if (pagination && !sdk) {
+      throw new Error(`Pagination requires SDK metadata in operation ${id}`)
+    }
+    if (sdk) {
+      const resourceOperation = `${sdk.resource}.${sdk.action}`
+      if (resources.has(resourceOperation)) {
+        throw new Error(
+          `Duplicate SDK operation in ${target}: ${resourceOperation}`,
+        )
+      }
+      resources.add(resourceOperation)
+      const paths = new Set(parameterNames(entry.operation, 'path'))
+      for (const name of Object.keys(sdk.pathParameters ?? {})) {
+        if (!paths.has(name)) {
+          throw new Error(
+            `Unknown SDK path parameter ${name} in operation ${id}`,
+          )
+        }
+      }
+      if (pagination && sdk.action !== 'list') {
+        throw new Error(
+          `Pagination requires SDK action list in operation ${id}`,
+        )
+      }
+    }
   }
   return { target, path, document, entries }
 }
@@ -638,6 +819,11 @@ async function main() {
     project.createSourceFile(
       resolve(directory, 'paths.ts'),
       createPathsSource(spec.entries),
+      { overwrite: true },
+    )
+    project.createSourceFile(
+      resolve(directory, 'resources.ts'),
+      createResourcesSource(spec.target, spec.entries),
       { overwrite: true },
     )
     project.createSourceFile(

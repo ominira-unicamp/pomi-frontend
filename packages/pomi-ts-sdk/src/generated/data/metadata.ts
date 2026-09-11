@@ -2515,10 +2515,12 @@ export const componentSchemas = {
                 "type": "string"
             },
             "unitId": {
-                "type": "integer"
+                "type": "integer",
+                "nullable": true
             },
             "unitCode": {
-                "type": "string"
+                "type": "string",
+                "nullable": true
             },
             "professors": {
                 "type": "array",
@@ -2546,7 +2548,8 @@ export const componentSchemas = {
                         "type": "string"
                     },
                     "unit": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "course": {
                         "type": "string"
@@ -2626,10 +2629,12 @@ export const componentSchemas = {
                 "type": "string"
             },
             "unitId": {
-                "type": "integer"
+                "type": "integer",
+                "nullable": true
             },
             "unitCode": {
-                "type": "string"
+                "type": "string",
+                "nullable": true
             },
             "courseId": {
                 "type": "integer"
@@ -2662,7 +2667,8 @@ export const componentSchemas = {
                         "type": "string"
                     },
                     "unit": {
-                        "type": "string"
+                        "type": "string",
+                        "nullable": true
                     },
                     "course": {
                         "type": "string"

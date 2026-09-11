@@ -427,7 +427,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getCalendarTags": {
         "operationId": "getCalendarTags",
@@ -511,7 +513,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getCatalogCourses": {
         "operationId": "getCatalogCourses",
@@ -595,7 +599,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getCatalogProgram": {
         "operationId": "getCatalogProgram",
@@ -679,7 +685,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getCatalogs": {
         "operationId": "getCatalogs",
@@ -763,7 +771,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getClasses": {
         "operationId": "getClasses",
@@ -847,7 +857,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getClassSchedules": {
         "operationId": "getClassSchedules",
@@ -931,7 +943,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getCoauthors": {
         "operationId": "getCoauthors",
@@ -1030,7 +1044,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getCoordinators": {
         "operationId": "getCoordinators",
@@ -1114,7 +1130,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getCourses": {
         "operationId": "getCourses",
@@ -1198,7 +1216,15 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": {
+            "resource": "courses",
+            "action": "get",
+            "pathParameters": {
+                "id": "courseId"
+            }
+        },
+        "pagination": null
     },
     "getCurriculumSuggestions": {
         "operationId": "getCurriculumSuggestions",
@@ -1282,7 +1308,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getDailyMenus": {
         "operationId": "getDailyMenus",
@@ -1366,7 +1394,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getDepartments": {
         "operationId": "getDepartments",
@@ -1471,7 +1501,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getExchangeNotices": {
         "operationId": "getExchangeNotices",
@@ -1555,7 +1587,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getKeywords": {
         "operationId": "getKeywords",
@@ -1654,7 +1688,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getLanguages": {
         "operationId": "getLanguages",
@@ -1738,7 +1774,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getProfessorDataPortalProfiles": {
         "operationId": "getProfessorDataPortalProfiles",
@@ -1822,7 +1860,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getProfessorPositions": {
         "operationId": "getProfessorPositions",
@@ -1971,7 +2011,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getProfessors": {
         "operationId": "getProfessors",
@@ -2055,7 +2097,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getPrograms": {
         "operationId": "getPrograms",
@@ -2139,7 +2183,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getRooms": {
         "operationId": "getRooms",
@@ -2223,7 +2269,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getSpecializations": {
         "operationId": "getSpecializations",
@@ -2307,7 +2355,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getStudyPeriods": {
         "operationId": "getStudyPeriods",
@@ -2391,7 +2441,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getUnits": {
         "operationId": "getUnits",
@@ -2475,7 +2527,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listCalendar": {
         "operationId": "listCalendar",
@@ -2542,7 +2596,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listCalendarEvents": {
         "operationId": "listCalendarEvents",
@@ -2747,7 +2803,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listCalendarTags": {
         "operationId": "listCalendarTags",
@@ -2906,7 +2964,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listCatalogCourses": {
         "operationId": "listCatalogCourses",
@@ -3375,7 +3435,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listCatalogProgram": {
         "operationId": "listCatalogProgram",
@@ -3606,7 +3668,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listCatalogs": {
         "operationId": "listCatalogs",
@@ -3735,7 +3799,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listClasses": {
         "operationId": "listClasses",
@@ -4248,7 +4314,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listClassSchedules": {
         "operationId": "listClassSchedules",
@@ -4842,7 +4910,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listCoauthors": {
         "operationId": "listCoauthors",
@@ -5052,7 +5122,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listCoordinators": {
         "operationId": "listCoordinators",
@@ -5243,7 +5315,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listCourses": {
         "operationId": "listCourses",
@@ -5623,6 +5697,16 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
+        },
+        "sdk": {
+            "resource": "courses",
+            "action": "list"
+        },
+        "pagination": {
+            "itemsField": "data",
+            "nextField": "_paths.next",
+            "defaultPageSize": 20,
+            "maxPageSize": 1000
         }
     },
     "listCoursesEvaluationSummaries": {
@@ -5824,7 +5908,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listCurriculumSuggestions": {
         "operationId": "listCurriculumSuggestions",
@@ -6244,7 +6330,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listDailyMenus": {
         "operationId": "listDailyMenus",
@@ -6379,7 +6467,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listDepartments": {
         "operationId": "listDepartments",
@@ -6563,7 +6653,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listEvaluationSummaries": {
         "operationId": "listEvaluationSummaries",
@@ -6746,7 +6838,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listExchangeNotices": {
         "operationId": "listExchangeNotices",
@@ -6979,7 +7073,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listExchangePlaces": {
         "operationId": "listExchangePlaces",
@@ -7142,7 +7238,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listKeywords": {
         "operationId": "listKeywords",
@@ -7352,7 +7450,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listLanguages": {
         "operationId": "listLanguages",
@@ -7511,7 +7611,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listProfessorDataPortalProfiles": {
         "operationId": "listProfessorDataPortalProfiles",
@@ -8069,7 +8171,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listProfessorPositions": {
         "operationId": "listProfessorPositions",
@@ -8351,7 +8455,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listProfessors": {
         "operationId": "listProfessors",
@@ -8505,7 +8611,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listProfessorsEvaluationSummaries": {
         "operationId": "listProfessorsEvaluationSummaries",
@@ -8663,7 +8771,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listPrograms": {
         "operationId": "listPrograms",
@@ -8792,7 +8902,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listRooms": {
         "operationId": "listRooms",
@@ -8964,7 +9076,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listSpecializations": {
         "operationId": "listSpecializations",
@@ -9178,7 +9292,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listStudyPeriods": {
         "operationId": "listStudyPeriods",
@@ -9399,7 +9515,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listUnits": {
         "operationId": "listUnits",
@@ -9601,7 +9719,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
 } as const satisfies Record<string, GeneratedOperationDefinition>
 

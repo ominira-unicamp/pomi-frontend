@@ -1465,15 +1465,15 @@ export interface components {
 
             studyPeriodYearPeriod: "SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER";
             courseCode: string;
-            unitId: number;
-            unitCode: string;
+            unitId: number | null;
+            unitCode: string | null;
             professors: {
                 id: number;
                 name: string;
             }[];
             _paths: {
                 studyPeriod: string;
-                unit: string;
+                unit: string | null;
                 course: string;
                 class: string;
                 classSchedules: string;
@@ -1490,8 +1490,8 @@ export interface components {
             classId: number;
             roomCode: string;
             classCode: string;
-            unitId: number;
-            unitCode: string;
+            unitId: number | null;
+            unitCode: string | null;
             courseId: number;
             courseCode: string;
             studyPeriodId: number;
@@ -1501,7 +1501,7 @@ export interface components {
             _paths: {
                 entity: string;
                 studyPeriod: string;
-                unit: string;
+                unit: string | null;
                 course: string;
                 class: string;
             };

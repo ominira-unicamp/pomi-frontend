@@ -10,24 +10,33 @@ import {
   type OperationName as DataOperationName,
   type OperationOutputs as DataOperationOutputs,
 } from './generated/data/operations.js'
+import {
+  bindResources as bindAppResources,
+  type Resources as AppResources,
+} from './generated/app/resources.js'
+import {
+  bindResources as bindDataResources,
+  type Resources as DataResources,
+} from './generated/data/resources.js'
 import { sdkManifest } from './generated/manifest.js'
 import {
   ApiError,
+  isProblemType,
   UnexpectedResponseError,
   type ApiProblemDetails,
 } from './errors.js'
+import type { ProblemType as AppProblemType } from './generated/app/problems.js'
+import type { ProblemType as DataProblemType } from './generated/data/problems.js'
 import type {
   ApiTarget,
   AuthenticationMode,
   GeneratedOperationDefinition,
 } from './runtime/operation.js'
+import type { PomiRequestContext } from './runtime/client.js'
 import { buildOperationUrl } from './runtime/query.js'
 
 export type PomiFetch = typeof fetch
-export type PomiRequestContext = Readonly<{
-  getAccessToken?: () => Promise<string>
-  allowUndocumentedSuccess?: boolean
-}>
+export type { PomiRequestContext } from './runtime/client.js'
 export type PomiSdkOptions = Readonly<{
   dataApiUrl: string
   appApiUrl: string
@@ -58,9 +67,17 @@ export type AppOperationApi = OperationApi<
 >
 
 export type PomiSdkClient = Readonly<{
-  data: DataOperationApi
-  app: AppOperationApi
+  data: DataOperationApi & DataResources
+  app: AppOperationApi & AppResources
   metadata: typeof sdkManifest
+  errors: Readonly<{
+    is<TProblemType extends AppProblemType | DataProblemType>(
+      value: unknown,
+      type: TProblemType,
+    ): value is ApiError & {
+      problem: ApiProblemDetails & { type: TProblemType }
+    }
+  }>
   requestPath<T>(
     target: ApiTarget,
     path: string,
@@ -147,6 +164,8 @@ export class PomiSdk {
         requestBody: null,
         responses: [],
         query: { parameters: [], filter: null },
+        sdk: null,
+        pagination: null,
       },
       {},
       false,
@@ -263,11 +282,25 @@ function bindAppOperations(client: PomiSdk) {
 
 export function createPomiSdk(options: PomiSdkOptions): PomiSdkClient {
   const client = new PomiSdk(options)
+  const dataOperations = bindDataOperations(client)
+  const appOperations = bindAppOperations(client)
+  const requestPath: PomiSdkClient['requestPath'] = (
+    target,
+    path,
+    authentication,
+    context,
+  ) => client.requestPath(target, path, authentication, context)
   return {
-    data: bindDataOperations(client),
-    app: bindAppOperations(client),
+    data: {
+      ...dataOperations,
+      ...bindDataResources(dataOperations, requestPath),
+    },
+    app: {
+      ...appOperations,
+      ...bindAppResources(appOperations, requestPath),
+    },
     metadata: sdkManifest,
-    requestPath: (target, path, authentication, context) =>
-      client.requestPath(target, path, authentication, context),
+    errors: { is: isProblemType },
+    requestPath,
   }
 }

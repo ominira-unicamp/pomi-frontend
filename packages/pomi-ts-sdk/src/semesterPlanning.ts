@@ -122,11 +122,7 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
   }
 
   function listCourses() {
-    return collectPages(
-      client,
-      'data',
-      client.data.listCourses({ page: 1, pageSize: 1000 }),
-    )
+    return client.data.courses.listAll({ page: 1, pageSize: 1000 })
   }
 
   function listClasses(studyPeriodId: number) {
@@ -168,9 +164,12 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.listStudentPeriodPlannings(
-      { sid: String(studentId) },
-      { getAccessToken },
+    return client.app.periodPlannings.list(
+      studentId,
+      {},
+      {
+        getAccessToken,
+      },
     ) as Promise<ReadonlyArray<PersistedSemesterPlanning>>
   }
 
@@ -179,10 +178,9 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
     planId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.getStudentPeriodPlannings(
-      { sid: String(studentId), id: String(planId) },
-      { getAccessToken },
-    ) as Promise<PersistedSemesterPlanning>
+    return client.app.periodPlannings.get(studentId, planId, {
+      getAccessToken,
+    }) as Promise<PersistedSemesterPlanning>
   }
 
   function createSemesterPlanning(
@@ -197,10 +195,9 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
       classes: [...document.classIds],
       guide: guideToApi(document.guide),
     }
-    return client.app.createStudentPeriodPlannings(
-      { sid: String(studentId), body },
-      { getAccessToken },
-    ) as Promise<PersistedSemesterPlanning>
+    return client.app.periodPlannings.create(studentId, body, {
+      getAccessToken,
+    }) as Promise<PersistedSemesterPlanning>
   }
 
   function patchSemesterPlanning(
@@ -215,10 +212,9 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
       classes: { set: [...document.classIds] },
       guide: guideToApi(document.guide),
     }
-    return client.app.updateStudentPeriodPlannings(
-      { sid: String(studentId), id: String(planId), body },
-      { getAccessToken },
-    ) as Promise<PersistedSemesterPlanning>
+    return client.app.periodPlannings.update(studentId, planId, body, {
+      getAccessToken,
+    }) as Promise<PersistedSemesterPlanning>
   }
 
   function updateSemesterPlanningVisibility(
@@ -227,12 +223,10 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
     visibility: SemesterPlanningVisibility,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.updateStudentPeriodPlannings(
-      {
-        sid: String(studentId),
-        id: String(planId),
-        body: { visibility },
-      },
+    return client.app.periodPlannings.update(
+      studentId,
+      planId,
+      { visibility },
       { getAccessToken },
     ) as Promise<PersistedSemesterPlanning>
   }
@@ -242,10 +236,9 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
     planId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    await client.app.deleteStudentPeriodPlannings(
-      { sid: String(studentId), id: String(planId) },
-      { getAccessToken },
-    )
+    await client.app.periodPlannings.delete(studentId, planId, {
+      getAccessToken,
+    })
   }
 
   return {

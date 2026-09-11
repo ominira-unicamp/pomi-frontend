@@ -1199,6 +1199,204 @@ export const componentSchemas = {
         ],
         "additionalProperties": false
     },
+    "CreatePeriodPlanningInput": {
+        "type": "object",
+        "properties": {
+            "name": {
+                "type": "string",
+                "minLength": 1
+            },
+            "studyPeriodId": {
+                "type": "integer"
+            },
+            "curriculumId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "guide": {
+                "type": "object",
+                "properties": {
+                    "mode": {
+                        "type": "string",
+                        "enum": [
+                            "CURRICULUM",
+                            "PROGRAM",
+                            "NONE"
+                        ]
+                    },
+                    "curriculumSource": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "SAVED",
+                            "SUGGESTION",
+                            null
+                        ]
+                    },
+                    "curriculumId": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "suggestionId": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "suggestionCatalogProgramId": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "catalogProgramId": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "specializationId": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "languageId": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "manualCourseIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "required": [
+                    "mode",
+                    "curriculumSource",
+                    "curriculumId",
+                    "suggestionId",
+                    "catalogProgramId",
+                    "specializationId",
+                    "languageId",
+                    "manualCourseIds"
+                ],
+                "additionalProperties": false
+            },
+            "classes": {
+                "type": "array",
+                "items": {
+                    "type": "integer"
+                }
+            }
+        },
+        "required": [
+            "studyPeriodId",
+            "classes"
+        ],
+        "additionalProperties": false
+    },
+    "UpdatePeriodPlanningInput": {
+        "type": "object",
+        "properties": {
+            "name": {
+                "type": "string",
+                "minLength": 1
+            },
+            "visibility": {
+                "type": "string",
+                "enum": [
+                    "PRIVATE",
+                    "FRIENDS",
+                    "PUBLIC"
+                ]
+            },
+            "curriculumId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "guide": {
+                "type": "object",
+                "properties": {
+                    "mode": {
+                        "type": "string",
+                        "enum": [
+                            "CURRICULUM",
+                            "PROGRAM",
+                            "NONE"
+                        ]
+                    },
+                    "curriculumSource": {
+                        "type": "string",
+                        "nullable": true,
+                        "enum": [
+                            "SAVED",
+                            "SUGGESTION",
+                            null
+                        ]
+                    },
+                    "curriculumId": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "suggestionId": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "suggestionCatalogProgramId": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "catalogProgramId": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "specializationId": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "languageId": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "manualCourseIds": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "required": [
+                    "mode",
+                    "curriculumSource",
+                    "curriculumId",
+                    "suggestionId",
+                    "catalogProgramId",
+                    "specializationId",
+                    "languageId",
+                    "manualCourseIds"
+                ],
+                "additionalProperties": false
+            },
+            "classes": {
+                "type": "object",
+                "properties": {
+                    "set": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "add": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    },
+                    "remove": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                }
+            }
+        },
+        "additionalProperties": false
+    },
     "SharedPeriodPlanning": {
         "type": "object",
         "properties": {
@@ -1875,6 +2073,97 @@ export const componentSchemas = {
             "detail",
             "fields"
         ],
+        "additionalProperties": false
+    },
+    "CreateStudentCourseAttemptInput": {
+        "type": "object",
+        "properties": {
+            "courseId": {
+                "type": "integer"
+            },
+            "studyPeriodId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "classId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "evaluationMode": {
+                "type": "string",
+                "enum": [
+                    "GRADE_AND_ATTENDANCE",
+                    "ATTENDANCE",
+                    "CONCEPT"
+                ]
+            },
+            "status": {
+                "type": "string",
+                "enum": [
+                    "ENROLLED",
+                    "DROPPED",
+                    "APPROVED",
+                    "FAILED_BY_GRADE",
+                    "APPROVED_BY_ATTENDANCE",
+                    "APPROVED_BY_PROFICIENCY",
+                    "FAILED_BY_ATTENDANCE",
+                    "SUFFICIENT",
+                    "INSUFFICIENT"
+                ]
+            },
+            "grade": {
+                "type": "number",
+                "nullable": true,
+                "minimum": 0,
+                "maximum": 10
+            }
+        },
+        "required": [
+            "courseId",
+            "status"
+        ],
+        "additionalProperties": false
+    },
+    "UpdateStudentCourseAttemptInput": {
+        "type": "object",
+        "properties": {
+            "studyPeriodId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "classId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "evaluationMode": {
+                "type": "string",
+                "enum": [
+                    "GRADE_AND_ATTENDANCE",
+                    "ATTENDANCE",
+                    "CONCEPT"
+                ]
+            },
+            "status": {
+                "type": "string",
+                "enum": [
+                    "ENROLLED",
+                    "DROPPED",
+                    "APPROVED",
+                    "FAILED_BY_GRADE",
+                    "APPROVED_BY_ATTENDANCE",
+                    "APPROVED_BY_PROFICIENCY",
+                    "FAILED_BY_ATTENDANCE",
+                    "SUFFICIENT",
+                    "INSUFFICIENT"
+                ]
+            },
+            "grade": {
+                "type": "number",
+                "nullable": true,
+                "minimum": 0,
+                "maximum": 10
+            }
+        },
         "additionalProperties": false
     },
     "StudentHistoryImportSummary": {
@@ -3202,6 +3491,31 @@ export const enumValues = {
         "SATURDAY",
         "SUNDAY"
     ],
+    "CreatePeriodPlanningInput.guide.mode": [
+        "CURRICULUM",
+        "PROGRAM",
+        "NONE"
+    ],
+    "CreatePeriodPlanningInput.guide.curriculumSource": [
+        "SAVED",
+        "SUGGESTION",
+        null
+    ],
+    "UpdatePeriodPlanningInput.visibility": [
+        "PRIVATE",
+        "FRIENDS",
+        "PUBLIC"
+    ],
+    "UpdatePeriodPlanningInput.guide.mode": [
+        "CURRICULUM",
+        "PROGRAM",
+        "NONE"
+    ],
+    "UpdatePeriodPlanningInput.guide.curriculumSource": [
+        "SAVED",
+        "SUGGESTION",
+        null
+    ],
     "SharedPeriodPlanning.visibility": [
         "FRIENDS",
         "PUBLIC"
@@ -3242,6 +3556,38 @@ export const enumValues = {
         "FIRST_SEMESTER",
         "WINTER",
         "SECOND_SEMESTER"
+    ],
+    "CreateStudentCourseAttemptInput.evaluationMode": [
+        "GRADE_AND_ATTENDANCE",
+        "ATTENDANCE",
+        "CONCEPT"
+    ],
+    "CreateStudentCourseAttemptInput.status": [
+        "ENROLLED",
+        "DROPPED",
+        "APPROVED",
+        "FAILED_BY_GRADE",
+        "APPROVED_BY_ATTENDANCE",
+        "APPROVED_BY_PROFICIENCY",
+        "FAILED_BY_ATTENDANCE",
+        "SUFFICIENT",
+        "INSUFFICIENT"
+    ],
+    "UpdateStudentCourseAttemptInput.evaluationMode": [
+        "GRADE_AND_ATTENDANCE",
+        "ATTENDANCE",
+        "CONCEPT"
+    ],
+    "UpdateStudentCourseAttemptInput.status": [
+        "ENROLLED",
+        "DROPPED",
+        "APPROVED",
+        "FAILED_BY_GRADE",
+        "APPROVED_BY_ATTENDANCE",
+        "APPROVED_BY_PROFICIENCY",
+        "FAILED_BY_ATTENDANCE",
+        "SUFFICIENT",
+        "INSUFFICIENT"
     ],
     "StudentHistoryImportBody.semesters[].yearPeriod": [
         "SUMMER",

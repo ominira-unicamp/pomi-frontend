@@ -1,10 +1,11 @@
+import { legacyListCoursesInput } from './compatibility/courseCatalog.js'
 import { collectPages } from './generatedPagination.js'
+import type { LegacyListCoursesInput } from './compatibility/courseCatalog.js'
 import type {
   listCatalogCoursesOutput,
   listCatalogsOutput,
   listClassSchedulesOutput,
   listClassesOutput,
-  listCoursesInput,
   listCoursesOutput,
   listStudyPeriodsOutput,
   listUnitsOutput,
@@ -51,31 +52,13 @@ export type ClassSchedule = Readonly<
   >
 >
 
-type ListCoursesInput = Readonly<{
-  q?: string
-  unitId?: number
-  catalogYear?: number
-  tagId?: number
-  page: number
-  pageSize?: number
-}>
 export function createCourseCatalogApi(client: PomiSdkClient) {
-  function listCourses(input: ListCoursesInput) {
-    const filter = {
-      ...(input.q ? { code: input.q } : {}),
-      ...(input.unitId ? { unit: { id: input.unitId } } : {}),
-      ...(input.catalogYear ? { catalogYear: input.catalogYear } : {}),
-      ...(input.tagId ? { tagId: input.tagId } : {}),
-    } satisfies NonNullable<listCoursesInput['filter']>
-    return client.data.listCourses({
-      page: input.page,
-      pageSize: input.pageSize ?? 20,
-      filter,
-    })
+  function listCourses(input: LegacyListCoursesInput) {
+    return client.data.courses.list(legacyListCoursesInput(input))
   }
 
   function getCourse(courseId: number) {
-    return client.data.getCourses({ id: courseId })
+    return client.data.courses.get(courseId)
   }
 
   function listUnits() {

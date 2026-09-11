@@ -1023,6 +1023,49 @@ export interface components {
                 message: string;
             }[];
         };
+        CreatePeriodPlanningInput: {
+            name?: string;
+            studyPeriodId: number;
+            curriculumId?: number | null;
+            guide?: {
+
+                mode: "CURRICULUM" | "PROGRAM" | "NONE";
+
+                curriculumSource: "SAVED" | "SUGGESTION" | null;
+                curriculumId: number | null;
+                suggestionId: number | null;
+                suggestionCatalogProgramId?: number | null;
+                catalogProgramId: number | null;
+                specializationId: number | null;
+                languageId: number | null;
+                manualCourseIds: number[];
+            };
+            classes: number[];
+        };
+        UpdatePeriodPlanningInput: {
+            name?: string;
+
+            visibility?: "PRIVATE" | "FRIENDS" | "PUBLIC";
+            curriculumId?: number | null;
+            guide?: {
+
+                mode: "CURRICULUM" | "PROGRAM" | "NONE";
+
+                curriculumSource: "SAVED" | "SUGGESTION" | null;
+                curriculumId: number | null;
+                suggestionId: number | null;
+                suggestionCatalogProgramId?: number | null;
+                catalogProgramId: number | null;
+                specializationId: number | null;
+                languageId: number | null;
+                manualCourseIds: number[];
+            };
+            classes?: {
+                set?: number[];
+                add?: number[];
+                remove?: number[];
+            };
+        };
         SharedPeriodPlanning: {
 
             shareId: string;
@@ -1180,6 +1223,25 @@ export interface components {
                 path: string[];
                 message: string;
             }[];
+        };
+        CreateStudentCourseAttemptInput: {
+            courseId: number;
+            studyPeriodId?: number | null;
+            classId?: number | null;
+
+            evaluationMode?: "GRADE_AND_ATTENDANCE" | "ATTENDANCE" | "CONCEPT";
+
+            status: "ENROLLED" | "DROPPED" | "APPROVED" | "FAILED_BY_GRADE" | "APPROVED_BY_ATTENDANCE" | "APPROVED_BY_PROFICIENCY" | "FAILED_BY_ATTENDANCE" | "SUFFICIENT" | "INSUFFICIENT";
+            grade?: number | null;
+        };
+        UpdateStudentCourseAttemptInput: {
+            studyPeriodId?: number | null;
+            classId?: number | null;
+
+            evaluationMode?: "GRADE_AND_ATTENDANCE" | "ATTENDANCE" | "CONCEPT";
+
+            status?: "ENROLLED" | "DROPPED" | "APPROVED" | "FAILED_BY_GRADE" | "APPROVED_BY_ATTENDANCE" | "APPROVED_BY_PROFICIENCY" | "FAILED_BY_ATTENDANCE" | "SUFFICIENT" | "INSUFFICIENT";
+            grade?: number | null;
         };
         StudentHistoryImportSummary: {
             created: number;
@@ -2299,30 +2361,7 @@ export interface operations {
 
         requestBody: {
             content: {
-                "application/json": {
-                    name?: string;
-
-                    visibility?: "PRIVATE" | "FRIENDS" | "PUBLIC";
-                    curriculumId?: number | null;
-                    guide?: {
-
-                        mode: "CURRICULUM" | "PROGRAM" | "NONE";
-
-                        curriculumSource: "SAVED" | "SUGGESTION" | null;
-                        curriculumId: number | null;
-                        suggestionId: number | null;
-                        suggestionCatalogProgramId?: number | null;
-                        catalogProgramId: number | null;
-                        specializationId: number | null;
-                        languageId: number | null;
-                        manualCourseIds: number[];
-                    };
-                    classes?: {
-                        set?: number[];
-                        add?: number[];
-                        remove?: number[];
-                    };
-                };
+                "application/json": components["schemas"]["UpdatePeriodPlanningInput"];
             };
         };
         responses: {
@@ -2425,25 +2464,7 @@ export interface operations {
 
         requestBody: {
             content: {
-                "application/json": {
-                    name?: string;
-                    studyPeriodId: number;
-                    curriculumId?: number | null;
-                    guide?: {
-
-                        mode: "CURRICULUM" | "PROGRAM" | "NONE";
-
-                        curriculumSource: "SAVED" | "SUGGESTION" | null;
-                        curriculumId: number | null;
-                        suggestionId: number | null;
-                        suggestionCatalogProgramId?: number | null;
-                        catalogProgramId: number | null;
-                        specializationId: number | null;
-                        languageId: number | null;
-                        manualCourseIds: number[];
-                    };
-                    classes: number[];
-                };
+                "application/json": components["schemas"]["CreatePeriodPlanningInput"];
             };
         };
         responses: {
@@ -2596,30 +2617,7 @@ export interface operations {
 
         requestBody: {
             content: {
-                "application/json": {
-                    name?: string;
-
-                    visibility?: "PRIVATE" | "FRIENDS" | "PUBLIC";
-                    curriculumId?: number | null;
-                    guide?: {
-
-                        mode: "CURRICULUM" | "PROGRAM" | "NONE";
-
-                        curriculumSource: "SAVED" | "SUGGESTION" | null;
-                        curriculumId: number | null;
-                        suggestionId: number | null;
-                        suggestionCatalogProgramId?: number | null;
-                        catalogProgramId: number | null;
-                        specializationId: number | null;
-                        languageId: number | null;
-                        manualCourseIds: number[];
-                    };
-                    classes?: {
-                        set?: number[];
-                        add?: number[];
-                        remove?: number[];
-                    };
-                };
+                "application/json": components["schemas"]["UpdatePeriodPlanningInput"];
             };
         };
         responses: {
@@ -2722,25 +2720,7 @@ export interface operations {
 
         requestBody: {
             content: {
-                "application/json": {
-                    name?: string;
-                    studyPeriodId: number;
-                    curriculumId?: number | null;
-                    guide?: {
-
-                        mode: "CURRICULUM" | "PROGRAM" | "NONE";
-
-                        curriculumSource: "SAVED" | "SUGGESTION" | null;
-                        curriculumId: number | null;
-                        suggestionId: number | null;
-                        suggestionCatalogProgramId?: number | null;
-                        catalogProgramId: number | null;
-                        specializationId: number | null;
-                        languageId: number | null;
-                        manualCourseIds: number[];
-                    };
-                    classes: number[];
-                };
+                "application/json": components["schemas"]["CreatePeriodPlanningInput"];
             };
         };
         responses: {
@@ -3260,15 +3240,7 @@ export interface operations {
 
         requestBody: {
             content: {
-                "application/json": {
-                    studyPeriodId?: number | null;
-                    classId?: number | null;
-
-                    evaluationMode?: "GRADE_AND_ATTENDANCE" | "ATTENDANCE" | "CONCEPT";
-
-                    status?: "ENROLLED" | "DROPPED" | "APPROVED" | "FAILED_BY_GRADE" | "APPROVED_BY_ATTENDANCE" | "APPROVED_BY_PROFICIENCY" | "FAILED_BY_ATTENDANCE" | "SUFFICIENT" | "INSUFFICIENT";
-                    grade?: number | null;
-                };
+                "application/json": components["schemas"]["UpdateStudentCourseAttemptInput"];
             };
         };
         responses: {
@@ -3397,16 +3369,7 @@ export interface operations {
 
         requestBody: {
             content: {
-                "application/json": {
-                    courseId: number;
-                    studyPeriodId?: number | null;
-                    classId?: number | null;
-
-                    evaluationMode?: "GRADE_AND_ATTENDANCE" | "ATTENDANCE" | "CONCEPT";
-
-                    status: "ENROLLED" | "DROPPED" | "APPROVED" | "FAILED_BY_GRADE" | "APPROVED_BY_ATTENDANCE" | "APPROVED_BY_PROFICIENCY" | "FAILED_BY_ATTENDANCE" | "SUFFICIENT" | "INSUFFICIENT";
-                    grade?: number | null;
-                };
+                "application/json": components["schemas"]["CreateStudentCourseAttemptInput"];
             };
         };
         responses: {

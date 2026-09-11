@@ -184,3 +184,88 @@ test('throws for missing path parameters and missing authentication', async () =
     /Authentication is required/,
   )
 })
+
+test('exposes expressive course operations and follows generated pagination metadata', async () => {
+  const requests: string[] = []
+  const sdk = sdkWith(async (input) => {
+    const url = String(input)
+    requests.push(url)
+    const secondPage = url.includes('page=2')
+    return new Response(
+      JSON.stringify({
+        data: [{ id: secondPage ? 2 : 1 }],
+        quantity: 1,
+        total: 2,
+        _paths: { next: secondPage ? null : '/courses?page=2', prev: null },
+      }),
+      { status: 200, headers: { 'content-type': 'application/json' } },
+    )
+  })
+
+  const courses = await sdk.data.courses.listAll({
+    filter: { credits: { gte: 4 } },
+  })
+
+  assert.deepEqual(courses, [{ id: 1 }, { id: 2 }])
+  assert.match(requests[0] ?? '', /page=1/)
+  assert.match(requests[0] ?? '', /pageSize=20/)
+  assert.equal(requests[1], 'https://data.example.test/courses?page=2')
+  assert.equal(sdk.data.courses.list.meta.sdk?.resource, 'courses')
+})
+
+test('maps expressive nested resources to operational requests', async () => {
+  const requests: Array<{ url: string; init?: RequestInit }> = []
+  const sdk = sdkWith(
+    async (input, init) => {
+      requests.push({ url: String(input), init })
+      return new Response(JSON.stringify({ id: 8 }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      })
+    },
+    async () => 'token',
+  )
+
+  await sdk.app.periodPlannings.update(7, 8, { visibility: 'PUBLIC' })
+  await sdk.app.courseAttempts.update(7, 9, { grade: 8.5 })
+
+  assert.equal(
+    requests[0]?.url,
+    'https://app.example.test/student/7/period-plannings/8',
+  )
+  assert.equal(
+    requests[1]?.url,
+    'https://app.example.test/student/7/course-attempts/9',
+  )
+  assert.equal(
+    new Headers(requests[0]?.init?.headers).get('Authorization'),
+    'Bearer token',
+  )
+  assert.ok(
+    sdk.app.courseAttempts.update.problemTypes.includes(
+      'urn:pomi:problem:invalid-student-course-attempt',
+    ),
+  )
+})
+
+test('provides the SDK-level problem guard', async () => {
+  const sdk = sdkWith(
+    async () =>
+      new Response(
+        JSON.stringify({
+          type: 'urn:pomi:problem:invalid-request',
+          title: 'Invalid',
+          status: 400,
+          detail: 'invalid',
+        }),
+        {
+          status: 400,
+          headers: { 'content-type': 'application/problem+json' },
+        },
+      ),
+  )
+
+  await assert.rejects(sdk.data.courses.list(), (error: unknown) =>
+    sdk.errors.is(error, 'urn:pomi:problem:invalid-request'),
+  )
+})

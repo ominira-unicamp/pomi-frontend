@@ -543,7 +543,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "createExchangeNoticeSubscriptionsUnsubscribe": {
         "operationId": "createExchangeNoticeSubscriptionsUnsubscribe",
@@ -636,7 +638,9 @@ export const operationDefinitions = {
                 }
             ],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "createFeedbackReports": {
         "operationId": "createFeedbackReports",
@@ -769,7 +773,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "createStudentAbsences": {
         "operationId": "createStudentAbsences",
@@ -889,7 +895,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "createStudentCourseAttempts": {
         "operationId": "createStudentCourseAttempts",
@@ -913,53 +921,7 @@ export const operationDefinitions = {
             "required": true,
             "contentType": "application/json",
             "schema": {
-                "type": "object",
-                "properties": {
-                    "courseId": {
-                        "type": "integer"
-                    },
-                    "studyPeriodId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "classId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "evaluationMode": {
-                        "type": "string",
-                        "enum": [
-                            "GRADE_AND_ATTENDANCE",
-                            "ATTENDANCE",
-                            "CONCEPT"
-                        ]
-                    },
-                    "status": {
-                        "type": "string",
-                        "enum": [
-                            "ENROLLED",
-                            "DROPPED",
-                            "APPROVED",
-                            "FAILED_BY_GRADE",
-                            "APPROVED_BY_ATTENDANCE",
-                            "APPROVED_BY_PROFICIENCY",
-                            "FAILED_BY_ATTENDANCE",
-                            "SUFFICIENT",
-                            "INSUFFICIENT"
-                        ]
-                    },
-                    "grade": {
-                        "type": "number",
-                        "nullable": true,
-                        "minimum": 0,
-                        "maximum": 10
-                    }
-                },
-                "required": [
-                    "courseId",
-                    "status"
-                ],
-                "additionalProperties": false
+                "$ref": "#/components/schemas/CreateStudentCourseAttemptInput"
             }
         },
         "responses": [
@@ -1055,7 +1017,15 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": {
+            "resource": "courseAttempts",
+            "action": "create",
+            "pathParameters": {
+                "sid": "studentId"
+            }
+        },
+        "pagination": null
     },
     "createStudentCourseHistory": {
         "operationId": "createStudentCourseHistory",
@@ -1160,7 +1130,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "createStudentCurricula": {
         "operationId": "createStudentCurricula",
@@ -1367,7 +1339,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "createStudentFeedbackReports": {
         "operationId": "createStudentFeedbackReports",
@@ -1487,7 +1461,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "createStudentFriendships": {
         "operationId": "createStudentFriendships",
@@ -1602,7 +1578,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "createStudentFriendshipsAccept": {
         "operationId": "createStudentFriendshipsAccept",
@@ -1702,7 +1680,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "createStudentPeriodPlan": {
         "operationId": "createStudentPeriodPlan",
@@ -1726,94 +1706,7 @@ export const operationDefinitions = {
             "required": true,
             "contentType": "application/json",
             "schema": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    "studyPeriodId": {
-                        "type": "integer"
-                    },
-                    "curriculumId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "guide": {
-                        "type": "object",
-                        "properties": {
-                            "mode": {
-                                "type": "string",
-                                "enum": [
-                                    "CURRICULUM",
-                                    "PROGRAM",
-                                    "NONE"
-                                ]
-                            },
-                            "curriculumSource": {
-                                "type": "string",
-                                "nullable": true,
-                                "enum": [
-                                    "SAVED",
-                                    "SUGGESTION",
-                                    null
-                                ]
-                            },
-                            "curriculumId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "suggestionId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "suggestionCatalogProgramId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "catalogProgramId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "specializationId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "languageId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "manualCourseIds": {
-                                "type": "array",
-                                "items": {
-                                    "type": "integer"
-                                }
-                            }
-                        },
-                        "required": [
-                            "mode",
-                            "curriculumSource",
-                            "curriculumId",
-                            "suggestionId",
-                            "catalogProgramId",
-                            "specializationId",
-                            "languageId",
-                            "manualCourseIds"
-                        ],
-                        "additionalProperties": false
-                    },
-                    "classes": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "required": [
-                    "studyPeriodId",
-                    "classes"
-                ],
-                "additionalProperties": false
+                "$ref": "#/components/schemas/CreatePeriodPlanningInput"
             }
         },
         "responses": [
@@ -1894,7 +1787,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "createStudentPeriodPlannings": {
         "operationId": "createStudentPeriodPlannings",
@@ -1918,94 +1813,7 @@ export const operationDefinitions = {
             "required": true,
             "contentType": "application/json",
             "schema": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    "studyPeriodId": {
-                        "type": "integer"
-                    },
-                    "curriculumId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "guide": {
-                        "type": "object",
-                        "properties": {
-                            "mode": {
-                                "type": "string",
-                                "enum": [
-                                    "CURRICULUM",
-                                    "PROGRAM",
-                                    "NONE"
-                                ]
-                            },
-                            "curriculumSource": {
-                                "type": "string",
-                                "nullable": true,
-                                "enum": [
-                                    "SAVED",
-                                    "SUGGESTION",
-                                    null
-                                ]
-                            },
-                            "curriculumId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "suggestionId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "suggestionCatalogProgramId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "catalogProgramId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "specializationId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "languageId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "manualCourseIds": {
-                                "type": "array",
-                                "items": {
-                                    "type": "integer"
-                                }
-                            }
-                        },
-                        "required": [
-                            "mode",
-                            "curriculumSource",
-                            "curriculumId",
-                            "suggestionId",
-                            "catalogProgramId",
-                            "specializationId",
-                            "languageId",
-                            "manualCourseIds"
-                        ],
-                        "additionalProperties": false
-                    },
-                    "classes": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "required": [
-                    "studyPeriodId",
-                    "classes"
-                ],
-                "additionalProperties": false
+                "$ref": "#/components/schemas/CreatePeriodPlanningInput"
             }
         },
         "responses": [
@@ -2086,7 +1894,15 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": {
+            "resource": "periodPlannings",
+            "action": "create",
+            "pathParameters": {
+                "sid": "studentId"
+            }
+        },
+        "pagination": null
     },
     "createStudents": {
         "operationId": "createStudents",
@@ -2217,7 +2033,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "createTags": {
         "operationId": "createTags",
@@ -2343,7 +2161,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "deleteCategories": {
         "operationId": "deleteCategories",
@@ -2435,7 +2255,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "deleteCoursesTags": {
         "operationId": "deleteCoursesTags",
@@ -2513,7 +2335,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "deleteStudentAbsences": {
         "operationId": "deleteStudentAbsences",
@@ -2591,7 +2415,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "deleteStudentCourseAttempts": {
         "operationId": "deleteStudentCourseAttempts",
@@ -2669,7 +2495,16 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": {
+            "resource": "courseAttempts",
+            "action": "delete",
+            "pathParameters": {
+                "sid": "studentId",
+                "id": "courseAttemptId"
+            }
+        },
+        "pagination": null
     },
     "deleteStudentCurricula": {
         "operationId": "deleteStudentCurricula",
@@ -2747,7 +2582,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "deleteStudentFriendships": {
         "operationId": "deleteStudentFriendships",
@@ -2825,7 +2662,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "deleteStudentPeriodPlan": {
         "operationId": "deleteStudentPeriodPlan",
@@ -2903,7 +2742,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "deleteStudentPeriodPlannings": {
         "operationId": "deleteStudentPeriodPlannings",
@@ -2981,7 +2822,16 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": {
+            "resource": "periodPlannings",
+            "action": "delete",
+            "pathParameters": {
+                "sid": "studentId",
+                "id": "periodPlanningId"
+            }
+        },
+        "pagination": null
     },
     "deleteStudents": {
         "operationId": "deleteStudents",
@@ -3089,7 +2939,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "deleteStudentTagInterests": {
         "operationId": "deleteStudentTagInterests",
@@ -3152,7 +3004,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "deleteTags": {
         "operationId": "deleteTags",
@@ -3244,7 +3098,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getCategories": {
         "operationId": "getCategories",
@@ -3328,7 +3184,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getSharedPeriodPlannings": {
         "operationId": "getSharedPeriodPlannings",
@@ -3412,7 +3270,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getStudentCourseAttempts": {
         "operationId": "getStudentCourseAttempts",
@@ -3497,7 +3357,16 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": {
+            "resource": "courseAttempts",
+            "action": "get",
+            "pathParameters": {
+                "sid": "studentId",
+                "id": "courseAttemptId"
+            }
+        },
+        "pagination": null
     },
     "getStudentCurricula": {
         "operationId": "getStudentCurricula",
@@ -3582,7 +3451,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getStudentPeople": {
         "operationId": "getStudentPeople",
@@ -3667,7 +3538,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getStudentPeriodPlan": {
         "operationId": "getStudentPeriodPlan",
@@ -3752,7 +3625,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getStudentPeriodPlannings": {
         "operationId": "getStudentPeriodPlannings",
@@ -3837,7 +3712,16 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": {
+            "resource": "periodPlannings",
+            "action": "get",
+            "pathParameters": {
+                "sid": "studentId",
+                "id": "periodPlanningId"
+            }
+        },
+        "pagination": null
     },
     "getStudents": {
         "operationId": "getStudents",
@@ -3921,7 +3805,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getStudentSharedPeriodPlannings": {
         "operationId": "getStudentSharedPeriodPlannings",
@@ -4006,7 +3892,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "getTags": {
         "operationId": "getTags",
@@ -4090,7 +3978,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listBots": {
         "operationId": "listBots",
@@ -4160,7 +4050,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listCategories": {
         "operationId": "listCategories",
@@ -4230,7 +4122,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listCoursesTags": {
         "operationId": "listCoursesTags",
@@ -4317,7 +4211,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listMe": {
         "operationId": "listMe",
@@ -4384,7 +4280,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listMeBotGrants": {
         "operationId": "listMeBotGrants",
@@ -4454,7 +4352,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listSharedPeriodPlannings": {
         "operationId": "listSharedPeriodPlannings",
@@ -4640,7 +4540,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listStudentAbsences": {
         "operationId": "listStudentAbsences",
@@ -4771,7 +4673,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listStudentClassesProfessorsEvaluation": {
         "operationId": "listStudentClassesProfessorsEvaluation",
@@ -4872,7 +4776,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listStudentCourseAttempts": {
         "operationId": "listStudentCourseAttempts",
@@ -5115,7 +5021,15 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": {
+            "resource": "courseAttempts",
+            "action": "list",
+            "pathParameters": {
+                "sid": "studentId"
+            }
+        },
+        "pagination": null
     },
     "listStudentCurricula": {
         "operationId": "listStudentCurricula",
@@ -5187,7 +5101,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listStudentExchangeNoticeSubscription": {
         "operationId": "listStudentExchangeNoticeSubscription",
@@ -5256,7 +5172,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listStudentFeedbackReports": {
         "operationId": "listStudentFeedbackReports",
@@ -5328,7 +5246,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listStudentFriendships": {
         "operationId": "listStudentFriendships",
@@ -5514,7 +5434,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listStudentPeople": {
         "operationId": "listStudentPeople",
@@ -5645,7 +5567,9 @@ export const operationDefinitions = {
                 }
             ],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listStudentPeriodPlan": {
         "operationId": "listStudentPeriodPlan",
@@ -5717,7 +5641,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listStudentPeriodPlannings": {
         "operationId": "listStudentPeriodPlannings",
@@ -5789,7 +5715,15 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": {
+            "resource": "periodPlannings",
+            "action": "list",
+            "pathParameters": {
+                "sid": "studentId"
+            }
+        },
+        "pagination": null
     },
     "listStudentProfessorEvaluationsPending": {
         "operationId": "listStudentProfessorEvaluationsPending",
@@ -5952,7 +5886,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listStudentPublicProfile": {
         "operationId": "listStudentPublicProfile",
@@ -6036,7 +5972,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listStudentSharedPeriodPlannings": {
         "operationId": "listStudentSharedPeriodPlannings",
@@ -6216,7 +6154,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listStudentTagInterests": {
         "operationId": "listStudentTagInterests",
@@ -6288,7 +6228,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listTags": {
         "operationId": "listTags",
@@ -6497,7 +6439,9 @@ export const operationDefinitions = {
                     "maxParameters": 100
                 }
             }
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "listTagsCourses": {
         "operationId": "listTagsCourses",
@@ -6652,7 +6596,9 @@ export const operationDefinitions = {
                 }
             ],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "updateCategories": {
         "operationId": "updateCategories",
@@ -6767,7 +6713,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "updateCoursesTags": {
         "operationId": "updateCoursesTags",
@@ -6845,7 +6793,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "updateMeBotGrants": {
         "operationId": "updateMeBotGrants",
@@ -6928,7 +6878,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "updateStudentClassesProfessorsEvaluation": {
         "operationId": "updateStudentClassesProfessorsEvaluation",
@@ -7035,7 +6987,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "updateStudentCourseAttempts": {
         "operationId": "updateStudentCourseAttempts",
@@ -7060,46 +7014,7 @@ export const operationDefinitions = {
             "required": true,
             "contentType": "application/json",
             "schema": {
-                "type": "object",
-                "properties": {
-                    "studyPeriodId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "classId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "evaluationMode": {
-                        "type": "string",
-                        "enum": [
-                            "GRADE_AND_ATTENDANCE",
-                            "ATTENDANCE",
-                            "CONCEPT"
-                        ]
-                    },
-                    "status": {
-                        "type": "string",
-                        "enum": [
-                            "ENROLLED",
-                            "DROPPED",
-                            "APPROVED",
-                            "FAILED_BY_GRADE",
-                            "APPROVED_BY_ATTENDANCE",
-                            "APPROVED_BY_PROFICIENCY",
-                            "FAILED_BY_ATTENDANCE",
-                            "SUFFICIENT",
-                            "INSUFFICIENT"
-                        ]
-                    },
-                    "grade": {
-                        "type": "number",
-                        "nullable": true,
-                        "minimum": 0,
-                        "maximum": 10
-                    }
-                },
-                "additionalProperties": false
+                "$ref": "#/components/schemas/UpdateStudentCourseAttemptInput"
             }
         },
         "responses": [
@@ -7210,7 +7125,16 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": {
+            "resource": "courseAttempts",
+            "action": "update",
+            "pathParameters": {
+                "sid": "studentId",
+                "id": "courseAttemptId"
+            }
+        },
+        "pagination": null
     },
     "updateStudentCurricula": {
         "operationId": "updateStudentCurricula",
@@ -7481,7 +7405,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "updateStudentExchangeNoticeSubscription": {
         "operationId": "updateStudentExchangeNoticeSubscription",
@@ -7571,7 +7497,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "updateStudentPeriodPlan": {
         "operationId": "updateStudentPeriodPlan",
@@ -7596,112 +7524,7 @@ export const operationDefinitions = {
             "required": true,
             "contentType": "application/json",
             "schema": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    "visibility": {
-                        "type": "string",
-                        "enum": [
-                            "PRIVATE",
-                            "FRIENDS",
-                            "PUBLIC"
-                        ]
-                    },
-                    "curriculumId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "guide": {
-                        "type": "object",
-                        "properties": {
-                            "mode": {
-                                "type": "string",
-                                "enum": [
-                                    "CURRICULUM",
-                                    "PROGRAM",
-                                    "NONE"
-                                ]
-                            },
-                            "curriculumSource": {
-                                "type": "string",
-                                "nullable": true,
-                                "enum": [
-                                    "SAVED",
-                                    "SUGGESTION",
-                                    null
-                                ]
-                            },
-                            "curriculumId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "suggestionId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "suggestionCatalogProgramId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "catalogProgramId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "specializationId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "languageId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "manualCourseIds": {
-                                "type": "array",
-                                "items": {
-                                    "type": "integer"
-                                }
-                            }
-                        },
-                        "required": [
-                            "mode",
-                            "curriculumSource",
-                            "curriculumId",
-                            "suggestionId",
-                            "catalogProgramId",
-                            "specializationId",
-                            "languageId",
-                            "manualCourseIds"
-                        ],
-                        "additionalProperties": false
-                    },
-                    "classes": {
-                        "type": "object",
-                        "properties": {
-                            "set": {
-                                "type": "array",
-                                "items": {
-                                    "type": "integer"
-                                }
-                            },
-                            "add": {
-                                "type": "array",
-                                "items": {
-                                    "type": "integer"
-                                }
-                            },
-                            "remove": {
-                                "type": "array",
-                                "items": {
-                                    "type": "integer"
-                                }
-                            }
-                        }
-                    }
-                },
-                "additionalProperties": false
+                "$ref": "#/components/schemas/UpdatePeriodPlanningInput"
             }
         },
         "responses": [
@@ -7797,7 +7620,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "updateStudentPeriodPlannings": {
         "operationId": "updateStudentPeriodPlannings",
@@ -7822,112 +7647,7 @@ export const operationDefinitions = {
             "required": true,
             "contentType": "application/json",
             "schema": {
-                "type": "object",
-                "properties": {
-                    "name": {
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    "visibility": {
-                        "type": "string",
-                        "enum": [
-                            "PRIVATE",
-                            "FRIENDS",
-                            "PUBLIC"
-                        ]
-                    },
-                    "curriculumId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "guide": {
-                        "type": "object",
-                        "properties": {
-                            "mode": {
-                                "type": "string",
-                                "enum": [
-                                    "CURRICULUM",
-                                    "PROGRAM",
-                                    "NONE"
-                                ]
-                            },
-                            "curriculumSource": {
-                                "type": "string",
-                                "nullable": true,
-                                "enum": [
-                                    "SAVED",
-                                    "SUGGESTION",
-                                    null
-                                ]
-                            },
-                            "curriculumId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "suggestionId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "suggestionCatalogProgramId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "catalogProgramId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "specializationId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "languageId": {
-                                "type": "integer",
-                                "nullable": true
-                            },
-                            "manualCourseIds": {
-                                "type": "array",
-                                "items": {
-                                    "type": "integer"
-                                }
-                            }
-                        },
-                        "required": [
-                            "mode",
-                            "curriculumSource",
-                            "curriculumId",
-                            "suggestionId",
-                            "catalogProgramId",
-                            "specializationId",
-                            "languageId",
-                            "manualCourseIds"
-                        ],
-                        "additionalProperties": false
-                    },
-                    "classes": {
-                        "type": "object",
-                        "properties": {
-                            "set": {
-                                "type": "array",
-                                "items": {
-                                    "type": "integer"
-                                }
-                            },
-                            "add": {
-                                "type": "array",
-                                "items": {
-                                    "type": "integer"
-                                }
-                            },
-                            "remove": {
-                                "type": "array",
-                                "items": {
-                                    "type": "integer"
-                                }
-                            }
-                        }
-                    }
-                },
-                "additionalProperties": false
+                "$ref": "#/components/schemas/UpdatePeriodPlanningInput"
             }
         },
         "responses": [
@@ -8023,7 +7743,16 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": {
+            "resource": "periodPlannings",
+            "action": "update",
+            "pathParameters": {
+                "sid": "studentId",
+                "id": "periodPlanningId"
+            }
+        },
+        "pagination": null
     },
     "updateStudentPublicProfile": {
         "operationId": "updateStudentPublicProfile",
@@ -8138,7 +7867,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "updateStudents": {
         "operationId": "updateStudents",
@@ -8258,7 +7989,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "updateStudentTagInterests": {
         "operationId": "updateStudentTagInterests",
@@ -8336,7 +8069,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
     "updateTags": {
         "operationId": "updateTags",
@@ -8479,7 +8214,9 @@ export const operationDefinitions = {
         "query": {
             "parameters": [],
             "filter": null
-        }
+        },
+        "sdk": null,
+        "pagination": null
     },
 } as const satisfies Record<string, GeneratedOperationDefinition>
 
