@@ -41,6 +41,6 @@ describe('loadCurriculumSuggestions', () => {
     const [request] = fetchMock.mock.calls[0] as [string]
     const url = new URL(request)
     expect(url.pathname).toBe('/curriculum-suggestions')
-    expect(url.searchParams.get('catalogProgramId')).toBe('3')
+    expect(url.searchParams.get('filter[catalogProgramId]')).toBe('3')
   })
 })

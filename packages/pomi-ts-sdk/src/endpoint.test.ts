@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { appApi, dataApi } from './endpoint'
 import { createPomiClient } from './client'
+import { createPomiApi } from './api'
 
 describe('declarative endpoint interfaces', () => {
   it('binds a data endpoint with path and query serialization', async () => {
@@ -36,6 +37,78 @@ describe('declarative endpoint interfaces', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       'https://data.pomi.test/courses/MC%20102?page=0&active=false&tags=2&tags=5',
       {},
+    )
+  })
+
+  it('translates the legacy course facade query to the current filter contract', async () => {
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Response.json({
+        data: [],
+        quantity: 0,
+        total: 0,
+        _paths: { next: null, prev: null },
+      }),
+    )
+    const api = createPomiApi({
+      dataApiUrl: 'https://data.pomi.test',
+      appApiUrl: 'https://app.pomi.test',
+      fetch: fetchMock,
+    })
+
+    await api.courseCatalog.listCourses({
+      q: 'MC 102',
+      unitId: 4,
+      catalogYear: 2025,
+      tagId: 9,
+      page: 1,
+      pageSize: 20,
+    })
+
+    const url = new URL(fetchMock.mock.calls[0]?.[0] as string)
+    expect(url.searchParams.get('page')).toBe('1')
+    expect(url.searchParams.get('pageSize')).toBe('20')
+    expect(url.searchParams.get('filter[code]')).toBe('MC 102')
+    expect(url.searchParams.get('filter[unit][id]')).toBe('4')
+    expect(url.searchParams.get('filter[catalogYear]')).toBe('2025')
+    expect(url.searchParams.get('filter[tagId]')).toBe('9')
+    expect(url.searchParams.has('q')).toBe(false)
+  })
+
+  it('translates legacy date range and nested schedule queries', async () => {
+    const fetchMock = vi.fn().mockImplementation(() =>
+      Response.json({
+        data: [],
+        quantity: 0,
+        total: 0,
+        _paths: { next: null, prev: null },
+      }),
+    )
+    const api = createPomiApi({
+      dataApiUrl: 'https://data.pomi.test',
+      appApiUrl: 'https://app.pomi.test',
+      fetch: fetchMock,
+    })
+
+    await api.dailyMenu.listDailyMenus({
+      startDate: '2026-01-01',
+      endDate: '2026-01-31',
+    })
+    await api.courseCatalog.listCourseSchedules(10, 20)
+
+    const dailyMenuUrl = new URL(fetchMock.mock.calls[0]?.[0] as string)
+    expect(dailyMenuUrl.searchParams.get('filter[date][gte]')).toBe(
+      '2026-01-01',
+    )
+    expect(dailyMenuUrl.searchParams.get('filter[date][lte]')).toBe(
+      '2026-01-31',
+    )
+
+    const schedulesUrl = new URL(fetchMock.mock.calls[1]?.[0] as string)
+    expect(schedulesUrl.searchParams.get('page')).toBe('1')
+    expect(schedulesUrl.searchParams.get('pageSize')).toBe('100')
+    expect(schedulesUrl.searchParams.get('filter[course][id]')).toBe('10')
+    expect(schedulesUrl.searchParams.get('filter[studyPeriod][id]')).toBe(
+      '20',
     )
   })
 

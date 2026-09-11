@@ -38,7 +38,7 @@ describe('courseDetailsApi', () => {
     const fetchMock = vi.fn((input: string) => {
       const url = new URL(input)
       expect(url.pathname).toBe('/catalog-courses')
-      expect(url.searchParams.get('courseId')).toBe('10')
+      expect(url.searchParams.get('filter[courseId]')).toBe('10')
       return Promise.resolve(Response.json({ data: [details] }))
     })
     vi.stubGlobal('fetch', fetchMock)

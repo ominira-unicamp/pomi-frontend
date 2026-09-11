@@ -19,10 +19,25 @@ export class ApiError extends Error {
   constructor(
     readonly status: number,
     problem?: ApiProblemDetails,
+    readonly body: unknown = problem,
   ) {
-    super(problem?.detail ?? `API request failed: ${status}`)
+    super(
+      isRecord(problem) && typeof problem.detail === 'string'
+        ? problem.detail
+        : `API request failed: ${status}`,
+    )
     this.name = 'ApiError'
     this.problem = problem
+  }
+}
+
+export class UnexpectedResponseError extends Error {
+  constructor(
+    readonly operationId: string,
+    readonly status: number,
+  ) {
+    super(`Operation ${operationId} returned undocumented success status ${status}`)
+    this.name = 'UnexpectedResponseError'
   }
 }
 
@@ -72,4 +87,21 @@ export async function throwApiError(response: Response): Promise<never> {
 
 export async function expectApiResponse(response: Response): Promise<void> {
   if (!response.ok) await throwApiError(response)
+}
+
+export function isApiError(value: unknown): value is ApiError {
+  return value instanceof ApiError
+}
+
+export function isProblemType<TProblemType extends string>(
+  value: unknown,
+  type: TProblemType,
+): value is ApiError & {
+  problem: ApiProblemDetails & { type: TProblemType }
+} {
+  return (
+    value instanceof ApiError &&
+    isRecord(value.problem) &&
+    value.problem.type === type
+  )
 }

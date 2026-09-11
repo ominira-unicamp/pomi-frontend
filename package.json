@@ -9,6 +9,8 @@
     "dev": "vite --port 5174 --strictPort",
     "build": "npm run feature:check && npm run domain:check && vite build && tsc",
     "preview": "vite preview",
+    "sdk:generate": "npm run generate --workspace @ominira/pomi-sdk",
+    "sdk:check": "npm run check --workspace @ominira/pomi-sdk",
     "test": "vitest run",
     "domain:check": "node scripts/check-domain-boundaries.mjs && npm run check --workspace @pomi/planner-domain",
     "feature:check": "node scripts/check-feature-boundaries.mjs",

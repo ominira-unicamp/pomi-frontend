@@ -10,6 +10,9 @@ const modules = (await readdir(sourceDirectory))
       'client.ts',
       'endpoint.ts',
       'errors.ts',
+      'generatedClient.ts',
+      'generatedPagination.ts',
+      'legacyQuery.ts',
       'index.ts',
       'pagination.ts',
     ].includes(

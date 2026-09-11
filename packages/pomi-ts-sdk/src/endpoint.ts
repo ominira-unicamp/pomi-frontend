@@ -8,6 +8,10 @@ export type EndpointPath<TInput> =
   | string
   | Readonly<{ fromInput: InputKey<TInput> }>
 
+export interface QueryObject {
+  readonly [key: string]: QueryValue
+}
+
 export type QueryValue =
   | string
   | number
@@ -15,6 +19,7 @@ export type QueryValue =
   | null
   | undefined
   | ReadonlyArray<string | number | boolean>
+  | QueryObject
 
 export type EndpointResponse<TOutput> =
   | Readonly<{
@@ -185,13 +190,22 @@ export function buildEndpointQuery(
   query: Readonly<Record<string, QueryValue>>,
 ) {
   const parameters = new URLSearchParams()
-  for (const [name, value] of Object.entries(query)) {
-    if (value === undefined || value === null) continue
+  function append(name: string, value: QueryValue) {
+    if (value === undefined || value === null) return
     if (Array.isArray(value)) {
       for (const item of value) parameters.append(name, String(item))
-      continue
+      return
     }
-    parameters.set(name, String(value))
+    if (typeof value === 'object') {
+      for (const [childName, childValue] of Object.entries(value)) {
+        append(`${name}[${childName}]`, childValue)
+      }
+      return
+    }
+    parameters.append(name, String(value))
+  }
+  for (const [name, value] of Object.entries(query)) {
+    append(name, value)
   }
   return parameters.toString()
 }

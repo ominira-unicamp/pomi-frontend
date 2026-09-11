@@ -33,7 +33,7 @@ describe('shared period planning API', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringMatching(
-        /\/student\/7\/shared-period-plannings\?page=1&pageSize=20&ownerPublicId=a375fdb0-45d9-4a79-8415-89fcb64157b6$/,
+        /\/student\/7\/shared-period-plannings\?page=1&pageSize=20&filter%5BownerPublicId%5D=a375fdb0-45d9-4a79-8415-89fcb64157b6$/,
       ),
       expect.objectContaining({ cache: 'no-store' }),
     )

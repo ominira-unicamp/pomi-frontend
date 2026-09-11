@@ -41,7 +41,9 @@ describe('listClassSchedulesByStudyPeriod', () => {
 
     expect(meetings).toEqual([firstMeeting, secondMeeting])
     expect(fetchMock).toHaveBeenCalledTimes(2)
-    expect(String(fetchMock.mock.calls[0]?.[0])).toContain('studyPeriodId=20')
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain(
+      'filter%5BstudyPeriod%5D%5Bid%5D=20',
+    )
     expect(String(fetchMock.mock.calls[1]?.[0])).toContain(
       '/class-schedules?page=2',
     )

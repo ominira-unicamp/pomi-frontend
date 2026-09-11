@@ -6,6 +6,7 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     test: {
+      exclude: ['packages/pomi-ts-sdk/src/generated*.test.ts'],
       environment: 'jsdom',
       environmentOptions: {
         jsdom: {

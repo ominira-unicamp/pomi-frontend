@@ -33,7 +33,7 @@ describe('course catalog API', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringMatching(
-        /\/courses\?page=2&pageSize=20&q=C%C3%A1lculo&unitId=3&catalogYear=2026&tagId=8$/,
+        /\/courses\?page=2&pageSize=20&filter%5Bcode%5D=C%C3%A1lculo&filter%5Bunit%5D%5Bid%5D=3&filter%5BcatalogYear%5D=2026&filter%5BtagId%5D=8$/,
       ),
       {},
     )

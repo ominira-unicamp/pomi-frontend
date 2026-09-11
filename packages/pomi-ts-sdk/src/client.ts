@@ -1,5 +1,9 @@
 import { expectApiResponse } from './errors'
-import { buildEndpointUrl } from './endpoint'
+import {
+  buildEndpointPath,
+  buildEndpointQuery,
+} from './endpoint'
+import { translateLegacyQuery } from './legacyQuery'
 import type {
   EndpointDefinition,
   EndpointInput,
@@ -82,7 +86,19 @@ export class PomiClient {
     input: TInput,
     context: EndpointRequestContext = {},
   ): Promise<TOutput> {
-    const path = buildEndpointUrl(definition, input)
+    const path = buildEndpointPath(definition.path, input)
+    const rawQuery = definition.query?.(input)
+    const query = rawQuery
+      ? buildEndpointQuery(
+          translateLegacyQuery(
+            definition as EndpointDefinition<unknown, unknown>,
+            rawQuery,
+          ),
+        )
+      : ''
+    const urlPath = query
+      ? `${path}${path.includes('?') ? '&' : '?'}${query}`
+      : path
     const init: RequestInit = {}
     if (definition.method !== 'GET') init.method = definition.method
     if (definition.body) {
@@ -92,13 +108,13 @@ export class PomiClient {
 
     let response: Response
     if (definition.target === 'data') {
-      response = await this.dataApiRequest(path, init)
+      response = await this.dataApiRequest(urlPath, init)
     } else if (definition.authentication === 'required') {
       response = context.getAccessToken
-        ? await this.appApiRequest(path, context.getAccessToken, init)
-        : await this.appApiRequest(path, init)
+        ? await this.appApiRequest(urlPath, context.getAccessToken, init)
+        : await this.appApiRequest(urlPath, init)
     } else {
-      response = await this.appApiPublicRequest(path, init)
+      response = await this.appApiPublicRequest(urlPath, init)
     }
 
     await expectApiResponse(response)

@@ -13,7 +13,7 @@ describe('daily menu API', () => {
     const [request] = fetchMock.mock.calls[0] as [string]
     const url = new URL(request)
     expect(url.pathname).toBe('/daily-menus')
-    expect(url.searchParams.get('startDate')).toBe('2026-08-21')
-    expect(url.searchParams.get('endDate')).toBe('2026-08-21')
+    expect(url.searchParams.get('filter[date][gte]')).toBe('2026-08-21')
+    expect(url.searchParams.get('filter[date][lte]')).toBe('2026-08-21')
   })
 })
