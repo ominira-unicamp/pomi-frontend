@@ -50,7 +50,7 @@ export function createFeedbackApi(client: PomiSdkClient) {
       { getAccessToken }: PomiRequestContext,
     ) {
       return client.app.studentFeedbackReports.create(
-        String(studentId),
+        studentId,
         input,
         context(getAccessToken!),
       )
@@ -60,7 +60,7 @@ export function createFeedbackApi(client: PomiSdkClient) {
       { getAccessToken }: PomiRequestContext,
     ) {
       return client.app.studentFeedbackReports.list(
-        String(studentId),
+        studentId,
         {},
         context(getAccessToken!),
       )

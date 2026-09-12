@@ -5,11 +5,11 @@ import type {
   PrerequisiteItem,
 } from '@pomi/planner-domain/curriculum'
 
-import { pomiApi } from '@/api/client'
 import type {
   CurriculumApiCatalogCourse,
   CurriculumApiPrerequisiteItem,
 } from '@ominira/pomi-sdk/curriculum-prerequisites'
+import { pomiSdk } from '@/api/client'
 
 export type CurrentYearPrerequisites = Readonly<{
   catalogId: number
@@ -79,12 +79,14 @@ function ruleFromApi(
 }
 
 async function loadForYear(year: number): Promise<CurrentYearPrerequisites> {
-  const catalogs = await pomiApi.curriculumPrerequisites.listCatalogs(year)
+  const catalogs = await pomiSdk.data.catalogs.list({ filter: { year } })
   const catalog = catalogs.find((item) => item.year === year)
   if (!catalog) throw new CurrentCatalogUnavailableError(year)
-  const courses = await pomiApi.curriculumPrerequisites.listCatalogCourses(
-    catalog.id,
-  )
+  const courses = await pomiSdk.data.catalogCourses.listAll({
+    page: 1,
+    pageSize: 1000,
+    filter: { catalogId: catalog.id },
+  })
   return {
     catalogId: catalog.id,
     year,

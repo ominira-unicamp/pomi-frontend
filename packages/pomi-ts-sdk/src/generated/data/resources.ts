@@ -66,15 +66,15 @@ function withMetadata<FunctionType extends (...args: any[]) => unknown, Definiti
     return Object.assign(fn, { meta, problemTypes })
 }
 
-function withPaginationDefaults<Input extends { page?: number; pageSize?: number }>(input: Input, pageSize: number) {
-    return { ...input, page: input.page ?? 1, pageSize: input.pageSize ?? pageSize }
+function operationInput<Input>(input: Input): Input {
+    return input
 }
 
 function valueAtPath(value: unknown, path: string) {
     return path.split('.').reduce<unknown>((current, key) => typeof current === 'object' && current !== null ? (current as Record<string, unknown>)[key] : undefined, value)
 }
 
-async function* paginate<Page>(firstPage: Promise<Page>, target: "data", authentication: AuthenticationMode, nextField: string, requestPath: RequestPath, context?: PomiRequestContext): AsyncIterable<Page> {
+async function* paginateByLink<Page>(firstPage: Promise<Page>, target: "data", authentication: AuthenticationMode, nextField: string, requestPath: RequestPath, context?: PomiRequestContext): AsyncIterable<Page> {
     let page = await firstPage
     yield page
     let next = valueAtPath(page, nextField)
@@ -86,170 +86,173 @@ async function* paginate<Page>(firstPage: Promise<Page>, target: "data", authent
 }
 
 
+
+
+
 export function bindResources(operations: Operations, requestPath: RequestPath) {
 
     return {
         "calendarEvents": (() => {
-            const get = withMetadata((calendarEventId: string, context?: PomiRequestContext) => operations.getCalendarEvents({ "id": calendarEventId } as unknown as getCalendarEventsInput, context), definitions.getCalendarEvents, operationProblemTypes.getCalendarEvents)
-            const list = withMetadata((input: Omit<listCalendarEventsInput, never> = {}, context?: PomiRequestContext) => operations.listCalendarEvents({ ...input } as unknown as listCalendarEventsInput, context), definitions.listCalendarEvents, operationProblemTypes.listCalendarEvents)
-            return { get, list }
+            const getOperation = withMetadata((calendarEventId: number, context?: PomiRequestContext) => operations.getCalendarEvents(operationInput<getCalendarEventsInput>({ "id": calendarEventId }), context), definitions.getCalendarEvents, operationProblemTypes.getCalendarEvents)
+            const listOperation = withMetadata((input: Omit<listCalendarEventsInput, never> = {}, context?: PomiRequestContext) => operations.listCalendarEvents(operationInput<listCalendarEventsInput>({ ...input }), context), definitions.listCalendarEvents, operationProblemTypes.listCalendarEvents)
+            return { get: getOperation, list: listOperation }
         })(),
         "calendarTags": (() => {
-            const get = withMetadata((calendarTagId: string, context?: PomiRequestContext) => operations.getCalendarTags({ "id": calendarTagId } as unknown as getCalendarTagsInput, context), definitions.getCalendarTags, operationProblemTypes.getCalendarTags)
-            const list = withMetadata((input: Omit<listCalendarTagsInput, never> = {}, context?: PomiRequestContext) => operations.listCalendarTags({ ...input } as unknown as listCalendarTagsInput, context), definitions.listCalendarTags, operationProblemTypes.listCalendarTags)
-            return { get, list }
+            const getOperation = withMetadata((calendarTagId: number, context?: PomiRequestContext) => operations.getCalendarTags(operationInput<getCalendarTagsInput>({ "id": calendarTagId }), context), definitions.getCalendarTags, operationProblemTypes.getCalendarTags)
+            const listOperation = withMetadata((input: Omit<listCalendarTagsInput, never> = {}, context?: PomiRequestContext) => operations.listCalendarTags(operationInput<listCalendarTagsInput>({ ...input }), context), definitions.listCalendarTags, operationProblemTypes.listCalendarTags)
+            return { get: getOperation, list: listOperation }
         })(),
         "catalogCourses": (() => {
-            const get = withMetadata((catalogCourseId: number, context?: PomiRequestContext) => operations.getCatalogCourses({ "id": catalogCourseId } as unknown as getCatalogCoursesInput, context), definitions.getCatalogCourses, operationProblemTypes.getCatalogCourses)
-            const list = withMetadata((input: Omit<listCatalogCoursesInput, never> = {}, context?: PomiRequestContext) => operations.listCatalogCourses({ ...input } as unknown as listCatalogCoursesInput, context), definitions.listCatalogCourses, operationProblemTypes.listCatalogCourses)
-            const pages = (input: Omit<listCatalogCoursesInput, never> = {}, context?: PomiRequestContext) => paginate<listCatalogCoursesOutput>(operations.listCatalogCourses({ ...withPaginationDefaults(input, 100) } as unknown as listCatalogCoursesInput, context), "data", definitions.listCatalogCourses.authentication, "_paths.next", requestPath, context)
+            const getOperation = withMetadata((catalogCourseId: number, context?: PomiRequestContext) => operations.getCatalogCourses(operationInput<getCatalogCoursesInput>({ "id": catalogCourseId }), context), definitions.getCatalogCourses, operationProblemTypes.getCatalogCourses)
+            const listOperation = withMetadata((input: Omit<listCatalogCoursesInput, never> = {}, context?: PomiRequestContext) => operations.listCatalogCourses(operationInput<listCatalogCoursesInput>({ ...input }), context), definitions.listCatalogCourses, operationProblemTypes.listCatalogCourses)
+            const pages = (input: Omit<listCatalogCoursesInput, never> = {}, context?: PomiRequestContext) => paginateByLink<listCatalogCoursesOutput>(operations.listCatalogCourses(operationInput<listCatalogCoursesInput>({ ...{ ...input, "page": input["page"] ?? 1, "pageSize": input["pageSize"] ?? 100 } }), context), "data", definitions.listCatalogCourses.authentication, "_paths.next", requestPath, context)
             const listAll = async (input: Omit<listCatalogCoursesInput, never> = {}, context?: PomiRequestContext) => { const items: Array<listCatalogCoursesOutput["data"][number]> = []; for await (const page of pages(input, context)) items.push(...page["data"]); return items }
-            return { get, list, pages, listAll }
+            return { get: getOperation, list: listOperation, pages, listAll }
         })(),
         "catalogProgram": (() => {
-            const get = withMetadata((catalogProgramId: string, context?: PomiRequestContext) => operations.getCatalogProgram({ "id": catalogProgramId } as unknown as getCatalogProgramInput, context), definitions.getCatalogProgram, operationProblemTypes.getCatalogProgram)
-            const list = withMetadata((input: Omit<listCatalogProgramInput, never> = {}, context?: PomiRequestContext) => operations.listCatalogProgram({ ...input } as unknown as listCatalogProgramInput, context), definitions.listCatalogProgram, operationProblemTypes.listCatalogProgram)
-            return { get, list }
+            const getOperation = withMetadata((catalogProgramId: number, context?: PomiRequestContext) => operations.getCatalogProgram(operationInput<getCatalogProgramInput>({ "id": catalogProgramId }), context), definitions.getCatalogProgram, operationProblemTypes.getCatalogProgram)
+            const listOperation = withMetadata((input: Omit<listCatalogProgramInput, never> = {}, context?: PomiRequestContext) => operations.listCatalogProgram(operationInput<listCatalogProgramInput>({ ...input }), context), definitions.listCatalogProgram, operationProblemTypes.listCatalogProgram)
+            return { get: getOperation, list: listOperation }
         })(),
         "catalogs": (() => {
-            const get = withMetadata((catalogId: string, context?: PomiRequestContext) => operations.getCatalogs({ "id": catalogId } as unknown as getCatalogsInput, context), definitions.getCatalogs, operationProblemTypes.getCatalogs)
-            const list = withMetadata((input: Omit<listCatalogsInput, never> = {}, context?: PomiRequestContext) => operations.listCatalogs({ ...input } as unknown as listCatalogsInput, context), definitions.listCatalogs, operationProblemTypes.listCatalogs)
-            return { get, list }
+            const getOperation = withMetadata((catalogId: number, context?: PomiRequestContext) => operations.getCatalogs(operationInput<getCatalogsInput>({ "id": catalogId }), context), definitions.getCatalogs, operationProblemTypes.getCatalogs)
+            const listOperation = withMetadata((input: Omit<listCatalogsInput, never> = {}, context?: PomiRequestContext) => operations.listCatalogs(operationInput<listCatalogsInput>({ ...input }), context), definitions.listCatalogs, operationProblemTypes.listCatalogs)
+            return { get: getOperation, list: listOperation }
         })(),
         "classes": (() => {
-            const get = withMetadata((classeId: string, context?: PomiRequestContext) => operations.getClasses({ "id": classeId } as unknown as getClassesInput, context), definitions.getClasses, operationProblemTypes.getClasses)
-            const list = withMetadata((input: Omit<listClassesInput, never> = {}, context?: PomiRequestContext) => operations.listClasses({ ...input } as unknown as listClassesInput, context), definitions.listClasses, operationProblemTypes.listClasses)
-            const pages = (input: Omit<listClassesInput, never> = {}, context?: PomiRequestContext) => paginate<listClassesOutput>(operations.listClasses({ ...withPaginationDefaults(input, 100) } as unknown as listClassesInput, context), "data", definitions.listClasses.authentication, "_paths.next", requestPath, context)
+            const getOperation = withMetadata((classeId: number, context?: PomiRequestContext) => operations.getClasses(operationInput<getClassesInput>({ "id": classeId }), context), definitions.getClasses, operationProblemTypes.getClasses)
+            const listOperation = withMetadata((input: Omit<listClassesInput, never> = {}, context?: PomiRequestContext) => operations.listClasses(operationInput<listClassesInput>({ ...input }), context), definitions.listClasses, operationProblemTypes.listClasses)
+            const pages = (input: Omit<listClassesInput, never> = {}, context?: PomiRequestContext) => paginateByLink<listClassesOutput>(operations.listClasses(operationInput<listClassesInput>({ ...{ ...input, "page": input["page"] ?? 1, "pageSize": input["pageSize"] ?? 100 } }), context), "data", definitions.listClasses.authentication, "_paths.next", requestPath, context)
             const listAll = async (input: Omit<listClassesInput, never> = {}, context?: PomiRequestContext) => { const items: Array<listClassesOutput["data"][number]> = []; for await (const page of pages(input, context)) items.push(...page["data"]); return items }
-            return { get, list, pages, listAll }
+            return { get: getOperation, list: listOperation, pages, listAll }
         })(),
         "classSchedules": (() => {
-            const get = withMetadata((classScheduleId: string, context?: PomiRequestContext) => operations.getClassSchedules({ "id": classScheduleId } as unknown as getClassSchedulesInput, context), definitions.getClassSchedules, operationProblemTypes.getClassSchedules)
-            const list = withMetadata((input: Omit<listClassSchedulesInput, never> = {}, context?: PomiRequestContext) => operations.listClassSchedules({ ...input } as unknown as listClassSchedulesInput, context), definitions.listClassSchedules, operationProblemTypes.listClassSchedules)
-            const pages = (input: Omit<listClassSchedulesInput, never> = {}, context?: PomiRequestContext) => paginate<listClassSchedulesOutput>(operations.listClassSchedules({ ...withPaginationDefaults(input, 100) } as unknown as listClassSchedulesInput, context), "data", definitions.listClassSchedules.authentication, "_paths.next", requestPath, context)
+            const getOperation = withMetadata((classScheduleId: number, context?: PomiRequestContext) => operations.getClassSchedules(operationInput<getClassSchedulesInput>({ "id": classScheduleId }), context), definitions.getClassSchedules, operationProblemTypes.getClassSchedules)
+            const listOperation = withMetadata((input: Omit<listClassSchedulesInput, never> = {}, context?: PomiRequestContext) => operations.listClassSchedules(operationInput<listClassSchedulesInput>({ ...input }), context), definitions.listClassSchedules, operationProblemTypes.listClassSchedules)
+            const pages = (input: Omit<listClassSchedulesInput, never> = {}, context?: PomiRequestContext) => paginateByLink<listClassSchedulesOutput>(operations.listClassSchedules(operationInput<listClassSchedulesInput>({ ...{ ...input, "page": input["page"] ?? 1, "pageSize": input["pageSize"] ?? 100 } }), context), "data", definitions.listClassSchedules.authentication, "_paths.next", requestPath, context)
             const listAll = async (input: Omit<listClassSchedulesInput, never> = {}, context?: PomiRequestContext) => { const items: Array<listClassSchedulesOutput["data"][number]> = []; for await (const page of pages(input, context)) items.push(...page["data"]); return items }
-            return { get, list, pages, listAll }
+            return { get: getOperation, list: listOperation, pages, listAll }
         })(),
         "coauthors": (() => {
-            const get = withMetadata((coauthorId: string, context?: PomiRequestContext) => operations.getCoauthors({ "id": coauthorId } as unknown as getCoauthorsInput, context), definitions.getCoauthors, operationProblemTypes.getCoauthors)
-            const list = withMetadata((input: Omit<listCoauthorsInput, never> = {}, context?: PomiRequestContext) => operations.listCoauthors({ ...input } as unknown as listCoauthorsInput, context), definitions.listCoauthors, operationProblemTypes.listCoauthors)
-            const pages = (input: Omit<listCoauthorsInput, never> = {}, context?: PomiRequestContext) => paginate<listCoauthorsOutput>(operations.listCoauthors({ ...withPaginationDefaults(input, 100) } as unknown as listCoauthorsInput, context), "data", definitions.listCoauthors.authentication, "_paths.next", requestPath, context)
+            const getOperation = withMetadata((coauthorId: number, context?: PomiRequestContext) => operations.getCoauthors(operationInput<getCoauthorsInput>({ "id": coauthorId }), context), definitions.getCoauthors, operationProblemTypes.getCoauthors)
+            const listOperation = withMetadata((input: Omit<listCoauthorsInput, never> = {}, context?: PomiRequestContext) => operations.listCoauthors(operationInput<listCoauthorsInput>({ ...input }), context), definitions.listCoauthors, operationProblemTypes.listCoauthors)
+            const pages = (input: Omit<listCoauthorsInput, never> = {}, context?: PomiRequestContext) => paginateByLink<listCoauthorsOutput>(operations.listCoauthors(operationInput<listCoauthorsInput>({ ...{ ...input, "page": input["page"] ?? 1, "pageSize": input["pageSize"] ?? 100 } }), context), "data", definitions.listCoauthors.authentication, "_paths.next", requestPath, context)
             const listAll = async (input: Omit<listCoauthorsInput, never> = {}, context?: PomiRequestContext) => { const items: Array<listCoauthorsOutput["data"][number]> = []; for await (const page of pages(input, context)) items.push(...page["data"]); return items }
-            return { get, list, pages, listAll }
+            return { get: getOperation, list: listOperation, pages, listAll }
         })(),
         "coordinators": (() => {
-            const get = withMetadata((coordinatorId: number, context?: PomiRequestContext) => operations.getCoordinators({ "id": coordinatorId } as unknown as getCoordinatorsInput, context), definitions.getCoordinators, operationProblemTypes.getCoordinators)
-            const list = withMetadata((input: Omit<listCoordinatorsInput, never> = {}, context?: PomiRequestContext) => operations.listCoordinators({ ...input } as unknown as listCoordinatorsInput, context), definitions.listCoordinators, operationProblemTypes.listCoordinators)
-            const pages = (input: Omit<listCoordinatorsInput, never> = {}, context?: PomiRequestContext) => paginate<listCoordinatorsOutput>(operations.listCoordinators({ ...withPaginationDefaults(input, 100) } as unknown as listCoordinatorsInput, context), "data", definitions.listCoordinators.authentication, "_paths.next", requestPath, context)
+            const getOperation = withMetadata((coordinatorId: number, context?: PomiRequestContext) => operations.getCoordinators(operationInput<getCoordinatorsInput>({ "id": coordinatorId }), context), definitions.getCoordinators, operationProblemTypes.getCoordinators)
+            const listOperation = withMetadata((input: Omit<listCoordinatorsInput, never> = {}, context?: PomiRequestContext) => operations.listCoordinators(operationInput<listCoordinatorsInput>({ ...input }), context), definitions.listCoordinators, operationProblemTypes.listCoordinators)
+            const pages = (input: Omit<listCoordinatorsInput, never> = {}, context?: PomiRequestContext) => paginateByLink<listCoordinatorsOutput>(operations.listCoordinators(operationInput<listCoordinatorsInput>({ ...{ ...input, "page": input["page"] ?? 1, "pageSize": input["pageSize"] ?? 100 } }), context), "data", definitions.listCoordinators.authentication, "_paths.next", requestPath, context)
             const listAll = async (input: Omit<listCoordinatorsInput, never> = {}, context?: PomiRequestContext) => { const items: Array<listCoordinatorsOutput["data"][number]> = []; for await (const page of pages(input, context)) items.push(...page["data"]); return items }
-            return { get, list, pages, listAll }
+            return { get: getOperation, list: listOperation, pages, listAll }
         })(),
         "courses": (() => {
-            const get = withMetadata((courseId: number, context?: PomiRequestContext) => operations.getCourses({ "id": courseId } as unknown as getCoursesInput, context), definitions.getCourses, operationProblemTypes.getCourses)
-            const list = withMetadata((input: Omit<listCoursesInput, never> = {}, context?: PomiRequestContext) => operations.listCourses({ ...input } as unknown as listCoursesInput, context), definitions.listCourses, operationProblemTypes.listCourses)
-            const pages = (input: Omit<listCoursesInput, never> = {}, context?: PomiRequestContext) => paginate<listCoursesOutput>(operations.listCourses({ ...withPaginationDefaults(input, 20) } as unknown as listCoursesInput, context), "data", definitions.listCourses.authentication, "_paths.next", requestPath, context)
+            const getOperation = withMetadata((courseId: number, context?: PomiRequestContext) => operations.getCourses(operationInput<getCoursesInput>({ "id": courseId }), context), definitions.getCourses, operationProblemTypes.getCourses)
+            const listOperation = withMetadata((input: Omit<listCoursesInput, never> = {}, context?: PomiRequestContext) => operations.listCourses(operationInput<listCoursesInput>({ ...input }), context), definitions.listCourses, operationProblemTypes.listCourses)
+            const pages = (input: Omit<listCoursesInput, never> = {}, context?: PomiRequestContext) => paginateByLink<listCoursesOutput>(operations.listCourses(operationInput<listCoursesInput>({ ...{ ...input, "page": input["page"] ?? 1, "pageSize": input["pageSize"] ?? 20 } }), context), "data", definitions.listCourses.authentication, "_paths.next", requestPath, context)
             const listAll = async (input: Omit<listCoursesInput, never> = {}, context?: PomiRequestContext) => { const items: Array<listCoursesOutput["data"][number]> = []; for await (const page of pages(input, context)) items.push(...page["data"]); return items }
-            return { get, list, pages, listAll }
+            return { get: getOperation, list: listOperation, pages, listAll }
         })(),
         "curriculumSuggestions": (() => {
-            const get = withMetadata((curriculumSuggestionId: string, context?: PomiRequestContext) => operations.getCurriculumSuggestions({ "id": curriculumSuggestionId } as unknown as getCurriculumSuggestionsInput, context), definitions.getCurriculumSuggestions, operationProblemTypes.getCurriculumSuggestions)
-            const list = withMetadata((input: Omit<listCurriculumSuggestionsInput, never> = {}, context?: PomiRequestContext) => operations.listCurriculumSuggestions({ ...input } as unknown as listCurriculumSuggestionsInput, context), definitions.listCurriculumSuggestions, operationProblemTypes.listCurriculumSuggestions)
-            return { get, list }
+            const getOperation = withMetadata((curriculumSuggestionId: number, context?: PomiRequestContext) => operations.getCurriculumSuggestions(operationInput<getCurriculumSuggestionsInput>({ "id": curriculumSuggestionId }), context), definitions.getCurriculumSuggestions, operationProblemTypes.getCurriculumSuggestions)
+            const listOperation = withMetadata((input: Omit<listCurriculumSuggestionsInput, never> = {}, context?: PomiRequestContext) => operations.listCurriculumSuggestions(operationInput<listCurriculumSuggestionsInput>({ ...input }), context), definitions.listCurriculumSuggestions, operationProblemTypes.listCurriculumSuggestions)
+            return { get: getOperation, list: listOperation }
         })(),
         "dailyMenus": (() => {
-            const get = withMetadata((dailyMenuId: string, context?: PomiRequestContext) => operations.getDailyMenus({ "id": dailyMenuId } as unknown as getDailyMenusInput, context), definitions.getDailyMenus, operationProblemTypes.getDailyMenus)
-            const list = withMetadata((input: Omit<listDailyMenusInput, never> = {}, context?: PomiRequestContext) => operations.listDailyMenus({ ...input } as unknown as listDailyMenusInput, context), definitions.listDailyMenus, operationProblemTypes.listDailyMenus)
-            return { get, list }
+            const getOperation = withMetadata((dailyMenuId: number, context?: PomiRequestContext) => operations.getDailyMenus(operationInput<getDailyMenusInput>({ "id": dailyMenuId }), context), definitions.getDailyMenus, operationProblemTypes.getDailyMenus)
+            const listOperation = withMetadata((input: Omit<listDailyMenusInput, never> = {}, context?: PomiRequestContext) => operations.listDailyMenus(operationInput<listDailyMenusInput>({ ...input }), context), definitions.listDailyMenus, operationProblemTypes.listDailyMenus)
+            return { get: getOperation, list: listOperation }
         })(),
         "departments": (() => {
-            const get = withMetadata((departmentId: string, context?: PomiRequestContext) => operations.getDepartments({ "id": departmentId } as unknown as getDepartmentsInput, context), definitions.getDepartments, operationProblemTypes.getDepartments)
-            const list = withMetadata((input: Omit<listDepartmentsInput, never> = {}, context?: PomiRequestContext) => operations.listDepartments({ ...input } as unknown as listDepartmentsInput, context), definitions.listDepartments, operationProblemTypes.listDepartments)
-            return { get, list }
+            const getOperation = withMetadata((departmentId: number, context?: PomiRequestContext) => operations.getDepartments(operationInput<getDepartmentsInput>({ "id": departmentId }), context), definitions.getDepartments, operationProblemTypes.getDepartments)
+            const listOperation = withMetadata((input: Omit<listDepartmentsInput, never> = {}, context?: PomiRequestContext) => operations.listDepartments(operationInput<listDepartmentsInput>({ ...input }), context), definitions.listDepartments, operationProblemTypes.listDepartments)
+            return { get: getOperation, list: listOperation }
         })(),
         "exchangeNotices": (() => {
-            const get = withMetadata((exchangeNoticeId: string, context?: PomiRequestContext) => operations.getExchangeNotices({ "id": exchangeNoticeId } as unknown as getExchangeNoticesInput, context), definitions.getExchangeNotices, operationProblemTypes.getExchangeNotices)
-            const list = withMetadata((input: Omit<listExchangeNoticesInput, never> = {}, context?: PomiRequestContext) => operations.listExchangeNotices({ ...input } as unknown as listExchangeNoticesInput, context), definitions.listExchangeNotices, operationProblemTypes.listExchangeNotices)
-            return { get, list }
+            const getOperation = withMetadata((exchangeNoticeId: number, context?: PomiRequestContext) => operations.getExchangeNotices(operationInput<getExchangeNoticesInput>({ "id": exchangeNoticeId }), context), definitions.getExchangeNotices, operationProblemTypes.getExchangeNotices)
+            const listOperation = withMetadata((input: Omit<listExchangeNoticesInput, never> = {}, context?: PomiRequestContext) => operations.listExchangeNotices(operationInput<listExchangeNoticesInput>({ ...input }), context), definitions.listExchangeNotices, operationProblemTypes.listExchangeNotices)
+            return { get: getOperation, list: listOperation }
         })(),
         "keywords": (() => {
-            const get = withMetadata((keywordId: string, context?: PomiRequestContext) => operations.getKeywords({ "id": keywordId } as unknown as getKeywordsInput, context), definitions.getKeywords, operationProblemTypes.getKeywords)
-            const list = withMetadata((input: Omit<listKeywordsInput, never> = {}, context?: PomiRequestContext) => operations.listKeywords({ ...input } as unknown as listKeywordsInput, context), definitions.listKeywords, operationProblemTypes.listKeywords)
-            const pages = (input: Omit<listKeywordsInput, never> = {}, context?: PomiRequestContext) => paginate<listKeywordsOutput>(operations.listKeywords({ ...withPaginationDefaults(input, 100) } as unknown as listKeywordsInput, context), "data", definitions.listKeywords.authentication, "_paths.next", requestPath, context)
+            const getOperation = withMetadata((keywordId: number, context?: PomiRequestContext) => operations.getKeywords(operationInput<getKeywordsInput>({ "id": keywordId }), context), definitions.getKeywords, operationProblemTypes.getKeywords)
+            const listOperation = withMetadata((input: Omit<listKeywordsInput, never> = {}, context?: PomiRequestContext) => operations.listKeywords(operationInput<listKeywordsInput>({ ...input }), context), definitions.listKeywords, operationProblemTypes.listKeywords)
+            const pages = (input: Omit<listKeywordsInput, never> = {}, context?: PomiRequestContext) => paginateByLink<listKeywordsOutput>(operations.listKeywords(operationInput<listKeywordsInput>({ ...{ ...input, "page": input["page"] ?? 1, "pageSize": input["pageSize"] ?? 100 } }), context), "data", definitions.listKeywords.authentication, "_paths.next", requestPath, context)
             const listAll = async (input: Omit<listKeywordsInput, never> = {}, context?: PomiRequestContext) => { const items: Array<listKeywordsOutput["data"][number]> = []; for await (const page of pages(input, context)) items.push(...page["data"]); return items }
-            return { get, list, pages, listAll }
+            return { get: getOperation, list: listOperation, pages, listAll }
         })(),
         "languages": (() => {
-            const get = withMetadata((languageId: string, context?: PomiRequestContext) => operations.getLanguages({ "id": languageId } as unknown as getLanguagesInput, context), definitions.getLanguages, operationProblemTypes.getLanguages)
-            const list = withMetadata((input: Omit<listLanguagesInput, never> = {}, context?: PomiRequestContext) => operations.listLanguages({ ...input } as unknown as listLanguagesInput, context), definitions.listLanguages, operationProblemTypes.listLanguages)
-            return { get, list }
+            const getOperation = withMetadata((languageId: number, context?: PomiRequestContext) => operations.getLanguages(operationInput<getLanguagesInput>({ "id": languageId }), context), definitions.getLanguages, operationProblemTypes.getLanguages)
+            const listOperation = withMetadata((input: Omit<listLanguagesInput, never> = {}, context?: PomiRequestContext) => operations.listLanguages(operationInput<listLanguagesInput>({ ...input }), context), definitions.listLanguages, operationProblemTypes.listLanguages)
+            return { get: getOperation, list: listOperation }
         })(),
         "professorDataPortalProfiles": (() => {
-            const get = withMetadata((professorDataPortalProfileId: string, context?: PomiRequestContext) => operations.getProfessorDataPortalProfiles({ "id": professorDataPortalProfileId } as unknown as getProfessorDataPortalProfilesInput, context), definitions.getProfessorDataPortalProfiles, operationProblemTypes.getProfessorDataPortalProfiles)
-            const list = withMetadata((input: Omit<listProfessorDataPortalProfilesInput, never> = {}, context?: PomiRequestContext) => operations.listProfessorDataPortalProfiles({ ...input } as unknown as listProfessorDataPortalProfilesInput, context), definitions.listProfessorDataPortalProfiles, operationProblemTypes.listProfessorDataPortalProfiles)
-            const pages = (input: Omit<listProfessorDataPortalProfilesInput, never> = {}, context?: PomiRequestContext) => paginate<listProfessorDataPortalProfilesOutput>(operations.listProfessorDataPortalProfiles({ ...withPaginationDefaults(input, 100) } as unknown as listProfessorDataPortalProfilesInput, context), "data", definitions.listProfessorDataPortalProfiles.authentication, "_paths.next", requestPath, context)
+            const getOperation = withMetadata((professorDataPortalProfileId: number, context?: PomiRequestContext) => operations.getProfessorDataPortalProfiles(operationInput<getProfessorDataPortalProfilesInput>({ "id": professorDataPortalProfileId }), context), definitions.getProfessorDataPortalProfiles, operationProblemTypes.getProfessorDataPortalProfiles)
+            const listOperation = withMetadata((input: Omit<listProfessorDataPortalProfilesInput, never> = {}, context?: PomiRequestContext) => operations.listProfessorDataPortalProfiles(operationInput<listProfessorDataPortalProfilesInput>({ ...input }), context), definitions.listProfessorDataPortalProfiles, operationProblemTypes.listProfessorDataPortalProfiles)
+            const pages = (input: Omit<listProfessorDataPortalProfilesInput, never> = {}, context?: PomiRequestContext) => paginateByLink<listProfessorDataPortalProfilesOutput>(operations.listProfessorDataPortalProfiles(operationInput<listProfessorDataPortalProfilesInput>({ ...{ ...input, "page": input["page"] ?? 1, "pageSize": input["pageSize"] ?? 100 } }), context), "data", definitions.listProfessorDataPortalProfiles.authentication, "_paths.next", requestPath, context)
             const listAll = async (input: Omit<listProfessorDataPortalProfilesInput, never> = {}, context?: PomiRequestContext) => { const items: Array<listProfessorDataPortalProfilesOutput["data"][number]> = []; for await (const page of pages(input, context)) items.push(...page["data"]); return items }
-            return { get, list, pages, listAll }
+            return { get: getOperation, list: listOperation, pages, listAll }
         })(),
         "professorPositions": (() => {
-            const get = withMetadata((professorPositionId: string, context?: PomiRequestContext) => operations.getProfessorPositions({ "id": professorPositionId } as unknown as getProfessorPositionsInput, context), definitions.getProfessorPositions, operationProblemTypes.getProfessorPositions)
-            const list = withMetadata((input: Omit<listProfessorPositionsInput, never> = {}, context?: PomiRequestContext) => operations.listProfessorPositions({ ...input } as unknown as listProfessorPositionsInput, context), definitions.listProfessorPositions, operationProblemTypes.listProfessorPositions)
-            return { get, list }
+            const getOperation = withMetadata((professorPositionId: number, context?: PomiRequestContext) => operations.getProfessorPositions(operationInput<getProfessorPositionsInput>({ "id": professorPositionId }), context), definitions.getProfessorPositions, operationProblemTypes.getProfessorPositions)
+            const listOperation = withMetadata((input: Omit<listProfessorPositionsInput, never> = {}, context?: PomiRequestContext) => operations.listProfessorPositions(operationInput<listProfessorPositionsInput>({ ...input }), context), definitions.listProfessorPositions, operationProblemTypes.listProfessorPositions)
+            return { get: getOperation, list: listOperation }
         })(),
         "professors": (() => {
-            const get = withMetadata((professorId: string, context?: PomiRequestContext) => operations.getProfessors({ "id": professorId } as unknown as getProfessorsInput, context), definitions.getProfessors, operationProblemTypes.getProfessors)
-            const list = withMetadata((input: Omit<listProfessorsInput, never> = {}, context?: PomiRequestContext) => operations.listProfessors({ ...input } as unknown as listProfessorsInput, context), definitions.listProfessors, operationProblemTypes.listProfessors)
-            const pages = (input: Omit<listProfessorsInput, never> = {}, context?: PomiRequestContext) => paginate<listProfessorsOutput>(operations.listProfessors({ ...withPaginationDefaults(input, 100) } as unknown as listProfessorsInput, context), "data", definitions.listProfessors.authentication, "_paths.next", requestPath, context)
+            const getOperation = withMetadata((professorId: number, context?: PomiRequestContext) => operations.getProfessors(operationInput<getProfessorsInput>({ "id": professorId }), context), definitions.getProfessors, operationProblemTypes.getProfessors)
+            const listOperation = withMetadata((input: Omit<listProfessorsInput, never> = {}, context?: PomiRequestContext) => operations.listProfessors(operationInput<listProfessorsInput>({ ...input }), context), definitions.listProfessors, operationProblemTypes.listProfessors)
+            const pages = (input: Omit<listProfessorsInput, never> = {}, context?: PomiRequestContext) => paginateByLink<listProfessorsOutput>(operations.listProfessors(operationInput<listProfessorsInput>({ ...{ ...input, "page": input["page"] ?? 1, "pageSize": input["pageSize"] ?? 100 } }), context), "data", definitions.listProfessors.authentication, "_paths.next", requestPath, context)
             const listAll = async (input: Omit<listProfessorsInput, never> = {}, context?: PomiRequestContext) => { const items: Array<listProfessorsOutput["data"][number]> = []; for await (const page of pages(input, context)) items.push(...page["data"]); return items }
-            return { get, list, pages, listAll }
+            return { get: getOperation, list: listOperation, pages, listAll }
         })(),
         "programs": (() => {
-            const get = withMetadata((programId: string, context?: PomiRequestContext) => operations.getPrograms({ "id": programId } as unknown as getProgramsInput, context), definitions.getPrograms, operationProblemTypes.getPrograms)
-            const list = withMetadata((input: Omit<listProgramsInput, never> = {}, context?: PomiRequestContext) => operations.listPrograms({ ...input } as unknown as listProgramsInput, context), definitions.listPrograms, operationProblemTypes.listPrograms)
-            return { get, list }
+            const getOperation = withMetadata((programId: number, context?: PomiRequestContext) => operations.getPrograms(operationInput<getProgramsInput>({ "id": programId }), context), definitions.getPrograms, operationProblemTypes.getPrograms)
+            const listOperation = withMetadata((input: Omit<listProgramsInput, never> = {}, context?: PomiRequestContext) => operations.listPrograms(operationInput<listProgramsInput>({ ...input }), context), definitions.listPrograms, operationProblemTypes.listPrograms)
+            return { get: getOperation, list: listOperation }
         })(),
         "rooms": (() => {
-            const get = withMetadata((roomId: string, context?: PomiRequestContext) => operations.getRooms({ "id": roomId } as unknown as getRoomsInput, context), definitions.getRooms, operationProblemTypes.getRooms)
-            const list = withMetadata((input: Omit<listRoomsInput, never> = {}, context?: PomiRequestContext) => operations.listRooms({ ...input } as unknown as listRoomsInput, context), definitions.listRooms, operationProblemTypes.listRooms)
-            return { get, list }
+            const getOperation = withMetadata((roomId: number, context?: PomiRequestContext) => operations.getRooms(operationInput<getRoomsInput>({ "id": roomId }), context), definitions.getRooms, operationProblemTypes.getRooms)
+            const listOperation = withMetadata((input: Omit<listRoomsInput, never> = {}, context?: PomiRequestContext) => operations.listRooms(operationInput<listRoomsInput>({ ...input }), context), definitions.listRooms, operationProblemTypes.listRooms)
+            return { get: getOperation, list: listOperation }
         })(),
         "specializations": (() => {
-            const get = withMetadata((specializationId: string, context?: PomiRequestContext) => operations.getSpecializations({ "id": specializationId } as unknown as getSpecializationsInput, context), definitions.getSpecializations, operationProblemTypes.getSpecializations)
-            const list = withMetadata((input: Omit<listSpecializationsInput, never> = {}, context?: PomiRequestContext) => operations.listSpecializations({ ...input } as unknown as listSpecializationsInput, context), definitions.listSpecializations, operationProblemTypes.listSpecializations)
-            return { get, list }
+            const getOperation = withMetadata((specializationId: number, context?: PomiRequestContext) => operations.getSpecializations(operationInput<getSpecializationsInput>({ "id": specializationId }), context), definitions.getSpecializations, operationProblemTypes.getSpecializations)
+            const listOperation = withMetadata((input: Omit<listSpecializationsInput, never> = {}, context?: PomiRequestContext) => operations.listSpecializations(operationInput<listSpecializationsInput>({ ...input }), context), definitions.listSpecializations, operationProblemTypes.listSpecializations)
+            return { get: getOperation, list: listOperation }
         })(),
         "studyPeriods": (() => {
-            const get = withMetadata((studyPeriodId: string, context?: PomiRequestContext) => operations.getStudyPeriods({ "id": studyPeriodId } as unknown as getStudyPeriodsInput, context), definitions.getStudyPeriods, operationProblemTypes.getStudyPeriods)
-            const list = withMetadata((input: Omit<listStudyPeriodsInput, never> = {}, context?: PomiRequestContext) => operations.listStudyPeriods({ ...input } as unknown as listStudyPeriodsInput, context), definitions.listStudyPeriods, operationProblemTypes.listStudyPeriods)
-            return { get, list }
+            const getOperation = withMetadata((studyPeriodId: number, context?: PomiRequestContext) => operations.getStudyPeriods(operationInput<getStudyPeriodsInput>({ "id": studyPeriodId }), context), definitions.getStudyPeriods, operationProblemTypes.getStudyPeriods)
+            const listOperation = withMetadata((input: Omit<listStudyPeriodsInput, never> = {}, context?: PomiRequestContext) => operations.listStudyPeriods(operationInput<listStudyPeriodsInput>({ ...input }), context), definitions.listStudyPeriods, operationProblemTypes.listStudyPeriods)
+            return { get: getOperation, list: listOperation }
         })(),
         "units": (() => {
-            const get = withMetadata((unitId: string, context?: PomiRequestContext) => operations.getUnits({ "id": unitId } as unknown as getUnitsInput, context), definitions.getUnits, operationProblemTypes.getUnits)
-            const list = withMetadata((input: Omit<listUnitsInput, never> = {}, context?: PomiRequestContext) => operations.listUnits({ ...input } as unknown as listUnitsInput, context), definitions.listUnits, operationProblemTypes.listUnits)
-            return { get, list }
+            const getOperation = withMetadata((unitId: number, context?: PomiRequestContext) => operations.getUnits(operationInput<getUnitsInput>({ "id": unitId }), context), definitions.getUnits, operationProblemTypes.getUnits)
+            const listOperation = withMetadata((input: Omit<listUnitsInput, never> = {}, context?: PomiRequestContext) => operations.listUnits(operationInput<listUnitsInput>({ ...input }), context), definitions.listUnits, operationProblemTypes.listUnits)
+            return { get: getOperation, list: listOperation }
         })(),
         "calendar": (() => {
-            const list = withMetadata((input: Omit<listCalendarInput, never> = {}, context?: PomiRequestContext) => operations.listCalendar({ ...input } as unknown as listCalendarInput, context), definitions.listCalendar, operationProblemTypes.listCalendar)
-            return { list }
+            const listOperation = withMetadata((input: Omit<listCalendarInput, never> = {}, context?: PomiRequestContext) => operations.listCalendar(operationInput<listCalendarInput>({ ...input }), context), definitions.listCalendar, operationProblemTypes.listCalendar)
+            return { list: listOperation }
         })(),
         "coursesEvaluationSummaries": (() => {
-            const list = withMetadata((input: Omit<listCoursesEvaluationSummariesInput, never> = {}, context?: PomiRequestContext) => operations.listCoursesEvaluationSummaries({ ...input } as unknown as listCoursesEvaluationSummariesInput, context), definitions.listCoursesEvaluationSummaries, operationProblemTypes.listCoursesEvaluationSummaries)
-            const pages = (input: Omit<listCoursesEvaluationSummariesInput, never> = {}, context?: PomiRequestContext) => paginate<listCoursesEvaluationSummariesOutput>(operations.listCoursesEvaluationSummaries({ ...withPaginationDefaults(input, 100) } as unknown as listCoursesEvaluationSummariesInput, context), "data", definitions.listCoursesEvaluationSummaries.authentication, "_paths.next", requestPath, context)
+            const listOperation = withMetadata((input: Omit<listCoursesEvaluationSummariesInput, never> = {}, context?: PomiRequestContext) => operations.listCoursesEvaluationSummaries(operationInput<listCoursesEvaluationSummariesInput>({ ...input }), context), definitions.listCoursesEvaluationSummaries, operationProblemTypes.listCoursesEvaluationSummaries)
+            const pages = (input: Omit<listCoursesEvaluationSummariesInput, never> = {}, context?: PomiRequestContext) => paginateByLink<listCoursesEvaluationSummariesOutput>(operations.listCoursesEvaluationSummaries(operationInput<listCoursesEvaluationSummariesInput>({ ...{ ...input, "page": input["page"] ?? 1, "pageSize": input["pageSize"] ?? 100 } }), context), "data", definitions.listCoursesEvaluationSummaries.authentication, "_paths.next", requestPath, context)
             const listAll = async (input: Omit<listCoursesEvaluationSummariesInput, never> = {}, context?: PomiRequestContext) => { const items: Array<listCoursesEvaluationSummariesOutput["data"][number]> = []; for await (const page of pages(input, context)) items.push(...page["data"]); return items }
-            return { list, pages, listAll }
+            return { list: listOperation, pages, listAll }
         })(),
         "evaluationSummaries": (() => {
-            const list = withMetadata((input: Omit<listEvaluationSummariesInput, never>, context?: PomiRequestContext) => operations.listEvaluationSummaries({ ...input } as unknown as listEvaluationSummariesInput, context), definitions.listEvaluationSummaries, operationProblemTypes.listEvaluationSummaries)
-            return { list }
+            const listOperation = withMetadata((input: Omit<listEvaluationSummariesInput, never>, context?: PomiRequestContext) => operations.listEvaluationSummaries(operationInput<listEvaluationSummariesInput>({ ...input }), context), definitions.listEvaluationSummaries, operationProblemTypes.listEvaluationSummaries)
+            return { list: listOperation }
         })(),
         "exchangePlaces": (() => {
-            const list = withMetadata((input: Omit<listExchangePlacesInput, never> = {}, context?: PomiRequestContext) => operations.listExchangePlaces({ ...input } as unknown as listExchangePlacesInput, context), definitions.listExchangePlaces, operationProblemTypes.listExchangePlaces)
-            return { list }
+            const listOperation = withMetadata((input: Omit<listExchangePlacesInput, never> = {}, context?: PomiRequestContext) => operations.listExchangePlaces(operationInput<listExchangePlacesInput>({ ...input }), context), definitions.listExchangePlaces, operationProblemTypes.listExchangePlaces)
+            return { list: listOperation }
         })(),
         "professorsEvaluationSummaries": (() => {
-            const list = withMetadata((input: Omit<listProfessorsEvaluationSummariesInput, never> = {}, context?: PomiRequestContext) => operations.listProfessorsEvaluationSummaries({ ...input } as unknown as listProfessorsEvaluationSummariesInput, context), definitions.listProfessorsEvaluationSummaries, operationProblemTypes.listProfessorsEvaluationSummaries)
-            const pages = (input: Omit<listProfessorsEvaluationSummariesInput, never> = {}, context?: PomiRequestContext) => paginate<listProfessorsEvaluationSummariesOutput>(operations.listProfessorsEvaluationSummaries({ ...withPaginationDefaults(input, 100) } as unknown as listProfessorsEvaluationSummariesInput, context), "data", definitions.listProfessorsEvaluationSummaries.authentication, "_paths.next", requestPath, context)
+            const listOperation = withMetadata((input: Omit<listProfessorsEvaluationSummariesInput, never> = {}, context?: PomiRequestContext) => operations.listProfessorsEvaluationSummaries(operationInput<listProfessorsEvaluationSummariesInput>({ ...input }), context), definitions.listProfessorsEvaluationSummaries, operationProblemTypes.listProfessorsEvaluationSummaries)
+            const pages = (input: Omit<listProfessorsEvaluationSummariesInput, never> = {}, context?: PomiRequestContext) => paginateByLink<listProfessorsEvaluationSummariesOutput>(operations.listProfessorsEvaluationSummaries(operationInput<listProfessorsEvaluationSummariesInput>({ ...{ ...input, "page": input["page"] ?? 1, "pageSize": input["pageSize"] ?? 100 } }), context), "data", definitions.listProfessorsEvaluationSummaries.authentication, "_paths.next", requestPath, context)
             const listAll = async (input: Omit<listProfessorsEvaluationSummariesInput, never> = {}, context?: PomiRequestContext) => { const items: Array<listProfessorsEvaluationSummariesOutput["data"][number]> = []; for await (const page of pages(input, context)) items.push(...page["data"]); return items }
-            return { list, pages, listAll }
+            return { list: listOperation, pages, listAll }
         })(),
     }
 }

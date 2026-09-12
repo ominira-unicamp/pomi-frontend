@@ -1,5 +1,6 @@
 import type {
-  ExchangeNoticeTransport,
+  ExchangeNoticeFile as GeneratedExchangeNoticeFile,
+  ExchangeNotice as GeneratedExchangeNotice,
   ExchangePlaceListItem,
 } from './generated/data/domain.js'
 import type { ExchangeNoticeSubscription as GeneratedExchangeNoticeSubscription } from './generated/app/domain.js'
@@ -7,8 +8,8 @@ import type { updateStudentExchangeNoticeSubscriptionInput } from './generated/a
 import type { PomiSdkClient } from './generatedClient.js'
 
 export type ExchangePlace = ExchangePlaceListItem
-export type ExchangeNotice = ExchangeNoticeTransport
-export type ExchangeNoticeFile = ExchangeNotice['files'][number]
+export type ExchangeNotice = GeneratedExchangeNotice
+export type ExchangeNoticeFile = GeneratedExchangeNoticeFile
 export type ExchangeNoticeSubscription = GeneratedExchangeNoticeSubscription
 
 export type ExchangeNoticeSubscriptionPatch = Readonly<
@@ -19,9 +20,7 @@ export type ExchangeNoticeSubscriptionPatch = Readonly<
 
 export function createExchangeApi(client: PomiSdkClient) {
   function listExchangeNotices() {
-    return client.data.exchangeNotices.list({}) as Promise<
-      ReadonlyArray<ExchangeNotice>
-    >
+    return client.data.exchangeNotices.list({})
   }
 
   function listExchangePlaces() {
@@ -33,7 +32,7 @@ export function createExchangeApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.studentExchangeNoticeSubscription.list(
-      String(studentId),
+      studentId,
       {},
       {
         getAccessToken,
@@ -47,7 +46,7 @@ export function createExchangeApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.studentExchangeNoticeSubscription.update(
-      String(studentId),
+      studentId,
       {
         ...patch,
         placeIds: patch.placeIds ? [...patch.placeIds] : undefined,

@@ -1,3 +1,5 @@
+import type { components } from './openapi.js'
+
 export const problemCatalog = {
     "urn:pomi:problem:invalid-request": {
         "schemaName": "InvalidRequestProblem",
@@ -470,3 +472,22 @@ export const operationProblemTypes = {
 } as const
 
 export type ProblemType = keyof typeof problemCatalog
+export type ProblemByType = {
+    "urn:pomi:problem:invalid-request": components['schemas']["InvalidRequestProblem"]
+    "urn:pomi:problem:internal-server-error": components['schemas']["InternalServerErrorProblem"]
+    "urn:pomi:problem:resource-not-found": components['schemas']["ResourceNotFoundProblem"]
+    "urn:pomi:problem:unique-constraint-conflict": components['schemas']["UniqueConstraintConflictProblem"]
+    "urn:pomi:problem:reference-not-found": components['schemas']["ReferenceNotFoundProblem"]
+    "urn:pomi:problem:invalid-student-profile": components['schemas']["InvalidStudentProfileProblem"]
+    "urn:pomi:problem:invalid-curriculum": components['schemas']["InvalidCurriculumProblem"]
+    "urn:pomi:problem:invalid-period-plan": components['schemas']["InvalidPeriodPlanProblem"]
+    "urn:pomi:problem:invalid-professor-evaluation": components['schemas']["InvalidProfessorEvaluationProblem"]
+    "urn:pomi:problem:invalid-student-course-attempt": components['schemas']["InvalidStudentCourseAttemptProblem"]
+    "urn:pomi:problem:invalid-student-history-import": components['schemas']["InvalidStudentHistoryImportProblem"]
+    "urn:pomi:problem:invalid-student-absence": components['schemas']["InvalidStudentAbsenceProblem"]
+    "urn:pomi:problem:invalid-feedback-report": components['schemas']["InvalidFeedbackReportProblem"]
+    "urn:pomi:problem:feedback-rate-limit": components['schemas']["FeedbackRateLimitProblem"]
+}
+export type AnyProblem = ProblemByType[ProblemType]
+export type OperationProblem<Name extends keyof typeof operationProblemTypes> =
+    ProblemByType[(typeof operationProblemTypes)[Name][number] & ProblemType]

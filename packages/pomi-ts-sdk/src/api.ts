@@ -20,6 +20,7 @@ export function createPomiApi(options: PomiSdkOptions) {
   const client = createPomiSdk(options)
 
   return {
+    generated: client,
     documentation: {
       publicDocsUrl: () => new URL('/public-docs', options.dataApiUrl).href,
     },

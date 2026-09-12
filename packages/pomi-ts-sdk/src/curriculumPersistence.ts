@@ -18,11 +18,7 @@ export function createCurriculumPersistenceApi(client: PomiSdkClient) {
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentCurricula.list(
-      String(studentId),
-      {},
-      { getAccessToken },
-    )
+    return client.app.studentCurricula.list(studentId, {}, { getAccessToken })
   }
 
   async function getCurriculum(
@@ -30,13 +26,9 @@ export function createCurriculumPersistenceApi(client: PomiSdkClient) {
     curriculumId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentCurricula.get(
-      String(studentId),
-      String(curriculumId),
-      {
-        getAccessToken,
-      },
-    )
+    return client.app.studentCurricula.get(studentId, curriculumId, {
+      getAccessToken,
+    })
   }
 
   async function createCurriculum(
@@ -44,7 +36,7 @@ export function createCurriculumPersistenceApi(client: PomiSdkClient) {
     input: CurriculumCreateInput,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentCurricula.create(String(studentId), input, {
+    return client.app.studentCurricula.create(studentId, input, {
       getAccessToken,
     })
   }
@@ -52,15 +44,12 @@ export function createCurriculumPersistenceApi(client: PomiSdkClient) {
   async function patchCurriculum(
     studentId: number,
     curriculumId: number,
-    input: Record<string, unknown>,
+    input: updateStudentCurriculaInput['body'],
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentCurricula.update(
-      String(studentId),
-      String(curriculumId),
-      input as updateStudentCurriculaInput['body'],
-      { getAccessToken },
-    )
+    return client.app.studentCurricula.update(studentId, curriculumId, input, {
+      getAccessToken,
+    })
   }
 
   async function deleteCurriculum(
@@ -68,13 +57,9 @@ export function createCurriculumPersistenceApi(client: PomiSdkClient) {
     curriculumId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    await client.app.studentCurricula.delete(
-      String(studentId),
-      String(curriculumId),
-      {
-        getAccessToken,
-      },
-    )
+    await client.app.studentCurricula.delete(studentId, curriculumId, {
+      getAccessToken,
+    })
   }
 
   return {

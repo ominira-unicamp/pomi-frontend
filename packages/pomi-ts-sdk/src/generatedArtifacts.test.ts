@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import test from 'node:test'
 import {
   enumValues as appEnumValues,
@@ -26,10 +27,12 @@ import {
   type listClassesOutput,
   type listCatalogProgramOutput,
   type listClassSchedulesOutput,
+  type listCoauthorsOutput,
   type listCoursesFilter,
   type listCoursesInput,
   type listCoursesOutput,
   type listStudyPeriodsOutput,
+  type listProfessorDataPortalProfilesOutput,
   type listUnitsOutput,
 } from './generated/data/index.js'
 import type {
@@ -39,19 +42,25 @@ import type {
   CatalogProgram,
   Class,
   ClassSchedule,
+  Coauthor,
   Course,
+  ProfessorDataPortalProfileSummary,
   StudyPeriod,
   Unit,
 } from './generated/data/domain.js'
 import type {
   Category,
+  SharedPeriodPlanningPage,
   StudentCourseAttempt,
+  StudentPeoplePage,
   Tag,
   TagRelatedCourse,
 } from './generated/app/domain.js'
 import type {
   listCategoriesOutput,
   listCoursesTagsOutput,
+  listSharedPeriodPlanningsOutput,
+  listStudentPeopleOutput,
   listTagsCoursesOutput,
   listTagsOutput,
 } from './generated/app/index.js'
@@ -75,6 +84,13 @@ type DomainTypeAssertions = [
   Assert<Equal<listCatalogCoursesOutput['data'][number], CatalogCourse>>,
   Assert<Equal<listStudyPeriodsOutput[number], StudyPeriod>>,
   Assert<Equal<listClassesOutput['data'][number], Class>>,
+  Assert<Equal<listCoauthorsOutput['data'][number], Coauthor>>,
+  Assert<
+    Equal<
+      listProfessorDataPortalProfilesOutput['data'][number],
+      ProfessorDataPortalProfileSummary
+    >
+  >,
   Assert<Equal<listCategoriesOutput[number], Category>>,
   Assert<Equal<listTagsOutput[number], Tag>>,
   Assert<Equal<listCoursesTagsOutput[number], Tag>>,
@@ -82,6 +98,8 @@ type DomainTypeAssertions = [
   Assert<Equal<listCatalogProgramOutput[number], CatalogProgram>>,
   Assert<Equal<getCatalogProgramOutput, CatalogProgram>>,
   Assert<Equal<listStudentCourseAttemptsOutput[number], StudentCourseAttempt>>,
+  Assert<Equal<listSharedPeriodPlanningsOutput, SharedPeriodPlanningPage>>,
+  Assert<Equal<listStudentPeopleOutput, StudentPeoplePage>>,
   AssertFalse<'_paths' extends keyof Course ? true : false>,
   AssertFalse<'_paths' extends keyof ClassSchedule ? true : false>,
   AssertFalse<'_paths' extends keyof BlockSet ? true : false>,
@@ -103,7 +121,7 @@ test('generates separate operational manifests for Data and App', () => {
   )
   assert.equal(
     Object.values(appOperations).filter((operation) => operation.sdk).length,
-    65,
+    70,
   )
   assert.equal(dataOperations.listClasses.sdk?.resource, 'classes')
   assert.equal(dataOperations.listClasses.pagination?.itemsField, 'data')
@@ -111,6 +129,26 @@ test('generates separate operational manifests for Data and App', () => {
     appOperations.listTagsCourses.pagination?.nextField,
     '_paths.next',
   )
+  assert.equal(
+    appOperations.listSharedPeriodPlannings.pagination?.strategy,
+    'page-number',
+  )
+})
+
+test('generates type-checked resources and explicit operation bindings', () => {
+  for (const target of ['app', 'data']) {
+    const resources = readFileSync(
+      new URL(`./generated/${target}/resources.ts`, import.meta.url),
+      'utf8',
+    )
+    const bindings = readFileSync(
+      new URL(`./generated/${target}/bindings.ts`, import.meta.url),
+      'utf8',
+    )
+    assert.doesNotMatch(resources, /as unknown as/)
+    assert.doesNotMatch(bindings, /as unknown as|Object\.fromEntries/)
+    assert.match(bindings, /export function bindOperations/)
+  }
 })
 
 test('generates canonical domain models independently from operation envelopes', () => {
@@ -192,7 +230,7 @@ test('generates request inputs with structured filters and bodies', () => {
   }
   const filter: listCoursesFilter = { credits: { gte: 4 } }
   const absence: createStudentAbsencesInput = {
-    sid: '7',
+    sid: 7,
     body: {
       courseAttemptId: 2,
       classScheduleId: 3,
@@ -200,7 +238,7 @@ test('generates request inputs with structured filters and bodies', () => {
     },
   }
   const grant: updateMeBotGrantsInput = {
-    botAuthUserId: '8',
+    botAuthUserId: 8,
     body: { capabilities: ['STUDENT_PROFILE_READ'] },
   }
 
@@ -243,7 +281,7 @@ test('generates typed path and query builders', () => {
   )
   assert.equal(
     appPaths.createStudentAbsences({
-      sid: '7',
+      sid: 7,
       body: {
         courseAttemptId: 2,
         classScheduleId: 3,

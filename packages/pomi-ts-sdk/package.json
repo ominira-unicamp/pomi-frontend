@@ -40,8 +40,9 @@
   },
   "scripts": {
     "generate": "tsx sdk-gen/generate.ts",
+    "generate:check": "tsx sdk-gen/generate.ts --check",
     "architecture:check": "node scripts/check-architecture.mjs",
-    "check": "npm run generate && npm run architecture:check && tsc --noEmit -p tsconfig.json",
+    "check": "npm run generate:check && npm run architecture:check && tsc --noEmit -p tsconfig.json",
     "test": "node --import tsx --test src/generated*.test.ts",
     "prepublishOnly": "npm run check"
   },

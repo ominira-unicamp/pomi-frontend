@@ -1,10 +1,14 @@
-import type { StudentAbsenceTransport } from './generated/app/domain.js'
+import type { StudentAbsence } from './generated/app/domain.js'
+import type {
+  StudentAbsenceDayOfWeek,
+  StudentAbsenceStudyPeriodYearPeriod,
+} from './generated/app/enums.js'
 import type { createStudentAbsencesInput } from './generated/app/operations.js'
 import type { PomiRequestContext, PomiSdkClient } from './generatedClient.js'
 
-export type StudentAbsence = StudentAbsenceTransport
-export type StudyPeriodYearPeriod = StudentAbsence['studyPeriodYearPeriod']
-export type StudentAbsenceDayOfWeek = StudentAbsence['dayOfWeek']
+export type { StudentAbsence }
+export type StudyPeriodYearPeriod = StudentAbsenceStudyPeriodYearPeriod
+export type { StudentAbsenceDayOfWeek }
 export type CreateStudentAbsenceInput = Readonly<
   createStudentAbsencesInput['body']
 >
@@ -15,29 +19,21 @@ export function createStudentAbsencesApi(client: PomiSdkClient) {
     { studentId }: StudentInput,
     context: PomiRequestContext,
   ) {
-    return client.app.studentAbsences.list(
-      String(studentId),
-      {},
-      context,
-    ) as Promise<ReadonlyArray<StudentAbsence>>
+    return client.app.studentAbsences.list(studentId, {}, context)
   }
   function createStudentAbsence(
     { studentId, input }: StudentInput & { input: CreateStudentAbsenceInput },
     requestContext: PomiRequestContext,
   ) {
-    return client.app.studentAbsences.create(
-      String(studentId),
-      input,
-      requestContext,
-    ) as Promise<StudentAbsence>
+    return client.app.studentAbsences.create(studentId, input, requestContext)
   }
   async function deleteStudentAbsence(
     { studentId, absenceId }: StudentInput & { absenceId: number },
     requestContext: PomiRequestContext,
   ) {
     await client.app.studentAbsences.delete(
-      String(studentId),
-      String(absenceId),
+      studentId,
+      absenceId,
       requestContext,
     )
   }

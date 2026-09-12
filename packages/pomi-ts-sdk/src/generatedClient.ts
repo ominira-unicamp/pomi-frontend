@@ -1,15 +1,23 @@
-import {
-  operationDefinitions as appOperationDefinitions,
-  type OperationInputs as AppOperationInputs,
-  type OperationName as AppOperationName,
-  type OperationOutputs as AppOperationOutputs,
+import type {
+  OperationInputs as AppOperationInputs,
+  OperationName as AppOperationName,
+  OperationOutputs as AppOperationOutputs,
 } from './generated/app/operations.js'
-import {
-  operationDefinitions as dataOperationDefinitions,
-  type OperationInputs as DataOperationInputs,
-  type OperationName as DataOperationName,
-  type OperationOutputs as DataOperationOutputs,
+import type {
+  OperationInputs as DataOperationInputs,
+  OperationName as DataOperationName,
+  OperationOutputs as DataOperationOutputs,
 } from './generated/data/operations.js'
+import { runtimeOperationDefinitions as appRuntimeOperationDefinitions } from './generated/app/runtime.js'
+import { runtimeOperationDefinitions as dataRuntimeOperationDefinitions } from './generated/data/runtime.js'
+import {
+  bindOperations as bindAppOperations,
+  type OperationApi as GeneratedAppOperationApi,
+} from './generated/app/bindings.js'
+import {
+  bindOperations as bindDataOperations,
+  type OperationApi as GeneratedDataOperationApi,
+} from './generated/data/bindings.js'
 import {
   bindResources as bindAppResources,
   type Resources as AppResources,
@@ -30,7 +38,8 @@ import type { ProblemType as DataProblemType } from './generated/data/problems.j
 import type {
   ApiTarget,
   AuthenticationMode,
-  GeneratedOperationDefinition,
+  RuntimeOperationDefinition,
+  RuntimeOperationTuple,
 } from './runtime/operation.js'
 import type { PomiRequestContext } from './runtime/client.js'
 import { buildOperationUrl } from './runtime/query.js'
@@ -44,27 +53,8 @@ export type PomiSdkOptions = Readonly<{
   fetch?: PomiFetch
 }>
 
-type OperationApi<
-  Names extends PropertyKey,
-  Inputs extends Record<Names, unknown>,
-  Outputs extends Record<Names, unknown>,
-> = {
-  [Name in Names]: (
-    input: Inputs[Name],
-    context?: PomiRequestContext,
-  ) => Promise<Outputs[Name]>
-}
-
-export type DataOperationApi = OperationApi<
-  DataOperationName,
-  DataOperationInputs,
-  DataOperationOutputs
->
-export type AppOperationApi = OperationApi<
-  AppOperationName,
-  AppOperationInputs,
-  AppOperationOutputs
->
+export type DataOperationApi = GeneratedDataOperationApi
+export type AppOperationApi = GeneratedAppOperationApi
 
 export type PomiSdkClient = Readonly<{
   data: DataOperationApi & DataResources
@@ -103,6 +93,39 @@ function httpBody(text: string) {
   }
 }
 
+function runtimeOperationDefinition(
+  operationId: string,
+  target: ApiTarget,
+  tuple: RuntimeOperationTuple,
+): RuntimeOperationDefinition {
+  const [
+    method,
+    path,
+    authentication,
+    pathParameters,
+    queryParameters,
+    requestBody,
+    responses,
+  ] = tuple
+  return {
+    operationId,
+    target,
+    method,
+    path,
+    authentication,
+    pathParameters,
+    queryParameters,
+    requestBody: requestBody
+      ? { required: requestBody[0], contentType: requestBody[1] }
+      : null,
+    responses: responses.map(([status, contentTypes]) => ({
+      status,
+      success: true,
+      contentTypes,
+    })),
+  }
+}
+
 export class PomiSdk {
   private readonly dataApiUrl: string
   private readonly appApiUrl: string
@@ -122,7 +145,11 @@ export class PomiSdk {
     context?: PomiRequestContext,
   ): Promise<DataOperationOutputs[Name]> {
     return this.execute<DataOperationOutputs[Name]>(
-      dataOperationDefinitions[name],
+      runtimeOperationDefinition(
+        name,
+        'data',
+        dataRuntimeOperationDefinitions[name],
+      ),
       input as Record<string, unknown>,
       context,
     )
@@ -134,7 +161,11 @@ export class PomiSdk {
     context?: PomiRequestContext,
   ): Promise<AppOperationOutputs[Name]> {
     return this.execute<AppOperationOutputs[Name]>(
-      appOperationDefinitions[name],
+      runtimeOperationDefinition(
+        name,
+        'app',
+        appRuntimeOperationDefinitions[name],
+      ),
       input as Record<string, unknown>,
       context,
     )
@@ -153,19 +184,10 @@ export class PomiSdk {
         method: 'GET',
         path,
         authentication,
-        tags: [],
-        summary: null,
-        description: null,
-        deprecated: false,
         pathParameters: [],
         queryParameters: [],
-        headerParameters: [],
-        cookieParameters: [],
         requestBody: null,
         responses: [],
-        query: { parameters: [], filter: null },
-        sdk: null,
-        pagination: null,
       },
       {},
       false,
@@ -174,7 +196,7 @@ export class PomiSdk {
   }
 
   private execute<T>(
-    definition: GeneratedOperationDefinition,
+    definition: RuntimeOperationDefinition,
     input: Record<string, unknown>,
     context?: PomiRequestContext,
   ) {
@@ -182,7 +204,7 @@ export class PomiSdk {
   }
 
   private async request<T>(
-    definition: GeneratedOperationDefinition,
+    definition: RuntimeOperationDefinition,
     input: Record<string, unknown>,
     requireDocumentedSuccess: boolean,
     context?: PomiRequestContext,
@@ -242,48 +264,36 @@ export class PomiSdk {
     ) {
       throw new UnexpectedResponseError(definition.operationId, response.status)
     }
-    if (!text || documented?.contents.length === 0) return undefined as T
+    if (!text || documented?.contentTypes.length === 0) return undefined as T
     const actualContentType = responseContentType(response)
     const content =
-      documented?.contents.find(
-        (item) => item.contentType === actualContentType,
-      ) ?? documented?.contents[0]
+      documented?.contentTypes.find(
+        (contentType) => contentType === actualContentType,
+      ) ?? documented?.contentTypes[0]
     return (
-      content?.contentType.includes('json') || !documented
+      content?.includes('json') || !documented
         ? (JSON.parse(text) as unknown)
         : text
     ) as T
   }
 }
 
-function bindDataOperations(client: PomiSdk) {
-  return Object.fromEntries(
-    (Object.keys(dataOperationDefinitions) as DataOperationName[]).map(
-      (name) => [
-        name,
-        (
-          input: DataOperationInputs[typeof name],
-          context?: PomiRequestContext,
-        ) => client.executeData(name, input, context),
-      ],
-    ),
-  ) as unknown as DataOperationApi
-}
-
-function bindAppOperations(client: PomiSdk) {
-  return Object.fromEntries(
-    (Object.keys(appOperationDefinitions) as AppOperationName[]).map((name) => [
-      name,
-      (input: AppOperationInputs[typeof name], context?: PomiRequestContext) =>
-        client.executeApp(name, input, context),
-    ]),
-  ) as unknown as AppOperationApi
-}
-
 export function createPomiSdk(options: PomiSdkOptions): PomiSdkClient {
   const client = new PomiSdk(options)
-  const dataOperations = bindDataOperations(client)
-  const appOperations = bindAppOperations(client)
+  const dataOperations = bindDataOperations(
+    <Name extends DataOperationName>(
+      name: Name,
+      input: DataOperationInputs[Name],
+      context?: PomiRequestContext,
+    ) => client.executeData(name, input, context),
+  )
+  const appOperations = bindAppOperations(
+    <Name extends AppOperationName>(
+      name: Name,
+      input: AppOperationInputs[Name],
+      context?: PomiRequestContext,
+    ) => client.executeApp(name, input, context),
+  )
   const requestPath: PomiSdkClient['requestPath'] = (
     target,
     path,

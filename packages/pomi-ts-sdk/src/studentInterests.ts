@@ -15,7 +15,7 @@ export function createStudentInterestsApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.studentTagInterests.list(
-      String(studentId),
+      studentId,
       {},
       context(getAccessToken),
     )
@@ -26,11 +26,9 @@ export function createStudentInterestsApi(client: PomiSdkClient) {
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentTagInterests.update(
-      String(studentId),
-      String(tagId),
-      { ...context(getAccessToken), allowUndocumentedSuccess: true },
-    )
+    return client.app.studentTagInterests.update(studentId, tagId, {
+      ...context(getAccessToken),
+    })
   }
 
   function deleteStudentTagInterest(
@@ -38,11 +36,9 @@ export function createStudentInterestsApi(client: PomiSdkClient) {
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentTagInterests.delete(
-      String(studentId),
-      String(tagId),
-      { ...context(getAccessToken), allowUndocumentedSuccess: true },
-    )
+    return client.app.studentTagInterests.delete(studentId, tagId, {
+      ...context(getAccessToken),
+    })
   }
 
   return {

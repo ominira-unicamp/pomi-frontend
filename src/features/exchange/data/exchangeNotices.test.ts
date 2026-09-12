@@ -19,13 +19,11 @@ function notice(
     place: {
       id,
       name: `Local ${id}`,
-      _paths: { notices: `/exchange-notices?placeId=${id}` },
     },
     registrationOriginalText: null,
     registrationStart: null,
     registrationEnd: null,
     files: [],
-    _paths: { self: `/exchange-notices/${id}` },
     ...values,
   }
 }

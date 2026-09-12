@@ -6,7 +6,7 @@ import type {
   SpecializationId,
 } from '@pomi/planner-domain/curriculum'
 
-import { pomiApi } from '@/api/client'
+import { pomiSdk } from '@/api/client'
 
 export const suggestionOnboardingPreferenceKey =
   'pomi.curriculum-planner.suggestion-onboarding-dismissed'
@@ -92,9 +92,9 @@ function parseSuggestion(value: unknown): CurriculumSuggestion {
 export async function loadCurriculumSuggestions(
   catalogProgramId: CatalogProgramId,
 ) {
-  const value = await pomiApi.curriculumSuggestions.listCurriculumSuggestions(
-    Number(catalogProgramId),
-  )
+  const value = await pomiSdk.data.curriculumSuggestions.list({
+    filter: { catalogProgramId: Number(catalogProgramId) },
+  })
   return value
     .map(parseSuggestion)
     .filter((suggestion) => suggestion.catalogProgramId === catalogProgramId)

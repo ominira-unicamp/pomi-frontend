@@ -633,6 +633,191 @@ export const componentSchemas = {
             "_paths"
         ]
     },
+    "ProfessorDataPortalProfileSummary": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": true
+            },
+            "professorId": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": true
+            },
+            "portalId": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": true
+            },
+            "name": {
+                "type": "string"
+            },
+            "email": {
+                "type": "string",
+                "nullable": true
+            },
+            "lattesAbstract": {
+                "type": "string",
+                "nullable": true
+            },
+            "unit": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "exclusiveMinimum": true
+                    },
+                    "code": {
+                        "type": "string"
+                    },
+                    "name": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "code",
+                    "name"
+                ],
+                "additionalProperties": false
+            },
+            "department": {
+                "$ref": "#/components/schemas/Department"
+            },
+            "position": {
+                "$ref": "#/components/schemas/ProfessorPosition"
+            },
+            "_paths": {
+                "type": "object",
+                "properties": {
+                    "self": {
+                        "type": "string"
+                    },
+                    "professor": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "self",
+                    "professor"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "required": [
+            "id",
+            "professorId",
+            "portalId",
+            "name",
+            "email",
+            "lattesAbstract",
+            "unit",
+            "department",
+            "position",
+            "_paths"
+        ],
+        "additionalProperties": false
+    },
+    "Department": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+            "id": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": true
+            },
+            "name": {
+                "type": "string"
+            },
+            "unitId": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": true
+            }
+        },
+        "required": [
+            "id",
+            "name",
+            "unitId"
+        ],
+        "additionalProperties": false
+    },
+    "ProfessorPosition": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+            "id": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": true
+            },
+            "canonicalKey": {
+                "type": "string"
+            },
+            "role": {
+                "type": "string"
+            },
+            "affiliationType": {
+                "type": "string"
+            },
+            "programCode": {
+                "type": "string",
+                "nullable": true
+            },
+            "postdoctoralModality": {
+                "type": "string",
+                "nullable": true
+            },
+            "careerReference": {
+                "$ref": "#/components/schemas/CareerReference"
+            }
+        },
+        "required": [
+            "id",
+            "canonicalKey",
+            "role",
+            "affiliationType",
+            "programCode",
+            "postdoctoralModality",
+            "careerReference"
+        ],
+        "additionalProperties": false
+    },
+    "CareerReference": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+            "career": {
+                "type": "string"
+            },
+            "code": {
+                "type": "string"
+            },
+            "rank": {
+                "type": "string",
+                "nullable": true
+            },
+            "category": {
+                "type": "string",
+                "nullable": true
+            },
+            "progressionOrder": {
+                "type": "integer"
+            }
+        },
+        "required": [
+            "career",
+            "code",
+            "rank",
+            "category",
+            "progressionOrder"
+        ],
+        "additionalProperties": false
+    },
     "ProfessorDataPortalProfile": {
         "type": "object",
         "properties": {
@@ -685,98 +870,10 @@ export const componentSchemas = {
                 "additionalProperties": false
             },
             "department": {
-                "type": "object",
-                "nullable": true,
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "exclusiveMinimum": true
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "unitId": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "exclusiveMinimum": true
-                    }
-                },
-                "required": [
-                    "id",
-                    "name",
-                    "unitId"
-                ],
-                "additionalProperties": false
+                "$ref": "#/components/schemas/Department"
             },
             "position": {
-                "type": "object",
-                "nullable": true,
-                "properties": {
-                    "id": {
-                        "type": "integer",
-                        "minimum": 0,
-                        "exclusiveMinimum": true
-                    },
-                    "canonicalKey": {
-                        "type": "string"
-                    },
-                    "role": {
-                        "type": "string"
-                    },
-                    "affiliationType": {
-                        "type": "string"
-                    },
-                    "programCode": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "postdoctoralModality": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "careerReference": {
-                        "type": "object",
-                        "nullable": true,
-                        "properties": {
-                            "career": {
-                                "type": "string"
-                            },
-                            "code": {
-                                "type": "string"
-                            },
-                            "rank": {
-                                "type": "string",
-                                "nullable": true
-                            },
-                            "category": {
-                                "type": "string",
-                                "nullable": true
-                            },
-                            "progressionOrder": {
-                                "type": "integer"
-                            }
-                        },
-                        "required": [
-                            "career",
-                            "code",
-                            "rank",
-                            "category",
-                            "progressionOrder"
-                        ],
-                        "additionalProperties": false
-                    }
-                },
-                "required": [
-                    "id",
-                    "canonicalKey",
-                    "role",
-                    "affiliationType",
-                    "programCode",
-                    "postdoctoralModality",
-                    "careerReference"
-                ],
-                "additionalProperties": false
+                "$ref": "#/components/schemas/ProfessorPosition"
             },
             "identifiers": {
                 "type": "array",
@@ -944,6 +1041,42 @@ export const componentSchemas = {
             "keywords",
             "coauthors",
             "_paths"
+        ],
+        "additionalProperties": false
+    },
+    "Keyword": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": true
+            },
+            "name": {
+                "type": "string"
+            }
+        },
+        "required": [
+            "id",
+            "name"
+        ],
+        "additionalProperties": false
+    },
+    "Coauthor": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": true
+            },
+            "name": {
+                "type": "string"
+            }
+        },
+        "required": [
+            "id",
+            "name"
         ],
         "additionalProperties": false
     },

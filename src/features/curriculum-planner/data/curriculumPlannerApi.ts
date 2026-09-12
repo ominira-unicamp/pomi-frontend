@@ -15,15 +15,14 @@ import type {
   SpecializationId,
 } from '@pomi/planner-domain/curriculum'
 
-import { pomiApi } from '@/api/client'
-import { ApiError } from '@/api/errors'
 import type {
   CurriculumApiBlockSet as ApiBlockSet,
   CurriculumApiCatalogProgram as ApiCatalogProgram,
   CurriculumApiCourse as ApiCourse,
   CurriculumApiCourseRequirement as ApiCourseRequirement,
-  CurriculumApiCoursesPage as ApiCoursesPage,
 } from '@ominira/pomi-sdk/curriculum-planner'
+import { ApiError } from '@/api/errors'
+import { pomiSdk } from '@/api/client'
 import { publicStaticDataCache } from '@/lib/publicStaticDataCache'
 
 const ok = <T>(value: T): PlannerResult<T> => ({ ok: true, value })
@@ -132,15 +131,6 @@ function parseCourse(value: unknown): ApiCourse {
   }
 }
 
-function parseCoursesPage(value: unknown): ApiCoursesPage {
-  if (!isRecord(value) || !isRecord(value._paths))
-    throw new TypeError('Expected courses page')
-  const next = value._paths.next
-  if (next !== null && typeof next !== 'string')
-    throw new TypeError('Expected next page')
-  return { data: expectArray(value.data).map(parseCourse), _paths: { next } }
-}
-
 function selectorFromApi(requirement: ApiCourseRequirement): CourseSelector {
   if (requirement.type === 'any') return { type: 'anyCourse' }
   if (requirement.type === 'specific' && requirement.courseId !== null) {
@@ -223,11 +213,11 @@ async function loadStaticData(): Promise<
 > {
   try {
     const [rawPrograms, coursesPage] = await Promise.all([
-      pomiApi.curriculumPlanner.listCatalogPrograms(),
-      pomiApi.curriculumPlanner.listCourses(),
+      pomiSdk.data.catalogProgram.list({}),
+      pomiSdk.data.courses.listAll({}),
     ])
     const programs = expectArray(rawPrograms).map(parseCatalogProgram)
-    const courses = parseCoursesPage(coursesPage).data
+    const courses = expectArray(coursesPage).map(parseCourse)
     return ok({
       catalogPrograms: programs
         .map((program) => ({

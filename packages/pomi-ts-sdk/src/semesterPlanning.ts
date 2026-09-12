@@ -10,6 +10,7 @@ import type {
   StudyPeriod as GeneratedStudyPeriod,
 } from './generated/data/domain.js'
 import type { PeriodPlanning as GeneratedPlanning } from './generated/app/domain.js'
+import type { PeriodPlanningEntityVisibility } from './generated/app/enums.js'
 import type { PomiSdkClient } from './generatedClient.js'
 
 export type SemesterApiStudyPeriod = GeneratedStudyPeriod
@@ -18,7 +19,7 @@ export type SemesterApiClass = GeneratedClass
 export type SemesterApiMeeting = GeneratedClassSchedule
 export type ProfessorEvaluationSummary = GeneratedProfessorEvaluationSummary
 
-export type SemesterPlanningVisibility = 'PRIVATE' | 'FRIENDS' | 'PUBLIC'
+export type SemesterPlanningVisibility = PeriodPlanningEntityVisibility
 
 export type SemesterPlanningGuideInput = Readonly<{
   mode: 'curriculum' | 'program' | 'none'
@@ -132,7 +133,7 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.periodPlannings.list(
-      String(studentId),
+      studentId,
       {},
       {
         getAccessToken,
@@ -145,7 +146,7 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
     planId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.periodPlannings.get(String(studentId), String(planId), {
+    return client.app.periodPlannings.get(studentId, planId, {
       getAccessToken,
     }) as Promise<PersistedSemesterPlanning>
   }
@@ -162,7 +163,7 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
       classes: [...document.classIds],
       guide: guideToApi(document.guide),
     }
-    return client.app.periodPlannings.create(String(studentId), body, {
+    return client.app.periodPlannings.create(studentId, body, {
       getAccessToken,
     }) as Promise<PersistedSemesterPlanning>
   }
@@ -179,14 +180,9 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
       classes: { set: [...document.classIds] },
       guide: guideToApi(document.guide),
     }
-    return client.app.periodPlannings.update(
-      String(studentId),
-      String(planId),
-      body,
-      {
-        getAccessToken,
-      },
-    ) as Promise<PersistedSemesterPlanning>
+    return client.app.periodPlannings.update(studentId, planId, body, {
+      getAccessToken,
+    }) as Promise<PersistedSemesterPlanning>
   }
 
   function updateSemesterPlanningVisibility(
@@ -196,8 +192,8 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.periodPlannings.update(
-      String(studentId),
-      String(planId),
+      studentId,
+      planId,
       { visibility },
       { getAccessToken },
     ) as Promise<PersistedSemesterPlanning>
@@ -208,7 +204,7 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
     planId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    await client.app.periodPlannings.delete(String(studentId), String(planId), {
+    await client.app.periodPlannings.delete(studentId, planId, {
       getAccessToken,
     })
   }

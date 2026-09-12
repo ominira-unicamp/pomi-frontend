@@ -1066,6 +1066,12 @@ export interface components {
                 remove?: number[];
             };
         };
+        SharedPeriodPlanningPage: {
+            items: components["schemas"]["SharedPeriodPlanning"][];
+            page: number;
+            pageSize: number;
+            total: number;
+        };
         SharedPeriodPlanning: {
 
             shareId: string;
@@ -1383,6 +1389,12 @@ export interface components {
                 roomCode: string;
             }[];
         };
+        StudentPeoplePage: {
+            items: components["schemas"]["StudentPublicPerson"][];
+            page: number;
+            pageSize: number;
+            total: number;
+        };
         StudentPublicPerson: {
 
             publicId: string;
@@ -1651,7 +1663,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                botAuthUserId: string;
+                botAuthUserId: number;
             };
             cookie?: never;
         };
@@ -1703,7 +1715,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1752,7 +1764,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1815,7 +1827,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1948,8 +1960,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -1998,8 +2010,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -2046,8 +2058,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -2141,7 +2153,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -2181,7 +2193,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -2255,8 +2267,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -2305,8 +2317,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -2353,8 +2365,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -2417,7 +2429,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -2457,7 +2469,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -2511,8 +2523,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -2561,8 +2573,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -2609,8 +2621,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -2673,7 +2685,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -2713,7 +2725,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -2765,8 +2777,8 @@ export interface operations {
     listSharedPeriodPlannings: {
         parameters: {
             query?: {
-                page?: string;
-                pageSize?: string;
+                page?: number;
+                pageSize?: number;
                 query?: string;
 
                 filter?: {
@@ -2788,12 +2800,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        items: components["schemas"]["SharedPeriodPlanning"][];
-                        page: number;
-                        pageSize: number;
-                        total: number;
-                    };
+                    "application/json": components["schemas"]["SharedPeriodPlanningPage"];
                 };
             };
 
@@ -2868,8 +2875,8 @@ export interface operations {
     listStudentSharedPeriodPlannings: {
         parameters: {
             query?: {
-                page?: string;
-                pageSize?: string;
+                page?: number;
+                pageSize?: number;
 
                 filter?: {
                     ownerPublicId?: string | {
@@ -2881,7 +2888,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -2893,12 +2900,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        items: components["schemas"]["SharedPeriodPlanning"][];
-                        page: number;
-                        pageSize: number;
-                        total: number;
-                    };
+                    "application/json": components["schemas"]["SharedPeriodPlanningPage"];
                 };
             };
 
@@ -2926,7 +2928,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
                 shareId: string;
             };
             cookie?: never;
@@ -2976,9 +2978,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                classId: string;
-                professorId: string;
+                sid: number;
+                classId: number;
+                professorId: number;
             };
             cookie?: never;
         };
@@ -3027,9 +3029,9 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                classId: string;
-                professorId: string;
+                sid: number;
+                classId: number;
+                professorId: number;
             };
             cookie?: never;
         };
@@ -3094,7 +3096,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -3134,8 +3136,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -3184,8 +3186,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -3232,8 +3234,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -3322,7 +3324,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -3362,7 +3364,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -3425,7 +3427,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -3496,7 +3498,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -3536,7 +3538,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -3599,8 +3601,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -3647,7 +3649,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -3696,7 +3698,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -3755,12 +3757,12 @@ export interface operations {
         parameters: {
             query?: {
                 query?: string;
-                page?: string;
-                pageSize?: string;
+                page?: number;
+                pageSize?: number;
             };
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -3772,12 +3774,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        items: components["schemas"]["StudentPublicPerson"][];
-                        page: number;
-                        pageSize: number;
-                        total: number;
-                    };
+                    "application/json": components["schemas"]["StudentPeoplePage"];
                 };
             };
 
@@ -3805,7 +3802,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
                 publicId: string;
             };
             cookie?: never;
@@ -3868,7 +3865,7 @@ export interface operations {
             };
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -3908,7 +3905,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -3974,8 +3971,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -4033,8 +4030,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                id: string;
+                sid: number;
+                id: number;
             };
             cookie?: never;
         };
@@ -4151,7 +4148,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -4191,7 +4188,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -4254,7 +4251,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -4294,7 +4291,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -5160,7 +5157,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
+                sid: number;
             };
             cookie?: never;
         };
@@ -5200,8 +5197,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                tagId: string;
+                sid: number;
+                tagId: number;
             };
             cookie?: never;
         };
@@ -5248,8 +5245,8 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                sid: string;
-                tagId: string;
+                sid: number;
+                tagId: number;
             };
             cookie?: never;
         };

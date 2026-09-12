@@ -10,10 +10,7 @@ export type PublicPerson = GeneratedPublicPerson
 export type PublicProfile = GeneratedPublicProfile
 
 export type PublicProfileUpdate = Readonly<
-  Pick<
-    PublicProfile,
-    'enabled' | 'displayName' | 'bio' | 'currentCoursesVisibility'
-  >
+  updateStudentPublicProfileInput['body']
 >
 
 export type Friendship = GeneratedFriendship
@@ -21,7 +18,7 @@ export type Friendship = GeneratedFriendship
 export function createStudentSocialApi(client: PomiSdkClient) {
   const getPublicProfile = (studentId: number, token: () => Promise<string>) =>
     client.app.studentPublicProfile.list(
-      String(studentId),
+      studentId,
       {},
       {
         getAccessToken: token,
@@ -33,11 +30,9 @@ export function createStudentSocialApi(client: PomiSdkClient) {
     body: Partial<PublicProfileUpdate>,
     token: () => Promise<string>,
   ) =>
-    client.app.studentPublicProfile.update(
-      String(studentId),
-      body as updateStudentPublicProfileInput['body'],
-      { getAccessToken: token },
-    )
+    client.app.studentPublicProfile.update(studentId, body, {
+      getAccessToken: token,
+    })
 
   const searchPeople = (
     studentId: number,
@@ -45,10 +40,10 @@ export function createStudentSocialApi(client: PomiSdkClient) {
     token: () => Promise<string>,
   ) => {
     return client.app.studentPeople.list(
-      String(studentId),
+      studentId,
       {
-        page: '1',
-        pageSize: '20',
+        page: 1,
+        pageSize: 20,
         query: query?.trim() || undefined,
       },
       { getAccessToken: token },
@@ -60,13 +55,13 @@ export function createStudentSocialApi(client: PomiSdkClient) {
     publicId: string,
     token: () => Promise<string>,
   ) =>
-    client.app.studentPeople.get(String(studentId), publicId, {
+    client.app.studentPeople.get(studentId, publicId, {
       getAccessToken: token,
     })
 
   const listFriendships = (studentId: number, token: () => Promise<string>) =>
     client.app.studentFriendships.list(
-      String(studentId),
+      studentId,
       {},
       {
         getAccessToken: token,
@@ -79,7 +74,7 @@ export function createStudentSocialApi(client: PomiSdkClient) {
     token: () => Promise<string>,
   ) =>
     client.app.studentFriendships.create(
-      String(studentId),
+      studentId,
       { targetPublicId },
       {
         getAccessToken: token,
@@ -91,7 +86,7 @@ export function createStudentSocialApi(client: PomiSdkClient) {
     id: number,
     token: () => Promise<string>,
   ) =>
-    client.app.studentFriendshipsAccept.create(String(studentId), String(id), {
+    client.app.studentFriendshipsAccept.create(studentId, id, {
       getAccessToken: token,
     })
 
@@ -100,7 +95,7 @@ export function createStudentSocialApi(client: PomiSdkClient) {
     id: number,
     token: () => Promise<string>,
   ) {
-    await client.app.studentFriendships.delete(String(studentId), String(id), {
+    await client.app.studentFriendships.delete(studentId, id, {
       getAccessToken: token,
     })
   }

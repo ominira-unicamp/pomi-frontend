@@ -13,3 +13,4 @@ const dataApiUrl = configuredDataApiUrl || 'http://localhost:3000'
 const appApiUrl = configuredAppApiUrl || 'http://localhost:3001'
 
 export const pomiApi = createPomiApi({ dataApiUrl, appApiUrl })
+export const pomiSdk = pomiApi.generated

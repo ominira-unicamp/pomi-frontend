@@ -1397,6 +1397,33 @@ export const componentSchemas = {
         },
         "additionalProperties": false
     },
+    "SharedPeriodPlanningPage": {
+        "type": "object",
+        "properties": {
+            "items": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/SharedPeriodPlanning"
+                }
+            },
+            "page": {
+                "type": "integer"
+            },
+            "pageSize": {
+                "type": "integer"
+            },
+            "total": {
+                "type": "integer"
+            }
+        },
+        "required": [
+            "items",
+            "page",
+            "pageSize",
+            "total"
+        ],
+        "additionalProperties": false
+    },
     "SharedPeriodPlanning": {
         "type": "object",
         "properties": {
@@ -2802,6 +2829,33 @@ export const componentSchemas = {
         ],
         "additionalProperties": false
     },
+    "StudentPeoplePage": {
+        "type": "object",
+        "properties": {
+            "items": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/StudentPublicPerson"
+                }
+            },
+            "page": {
+                "type": "number"
+            },
+            "pageSize": {
+                "type": "number"
+            },
+            "total": {
+                "type": "number"
+            }
+        },
+        "required": [
+            "items",
+            "page",
+            "pageSize",
+            "total"
+        ],
+        "additionalProperties": false
+    },
     "StudentPublicPerson": {
         "type": "object",
         "properties": {
@@ -3860,7 +3914,8 @@ export const queryCapabilities = {
                 "style": null,
                 "explode": null,
                 "schema": {
-                    "type": "string",
+                    "type": "integer",
+                    "minimum": 1,
                     "default": 1
                 }
             },
@@ -3871,7 +3926,9 @@ export const queryCapabilities = {
                 "style": null,
                 "explode": null,
                 "schema": {
-                    "type": "string",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50,
                     "default": 20
                 }
             },
@@ -4331,7 +4388,8 @@ export const queryCapabilities = {
                 "style": null,
                 "explode": null,
                 "schema": {
-                    "type": "string",
+                    "type": "integer",
+                    "minimum": 1,
                     "default": 1
                 }
             },
@@ -4342,7 +4400,9 @@ export const queryCapabilities = {
                 "style": null,
                 "explode": null,
                 "schema": {
-                    "type": "string",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50,
                     "default": 20
                 }
             }
@@ -4463,7 +4523,8 @@ export const queryCapabilities = {
                 "style": null,
                 "explode": null,
                 "schema": {
-                    "type": "string",
+                    "type": "integer",
+                    "minimum": 1,
                     "default": 1
                 }
             },
@@ -4474,7 +4535,9 @@ export const queryCapabilities = {
                 "style": null,
                 "explode": null,
                 "schema": {
-                    "type": "string",
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50,
                     "default": 20
                 }
             },

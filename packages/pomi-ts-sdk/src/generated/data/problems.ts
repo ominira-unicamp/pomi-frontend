@@ -1,3 +1,5 @@
+import type { components } from './openapi.js'
+
 export const problemCatalog = {
     "urn:pomi:problem:invalid-request": {
         "schemaName": "InvalidRequestProblem",
@@ -263,3 +265,11 @@ export const operationProblemTypes = {
 } as const
 
 export type ProblemType = keyof typeof problemCatalog
+export type ProblemByType = {
+    "urn:pomi:problem:invalid-request": components['schemas']["InvalidRequestProblem"]
+    "urn:pomi:problem:internal-server-error": components['schemas']["InternalServerErrorProblem"]
+    "urn:pomi:problem:resource-not-found": components['schemas']["ResourceNotFoundProblem"]
+}
+export type AnyProblem = ProblemByType[ProblemType]
+export type OperationProblem<Name extends keyof typeof operationProblemTypes> =
+    ProblemByType[(typeof operationProblemTypes)[Name][number] & ProblemType]

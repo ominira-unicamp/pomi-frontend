@@ -41,10 +41,10 @@ export function createSharedPeriodPlanningApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.studentSharedPeriodPlannings.list(
-      String(studentId),
+      studentId,
       {
-        page: '1',
-        pageSize: '20',
+        page: 1,
+        pageSize: 20,
         filter: { ownerPublicId },
       },
       { getAccessToken },
@@ -67,13 +67,9 @@ export function createSharedPeriodPlanningApi(client: PomiSdkClient) {
     shareId: string,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentSharedPeriodPlannings.get(
-      String(studentId),
-      shareId,
-      {
-        getAccessToken,
-      },
-    )
+    return client.app.studentSharedPeriodPlannings.get(studentId, shareId, {
+      getAccessToken,
+    })
   }
 
   async function copySharedPeriodPlanning(
@@ -86,7 +82,7 @@ export function createSharedPeriodPlanningApi(client: PomiSdkClient) {
       studyPeriodId: planning.studyPeriodId,
       classes: planning.classes.map((classItem) => classItem.id),
     }
-    return client.app.periodPlannings.create(String(studentId), body, {
+    return client.app.periodPlannings.create(studentId, body, {
       getAccessToken,
     })
   }

@@ -1,6 +1,5 @@
 import type { operations } from './openapi.js'
 import type { GeneratedOperationDefinition } from '../../runtime/operation.js'
-import type { StudentCourseAttempt, Category, Tag, TagRelatedCourse, FeedbackReportAccepted, StudentAbsence, StudentHistoryImportSummary, Curriculum, StudentFriendship, PeriodPlanning, Student, SharedPeriodPlanning, StudentPublicPerson, BotIdentity, CurrentUser, BotGrant, ProfessorEvaluationEligibility, CurriculumSummary, ExchangeNoticeSubscription, FeedbackReport, PendingProfessorEvaluation, StudentPublicProfile, StudentTagInterest, ProfessorEvaluation, Page } from './domain.js'
 
 type ParameterRecord<T> = [NonNullable<T>] extends [never] ? {} : NonNullable<T>
 type RequestBodyOf<T> = T extends { requestBody: { content: infer Content } }
@@ -18,46 +17,46 @@ type OperationInput<Path, Query, Header, Body, BodyRequired extends boolean> =
     ParameterRecord<Path> & ParameterRecord<Query> & HeaderInput<Header> & BodyInput<Body, BodyRequired>
 
 export type createCategoriesInput = OperationInput<operations["createCategories"]['parameters']['path'], operations["createCategories"]['parameters']['query'], operations["createCategories"]['parameters']['header'], RequestBodyOf<operations["createCategories"]>, true>
-export type createCategoriesOutput = Category
+export type createCategoriesOutput = import('./domain.js').Category
 export type createCategoriesProblem = operations["createCategories"]['responses'][400]['content']["application/problem+json"] | operations["createCategories"]['responses'][409]['content']["application/problem+json"] | operations["createCategories"]['responses'][500]['content']["application/problem+json"]
 export type createExchangeNoticeSubscriptionsUnsubscribeInput = OperationInput<operations["createExchangeNoticeSubscriptionsUnsubscribe"]['parameters']['path'], operations["createExchangeNoticeSubscriptionsUnsubscribe"]['parameters']['query'], operations["createExchangeNoticeSubscriptionsUnsubscribe"]['parameters']['header'], RequestBodyOf<operations["createExchangeNoticeSubscriptionsUnsubscribe"]>, false>
 export type createExchangeNoticeSubscriptionsUnsubscribeOutput = operations["createExchangeNoticeSubscriptionsUnsubscribe"]['responses'][200]['content']["application/json"]
 export type createExchangeNoticeSubscriptionsUnsubscribeProblem = operations["createExchangeNoticeSubscriptionsUnsubscribe"]['responses'][400]['content']["application/problem+json"] | operations["createExchangeNoticeSubscriptionsUnsubscribe"]['responses'][500]['content']["application/problem+json"]
 export type createFeedbackReportsInput = OperationInput<operations["createFeedbackReports"]['parameters']['path'], operations["createFeedbackReports"]['parameters']['query'], operations["createFeedbackReports"]['parameters']['header'], RequestBodyOf<operations["createFeedbackReports"]>, true>
-export type createFeedbackReportsOutput = FeedbackReportAccepted
+export type createFeedbackReportsOutput = import('./domain.js').FeedbackReportAccepted
 export type createFeedbackReportsProblem = operations["createFeedbackReports"]['responses'][400]['content']["application/problem+json"] | operations["createFeedbackReports"]['responses'][404]['content']["application/problem+json"] | operations["createFeedbackReports"]['responses'][422]['content']["application/problem+json"] | operations["createFeedbackReports"]['responses'][429]['content']["application/problem+json"] | operations["createFeedbackReports"]['responses'][500]['content']["application/problem+json"]
 export type createStudentAbsencesInput = OperationInput<operations["createStudentAbsences"]['parameters']['path'], operations["createStudentAbsences"]['parameters']['query'], operations["createStudentAbsences"]['parameters']['header'], RequestBodyOf<operations["createStudentAbsences"]>, true>
-export type createStudentAbsencesOutput = StudentAbsence
+export type createStudentAbsencesOutput = import('./domain.js').StudentAbsence
 export type createStudentAbsencesProblem = operations["createStudentAbsences"]['responses'][400]['content']["application/problem+json"] | operations["createStudentAbsences"]['responses'][409]['content']["application/problem+json"] | operations["createStudentAbsences"]['responses'][422]['content']["application/problem+json"] | operations["createStudentAbsences"]['responses'][500]['content']["application/problem+json"]
 export type createStudentCourseAttemptsInput = OperationInput<operations["createStudentCourseAttempts"]['parameters']['path'], operations["createStudentCourseAttempts"]['parameters']['query'], operations["createStudentCourseAttempts"]['parameters']['header'], RequestBodyOf<operations["createStudentCourseAttempts"]>, true>
-export type createStudentCourseAttemptsOutput = StudentCourseAttempt
+export type createStudentCourseAttemptsOutput = import('./domain.js').StudentCourseAttempt
 export type createStudentCourseAttemptsProblem = operations["createStudentCourseAttempts"]['responses'][400]['content']["application/problem+json"] | operations["createStudentCourseAttempts"]['responses'][409]['content']["application/problem+json"] | operations["createStudentCourseAttempts"]['responses'][422]['content']["application/problem+json"] | operations["createStudentCourseAttempts"]['responses'][500]['content']["application/problem+json"]
 export type createStudentCourseHistoryInput = OperationInput<operations["createStudentCourseHistory"]['parameters']['path'], operations["createStudentCourseHistory"]['parameters']['query'], operations["createStudentCourseHistory"]['parameters']['header'], RequestBodyOf<operations["createStudentCourseHistory"]>, true>
-export type createStudentCourseHistoryOutput = StudentHistoryImportSummary
+export type createStudentCourseHistoryOutput = import('./domain.js').StudentHistoryImportSummary
 export type createStudentCourseHistoryProblem = operations["createStudentCourseHistory"]['responses'][400]['content']["application/problem+json"] | operations["createStudentCourseHistory"]['responses'][404]['content']["application/problem+json"] | operations["createStudentCourseHistory"]['responses'][422]['content']["application/problem+json"] | operations["createStudentCourseHistory"]['responses'][500]['content']["application/problem+json"]
 export type createStudentCurriculaInput = OperationInput<operations["createStudentCurricula"]['parameters']['path'], operations["createStudentCurricula"]['parameters']['query'], operations["createStudentCurricula"]['parameters']['header'], RequestBodyOf<operations["createStudentCurricula"]>, true>
-export type createStudentCurriculaOutput = Curriculum
+export type createStudentCurriculaOutput = import('./domain.js').Curriculum
 export type createStudentCurriculaProblem = operations["createStudentCurricula"]['responses'][400]['content']["application/problem+json"] | operations["createStudentCurricula"]['responses'][422]['content']["application/problem+json"] | operations["createStudentCurricula"]['responses'][500]['content']["application/problem+json"]
 export type createStudentFeedbackReportsInput = OperationInput<operations["createStudentFeedbackReports"]['parameters']['path'], operations["createStudentFeedbackReports"]['parameters']['query'], operations["createStudentFeedbackReports"]['parameters']['header'], RequestBodyOf<operations["createStudentFeedbackReports"]>, true>
-export type createStudentFeedbackReportsOutput = FeedbackReportAccepted
+export type createStudentFeedbackReportsOutput = import('./domain.js').FeedbackReportAccepted
 export type createStudentFeedbackReportsProblem = operations["createStudentFeedbackReports"]['responses'][400]['content']["application/problem+json"] | operations["createStudentFeedbackReports"]['responses'][404]['content']["application/problem+json"] | operations["createStudentFeedbackReports"]['responses'][422]['content']["application/problem+json"] | operations["createStudentFeedbackReports"]['responses'][500]['content']["application/problem+json"]
 export type createStudentFriendshipsInput = OperationInput<operations["createStudentFriendships"]['parameters']['path'], operations["createStudentFriendships"]['parameters']['query'], operations["createStudentFriendships"]['parameters']['header'], RequestBodyOf<operations["createStudentFriendships"]>, true>
-export type createStudentFriendshipsOutput = StudentFriendship
+export type createStudentFriendshipsOutput = import('./domain.js').StudentFriendship
 export type createStudentFriendshipsProblem = operations["createStudentFriendships"]['responses'][400]['content']["application/problem+json"] | operations["createStudentFriendships"]['responses'][404]['content']["application/problem+json"] | operations["createStudentFriendships"]['responses'][409]['content']["application/problem+json"] | operations["createStudentFriendships"]['responses'][500]['content']["application/problem+json"]
 export type createStudentFriendshipsAcceptInput = OperationInput<operations["createStudentFriendshipsAccept"]['parameters']['path'], operations["createStudentFriendshipsAccept"]['parameters']['query'], operations["createStudentFriendshipsAccept"]['parameters']['header'], RequestBodyOf<operations["createStudentFriendshipsAccept"]>, false>
-export type createStudentFriendshipsAcceptOutput = StudentFriendship
+export type createStudentFriendshipsAcceptOutput = import('./domain.js').StudentFriendship
 export type createStudentFriendshipsAcceptProblem = operations["createStudentFriendshipsAccept"]['responses'][400]['content']["application/problem+json"] | operations["createStudentFriendshipsAccept"]['responses'][404]['content']["application/problem+json"] | operations["createStudentFriendshipsAccept"]['responses'][409]['content']["application/problem+json"] | operations["createStudentFriendshipsAccept"]['responses'][500]['content']["application/problem+json"]
 export type createStudentPeriodPlanInput = OperationInput<operations["createStudentPeriodPlan"]['parameters']['path'], operations["createStudentPeriodPlan"]['parameters']['query'], operations["createStudentPeriodPlan"]['parameters']['header'], RequestBodyOf<operations["createStudentPeriodPlan"]>, true>
-export type createStudentPeriodPlanOutput = PeriodPlanning
+export type createStudentPeriodPlanOutput = import('./domain.js').PeriodPlanning
 export type createStudentPeriodPlanProblem = operations["createStudentPeriodPlan"]['responses'][400]['content']["application/problem+json"] | operations["createStudentPeriodPlan"]['responses'][422]['content']["application/problem+json"] | operations["createStudentPeriodPlan"]['responses'][500]['content']["application/problem+json"]
 export type createStudentPeriodPlanningsInput = OperationInput<operations["createStudentPeriodPlannings"]['parameters']['path'], operations["createStudentPeriodPlannings"]['parameters']['query'], operations["createStudentPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["createStudentPeriodPlannings"]>, true>
-export type createStudentPeriodPlanningsOutput = PeriodPlanning
+export type createStudentPeriodPlanningsOutput = import('./domain.js').PeriodPlanning
 export type createStudentPeriodPlanningsProblem = operations["createStudentPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["createStudentPeriodPlannings"]['responses'][422]['content']["application/problem+json"] | operations["createStudentPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
 export type createStudentsInput = OperationInput<operations["createStudents"]['parameters']['path'], operations["createStudents"]['parameters']['query'], operations["createStudents"]['parameters']['header'], RequestBodyOf<operations["createStudents"]>, true>
-export type createStudentsOutput = Student
+export type createStudentsOutput = import('./domain.js').Student
 export type createStudentsProblem = operations["createStudents"]['responses'][400]['content']["application/problem+json"] | operations["createStudents"]['responses'][409]['content']["application/problem+json"] | operations["createStudents"]['responses'][422]['content']["application/problem+json"] | operations["createStudents"]['responses'][500]['content']["application/problem+json"]
 export type createTagsInput = OperationInput<operations["createTags"]['parameters']['path'], operations["createTags"]['parameters']['query'], operations["createTags"]['parameters']['header'], RequestBodyOf<operations["createTags"]>, true>
-export type createTagsOutput = Tag
+export type createTagsOutput = import('./domain.js').Tag
 export type createTagsProblem = operations["createTags"]['responses'][400]['content']["application/problem+json"] | operations["createTags"]['responses'][409]['content']["application/problem+json"] | operations["createTags"]['responses'][422]['content']["application/problem+json"] | operations["createTags"]['responses'][500]['content']["application/problem+json"]
 export type deleteCategoriesInput = OperationInput<operations["deleteCategories"]['parameters']['path'], operations["deleteCategories"]['parameters']['query'], operations["deleteCategories"]['parameters']['header'], RequestBodyOf<operations["deleteCategories"]>, false>
 export type deleteCategoriesOutput = void
@@ -93,103 +92,103 @@ export type deleteTagsInput = OperationInput<operations["deleteTags"]['parameter
 export type deleteTagsOutput = void
 export type deleteTagsProblem = operations["deleteTags"]['responses'][400]['content']["application/problem+json"] | operations["deleteTags"]['responses'][404]['content']["application/problem+json"] | operations["deleteTags"]['responses'][409]['content']["application/problem+json"] | operations["deleteTags"]['responses'][500]['content']["application/problem+json"]
 export type getCategoriesInput = OperationInput<operations["getCategories"]['parameters']['path'], operations["getCategories"]['parameters']['query'], operations["getCategories"]['parameters']['header'], RequestBodyOf<operations["getCategories"]>, false>
-export type getCategoriesOutput = Category
+export type getCategoriesOutput = import('./domain.js').Category
 export type getCategoriesProblem = operations["getCategories"]['responses'][400]['content']["application/problem+json"] | operations["getCategories"]['responses'][404]['content']["application/problem+json"] | operations["getCategories"]['responses'][500]['content']["application/problem+json"]
 export type getSharedPeriodPlanningsInput = OperationInput<operations["getSharedPeriodPlannings"]['parameters']['path'], operations["getSharedPeriodPlannings"]['parameters']['query'], operations["getSharedPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["getSharedPeriodPlannings"]>, false>
-export type getSharedPeriodPlanningsOutput = SharedPeriodPlanning
+export type getSharedPeriodPlanningsOutput = import('./domain.js').SharedPeriodPlanning
 export type getSharedPeriodPlanningsProblem = operations["getSharedPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["getSharedPeriodPlannings"]['responses'][404]['content']["application/problem+json"] | operations["getSharedPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
 export type getStudentCourseAttemptsInput = OperationInput<operations["getStudentCourseAttempts"]['parameters']['path'], operations["getStudentCourseAttempts"]['parameters']['query'], operations["getStudentCourseAttempts"]['parameters']['header'], RequestBodyOf<operations["getStudentCourseAttempts"]>, false>
-export type getStudentCourseAttemptsOutput = StudentCourseAttempt
+export type getStudentCourseAttemptsOutput = import('./domain.js').StudentCourseAttempt
 export type getStudentCourseAttemptsProblem = operations["getStudentCourseAttempts"]['responses'][400]['content']["application/problem+json"] | operations["getStudentCourseAttempts"]['responses'][404]['content']["application/problem+json"] | operations["getStudentCourseAttempts"]['responses'][500]['content']["application/problem+json"]
 export type getStudentCurriculaInput = OperationInput<operations["getStudentCurricula"]['parameters']['path'], operations["getStudentCurricula"]['parameters']['query'], operations["getStudentCurricula"]['parameters']['header'], RequestBodyOf<operations["getStudentCurricula"]>, false>
-export type getStudentCurriculaOutput = Curriculum
+export type getStudentCurriculaOutput = import('./domain.js').Curriculum
 export type getStudentCurriculaProblem = operations["getStudentCurricula"]['responses'][400]['content']["application/problem+json"] | operations["getStudentCurricula"]['responses'][404]['content']["application/problem+json"] | operations["getStudentCurricula"]['responses'][500]['content']["application/problem+json"]
 export type getStudentPeopleInput = OperationInput<operations["getStudentPeople"]['parameters']['path'], operations["getStudentPeople"]['parameters']['query'], operations["getStudentPeople"]['parameters']['header'], RequestBodyOf<operations["getStudentPeople"]>, false>
-export type getStudentPeopleOutput = StudentPublicPerson
+export type getStudentPeopleOutput = import('./domain.js').StudentPublicPerson
 export type getStudentPeopleProblem = operations["getStudentPeople"]['responses'][400]['content']["application/problem+json"] | operations["getStudentPeople"]['responses'][404]['content']["application/problem+json"] | operations["getStudentPeople"]['responses'][500]['content']["application/problem+json"]
 export type getStudentPeriodPlanInput = OperationInput<operations["getStudentPeriodPlan"]['parameters']['path'], operations["getStudentPeriodPlan"]['parameters']['query'], operations["getStudentPeriodPlan"]['parameters']['header'], RequestBodyOf<operations["getStudentPeriodPlan"]>, false>
-export type getStudentPeriodPlanOutput = PeriodPlanning
+export type getStudentPeriodPlanOutput = import('./domain.js').PeriodPlanning
 export type getStudentPeriodPlanProblem = operations["getStudentPeriodPlan"]['responses'][400]['content']["application/problem+json"] | operations["getStudentPeriodPlan"]['responses'][404]['content']["application/problem+json"] | operations["getStudentPeriodPlan"]['responses'][500]['content']["application/problem+json"]
 export type getStudentPeriodPlanningsInput = OperationInput<operations["getStudentPeriodPlannings"]['parameters']['path'], operations["getStudentPeriodPlannings"]['parameters']['query'], operations["getStudentPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["getStudentPeriodPlannings"]>, false>
-export type getStudentPeriodPlanningsOutput = PeriodPlanning
+export type getStudentPeriodPlanningsOutput = import('./domain.js').PeriodPlanning
 export type getStudentPeriodPlanningsProblem = operations["getStudentPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["getStudentPeriodPlannings"]['responses'][404]['content']["application/problem+json"] | operations["getStudentPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
 export type getStudentsInput = OperationInput<operations["getStudents"]['parameters']['path'], operations["getStudents"]['parameters']['query'], operations["getStudents"]['parameters']['header'], RequestBodyOf<operations["getStudents"]>, false>
-export type getStudentsOutput = Student
+export type getStudentsOutput = import('./domain.js').Student
 export type getStudentsProblem = operations["getStudents"]['responses'][400]['content']["application/problem+json"] | operations["getStudents"]['responses'][404]['content']["application/problem+json"] | operations["getStudents"]['responses'][500]['content']["application/problem+json"]
 export type getStudentSharedPeriodPlanningsInput = OperationInput<operations["getStudentSharedPeriodPlannings"]['parameters']['path'], operations["getStudentSharedPeriodPlannings"]['parameters']['query'], operations["getStudentSharedPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["getStudentSharedPeriodPlannings"]>, false>
-export type getStudentSharedPeriodPlanningsOutput = SharedPeriodPlanning
+export type getStudentSharedPeriodPlanningsOutput = import('./domain.js').SharedPeriodPlanning
 export type getStudentSharedPeriodPlanningsProblem = operations["getStudentSharedPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["getStudentSharedPeriodPlannings"]['responses'][404]['content']["application/problem+json"] | operations["getStudentSharedPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
 export type getTagsInput = OperationInput<operations["getTags"]['parameters']['path'], operations["getTags"]['parameters']['query'], operations["getTags"]['parameters']['header'], RequestBodyOf<operations["getTags"]>, false>
-export type getTagsOutput = Tag
+export type getTagsOutput = import('./domain.js').Tag
 export type getTagsProblem = operations["getTags"]['responses'][400]['content']["application/problem+json"] | operations["getTags"]['responses'][404]['content']["application/problem+json"] | operations["getTags"]['responses'][500]['content']["application/problem+json"]
 export type listBotsInput = OperationInput<operations["listBots"]['parameters']['path'], operations["listBots"]['parameters']['query'], operations["listBots"]['parameters']['header'], RequestBodyOf<operations["listBots"]>, false>
-export type listBotsOutput = ReadonlyArray<BotIdentity>
+export type listBotsOutput = ReadonlyArray<import('./domain.js').BotIdentity>
 export type listBotsProblem = operations["listBots"]['responses'][400]['content']["application/problem+json"] | operations["listBots"]['responses'][500]['content']["application/problem+json"]
 export type listCategoriesInput = OperationInput<operations["listCategories"]['parameters']['path'], operations["listCategories"]['parameters']['query'], operations["listCategories"]['parameters']['header'], RequestBodyOf<operations["listCategories"]>, false>
-export type listCategoriesOutput = ReadonlyArray<Category>
+export type listCategoriesOutput = ReadonlyArray<import('./domain.js').Category>
 export type listCategoriesProblem = operations["listCategories"]['responses'][400]['content']["application/problem+json"] | operations["listCategories"]['responses'][500]['content']["application/problem+json"]
 export type listCoursesTagsInput = OperationInput<operations["listCoursesTags"]['parameters']['path'], operations["listCoursesTags"]['parameters']['query'], operations["listCoursesTags"]['parameters']['header'], RequestBodyOf<operations["listCoursesTags"]>, false>
-export type listCoursesTagsOutput = ReadonlyArray<Tag>
+export type listCoursesTagsOutput = ReadonlyArray<import('./domain.js').Tag>
 export type listCoursesTagsProblem = operations["listCoursesTags"]['responses'][400]['content']["application/problem+json"] | operations["listCoursesTags"]['responses'][404]['content']["application/problem+json"] | operations["listCoursesTags"]['responses'][500]['content']["application/problem+json"]
 export type listMeInput = OperationInput<operations["listMe"]['parameters']['path'], operations["listMe"]['parameters']['query'], operations["listMe"]['parameters']['header'], RequestBodyOf<operations["listMe"]>, false>
-export type listMeOutput = CurrentUser
+export type listMeOutput = import('./domain.js').CurrentUser
 export type listMeProblem = operations["listMe"]['responses'][400]['content']["application/problem+json"] | operations["listMe"]['responses'][500]['content']["application/problem+json"]
 export type listMeBotGrantsInput = OperationInput<operations["listMeBotGrants"]['parameters']['path'], operations["listMeBotGrants"]['parameters']['query'], operations["listMeBotGrants"]['parameters']['header'], RequestBodyOf<operations["listMeBotGrants"]>, false>
-export type listMeBotGrantsOutput = ReadonlyArray<BotGrant>
+export type listMeBotGrantsOutput = ReadonlyArray<import('./domain.js').BotGrant>
 export type listMeBotGrantsProblem = operations["listMeBotGrants"]['responses'][400]['content']["application/problem+json"] | operations["listMeBotGrants"]['responses'][500]['content']["application/problem+json"]
 export type listSharedPeriodPlanningsInput = OperationInput<operations["listSharedPeriodPlannings"]['parameters']['path'], operations["listSharedPeriodPlannings"]['parameters']['query'], operations["listSharedPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["listSharedPeriodPlannings"]>, false>
-export type listSharedPeriodPlanningsOutput = operations["listSharedPeriodPlannings"]['responses'][200]['content']["application/json"]
+export type listSharedPeriodPlanningsOutput = import('./domain.js').SharedPeriodPlanningPage
 export type listSharedPeriodPlanningsProblem = operations["listSharedPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["listSharedPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
 export type listStudentAbsencesInput = OperationInput<operations["listStudentAbsences"]['parameters']['path'], operations["listStudentAbsences"]['parameters']['query'], operations["listStudentAbsences"]['parameters']['header'], RequestBodyOf<operations["listStudentAbsences"]>, false>
-export type listStudentAbsencesOutput = ReadonlyArray<StudentAbsence>
+export type listStudentAbsencesOutput = ReadonlyArray<import('./domain.js').StudentAbsence>
 export type listStudentAbsencesProblem = operations["listStudentAbsences"]['responses'][400]['content']["application/problem+json"] | operations["listStudentAbsences"]['responses'][500]['content']["application/problem+json"]
 export type listStudentClassesProfessorsEvaluationInput = OperationInput<operations["listStudentClassesProfessorsEvaluation"]['parameters']['path'], operations["listStudentClassesProfessorsEvaluation"]['parameters']['query'], operations["listStudentClassesProfessorsEvaluation"]['parameters']['header'], RequestBodyOf<operations["listStudentClassesProfessorsEvaluation"]>, false>
-export type listStudentClassesProfessorsEvaluationOutput = ProfessorEvaluationEligibility
+export type listStudentClassesProfessorsEvaluationOutput = import('./domain.js').ProfessorEvaluationEligibility
 export type listStudentClassesProfessorsEvaluationProblem = operations["listStudentClassesProfessorsEvaluation"]['responses'][400]['content']["application/problem+json"] | operations["listStudentClassesProfessorsEvaluation"]['responses'][422]['content']["application/problem+json"] | operations["listStudentClassesProfessorsEvaluation"]['responses'][500]['content']["application/problem+json"]
 export type listStudentCourseAttemptsInput = OperationInput<operations["listStudentCourseAttempts"]['parameters']['path'], operations["listStudentCourseAttempts"]['parameters']['query'], operations["listStudentCourseAttempts"]['parameters']['header'], RequestBodyOf<operations["listStudentCourseAttempts"]>, false>
-export type listStudentCourseAttemptsOutput = ReadonlyArray<StudentCourseAttempt>
+export type listStudentCourseAttemptsOutput = ReadonlyArray<import('./domain.js').StudentCourseAttempt>
 export type listStudentCourseAttemptsProblem = operations["listStudentCourseAttempts"]['responses'][400]['content']["application/problem+json"] | operations["listStudentCourseAttempts"]['responses'][500]['content']["application/problem+json"]
 export type listStudentCurriculaInput = OperationInput<operations["listStudentCurricula"]['parameters']['path'], operations["listStudentCurricula"]['parameters']['query'], operations["listStudentCurricula"]['parameters']['header'], RequestBodyOf<operations["listStudentCurricula"]>, false>
-export type listStudentCurriculaOutput = ReadonlyArray<CurriculumSummary>
+export type listStudentCurriculaOutput = ReadonlyArray<import('./domain.js').CurriculumSummary>
 export type listStudentCurriculaProblem = operations["listStudentCurricula"]['responses'][400]['content']["application/problem+json"] | operations["listStudentCurricula"]['responses'][500]['content']["application/problem+json"]
 export type listStudentExchangeNoticeSubscriptionInput = OperationInput<operations["listStudentExchangeNoticeSubscription"]['parameters']['path'], operations["listStudentExchangeNoticeSubscription"]['parameters']['query'], operations["listStudentExchangeNoticeSubscription"]['parameters']['header'], RequestBodyOf<operations["listStudentExchangeNoticeSubscription"]>, false>
-export type listStudentExchangeNoticeSubscriptionOutput = ExchangeNoticeSubscription
+export type listStudentExchangeNoticeSubscriptionOutput = import('./domain.js').ExchangeNoticeSubscription
 export type listStudentExchangeNoticeSubscriptionProblem = operations["listStudentExchangeNoticeSubscription"]['responses'][400]['content']["application/problem+json"] | operations["listStudentExchangeNoticeSubscription"]['responses'][500]['content']["application/problem+json"]
 export type listStudentFeedbackReportsInput = OperationInput<operations["listStudentFeedbackReports"]['parameters']['path'], operations["listStudentFeedbackReports"]['parameters']['query'], operations["listStudentFeedbackReports"]['parameters']['header'], RequestBodyOf<operations["listStudentFeedbackReports"]>, false>
-export type listStudentFeedbackReportsOutput = ReadonlyArray<FeedbackReport>
+export type listStudentFeedbackReportsOutput = ReadonlyArray<import('./domain.js').FeedbackReport>
 export type listStudentFeedbackReportsProblem = operations["listStudentFeedbackReports"]['responses'][400]['content']["application/problem+json"] | operations["listStudentFeedbackReports"]['responses'][500]['content']["application/problem+json"]
 export type listStudentFriendshipsInput = OperationInput<operations["listStudentFriendships"]['parameters']['path'], operations["listStudentFriendships"]['parameters']['query'], operations["listStudentFriendships"]['parameters']['header'], RequestBodyOf<operations["listStudentFriendships"]>, false>
-export type listStudentFriendshipsOutput = ReadonlyArray<StudentFriendship>
+export type listStudentFriendshipsOutput = ReadonlyArray<import('./domain.js').StudentFriendship>
 export type listStudentFriendshipsProblem = operations["listStudentFriendships"]['responses'][400]['content']["application/problem+json"] | operations["listStudentFriendships"]['responses'][500]['content']["application/problem+json"]
 export type listStudentPeopleInput = OperationInput<operations["listStudentPeople"]['parameters']['path'], operations["listStudentPeople"]['parameters']['query'], operations["listStudentPeople"]['parameters']['header'], RequestBodyOf<operations["listStudentPeople"]>, false>
-export type listStudentPeopleOutput = operations["listStudentPeople"]['responses'][200]['content']["application/json"]
+export type listStudentPeopleOutput = import('./domain.js').StudentPeoplePage
 export type listStudentPeopleProblem = operations["listStudentPeople"]['responses'][400]['content']["application/problem+json"] | operations["listStudentPeople"]['responses'][500]['content']["application/problem+json"]
 export type listStudentPeriodPlanInput = OperationInput<operations["listStudentPeriodPlan"]['parameters']['path'], operations["listStudentPeriodPlan"]['parameters']['query'], operations["listStudentPeriodPlan"]['parameters']['header'], RequestBodyOf<operations["listStudentPeriodPlan"]>, false>
-export type listStudentPeriodPlanOutput = ReadonlyArray<PeriodPlanning>
+export type listStudentPeriodPlanOutput = ReadonlyArray<import('./domain.js').PeriodPlanning>
 export type listStudentPeriodPlanProblem = operations["listStudentPeriodPlan"]['responses'][400]['content']["application/problem+json"] | operations["listStudentPeriodPlan"]['responses'][500]['content']["application/problem+json"]
 export type listStudentPeriodPlanningsInput = OperationInput<operations["listStudentPeriodPlannings"]['parameters']['path'], operations["listStudentPeriodPlannings"]['parameters']['query'], operations["listStudentPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["listStudentPeriodPlannings"]>, false>
-export type listStudentPeriodPlanningsOutput = ReadonlyArray<PeriodPlanning>
+export type listStudentPeriodPlanningsOutput = ReadonlyArray<import('./domain.js').PeriodPlanning>
 export type listStudentPeriodPlanningsProblem = operations["listStudentPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["listStudentPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
 export type listStudentProfessorEvaluationsPendingInput = OperationInput<operations["listStudentProfessorEvaluationsPending"]['parameters']['path'], operations["listStudentProfessorEvaluationsPending"]['parameters']['query'], operations["listStudentProfessorEvaluationsPending"]['parameters']['header'], RequestBodyOf<operations["listStudentProfessorEvaluationsPending"]>, false>
-export type listStudentProfessorEvaluationsPendingOutput = ReadonlyArray<PendingProfessorEvaluation>
+export type listStudentProfessorEvaluationsPendingOutput = ReadonlyArray<import('./domain.js').PendingProfessorEvaluation>
 export type listStudentProfessorEvaluationsPendingProblem = operations["listStudentProfessorEvaluationsPending"]['responses'][400]['content']["application/problem+json"] | operations["listStudentProfessorEvaluationsPending"]['responses'][500]['content']["application/problem+json"]
 export type listStudentPublicProfileInput = OperationInput<operations["listStudentPublicProfile"]['parameters']['path'], operations["listStudentPublicProfile"]['parameters']['query'], operations["listStudentPublicProfile"]['parameters']['header'], RequestBodyOf<operations["listStudentPublicProfile"]>, false>
-export type listStudentPublicProfileOutput = StudentPublicProfile
+export type listStudentPublicProfileOutput = import('./domain.js').StudentPublicProfile
 export type listStudentPublicProfileProblem = operations["listStudentPublicProfile"]['responses'][400]['content']["application/problem+json"] | operations["listStudentPublicProfile"]['responses'][404]['content']["application/problem+json"] | operations["listStudentPublicProfile"]['responses'][500]['content']["application/problem+json"]
 export type listStudentSharedPeriodPlanningsInput = OperationInput<operations["listStudentSharedPeriodPlannings"]['parameters']['path'], operations["listStudentSharedPeriodPlannings"]['parameters']['query'], operations["listStudentSharedPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["listStudentSharedPeriodPlannings"]>, false>
-export type listStudentSharedPeriodPlanningsOutput = operations["listStudentSharedPeriodPlannings"]['responses'][200]['content']["application/json"]
+export type listStudentSharedPeriodPlanningsOutput = import('./domain.js').SharedPeriodPlanningPage
 export type listStudentSharedPeriodPlanningsProblem = operations["listStudentSharedPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["listStudentSharedPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
 export type listStudentTagInterestsInput = OperationInput<operations["listStudentTagInterests"]['parameters']['path'], operations["listStudentTagInterests"]['parameters']['query'], operations["listStudentTagInterests"]['parameters']['header'], RequestBodyOf<operations["listStudentTagInterests"]>, false>
-export type listStudentTagInterestsOutput = ReadonlyArray<StudentTagInterest>
+export type listStudentTagInterestsOutput = ReadonlyArray<import('./domain.js').StudentTagInterest>
 export type listStudentTagInterestsProblem = operations["listStudentTagInterests"]['responses'][400]['content']["application/problem+json"] | operations["listStudentTagInterests"]['responses'][500]['content']["application/problem+json"]
 export type listTagsInput = OperationInput<operations["listTags"]['parameters']['path'], operations["listTags"]['parameters']['query'], operations["listTags"]['parameters']['header'], RequestBodyOf<operations["listTags"]>, false>
-export type listTagsOutput = ReadonlyArray<Tag>
+export type listTagsOutput = ReadonlyArray<import('./domain.js').Tag>
 export type listTagsProblem = operations["listTags"]['responses'][400]['content']["application/problem+json"] | operations["listTags"]['responses'][500]['content']["application/problem+json"]
 export type listTagsCoursesInput = OperationInput<operations["listTagsCourses"]['parameters']['path'], operations["listTagsCourses"]['parameters']['query'], operations["listTagsCourses"]['parameters']['header'], RequestBodyOf<operations["listTagsCourses"]>, false>
-export type listTagsCoursesOutput = Page<TagRelatedCourse>
+export type listTagsCoursesOutput = import('./domain.js').Page<import('./domain.js').TagRelatedCourse>
 export type listTagsCoursesProblem = operations["listTagsCourses"]['responses'][400]['content']["application/problem+json"] | operations["listTagsCourses"]['responses'][404]['content']["application/problem+json"] | operations["listTagsCourses"]['responses'][500]['content']["application/problem+json"]
 export type updateCategoriesInput = OperationInput<operations["updateCategories"]['parameters']['path'], operations["updateCategories"]['parameters']['query'], operations["updateCategories"]['parameters']['header'], RequestBodyOf<operations["updateCategories"]>, true>
-export type updateCategoriesOutput = Category
+export type updateCategoriesOutput = import('./domain.js').Category
 export type updateCategoriesProblem = operations["updateCategories"]['responses'][400]['content']["application/problem+json"] | operations["updateCategories"]['responses'][404]['content']["application/problem+json"] | operations["updateCategories"]['responses'][409]['content']["application/problem+json"] | operations["updateCategories"]['responses'][500]['content']["application/problem+json"]
 export type updateCoursesTagsInput = OperationInput<operations["updateCoursesTags"]['parameters']['path'], operations["updateCoursesTags"]['parameters']['query'], operations["updateCoursesTags"]['parameters']['header'], RequestBodyOf<operations["updateCoursesTags"]>, false>
 export type updateCoursesTagsOutput = void
@@ -198,34 +197,34 @@ export type updateMeBotGrantsInput = OperationInput<operations["updateMeBotGrant
 export type updateMeBotGrantsOutput = void
 export type updateMeBotGrantsProblem = operations["updateMeBotGrants"]['responses'][400]['content']["application/problem+json"] | operations["updateMeBotGrants"]['responses'][404]['content']["application/problem+json"] | operations["updateMeBotGrants"]['responses'][500]['content']["application/problem+json"]
 export type updateStudentClassesProfessorsEvaluationInput = OperationInput<operations["updateStudentClassesProfessorsEvaluation"]['parameters']['path'], operations["updateStudentClassesProfessorsEvaluation"]['parameters']['query'], operations["updateStudentClassesProfessorsEvaluation"]['parameters']['header'], RequestBodyOf<operations["updateStudentClassesProfessorsEvaluation"]>, true>
-export type updateStudentClassesProfessorsEvaluationOutput = ProfessorEvaluation
+export type updateStudentClassesProfessorsEvaluationOutput = import('./domain.js').ProfessorEvaluation
 export type updateStudentClassesProfessorsEvaluationProblem = operations["updateStudentClassesProfessorsEvaluation"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentClassesProfessorsEvaluation"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentClassesProfessorsEvaluation"]['responses'][500]['content']["application/problem+json"]
 export type updateStudentCourseAttemptsInput = OperationInput<operations["updateStudentCourseAttempts"]['parameters']['path'], operations["updateStudentCourseAttempts"]['parameters']['query'], operations["updateStudentCourseAttempts"]['parameters']['header'], RequestBodyOf<operations["updateStudentCourseAttempts"]>, true>
-export type updateStudentCourseAttemptsOutput = StudentCourseAttempt
+export type updateStudentCourseAttemptsOutput = import('./domain.js').StudentCourseAttempt
 export type updateStudentCourseAttemptsProblem = operations["updateStudentCourseAttempts"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentCourseAttempts"]['responses'][404]['content']["application/problem+json"] | operations["updateStudentCourseAttempts"]['responses'][409]['content']["application/problem+json"] | operations["updateStudentCourseAttempts"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentCourseAttempts"]['responses'][500]['content']["application/problem+json"]
 export type updateStudentCurriculaInput = OperationInput<operations["updateStudentCurricula"]['parameters']['path'], operations["updateStudentCurricula"]['parameters']['query'], operations["updateStudentCurricula"]['parameters']['header'], RequestBodyOf<operations["updateStudentCurricula"]>, true>
-export type updateStudentCurriculaOutput = Curriculum
+export type updateStudentCurriculaOutput = import('./domain.js').Curriculum
 export type updateStudentCurriculaProblem = operations["updateStudentCurricula"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentCurricula"]['responses'][404]['content']["application/problem+json"] | operations["updateStudentCurricula"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentCurricula"]['responses'][500]['content']["application/problem+json"]
 export type updateStudentExchangeNoticeSubscriptionInput = OperationInput<operations["updateStudentExchangeNoticeSubscription"]['parameters']['path'], operations["updateStudentExchangeNoticeSubscription"]['parameters']['query'], operations["updateStudentExchangeNoticeSubscription"]['parameters']['header'], RequestBodyOf<operations["updateStudentExchangeNoticeSubscription"]>, true>
-export type updateStudentExchangeNoticeSubscriptionOutput = ExchangeNoticeSubscription
+export type updateStudentExchangeNoticeSubscriptionOutput = import('./domain.js').ExchangeNoticeSubscription
 export type updateStudentExchangeNoticeSubscriptionProblem = operations["updateStudentExchangeNoticeSubscription"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentExchangeNoticeSubscription"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentExchangeNoticeSubscription"]['responses'][500]['content']["application/problem+json"]
 export type updateStudentPeriodPlanInput = OperationInput<operations["updateStudentPeriodPlan"]['parameters']['path'], operations["updateStudentPeriodPlan"]['parameters']['query'], operations["updateStudentPeriodPlan"]['parameters']['header'], RequestBodyOf<operations["updateStudentPeriodPlan"]>, true>
-export type updateStudentPeriodPlanOutput = PeriodPlanning
+export type updateStudentPeriodPlanOutput = import('./domain.js').PeriodPlanning
 export type updateStudentPeriodPlanProblem = operations["updateStudentPeriodPlan"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentPeriodPlan"]['responses'][404]['content']["application/problem+json"] | operations["updateStudentPeriodPlan"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentPeriodPlan"]['responses'][500]['content']["application/problem+json"]
 export type updateStudentPeriodPlanningsInput = OperationInput<operations["updateStudentPeriodPlannings"]['parameters']['path'], operations["updateStudentPeriodPlannings"]['parameters']['query'], operations["updateStudentPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["updateStudentPeriodPlannings"]>, true>
-export type updateStudentPeriodPlanningsOutput = PeriodPlanning
+export type updateStudentPeriodPlanningsOutput = import('./domain.js').PeriodPlanning
 export type updateStudentPeriodPlanningsProblem = operations["updateStudentPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentPeriodPlannings"]['responses'][404]['content']["application/problem+json"] | operations["updateStudentPeriodPlannings"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
 export type updateStudentPublicProfileInput = OperationInput<operations["updateStudentPublicProfile"]['parameters']['path'], operations["updateStudentPublicProfile"]['parameters']['query'], operations["updateStudentPublicProfile"]['parameters']['header'], RequestBodyOf<operations["updateStudentPublicProfile"]>, true>
-export type updateStudentPublicProfileOutput = StudentPublicProfile
+export type updateStudentPublicProfileOutput = import('./domain.js').StudentPublicProfile
 export type updateStudentPublicProfileProblem = operations["updateStudentPublicProfile"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentPublicProfile"]['responses'][404]['content']["application/problem+json"] | operations["updateStudentPublicProfile"]['responses'][500]['content']["application/problem+json"]
 export type updateStudentsInput = OperationInput<operations["updateStudents"]['parameters']['path'], operations["updateStudents"]['parameters']['query'], operations["updateStudents"]['parameters']['header'], RequestBodyOf<operations["updateStudents"]>, true>
-export type updateStudentsOutput = Student
+export type updateStudentsOutput = import('./domain.js').Student
 export type updateStudentsProblem = operations["updateStudents"]['responses'][400]['content']["application/problem+json"] | operations["updateStudents"]['responses'][404]['content']["application/problem+json"] | operations["updateStudents"]['responses'][422]['content']["application/problem+json"] | operations["updateStudents"]['responses'][500]['content']["application/problem+json"]
 export type updateStudentTagInterestsInput = OperationInput<operations["updateStudentTagInterests"]['parameters']['path'], operations["updateStudentTagInterests"]['parameters']['query'], operations["updateStudentTagInterests"]['parameters']['header'], RequestBodyOf<operations["updateStudentTagInterests"]>, false>
 export type updateStudentTagInterestsOutput = void
 export type updateStudentTagInterestsProblem = operations["updateStudentTagInterests"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentTagInterests"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentTagInterests"]['responses'][500]['content']["application/problem+json"]
 export type updateTagsInput = OperationInput<operations["updateTags"]['parameters']['path'], operations["updateTags"]['parameters']['query'], operations["updateTags"]['parameters']['header'], RequestBodyOf<operations["updateTags"]>, true>
-export type updateTagsOutput = Tag
+export type updateTagsOutput = import('./domain.js').Tag
 export type updateTagsProblem = operations["updateTags"]['responses'][400]['content']["application/problem+json"] | operations["updateTags"]['responses'][404]['content']["application/problem+json"] | operations["updateTags"]['responses'][409]['content']["application/problem+json"] | operations["updateTags"]['responses'][422]['content']["application/problem+json"] | operations["updateTags"]['responses'][500]['content']["application/problem+json"]
 
 export interface OperationInputs {
@@ -1838,7 +1837,13 @@ export const operationDefinitions = {
             "parameters": [],
             "filter": null
         },
-        "sdk": null,
+        "sdk": {
+            "resource": "studentPeriodPlan",
+            "action": "create",
+            "pathParameters": {
+                "sid": "studentId"
+            }
+        },
         "pagination": null
     },
     "createStudentPeriodPlannings": {
@@ -2835,7 +2840,14 @@ export const operationDefinitions = {
             "parameters": [],
             "filter": null
         },
-        "sdk": null,
+        "sdk": {
+            "resource": "studentPeriodPlan",
+            "action": "delete",
+            "pathParameters": {
+                "sid": "studentId",
+                "id": "studentPeriodPlanId"
+            }
+        },
         "pagination": null
     },
     "deleteStudentPeriodPlannings": {
@@ -3763,7 +3775,14 @@ export const operationDefinitions = {
             "parameters": [],
             "filter": null
         },
-        "sdk": null,
+        "sdk": {
+            "resource": "studentPeriodPlan",
+            "action": "get",
+            "pathParameters": {
+                "sid": "studentId",
+                "id": "studentPeriodPlanId"
+            }
+        },
         "pagination": null
     },
     "getStudentPeriodPlannings": {
@@ -4564,31 +4583,7 @@ export const operationDefinitions = {
                     {
                         "contentType": "application/json",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "items": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/SharedPeriodPlanning"
-                                    }
-                                },
-                                "page": {
-                                    "type": "integer"
-                                },
-                                "pageSize": {
-                                    "type": "integer"
-                                },
-                                "total": {
-                                    "type": "integer"
-                                }
-                            },
-                            "required": [
-                                "items",
-                                "page",
-                                "pageSize",
-                                "total"
-                            ],
-                            "additionalProperties": false
+                            "$ref": "#/components/schemas/SharedPeriodPlanningPage"
                         }
                     }
                 ],
@@ -4634,7 +4629,8 @@ export const operationDefinitions = {
                     "style": null,
                     "explode": null,
                     "schema": {
-                        "type": "string",
+                        "type": "integer",
+                        "minimum": 1,
                         "default": 1
                     }
                 },
@@ -4645,7 +4641,9 @@ export const operationDefinitions = {
                     "style": null,
                     "explode": null,
                     "schema": {
-                        "type": "string",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50,
                         "default": 20
                     }
                 },
@@ -4721,10 +4719,17 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "sharedPeriodPlannings",
-            "action": "list",
-            "pathParameters": {}
+            "action": "list"
         },
-        "pagination": null
+        "pagination": {
+            "strategy": "page-number",
+            "itemsField": "items",
+            "pageField": "page",
+            "pageSizeField": "pageSize",
+            "totalField": "total",
+            "defaultPageSize": 20,
+            "maxPageSize": 50
+        }
     },
     "listStudentAbsences": {
         "operationId": "listStudentAbsences",
@@ -5689,31 +5694,7 @@ export const operationDefinitions = {
                     {
                         "contentType": "application/json",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "items": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/StudentPublicPerson"
-                                    }
-                                },
-                                "page": {
-                                    "type": "number"
-                                },
-                                "pageSize": {
-                                    "type": "number"
-                                },
-                                "total": {
-                                    "type": "number"
-                                }
-                            },
-                            "required": [
-                                "items",
-                                "page",
-                                "pageSize",
-                                "total"
-                            ],
-                            "additionalProperties": false
+                            "$ref": "#/components/schemas/StudentPeoplePage"
                         }
                     }
                 ],
@@ -5770,7 +5751,8 @@ export const operationDefinitions = {
                     "style": null,
                     "explode": null,
                     "schema": {
-                        "type": "string",
+                        "type": "integer",
+                        "minimum": 1,
                         "default": 1
                     }
                 },
@@ -5781,7 +5763,9 @@ export const operationDefinitions = {
                     "style": null,
                     "explode": null,
                     "schema": {
-                        "type": "string",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50,
                         "default": 20
                     }
                 }
@@ -5795,7 +5779,15 @@ export const operationDefinitions = {
                 "sid": "studentId"
             }
         },
-        "pagination": null
+        "pagination": {
+            "strategy": "page-number",
+            "itemsField": "items",
+            "pageField": "page",
+            "pageSizeField": "pageSize",
+            "totalField": "total",
+            "defaultPageSize": 20,
+            "maxPageSize": 50
+        }
     },
     "listStudentPeriodPlan": {
         "operationId": "listStudentPeriodPlan",
@@ -5868,7 +5860,13 @@ export const operationDefinitions = {
             "parameters": [],
             "filter": null
         },
-        "sdk": null,
+        "sdk": {
+            "resource": "studentPeriodPlan",
+            "action": "list",
+            "pathParameters": {
+                "sid": "studentId"
+            }
+        },
         "pagination": null
     },
     "listStudentPeriodPlannings": {
@@ -6245,31 +6243,7 @@ export const operationDefinitions = {
                     {
                         "contentType": "application/json",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "items": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/SharedPeriodPlanning"
-                                    }
-                                },
-                                "page": {
-                                    "type": "integer"
-                                },
-                                "pageSize": {
-                                    "type": "integer"
-                                },
-                                "total": {
-                                    "type": "integer"
-                                }
-                            },
-                            "required": [
-                                "items",
-                                "page",
-                                "pageSize",
-                                "total"
-                            ],
-                            "additionalProperties": false
+                            "$ref": "#/components/schemas/SharedPeriodPlanningPage"
                         }
                     }
                 ],
@@ -6315,7 +6289,8 @@ export const operationDefinitions = {
                     "style": null,
                     "explode": null,
                     "schema": {
-                        "type": "string",
+                        "type": "integer",
+                        "minimum": 1,
                         "default": 1
                     }
                 },
@@ -6326,7 +6301,9 @@ export const operationDefinitions = {
                     "style": null,
                     "explode": null,
                     "schema": {
-                        "type": "string",
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50,
                         "default": 20
                     }
                 },
@@ -6400,7 +6377,15 @@ export const operationDefinitions = {
                 "sid": "studentId"
             }
         },
-        "pagination": null
+        "pagination": {
+            "strategy": "page-number",
+            "itemsField": "items",
+            "pageField": "page",
+            "pageSizeField": "pageSize",
+            "totalField": "total",
+            "defaultPageSize": 20,
+            "maxPageSize": 50
+        }
     },
     "listStudentTagInterests": {
         "operationId": "listStudentTagInterests",
@@ -7926,7 +7911,14 @@ export const operationDefinitions = {
             "parameters": [],
             "filter": null
         },
-        "sdk": null,
+        "sdk": {
+            "resource": "studentPeriodPlan",
+            "action": "update",
+            "pathParameters": {
+                "sid": "studentId",
+                "id": "studentPeriodPlanId"
+            }
+        },
         "pagination": null
     },
     "updateStudentPeriodPlannings": {

@@ -1057,6 +1057,46 @@ export interface components {
                 prev: string | null;
             };
         };
+        ProfessorDataPortalProfileSummary: {
+            id: number;
+            professorId: number;
+            portalId: number;
+            name: string;
+            email: string | null;
+            lattesAbstract: string | null;
+            unit: {
+                id: number;
+                code: string;
+                name: string;
+            };
+            department: components["schemas"]["Department"];
+            position: components["schemas"]["ProfessorPosition"];
+            _paths: {
+                self: string;
+                professor: string;
+            };
+        };
+        Department: {
+            id: number;
+            name: string;
+            unitId: number;
+        } | null;
+        ProfessorPosition: {
+            id: number;
+            canonicalKey: string;
+            role: string;
+            affiliationType: string;
+            programCode: string | null;
+            postdoctoralModality: string | null;
+            careerReference: components["schemas"]["CareerReference"];
+        } | null;
+        CareerReference: {
+            career: string;
+            code: string;
+            rank: string | null;
+            category: string | null;
+            progressionOrder: number;
+        } | null;
         ProfessorDataPortalProfile: {
             id: number;
             professorId: number;
@@ -1069,26 +1109,8 @@ export interface components {
                 code: string;
                 name: string;
             };
-            department: {
-                id: number;
-                name: string;
-                unitId: number;
-            } | null;
-            position: {
-                id: number;
-                canonicalKey: string;
-                role: string;
-                affiliationType: string;
-                programCode: string | null;
-                postdoctoralModality: string | null;
-                careerReference: {
-                    career: string;
-                    code: string;
-                    rank: string | null;
-                    category: string | null;
-                    progressionOrder: number;
-                } | null;
-            } | null;
+            department: components["schemas"]["Department"];
+            position: components["schemas"]["ProfessorPosition"];
             identifiers: {
                 id: number;
                 system: string;
@@ -1119,6 +1141,14 @@ export interface components {
                 self: string;
                 professor: string;
             };
+        };
+        Keyword: {
+            id: number;
+            name: string;
+        };
+        Coauthor: {
+            id: number;
+            name: string;
         };
         RoomEntity: {
             id: number;
@@ -1732,7 +1762,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -1835,7 +1865,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number | null;
+                id: number;
             };
             cookie?: never;
         };
@@ -1962,7 +1992,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2103,43 +2133,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: {
-                            id: number;
-                            professorId: number;
-                            portalId: number;
-                            name: string;
-                            email: string | null;
-                            lattesAbstract: string | null;
-                            unit: {
-                                id: number;
-                                code: string;
-                                name: string;
-                            };
-                            department: {
-                                id: number;
-                                name: string;
-                                unitId: number;
-                            } | null;
-                            position: {
-                                id: number;
-                                canonicalKey: string;
-                                role: string;
-                                affiliationType: string;
-                                programCode: string | null;
-                                postdoctoralModality: string | null;
-                                careerReference: {
-                                    career: string;
-                                    code: string;
-                                    rank: string | null;
-                                    category: string | null;
-                                    progressionOrder: number;
-                                } | null;
-                            } | null;
-                            _paths: {
-                                self: string;
-                                professor: string;
-                            };
-                        }[];
+                        data: components["schemas"]["ProfessorDataPortalProfileSummary"][];
                         quantity: number;
                         total: number;
                         _paths: {
@@ -2176,7 +2170,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2251,21 +2245,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        id: number;
-                        canonicalKey: string;
-                        role: string;
-                        affiliationType: string;
-                        programCode: string | null;
-                        postdoctoralModality: string | null;
-                        careerReference: {
-                            career: string;
-                            code: string;
-                            rank: string | null;
-                            category: string | null;
-                            progressionOrder: number;
-                        } | null;
-                    }[];
+                    "application/json": components["schemas"]["ProfessorPosition"][];
                 };
             };
 
@@ -2293,7 +2273,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2305,21 +2285,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        id: number;
-                        canonicalKey: string;
-                        role: string;
-                        affiliationType: string;
-                        programCode: string | null;
-                        postdoctoralModality: string | null;
-                        careerReference: {
-                            career: string;
-                            code: string;
-                            rank: string | null;
-                            category: string | null;
-                            progressionOrder: number;
-                        } | null;
-                    };
+                    "application/json": components["schemas"]["ProfessorPosition"];
                 };
             };
 
@@ -2377,11 +2343,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        id: number;
-                        name: string;
-                        unitId: number;
-                    }[];
+                    "application/json": components["schemas"]["Department"][];
                 };
             };
 
@@ -2409,7 +2371,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2421,11 +2383,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        id: number;
-                        name: string;
-                        unitId: number;
-                    };
+                    "application/json": components["schemas"]["Department"];
                 };
             };
 
@@ -2484,10 +2442,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: {
-                            id: number;
-                            name: string;
-                        }[];
+                        data: components["schemas"]["Keyword"][];
                         quantity: number;
                         total: number;
                         _paths: {
@@ -2524,7 +2479,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2536,10 +2491,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        id: number;
-                        name: string;
-                    };
+                    "application/json": components["schemas"]["Keyword"];
                 };
             };
 
@@ -2598,10 +2550,7 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
-                        data: {
-                            id: number;
-                            name: string;
-                        }[];
+                        data: components["schemas"]["Coauthor"][];
                         quantity: number;
                         total: number;
                         _paths: {
@@ -2638,7 +2587,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2650,10 +2599,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        id: number;
-                        name: string;
-                    };
+                    "application/json": components["schemas"]["Coauthor"];
                 };
             };
 
@@ -2690,7 +2636,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2790,7 +2736,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -2975,7 +2921,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number | null;
+                id: number;
             };
             cookie?: never;
         };
@@ -3081,7 +3027,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: number | null;
+                id: number;
             };
             cookie?: never;
         };
@@ -3130,7 +3076,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -3237,7 +3183,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -3362,7 +3308,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -3460,7 +3406,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -3555,7 +3501,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -3659,7 +3605,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -3856,7 +3802,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -3961,7 +3907,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -4059,7 +4005,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -4201,7 +4147,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -4352,7 +4298,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };
@@ -4451,7 +4397,7 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
+                id: number;
             };
             cookie?: never;
         };

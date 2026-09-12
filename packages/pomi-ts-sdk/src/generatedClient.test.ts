@@ -53,7 +53,7 @@ test('sends App request bodies and bearer authentication for 201 responses', asy
   )
 
   const result = await sdk.app.createStudentAbsences({
-    sid: '7',
+    sid: 7,
     body: {
       courseAttemptId: 2,
       classScheduleId: 3,
@@ -92,7 +92,7 @@ test('prefers per-call authentication context over the client token', async () =
   )
 
   await sdk.app.listStudentFeedbackReports(
-    { sid: '7' },
+    { sid: 7 },
     { getAccessToken: async () => 'call-token' },
   )
 
@@ -105,7 +105,7 @@ test('returns undefined for documented 204 responses', async () => {
     async () => 'token',
   )
   const result = await sdk.app.updateMeBotGrants({
-    botAuthUserId: '8',
+    botAuthUserId: 8,
     body: { capabilities: ['STUDENT_PROFILE_READ'] },
   })
   assert.equal(result, undefined)
@@ -123,7 +123,7 @@ test('rejects a missing required request body before fetching', async () => {
 
   await assert.rejects(
     (sdk.app.createStudentAbsences as (input: unknown) => Promise<unknown>)({
-      sid: '7',
+      sid: 7,
     }),
     /requires a request body/,
   )
@@ -180,7 +180,7 @@ test('throws for missing path parameters and missing authentication', async () =
   const sdk = sdkWith(async () => new Response('{}', { status: 200 }))
   await assert.rejects(sdk.data.getCourses({} as never), TypeError)
   await assert.rejects(
-    sdk.app.listStudentAbsences({ sid: '7' }),
+    sdk.app.listStudentAbsences({ sid: 7 }),
     /Authentication is required/,
   )
 })
@@ -226,8 +226,8 @@ test('maps expressive nested resources to operational requests', async () => {
     async () => 'token',
   )
 
-  await sdk.app.periodPlannings.update('7', '8', { visibility: 'PUBLIC' })
-  await sdk.app.courseAttempts.update('7', '9', { grade: 8.5 })
+  await sdk.app.periodPlannings.update(7, 8, { visibility: 'PUBLIC' })
+  await sdk.app.courseAttempts.update(7, 9, { grade: 8.5 })
 
   assert.equal(
     requests[0]?.url,

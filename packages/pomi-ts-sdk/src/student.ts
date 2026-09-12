@@ -95,7 +95,7 @@ export function createStudentApi(client: PomiSdkClient) {
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.students.get(String(studentId), { getAccessToken })
+    return client.app.students.get(studentId, { getAccessToken })
   }
 
   function patchStudentProfile(
@@ -104,7 +104,7 @@ export function createStudentApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.students.update(
-      String(studentId),
+      studentId,
       body as updateStudentsInput['body'],
       { getAccessToken },
     )
@@ -152,7 +152,7 @@ export function createStudentApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.courseAttempts.list(
-      String(studentId),
+      studentId,
       {},
       { getAccessToken },
     ) as Promise<ReadonlyArray<StudentCourseAttempt>>
@@ -164,7 +164,7 @@ export function createStudentApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.studentCourseHistory.create(
-      String(studentId),
+      studentId,
       body as createStudentCourseHistoryInput['body'],
       { getAccessToken },
     )
@@ -177,9 +177,9 @@ export function createStudentApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.studentClassesProfessorsEvaluation.list(
-      String(studentId),
-      String(classId),
-      String(professorId),
+      studentId,
+      classId,
+      professorId,
       {},
       { getAccessToken },
     )
@@ -193,9 +193,9 @@ export function createStudentApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.studentClassesProfessorsEvaluation.update(
-      String(studentId),
-      String(classId),
-      String(professorId),
+      studentId,
+      classId,
+      professorId,
       body,
       { getAccessToken },
     )
@@ -210,7 +210,7 @@ export function createStudentApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.studentProfessorEvaluationsPending.list(
-      String(studentId),
+      studentId,
       { filter: period },
       { getAccessToken },
     )
@@ -221,7 +221,7 @@ export function createStudentApi(client: PomiSdkClient) {
     body: StudentCourseAttemptBody,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.courseAttempts.create(String(studentId), body, {
+    return client.app.courseAttempts.create(studentId, body, {
       getAccessToken,
     }) as Promise<StudentCourseAttempt>
   }
@@ -232,14 +232,9 @@ export function createStudentApi(client: PomiSdkClient) {
     body: PatchAttemptBody,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.courseAttempts.update(
-      String(studentId),
-      String(attemptId),
-      body,
-      {
-        getAccessToken,
-      },
-    ) as Promise<StudentCourseAttempt>
+    return client.app.courseAttempts.update(studentId, attemptId, body, {
+      getAccessToken,
+    }) as Promise<StudentCourseAttempt>
   }
 
   async function deleteStudentCourseAttempt(
@@ -247,13 +242,9 @@ export function createStudentApi(client: PomiSdkClient) {
     attemptId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    await client.app.courseAttempts.delete(
-      String(studentId),
-      String(attemptId),
-      {
-        getAccessToken,
-      },
-    )
+    await client.app.courseAttempts.delete(studentId, attemptId, {
+      getAccessToken,
+    })
   }
 
   return {
