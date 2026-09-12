@@ -1,15 +1,12 @@
 import type {
   createStudentCurriculaInput,
-  getStudentCurriculaOutput,
-  listStudentCurriculaOutput,
   updateStudentCurriculaInput,
 } from './generated/app/operations.js'
+import type { Curriculum, CurriculumSummary } from './generated/app/domain.js'
 import type { PomiSdkClient } from './generatedClient.js'
 
-export type CurriculumApiEntity = Readonly<getStudentCurriculaOutput>
-export type CurriculumSummaryApiEntity = Readonly<
-  listStudentCurriculaOutput[number]
->
+export type CurriculumApiEntity = Curriculum
+export type CurriculumSummaryApiEntity = CurriculumSummary
 export type CurriculumCreateInput = Readonly<
   createStudentCurriculaInput['body']
 >
@@ -21,8 +18,9 @@ export function createCurriculumPersistenceApi(client: PomiSdkClient) {
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.listStudentCurricula(
-      { sid: String(studentId) },
+    return client.app.studentCurricula.list(
+      String(studentId),
+      {},
       { getAccessToken },
     )
   }
@@ -32,9 +30,12 @@ export function createCurriculumPersistenceApi(client: PomiSdkClient) {
     curriculumId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.getStudentCurricula(
-      { sid: String(studentId), id: String(curriculumId) },
-      { getAccessToken },
+    return client.app.studentCurricula.get(
+      String(studentId),
+      String(curriculumId),
+      {
+        getAccessToken,
+      },
     )
   }
 
@@ -43,10 +44,9 @@ export function createCurriculumPersistenceApi(client: PomiSdkClient) {
     input: CurriculumCreateInput,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.createStudentCurricula(
-      { sid: String(studentId), body: input },
-      { getAccessToken },
-    )
+    return client.app.studentCurricula.create(String(studentId), input, {
+      getAccessToken,
+    })
   }
 
   async function patchCurriculum(
@@ -55,12 +55,10 @@ export function createCurriculumPersistenceApi(client: PomiSdkClient) {
     input: Record<string, unknown>,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.updateStudentCurricula(
-      {
-        sid: String(studentId),
-        id: String(curriculumId),
-        body: input as updateStudentCurriculaInput['body'],
-      },
+    return client.app.studentCurricula.update(
+      String(studentId),
+      String(curriculumId),
+      input as updateStudentCurriculaInput['body'],
       { getAccessToken },
     )
   }
@@ -70,9 +68,12 @@ export function createCurriculumPersistenceApi(client: PomiSdkClient) {
     curriculumId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    await client.app.deleteStudentCurricula(
-      { sid: String(studentId), id: String(curriculumId) },
-      { getAccessToken },
+    await client.app.studentCurricula.delete(
+      String(studentId),
+      String(curriculumId),
+      {
+        getAccessToken,
+      },
     )
   }
 

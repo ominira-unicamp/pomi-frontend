@@ -1,59 +1,50 @@
 import type {
-  listCatalogProgramOutput,
-  listCoursesOutput,
-} from './generated/data/operations.js'
+  BlockSet,
+  CatalogProgram,
+  CatalogProgramLanguage,
+  CatalogProgramModality,
+  Course,
+  CourseRequirement,
+} from './generated/data/domain.js'
 import type { PomiSdkClient } from './generatedClient.js'
 
-type GeneratedCatalogProgram = listCatalogProgramOutput[number]
-type GeneratedBlockSet = GeneratedCatalogProgram['base']
-type GeneratedRequirement = GeneratedBlockSet['mandatory'][number]
-type GeneratedModality = GeneratedCatalogProgram['modalities'][number]
-type GeneratedLanguage = GeneratedCatalogProgram['languages'][number]
-export type CurriculumApiCourseRequirement = Readonly<
-  Pick<GeneratedRequirement, 'type' | 'courseId' | 'prefix'>
+export type CurriculumApiCourseRequirement = Pick<
+  CourseRequirement,
+  'type' | 'courseId' | 'prefix'
 >
-export type CurriculumApiBlockSet = Readonly<{
+export type CurriculumApiBlockSet = {
   mandatory: ReadonlyArray<CurriculumApiCourseRequirement>
-  electives: ReadonlyArray<
-    Readonly<{
-      credits: number
-      courses: ReadonlyArray<CurriculumApiCourseRequirement>
-    }>
-  >
-}>
-export type CurriculumApiCatalogProgram = Readonly<{
-  id: GeneratedCatalogProgram['id']
-  title: GeneratedCatalogProgram['title']
-  catalogId: GeneratedCatalogProgram['catalogId']
-  catalogYear: GeneratedCatalogProgram['catalogYear']
-  programId: GeneratedCatalogProgram['programId']
-  programCode: GeneratedCatalogProgram['programCode']
-  programName: GeneratedCatalogProgram['programName']
+  electives: ReadonlyArray<{
+    credits: BlockSet['electives'][number]['credits']
+    courses: ReadonlyArray<CurriculumApiCourseRequirement>
+  }>
+}
+export type CurriculumApiCatalogProgram = Pick<
+  CatalogProgram,
+  | 'id'
+  | 'title'
+  | 'catalogId'
+  | 'catalogYear'
+  | 'programId'
+  | 'programCode'
+  | 'programName'
+> & {
   base: CurriculumApiBlockSet
   modalities: ReadonlyArray<
-    Readonly<{
-      specializationId: GeneratedModality['specializationId']
-      code: GeneratedModality['code']
-      name: GeneratedModality['name']
+    Pick<CatalogProgramModality, 'specializationId' | 'code' | 'name'> & {
       blocks: CurriculumApiBlockSet
-    }>
+    }
   >
   languages: ReadonlyArray<
-    Readonly<{
-      languageId: GeneratedLanguage['languageId']
-      name: GeneratedLanguage['name']
+    Pick<CatalogProgramLanguage, 'languageId' | 'name'> & {
       blocks: CurriculumApiBlockSet
-    }>
+    }
   >
-}>
-export type CurriculumApiCourse = Readonly<
-  Pick<
-    listCoursesOutput['data'][number],
-    'id' | 'code' | 'name' | 'credits'
-  > & {
-    prefix?: string
-  }
->
+}
+export type CurriculumApiCourse = Pick<
+  Course,
+  'id' | 'code' | 'name' | 'credits'
+> & { prefix?: Course['prefix'] }
 export type CurriculumApiCoursesPage = Readonly<{
   data: ReadonlyArray<CurriculumApiCourse>
   _paths: Readonly<{ next: string | null }>
@@ -61,14 +52,12 @@ export type CurriculumApiCoursesPage = Readonly<{
 
 export function createCurriculumPlannerApi(client: PomiSdkClient) {
   function listCatalogPrograms() {
-    return client.data.listCatalogProgram({})
+    return client.data.catalogProgram.list({})
   }
 
-  function listCourses() {
-    return client.data.listCourses({
-      page: 1,
-      pageSize: 1000,
-    }) as Promise<CurriculumApiCoursesPage>
+  async function listCourses(): Promise<CurriculumApiCoursesPage> {
+    const data = await client.data.courses.listAll({})
+    return { data, _paths: { next: null } }
   }
 
   return { listCatalogPrograms, listCourses }

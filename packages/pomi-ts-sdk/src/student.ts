@@ -1,39 +1,37 @@
-import { collectPages } from './generatedPagination.js'
+import type {
+  ProfessorEvaluation as GeneratedProfessorEvaluation,
+  ProfessorEvaluationEligibility as GeneratedProfessorEvaluationEligibility,
+  PendingProfessorEvaluation as GeneratedPendingProfessorEvaluation,
+  Student as GeneratedStudent,
+  StudentHistoryImportSummary as GeneratedStudentHistoryImportSummary,
+  StudentCourseAttemptTransport,
+} from './generated/app/domain.js'
 import type {
   createStudentCourseAttemptsInput,
   createStudentCourseHistoryInput,
   createStudentsInput,
-  getStudentsOutput,
-  listStudentClassesProfessorsEvaluationOutput,
-  listStudentCourseAttemptsOutput,
-  listStudentProfessorEvaluationsPendingOutput,
   updateStudentClassesProfessorsEvaluationInput,
-  updateStudentClassesProfessorsEvaluationOutput,
   updateStudentCourseAttemptsInput,
   updateStudentsInput,
 } from './generated/app/operations.js'
 import type {
-  listClassSchedulesOutput,
-  listClassesOutput,
-  listStudyPeriodsOutput,
-} from './generated/data/operations.js'
+  ClassSchedule as GeneratedClassSchedule,
+  ClassTransport,
+  StudyPeriod as GeneratedStudyPeriod,
+} from './generated/data/domain.js'
 import type { PomiSdkClient } from './generatedClient.js'
 
-export type StudentProfile = Readonly<
-  Pick<
-    getStudentsOutput,
-    | 'id'
-    | 'name'
-    | 'catalogId'
-    | 'programId'
-    | 'specializationId'
-    | 'entryYear'
-    | 'languageId'
-  >
+export type StudentProfile = Pick<
+  GeneratedStudent,
+  | 'id'
+  | 'name'
+  | 'catalogId'
+  | 'programId'
+  | 'specializationId'
+  | 'entryYear'
+  | 'languageId'
 >
-export type StudentCourseAttempt = Readonly<
-  listStudentCourseAttemptsOutput[number]
->
+export type StudentCourseAttempt = StudentCourseAttemptTransport
 export type StudentCourseEvaluationMode = StudentCourseAttempt['evaluationMode']
 export type StudentCourseAttemptStatus = StudentCourseAttempt['status']
 type DeepReadonly<T> = T extends (...args: Array<never>) => unknown
@@ -46,39 +44,26 @@ type DeepReadonly<T> = T extends (...args: Array<never>) => unknown
 export type StudentHistoryImport = DeepReadonly<
   createStudentCourseHistoryInput['body']
 >
-export type StudentHistoryImportSummary = Readonly<
-  Awaited<ReturnType<PomiSdkClient['app']['createStudentCourseHistory']>>
->
-export type ProfessorEvaluation =
-  Readonly<updateStudentClassesProfessorsEvaluationOutput>
+export type StudentHistoryImportSummary =
+  Readonly<GeneratedStudentHistoryImportSummary>
+export type ProfessorEvaluation = GeneratedProfessorEvaluation
 export type ProfessorEvaluationEligibility =
-  Readonly<listStudentClassesProfessorsEvaluationOutput>
-export type PendingProfessorEvaluation = Readonly<
-  listStudentProfessorEvaluationsPendingOutput[number]
+  GeneratedProfessorEvaluationEligibility
+export type PendingProfessorEvaluation = GeneratedPendingProfessorEvaluation
+export type StudentCourseAttemptClass = ClassTransport
+export type StudentClassSchedule = Pick<
+  GeneratedClassSchedule,
+  | 'id'
+  | 'classId'
+  | 'classCode'
+  | 'courseCode'
+  | 'studyPeriodId'
+  | 'dayOfWeek'
+  | 'start'
+  | 'end'
+  | 'roomCode'
 >
-export type StudentCourseAttemptClass = Readonly<
-  listClassesOutput['data'][number]
->
-export type StudentClassSchedule = Readonly<
-  Pick<
-    listClassSchedulesOutput['data'][number],
-    | 'id'
-    | 'classId'
-    | 'classCode'
-    | 'courseCode'
-    | 'studyPeriodId'
-    | 'dayOfWeek'
-    | 'start'
-    | 'end'
-    | 'roomCode'
-  >
->
-export type StudyPeriod = Readonly<
-  Pick<
-    listStudyPeriodsOutput[number],
-    'id' | 'year' | 'yearPeriod' | 'startDate'
-  >
->
+export type StudyPeriod = GeneratedStudyPeriod
 export type StudyPeriodYearPeriod = StudyPeriod['yearPeriod']
 
 type StudentProfilePatch = Readonly<Partial<updateStudentsInput['body']>>
@@ -95,7 +80,7 @@ type PatchAttemptBody = Readonly<updateStudentCourseAttemptsInput['body']>
 
 export function createStudentApi(client: PomiSdkClient) {
   function getCurrentStudent(getAccessToken: () => Promise<string>) {
-    return client.app.listMe({}, { getAccessToken })
+    return client.app.me.list({}, { getAccessToken })
   }
 
   function registerCurrentStudent(
@@ -103,14 +88,14 @@ export function createStudentApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     const body: createStudentsInput['body'] = { name }
-    return client.app.createStudents({ body }, { getAccessToken })
+    return client.app.students.create(body, { getAccessToken })
   }
 
   function getStudentProfile(
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.getStudents({ id: String(studentId) }, { getAccessToken })
+    return client.app.students.get(String(studentId), { getAccessToken })
   }
 
   function patchStudentProfile(
@@ -118,21 +103,22 @@ export function createStudentApi(client: PomiSdkClient) {
     body: StudentProfilePatch,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.updateStudents(
-      { id: String(studentId), body: body as updateStudentsInput['body'] },
+    return client.app.students.update(
+      String(studentId),
+      body as updateStudentsInput['body'],
       { getAccessToken },
     )
   }
 
   function listStudyPeriods() {
-    return client.data.listStudyPeriods({})
+    return client.data.studyPeriods.list({})
   }
 
   async function getCourseEvaluationForStudyPeriod(
     courseId: number,
     year: number,
   ): Promise<StudentCourseEvaluationMode | null> {
-    const page = await client.data.listCatalogCourses({
+    const page = await client.data.catalogCourses.list({
       page: 1,
       pageSize: 1,
       filter: { courseId, catalogYear: year },
@@ -146,34 +132,30 @@ export function createStudentApi(client: PomiSdkClient) {
     courseId: number,
     studyPeriodId: number,
   ) {
-    return collectPages(
-      client,
-      'data',
-      client.data.listClasses({
-        page: 1,
-        pageSize: 100,
-        filter: { courseId, studyPeriodId },
-      }),
-    )
+    return client.data.classes.listAll({
+      page: 1,
+      pageSize: 100,
+      filter: { courseId, studyPeriodId },
+    }) as unknown as Promise<ReadonlyArray<StudentCourseAttemptClass>>
   }
 
   function listClassSchedulesByStudyPeriod(studyPeriodId: number) {
-    return collectPages(
-      client,
-      'data',
-      client.data.listClassSchedules({
-        page: 1,
-        pageSize: 1000,
-        filter: { studyPeriod: { id: studyPeriodId } },
-      }),
-    ) as Promise<ReadonlyArray<StudentClassSchedule>>
+    return client.data.classSchedules.listAll({
+      page: 1,
+      pageSize: 1000,
+      filter: { studyPeriod: { id: studyPeriodId } },
+    }) as Promise<ReadonlyArray<StudentClassSchedule>>
   }
 
   function listStudentCourseAttempts(
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.courseAttempts.list(studentId, {}, { getAccessToken })
+    return client.app.courseAttempts.list(
+      String(studentId),
+      {},
+      { getAccessToken },
+    ) as Promise<ReadonlyArray<StudentCourseAttempt>>
   }
 
   function importStudentHistory(
@@ -181,11 +163,9 @@ export function createStudentApi(client: PomiSdkClient) {
     body: StudentHistoryImport,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.createStudentCourseHistory(
-      {
-        sid: String(studentId),
-        body: body as createStudentCourseHistoryInput['body'],
-      },
+    return client.app.studentCourseHistory.create(
+      String(studentId),
+      body as createStudentCourseHistoryInput['body'],
       { getAccessToken },
     )
   }
@@ -196,12 +176,11 @@ export function createStudentApi(client: PomiSdkClient) {
     professorId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.listStudentClassesProfessorsEvaluation(
-      {
-        sid: String(studentId),
-        classId: String(classId),
-        professorId: String(professorId),
-      },
+    return client.app.studentClassesProfessorsEvaluation.list(
+      String(studentId),
+      String(classId),
+      String(professorId),
+      {},
       { getAccessToken },
     )
   }
@@ -213,13 +192,11 @@ export function createStudentApi(client: PomiSdkClient) {
     body: ProfessorEvaluationBody,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.updateStudentClassesProfessorsEvaluation(
-      {
-        sid: String(studentId),
-        classId: String(classId),
-        professorId: String(professorId),
-        body,
-      },
+    return client.app.studentClassesProfessorsEvaluation.update(
+      String(studentId),
+      String(classId),
+      String(professorId),
+      body,
       { getAccessToken },
     )
   }
@@ -232,8 +209,9 @@ export function createStudentApi(client: PomiSdkClient) {
     }>,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.listStudentProfessorEvaluationsPending(
-      { sid: String(studentId), filter: period },
+    return client.app.studentProfessorEvaluationsPending.list(
+      String(studentId),
+      { filter: period },
       { getAccessToken },
     )
   }
@@ -243,9 +221,9 @@ export function createStudentApi(client: PomiSdkClient) {
     body: StudentCourseAttemptBody,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.courseAttempts.create(studentId, body, {
+    return client.app.courseAttempts.create(String(studentId), body, {
       getAccessToken,
-    })
+    }) as Promise<StudentCourseAttempt>
   }
 
   function patchStudentCourseAttempt(
@@ -254,9 +232,14 @@ export function createStudentApi(client: PomiSdkClient) {
     body: PatchAttemptBody,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.courseAttempts.update(studentId, attemptId, body, {
-      getAccessToken,
-    })
+    return client.app.courseAttempts.update(
+      String(studentId),
+      String(attemptId),
+      body,
+      {
+        getAccessToken,
+      },
+    ) as Promise<StudentCourseAttempt>
   }
 
   async function deleteStudentCourseAttempt(
@@ -264,9 +247,13 @@ export function createStudentApi(client: PomiSdkClient) {
     attemptId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    await client.app.courseAttempts.delete(studentId, attemptId, {
-      getAccessToken,
-    })
+    await client.app.courseAttempts.delete(
+      String(studentId),
+      String(attemptId),
+      {
+        getAccessToken,
+      },
+    )
   }
 
   return {

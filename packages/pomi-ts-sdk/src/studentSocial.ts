@@ -1,15 +1,13 @@
+import type { updateStudentPublicProfileInput } from './generated/app/operations.js'
 import type {
-  getStudentPeopleOutput,
-  listStudentFriendshipsOutput,
-  listStudentPublicProfileOutput,
-  updateStudentPublicProfileInput,
-} from './generated/app/operations.js'
+  StudentFriendship as GeneratedFriendship,
+  StudentPublicPerson as GeneratedPublicPerson,
+  StudentPublicProfile as GeneratedPublicProfile,
+} from './generated/app/domain.js'
 import type { PomiSdkClient } from './generatedClient.js'
 
-export type PublicPerson = Readonly<Omit<getStudentPeopleOutput, '_paths'>>
-export type PublicProfile = Readonly<
-  Omit<listStudentPublicProfileOutput, '_paths'>
->
+export type PublicPerson = GeneratedPublicPerson
+export type PublicProfile = GeneratedPublicProfile
 
 export type PublicProfileUpdate = Readonly<
   Pick<
@@ -18,28 +16,26 @@ export type PublicProfileUpdate = Readonly<
   >
 >
 
-type GeneratedFriendship = listStudentFriendshipsOutput[number]
-export type Friendship = Readonly<
-  Omit<GeneratedFriendship, '_paths' | 'friend'> & { friend: PublicPerson }
->
+export type Friendship = GeneratedFriendship
 
 export function createStudentSocialApi(client: PomiSdkClient) {
   const getPublicProfile = (studentId: number, token: () => Promise<string>) =>
-    client.app.listStudentPublicProfile(
-      { sid: String(studentId) },
-      { getAccessToken: token },
-    ) as Promise<PublicProfile>
+    client.app.studentPublicProfile.list(
+      String(studentId),
+      {},
+      {
+        getAccessToken: token,
+      },
+    )
 
   const updatePublicProfile = (
     studentId: number,
     body: Partial<PublicProfileUpdate>,
     token: () => Promise<string>,
   ) =>
-    client.app.updateStudentPublicProfile(
-      {
-        sid: String(studentId),
-        body: body as updateStudentPublicProfileInput['body'],
-      },
+    client.app.studentPublicProfile.update(
+      String(studentId),
+      body as updateStudentPublicProfileInput['body'],
       { getAccessToken: token },
     )
 
@@ -48,9 +44,9 @@ export function createStudentSocialApi(client: PomiSdkClient) {
     query: string | undefined,
     token: () => Promise<string>,
   ) => {
-    return client.app.listStudentPeople(
+    return client.app.studentPeople.list(
+      String(studentId),
       {
-        sid: String(studentId),
         page: '1',
         pageSize: '20',
         query: query?.trim() || undefined,
@@ -64,25 +60,30 @@ export function createStudentSocialApi(client: PomiSdkClient) {
     publicId: string,
     token: () => Promise<string>,
   ) =>
-    client.app.getStudentPeople(
-      { sid: String(studentId), publicId },
-      { getAccessToken: token },
-    ) as Promise<PublicPerson>
+    client.app.studentPeople.get(String(studentId), publicId, {
+      getAccessToken: token,
+    })
 
   const listFriendships = (studentId: number, token: () => Promise<string>) =>
-    client.app.listStudentFriendships(
-      { sid: String(studentId) },
-      { getAccessToken: token },
-    ) as Promise<ReadonlyArray<Friendship>>
+    client.app.studentFriendships.list(
+      String(studentId),
+      {},
+      {
+        getAccessToken: token,
+      },
+    )
 
   const requestFriendship = (
     studentId: number,
     targetPublicId: string,
     token: () => Promise<string>,
   ) =>
-    client.app.createStudentFriendships(
-      { sid: String(studentId), body: { targetPublicId } },
-      { getAccessToken: token },
+    client.app.studentFriendships.create(
+      String(studentId),
+      { targetPublicId },
+      {
+        getAccessToken: token,
+      },
     )
 
   const acceptFriendship = (
@@ -90,20 +91,18 @@ export function createStudentSocialApi(client: PomiSdkClient) {
     id: number,
     token: () => Promise<string>,
   ) =>
-    client.app.createStudentFriendshipsAccept(
-      { sid: String(studentId), id: String(id) },
-      { getAccessToken: token },
-    )
+    client.app.studentFriendshipsAccept.create(String(studentId), String(id), {
+      getAccessToken: token,
+    })
 
   async function removeFriendship(
     studentId: number,
     id: number,
     token: () => Promise<string>,
   ) {
-    await client.app.deleteStudentFriendships(
-      { sid: String(studentId), id: String(id) },
-      { getAccessToken: token },
-    )
+    await client.app.studentFriendships.delete(String(studentId), String(id), {
+      getAccessToken: token,
+    })
   }
 
   return {

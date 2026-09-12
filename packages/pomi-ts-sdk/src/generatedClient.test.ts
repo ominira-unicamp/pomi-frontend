@@ -226,8 +226,8 @@ test('maps expressive nested resources to operational requests', async () => {
     async () => 'token',
   )
 
-  await sdk.app.periodPlannings.update(7, 8, { visibility: 'PUBLIC' })
-  await sdk.app.courseAttempts.update(7, 9, { grade: 8.5 })
+  await sdk.app.periodPlannings.update('7', '8', { visibility: 'PUBLIC' })
+  await sdk.app.courseAttempts.update('7', '9', { grade: 8.5 })
 
   assert.equal(
     requests[0]?.url,
@@ -246,6 +246,36 @@ test('maps expressive nested resources to operational requests', async () => {
       'urn:pomi:problem:invalid-student-course-attempt',
     ),
   )
+})
+
+test('supports generated pagination for resources with path parameters', async () => {
+  const requests: string[] = []
+  const sdk = sdkWith(async (input) => {
+    const url = String(input)
+    requests.push(url)
+    const secondPage = url.includes('page=2')
+    return new Response(
+      JSON.stringify({
+        data: [{ id: secondPage ? 2 : 1 }],
+        quantity: 1,
+        total: 2,
+        _paths: { next: secondPage ? null : '/tags/4/courses?page=2' },
+      }),
+      { status: 200, headers: { 'content-type': 'application/json' } },
+    )
+  })
+
+  const courses = await sdk.app.tagsCourses.listAll(4, {
+    page: 1,
+    pageSize: 100,
+  })
+
+  assert.deepEqual(courses, [{ id: 1 }, { id: 2 }])
+  assert.equal(
+    requests[0],
+    'https://app.example.test/tags/4/courses?page=1&pageSize=100',
+  )
+  assert.equal(requests[1], 'https://app.example.test/tags/4/courses?page=2')
 })
 
 test('provides the SDK-level problem guard', async () => {

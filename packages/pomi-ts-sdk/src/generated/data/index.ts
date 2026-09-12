@@ -1,4 +1,5 @@
 export * from './enums.js'
+export * from './domain.js'
 export * from './filters.js'
 export * from './metadata.js'
 export * from './openapi.js'

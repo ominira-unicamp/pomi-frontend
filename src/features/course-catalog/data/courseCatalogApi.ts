@@ -8,6 +8,7 @@ export type {
   Course,
   CourseClass,
   CoursePage,
+  RelatedCourse,
   StudyPeriod,
   Tag,
   Unit,

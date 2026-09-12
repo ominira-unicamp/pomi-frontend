@@ -1,7 +1,7 @@
-import type { listStudentTagInterestsOutput } from './generated/app/operations.js'
+import type { StudentTagInterest } from './generated/app/domain.js'
 import type { PomiRequestContext, PomiSdkClient } from './generatedClient.js'
 
-export type StudentInterestTag = Readonly<listStudentTagInterestsOutput[number]>
+export type StudentInterestTag = StudentTagInterest
 
 export function createStudentInterestsApi(client: PomiSdkClient) {
   const context = (
@@ -14,8 +14,9 @@ export function createStudentInterestsApi(client: PomiSdkClient) {
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.listStudentTagInterests(
-      { sid: String(studentId) },
+    return client.app.studentTagInterests.list(
+      String(studentId),
+      {},
       context(getAccessToken),
     )
   }
@@ -25,8 +26,9 @@ export function createStudentInterestsApi(client: PomiSdkClient) {
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.updateStudentTagInterests(
-      { sid: String(studentId), tagId: String(tagId) },
+    return client.app.studentTagInterests.update(
+      String(studentId),
+      String(tagId),
       { ...context(getAccessToken), allowUndocumentedSuccess: true },
     )
   }
@@ -36,9 +38,10 @@ export function createStudentInterestsApi(client: PomiSdkClient) {
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.deleteStudentTagInterests(
-      { sid: String(studentId), tagId: String(tagId) },
-      context(getAccessToken),
+    return client.app.studentTagInterests.delete(
+      String(studentId),
+      String(tagId),
+      { ...context(getAccessToken), allowUndocumentedSuccess: true },
     )
   }
 

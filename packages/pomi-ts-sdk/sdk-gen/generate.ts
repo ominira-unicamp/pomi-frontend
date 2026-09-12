@@ -67,6 +67,25 @@ type OperationEntry = {
   document: OpenApiDocument
 }
 
+type DomainRegistry = {
+  models: Map<string, string>
+  transportFields: Map<string, ReadonlyArray<string>>
+}
+
+const domainSchemaNames: Record<ApiTarget, ReadonlyArray<string>> = {
+  data: [
+    'CourseEntity',
+    'CatalogProgramEntity',
+    'ClassScheduleEntity',
+    'UnitEntity',
+    'Catalog',
+    'CatalogCourseEntity',
+    'StudyPeriodEntity',
+    'ClassEntity',
+  ],
+  app: ['StudentCourseAttempt', 'Category', 'Tag', 'TagRelatedCourse'],
+}
+
 const scriptDirectory = dirname(fileURLToPath(import.meta.url))
 const projectDirectory = resolve(scriptDirectory, '..')
 const workspaceDirectory = resolve(projectDirectory, '../../..')
@@ -130,6 +149,83 @@ function operationEntries(
   )
 }
 
+function singularResourceName(resource: string) {
+  if (resource.endsWith('ies')) return `${resource.slice(0, -3)}y`
+  if (resource.endsWith('s')) return resource.slice(0, -1)
+  return resource
+}
+
+function derivedPathParameters(entry: OperationEntry, resource: string) {
+  return Object.fromEntries(
+    parameterNames(entry.operation, 'path').map((name) => {
+      if (name === 'sid') return [name, 'studentId']
+      if (name === 'id') return [name, `${singularResourceName(resource)}Id`]
+      return [name, name]
+    }),
+  )
+}
+
+function pathParameterType(entry: OperationEntry, wireName: string) {
+  const parameter = (entry.operation.parameters ?? []).find(
+    (candidate) => candidate.in === 'path' && candidate.name === wireName,
+  )
+  const schema = isRecord(parameter?.schema) ? parameter.schema : undefined
+  if (schema?.type === 'integer' || schema?.type === 'number') return 'number'
+  if (schema?.type === 'boolean') return 'boolean'
+  return 'string'
+}
+
+function responseHasPagination(
+  entry: OperationEntry,
+): OpenApiOperation['x-pomi-pagination'] {
+  function paginatedSchema(schema: unknown): boolean {
+    if (!isRecord(schema)) return false
+    if (typeof schema.$ref === 'string') {
+      const name = schema.$ref.replace('#/components/schemas/', '')
+      return paginatedSchema(entry.document.components?.schemas?.[name])
+    }
+    const properties = isRecord(schema.properties) ? schema.properties : {}
+    const data = properties.data
+    const paths = properties._paths
+    return (
+      isRecord(data) &&
+      data.type === 'array' &&
+      isRecord(paths) &&
+      isRecord(paths.properties) &&
+      'next' in paths.properties
+    )
+  }
+
+  for (const [, response] of responseEntries(entry.operation, true)) {
+    for (const [, content] of contentTypeEntries(response)) {
+      if (paginatedSchema(content.schema)) {
+        return {
+          itemsField: 'data',
+          nextField: '_paths.next',
+          defaultPageSize: 100,
+          maxPageSize: 1000,
+        }
+      }
+    }
+  }
+  return undefined
+}
+
+function sdkMetadataFor(entry: OperationEntry) {
+  if (entry.operation['x-pomi-sdk']) return entry.operation['x-pomi-sdk']
+  if (/(^|\/)period-plan(?:\/|$)/.test(entry.path)) return undefined
+  const match = /^(list|get|create|update|delete)([A-Z].*)$/.exec(
+    entry.operation.operationId ?? '',
+  )
+  if (!match) return undefined
+  const resource = `${match[2]![0]!.toLowerCase()}${match[2]!.slice(1)}`
+  return {
+    resource,
+    action: match[1] as 'list' | 'get' | 'create' | 'update' | 'delete',
+    pathParameters: derivedPathParameters(entry, resource),
+  }
+}
+
 function parameterNames(operation: OpenApiOperation, location: string) {
   return (operation.parameters ?? [])
     .filter((parameter) => parameter.in === location)
@@ -154,18 +250,134 @@ function contentTypeEntries(response: OpenApiResponse) {
   return Object.entries(response.content ?? {})
 }
 
+function schemaNameFromRef(schema: unknown) {
+  if (!isRecord(schema) || typeof schema.$ref !== 'string') return undefined
+  return schema.$ref.startsWith('#/components/schemas/')
+    ? schema.$ref.slice('#/components/schemas/'.length)
+    : undefined
+}
+
+function schemaAtRef(document: OpenApiDocument, schema: unknown) {
+  const name = schemaNameFromRef(schema)
+  return name ? document.components?.schemas?.[name] : undefined
+}
+
+function pageItemSchema(document: OpenApiDocument, schema: unknown) {
+  const resolved = schemaAtRef(document, schema) ?? schema
+  if (!isRecord(resolved) || !isRecord(resolved.properties)) return undefined
+  const data = resolved.properties.data
+  const paths = resolved.properties._paths
+  if (!isRecord(data) || data.type !== 'array') return undefined
+  if (
+    !isRecord(paths) ||
+    !isRecord(paths.properties) ||
+    !('next' in paths.properties)
+  ) {
+    return undefined
+  }
+  return data.items
+}
+
+function outputDomainSchemaNames(
+  document: OpenApiDocument,
+  schema: unknown,
+): Array<string> {
+  const refName = schemaNameFromRef(schema)
+  if (refName) {
+    const item = pageItemSchema(document, schema)
+    return item ? outputDomainSchemaNames(document, item) : [refName]
+  }
+  if (isRecord(schema) && schema.type === 'array') {
+    return outputDomainSchemaNames(document, schema.items)
+  }
+  return []
+}
+
+function modelNameForSchema(schemaName: string) {
+  return schemaName.endsWith('Entity')
+    ? schemaName.slice(0, -'Entity'.length)
+    : schemaName
+}
+
+function domainTypeForSchema(
+  document: OpenApiDocument,
+  schema: unknown,
+  registry: DomainRegistry,
+): string | undefined {
+  const refName = schemaNameFromRef(schema)
+  if (refName) {
+    const model = registry.models.get(refName)
+    if (model) return model
+    const item = pageItemSchema(document, schema)
+    const itemType = item
+      ? domainTypeForSchema(document, item, registry)
+      : undefined
+    return itemType ? `Page<${itemType}>` : undefined
+  }
+  if (isRecord(schema) && schema.type === 'array') {
+    const itemType = domainTypeForSchema(document, schema.items, registry)
+    return itemType ? `ReadonlyArray<${itemType}>` : undefined
+  }
+  const item = pageItemSchema(document, schema)
+  const itemType = item
+    ? domainTypeForSchema(document, item, registry)
+    : undefined
+  return itemType ? `Page<${itemType}>` : undefined
+}
+
+function createDomainRegistry(
+  target: ApiTarget,
+  document: OpenApiDocument,
+): DomainRegistry {
+  const models = new Map<string, string>()
+  const transportFields = new Map<string, ReadonlyArray<string>>()
+  const schemaNames = new Set(domainSchemaNames[target])
+  for (const entry of operationEntries(target, document)) {
+    for (const [, response] of responseEntries(entry.operation, true)) {
+      for (const [, content] of contentTypeEntries(response)) {
+        for (const schemaName of outputDomainSchemaNames(
+          document,
+          content.schema,
+        )) {
+          schemaNames.add(schemaName)
+        }
+      }
+    }
+  }
+  for (const schemaName of schemaNames) {
+    if (document.components?.schemas?.[schemaName]) {
+      models.set(schemaName, modelNameForSchema(schemaName))
+      const schema = document.components.schemas[schemaName]
+      const fields = isRecord(schema.properties)
+        ? Object.keys(schema.properties).filter((field) => field === '_paths')
+        : []
+      transportFields.set(schemaName, fields)
+    }
+  }
+  return { models, transportFields }
+}
+
 function operationSuccessType(
   operation: OpenApiOperation,
   operationType: string,
+  document: OpenApiDocument,
+  registry: DomainRegistry,
 ) {
   const types = responseEntries(operation, true).flatMap(
     ([status, response]) => {
       const contents = contentTypeEntries(response)
       if (contents.length === 0) return ['void']
-      return contents.map(
-        ([contentType]) =>
-          `${operationType}['responses'][${typeIndex(status)}]['content']${contentTypeIndex(contentType)}`,
-      )
+      return contents.map(([contentType, content]) => {
+        const domainType = domainTypeForSchema(
+          document,
+          content.schema,
+          registry,
+        )
+        return (
+          domainType ??
+          `${operationType}['responses'][${typeIndex(status)}]['content']${contentTypeIndex(contentType)}`
+        )
+      })
     },
   )
   if (types.length === 0)
@@ -316,12 +528,66 @@ function operationMetadata(entry: OperationEntry) {
   }
 }
 
-function createOperationsSource(entries: Array<OperationEntry>) {
+function createDomainSource(registry: DomainRegistry) {
+  const modelAliases = [...registry.models.entries()].map(
+    ([schemaName, modelName]) =>
+      `export type ${modelName}Transport = components['schemas']['${schemaName}']\nexport type ${modelName} = Domain<${modelName}Transport>`,
+  )
+  const catalogProgram = registry.models.has('CatalogProgramEntity')
+    ? `export type BlockSet = Domain<CatalogProgramTransport['base']>\nexport type CourseRequirement = Domain<CatalogProgramTransport['base']['mandatory'][number]>\nexport type CatalogProgramModality = Domain<CatalogProgramTransport['modalities'][number]>\nexport type CatalogProgramLanguage = Domain<CatalogProgramTransport['languages'][number]>`
+    : ''
+  const definitions = Object.fromEntries(
+    [...registry.models.entries()].map(([schemaName, modelName]) => [
+      modelName,
+      {
+        schema: schemaName,
+        transportFields: registry.transportFields.get(schemaName) ?? [],
+      },
+    ]),
+  )
+  return `import type { components } from './openapi.js'
+
+type Domain<T> = T extends null
+  ? null
+  : T extends ReadonlyArray<infer Item>
+    ? ReadonlyArray<Domain<Item>>
+    : T extends object
+      ? { readonly [Key in Exclude<keyof T, '_paths'>]: Domain<T[Key]> }
+      : T
+
+export type PagePaths = {
+  firstPage: string
+  lastPage: string
+  next: string | null
+  prev: string | null
+}
+
+export type Page<T> = {
+  data: ReadonlyArray<T>
+  quantity: number
+  total: number
+  _paths: PagePaths
+}
+
+${modelAliases.join('\n\n')}
+
+${catalogProgram}
+
+export const domainModelDefinitions = ${JSON.stringify(definitions, null, 2)} as const
+`
+}
+
+function createOperationsSource(
+  entries: Array<OperationEntry>,
+  document: OpenApiDocument,
+  registry: DomainRegistry,
+) {
   const definitions: Array<string> = []
   const typeAliases: Array<string> = []
   const inputProperties: Array<string> = []
   const outputProperties: Array<string> = []
   const problemProperties: Array<string> = []
+  const outputTypes: Array<string> = []
 
   for (const entry of entries) {
     const operationId = entry.operation.operationId
@@ -333,21 +599,38 @@ function createOperationsSource(entries: Array<OperationEntry>) {
     const operationType = `operations[${JSON.stringify(operationId)}]`
     const bodyRequired = entry.operation.requestBody?.required === true
     const inputType = `OperationInput<${operationType}['parameters']['path'], ${operationType}['parameters']['query'], ${operationType}['parameters']['header'], RequestBodyOf<${operationType}>, ${bodyRequired}>`
+    const outputType = operationSuccessType(
+      entry.operation,
+      operationType,
+      document,
+      registry,
+    )
     typeAliases.push(
       `export type ${operationId}Input = ${inputType}`,
-      `export type ${operationId}Output = ${operationSuccessType(entry.operation, operationType)}`,
+      `export type ${operationId}Output = ${outputType}`,
       `export type ${operationId}Problem = ${operationProblemType(entry.operation, operationType)}`,
     )
     inputProperties.push(`${operationId}: ${operationId}Input`)
     outputProperties.push(`${operationId}: ${operationId}Output`)
     problemProperties.push(`${operationId}: ${operationId}Problem`)
+    outputTypes.push(outputType)
     definitions.push(
       `${JSON.stringify(operationId)}: ${JSON.stringify(operationMetadata(entry), null, 2)}`,
     )
   }
 
+  const domainImports = [
+    ...[...registry.models.values()].filter((name) =>
+      outputTypes.some((outputType) => outputType.includes(name)),
+    ),
+    ...(outputTypes.some((outputType) => outputType.includes('Page<'))
+      ? ['Page']
+      : []),
+  ].filter((name, index, names) => names.indexOf(name) === index)
+
   return `import type { operations } from './openapi.js'
 import type { GeneratedOperationDefinition } from '../../runtime/operation.js'
+import type { ${domainImports.join(', ')} } from './domain.js'
 
 type ParameterRecord<T> = [NonNullable<T>] extends [never] ? {} : NonNullable<T>
 type RequestBodyOf<T> = T extends { requestBody: { content: infer Content } }
@@ -412,13 +695,21 @@ function createResourcesSource(
   function argumentsFor(entry: OperationEntry) {
     const operationId = entry.operation.operationId!
     const pathArguments = paths(entry)
-    const args = pathArguments.map(({ publicName }) => `${publicName}: number`)
+    const args = pathArguments.map(
+      ({ wireName, publicName }) =>
+        `${publicName}: ${pathParameterType(entry, wireName)}`,
+    )
     if (entry.operation['x-pomi-sdk']!.action === 'list') {
       const omitted =
         pathArguments
           .map(({ wireName }) => JSON.stringify(wireName))
           .join(' | ') || 'never'
-      args.push(`input: Omit<${operationId}Input, ${omitted}> = {}`)
+      const queryRequired = (entry.operation.parameters ?? []).some(
+        (parameter) => parameter.in === 'query' && parameter.required === true,
+      )
+      args.push(
+        `input: Omit<${operationId}Input, ${omitted}>${queryRequired ? '' : ' = {}'}`,
+      )
     } else if (entry.operation.requestBody) {
       args.push(`body: ${operationId}Input['body']`)
     }
@@ -461,9 +752,14 @@ function createResourcesSource(
         const operationId = paginated.operation.operationId!
         const pagination = paginated.operation['x-pomi-pagination']!
         const defaultedInput = `withPaginationDefaults(input, ${pagination.defaultPageSize})`
+        const listAllArguments = [
+          ...paths(paginated).map(({ publicName }) => publicName),
+          'input',
+          'context',
+        ].join(', ')
         methodDeclarations.push(
           `const pages = (${argumentsFor(paginated)}) => paginate<${operationId}Output>(operations.${operationId}(${inputFor(paginated, defaultedInput)}, context), ${JSON.stringify(target)}, definitions.${operationId}.authentication, ${JSON.stringify(pagination.nextField)}, requestPath, context)`,
-          `const listAll = async (${argumentsFor(paginated)}) => { const items: Array<${operationId}Output[${JSON.stringify(pagination.itemsField)}][number]> = []; for await (const page of pages(input, context)) items.push(...page[${JSON.stringify(pagination.itemsField)}]); return items }`,
+          `const listAll = async (${argumentsFor(paginated)}) => { const items: Array<${operationId}Output[${JSON.stringify(pagination.itemsField)}][number]> = []; for await (const page of pages(${listAllArguments})) items.push(...page[${JSON.stringify(pagination.itemsField)}]); return items }`,
         )
         methodNames.push('pages', 'listAll')
       }
@@ -710,6 +1006,7 @@ export type EnumName = keyof typeof enumValues
 
 function createTargetIndexSource() {
   return `export * from './enums.js'
+export * from './domain.js'
 export * from './filters.js'
 export * from './metadata.js'
 export * from './openapi.js'
@@ -739,6 +1036,12 @@ async function loadSpec(target: ApiTarget, path: string) {
     if (ids.has(id))
       throw new Error(`Duplicate operationId in ${target}: ${id}`)
     ids.add(id)
+    const derivedSdk = sdkMetadataFor(entry)
+    if (derivedSdk) entry.operation['x-pomi-sdk'] = derivedSdk
+    if (!entry.operation['x-pomi-pagination']) {
+      const pagination = responseHasPagination(entry)
+      if (pagination) entry.operation['x-pomi-pagination'] = pagination
+    }
     const sdk = entry.operation['x-pomi-sdk']
     const pagination = entry.operation['x-pomi-pagination']
     if (pagination && !sdk) {
@@ -785,6 +1088,7 @@ async function main() {
 
   for (const spec of loaded) {
     const directory = resolve(generatedDirectory, spec.target)
+    const registry = createDomainRegistry(spec.target, spec.document)
     const openApiAst = await openapiTS(spec.document, { alphabetize: false })
     project.createSourceFile(
       resolve(directory, 'openapi.ts'),
@@ -793,7 +1097,12 @@ async function main() {
     )
     project.createSourceFile(
       resolve(directory, 'operations.ts'),
-      createOperationsSource(spec.entries),
+      createOperationsSource(spec.entries, spec.document, registry),
+      { overwrite: true },
+    )
+    project.createSourceFile(
+      resolve(directory, 'domain.ts'),
+      createDomainSource(registry),
       { overwrite: true },
     )
     project.createSourceFile(

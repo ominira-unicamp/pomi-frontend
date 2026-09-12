@@ -1,10 +1,7 @@
-import type {
-  createStudentPeriodPlanningsInput,
-  getSharedPeriodPlanningsOutput,
-} from './generated/app/operations.js'
+import type { createStudentPeriodPlanningsInput } from './generated/app/operations.js'
+import type { SharedPeriodPlanning as GeneratedSharedPeriodPlanning } from './generated/app/domain.js'
 import type { PomiSdkClient } from './generatedClient.js'
 
-type GeneratedSharedPeriodPlanning = getSharedPeriodPlanningsOutput
 type GeneratedSharedClass = GeneratedSharedPeriodPlanning['classes'][number]
 type GeneratedSharedSchedule = GeneratedSharedClass['classSchedules'][number]
 export type SharedPeriodPlanning = Readonly<{
@@ -43,9 +40,9 @@ export function createSharedPeriodPlanningApi(client: PomiSdkClient) {
     ownerPublicId: string,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.listStudentSharedPeriodPlannings(
+    return client.app.studentSharedPeriodPlannings.list(
+      String(studentId),
       {
-        sid: String(studentId),
         page: '1',
         pageSize: '20',
         filter: { ownerPublicId },
@@ -62,9 +59,7 @@ export function createSharedPeriodPlanningApi(client: PomiSdkClient) {
   }
 
   async function getPublicSharedPeriodPlanning(shareId: string) {
-    return client.app.getSharedPeriodPlannings({
-      shareId,
-    }) as Promise<SharedPeriodPlanning>
+    return client.app.sharedPeriodPlannings.get(shareId)
   }
 
   async function getSharedPeriodPlanningForStudent(
@@ -72,10 +67,13 @@ export function createSharedPeriodPlanningApi(client: PomiSdkClient) {
     shareId: string,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.getStudentSharedPeriodPlannings(
-      { sid: String(studentId), shareId },
-      { getAccessToken },
-    ) as Promise<SharedPeriodPlanning>
+    return client.app.studentSharedPeriodPlannings.get(
+      String(studentId),
+      shareId,
+      {
+        getAccessToken,
+      },
+    )
   }
 
   async function copySharedPeriodPlanning(
@@ -88,10 +86,9 @@ export function createSharedPeriodPlanningApi(client: PomiSdkClient) {
       studyPeriodId: planning.studyPeriodId,
       classes: planning.classes.map((classItem) => classItem.id),
     }
-    return client.app.createStudentPeriodPlannings(
-      { sid: String(studentId), body },
-      { getAccessToken },
-    )
+    return client.app.periodPlannings.create(String(studentId), body, {
+      getAccessToken,
+    })
   }
 
   return {

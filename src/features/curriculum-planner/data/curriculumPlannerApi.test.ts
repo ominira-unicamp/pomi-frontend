@@ -39,6 +39,22 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
           ]),
         )
       }
+      if (url.pathname === '/courses' && url.searchParams.get('page') === '2') {
+        return Promise.resolve(
+          Response.json({
+            data: [
+              {
+                id: 9,
+                code: 'EF100',
+                name: 'Estruturas Formais',
+                credits: 4,
+                prefix: 'EF',
+              },
+            ],
+            _paths: { next: null },
+          }),
+        )
+      }
       if (url.pathname === '/courses') {
         return Promise.resolve(
           Response.json({
@@ -52,7 +68,7 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
               },
               { id: 8, code: 'CD100', name: 'Dados', credits: 4, prefix: 'CD' },
             ],
-            _paths: { next: null },
+            _paths: { next: '/courses?page=2&pageSize=100' },
           }),
         )
       }
@@ -63,8 +79,11 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
     const result = await createApiCurriculumPlannerStaticDataSource().load()
     expect(result.ok).toBe(true)
     if (!result.ok) return
-    expect(result.value.courses).toHaveLength(2)
+    expect(result.value.courses).toHaveLength(3)
     expect(new URL(fetchMock.mock.calls[1][0]).pathname).toBe('/courses')
+    expect(new URL(fetchMock.mock.calls[2][0]).search).toBe(
+      '?page=2&pageSize=100',
+    )
     expect(
       result.value.catalogPrograms[0].baseBlocks.mandatory[0],
     ).not.toHaveProperty('id')

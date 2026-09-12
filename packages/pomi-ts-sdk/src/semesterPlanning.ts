@@ -1,42 +1,22 @@
-import { collectPages } from './generatedPagination.js'
 import type {
   createStudentPeriodPlanningsInput,
-  getStudentPeriodPlanningsOutput,
   updateStudentPeriodPlanningsInput,
 } from './generated/app/operations.js'
 import type {
-  listClassSchedulesOutput,
-  listClassesOutput,
-  listCoursesOutput,
-  listProfessorsEvaluationSummariesOutput,
-  listStudyPeriodsOutput,
-} from './generated/data/operations.js'
+  Class as GeneratedClass,
+  ClassSchedule as GeneratedClassSchedule,
+  Course as GeneratedCourse,
+  ProfessorEvaluationSummary as GeneratedProfessorEvaluationSummary,
+  StudyPeriod as GeneratedStudyPeriod,
+} from './generated/data/domain.js'
+import type { PeriodPlanning as GeneratedPlanning } from './generated/app/domain.js'
 import type { PomiSdkClient } from './generatedClient.js'
 
-export type SemesterApiStudyPeriod = Readonly<
-  Pick<
-    listStudyPeriodsOutput[number],
-    'id' | 'year' | 'yearPeriod' | 'startDate'
-  >
->
-export type SemesterApiCourse = Readonly<
-  Pick<listCoursesOutput['data'][number], 'id' | 'code' | 'name' | 'credits'>
->
-export type SemesterApiClass = Readonly<
-  Pick<
-    listClassesOutput['data'][number],
-    'id' | 'code' | 'courseId' | 'courseCode' | 'professors'
-  >
->
-export type SemesterApiMeeting = Readonly<
-  Pick<
-    listClassSchedulesOutput['data'][number],
-    'id' | 'classId' | 'dayOfWeek' | 'start' | 'end' | 'roomCode'
-  >
->
-export type ProfessorEvaluationSummary = Readonly<
-  listProfessorsEvaluationSummariesOutput['data'][number]
->
+export type SemesterApiStudyPeriod = GeneratedStudyPeriod
+export type SemesterApiCourse = GeneratedCourse
+export type SemesterApiClass = GeneratedClass
+export type SemesterApiMeeting = GeneratedClassSchedule
+export type ProfessorEvaluationSummary = GeneratedProfessorEvaluationSummary
 
 export type SemesterPlanningVisibility = 'PRIVATE' | 'FRIENDS' | 'PUBLIC'
 
@@ -56,7 +36,6 @@ export type SemesterPlanningGuideInput = Readonly<{
   manualCourseIds: ReadonlyArray<number>
 }>
 
-type GeneratedPlanning = getStudentPeriodPlanningsOutput
 type GeneratedPlanningClass = GeneratedPlanning['classes'][number]
 type GeneratedPlanningGuide = GeneratedPlanning['guide']
 export type PersistedSemesterPlanning = Readonly<{
@@ -118,7 +97,7 @@ function guideToApi(guide: SemesterPlanningGuideInput) {
 
 export function createSemesterPlanningApi(client: PomiSdkClient) {
   function listStudyPeriods() {
-    return client.data.listStudyPeriods({})
+    return client.data.studyPeriods.list({})
   }
 
   function listCourses() {
@@ -126,38 +105,26 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
   }
 
   function listClasses(studyPeriodId: number) {
-    return collectPages(
-      client,
-      'data',
-      client.data.listClasses({
-        page: 1,
-        pageSize: 1000,
-        filter: { studyPeriodId },
-      }),
-    )
+    return client.data.classes.listAll({
+      page: 1,
+      pageSize: 1000,
+      filter: { studyPeriodId },
+    })
   }
 
   function listMeetings(studyPeriodId: number) {
-    return collectPages(
-      client,
-      'data',
-      client.data.listClassSchedules({
-        page: 1,
-        pageSize: 1000,
-        filter: { studyPeriod: { id: studyPeriodId } },
-      }),
-    )
+    return client.data.classSchedules.listAll({
+      page: 1,
+      pageSize: 1000,
+      filter: { studyPeriod: { id: studyPeriodId } },
+    })
   }
 
   function listProfessorEvaluationSummaries() {
-    return collectPages(
-      client,
-      'data',
-      client.data.listProfessorsEvaluationSummaries({
-        page: 1,
-        pageSize: 100,
-      }),
-    )
+    return client.data.professorsEvaluationSummaries.listAll({
+      page: 1,
+      pageSize: 100,
+    })
   }
 
   function listSemesterPlannings(
@@ -165,7 +132,7 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.periodPlannings.list(
-      studentId,
+      String(studentId),
       {},
       {
         getAccessToken,
@@ -178,7 +145,7 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
     planId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.periodPlannings.get(studentId, planId, {
+    return client.app.periodPlannings.get(String(studentId), String(planId), {
       getAccessToken,
     }) as Promise<PersistedSemesterPlanning>
   }
@@ -195,7 +162,7 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
       classes: [...document.classIds],
       guide: guideToApi(document.guide),
     }
-    return client.app.periodPlannings.create(studentId, body, {
+    return client.app.periodPlannings.create(String(studentId), body, {
       getAccessToken,
     }) as Promise<PersistedSemesterPlanning>
   }
@@ -212,9 +179,14 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
       classes: { set: [...document.classIds] },
       guide: guideToApi(document.guide),
     }
-    return client.app.periodPlannings.update(studentId, planId, body, {
-      getAccessToken,
-    }) as Promise<PersistedSemesterPlanning>
+    return client.app.periodPlannings.update(
+      String(studentId),
+      String(planId),
+      body,
+      {
+        getAccessToken,
+      },
+    ) as Promise<PersistedSemesterPlanning>
   }
 
   function updateSemesterPlanningVisibility(
@@ -224,8 +196,8 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
     getAccessToken: () => Promise<string>,
   ) {
     return client.app.periodPlannings.update(
-      studentId,
-      planId,
+      String(studentId),
+      String(planId),
       { visibility },
       { getAccessToken },
     ) as Promise<PersistedSemesterPlanning>
@@ -236,7 +208,7 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
     planId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    await client.app.periodPlannings.delete(studentId, planId, {
+    await client.app.periodPlannings.delete(String(studentId), String(planId), {
       getAccessToken,
     })
   }

@@ -10,7 +10,7 @@ import type {
 } from '@pomi/planner-domain/curriculum'
 import type { VisualPrerequisiteLink } from '@/features/curriculum-planner/prerequisiteTreeLayout'
 import type {
-  Course,
+  RelatedCourse,
   Tag,
 } from '@/features/course-catalog/data/courseCatalogApi'
 import { ContextBackLink } from '@/components/ContextBackLink'
@@ -118,7 +118,7 @@ export function CourseDetailsPage({
       const related = await Promise.all(
         courseTags.map((tag) => listRelatedCourses(tag.id)),
       )
-      const counts = new Map<number, { course: Course; count: number }>()
+      const counts = new Map<number, { course: RelatedCourse; count: number }>()
       for (const courses of related) {
         for (const relatedCourse of courses) {
           if (relatedCourse.id === courseId) continue
@@ -454,7 +454,7 @@ function RelatedSection({
   courses,
   loading,
 }: {
-  courses: ReadonlyArray<Course>
+  courses: ReadonlyArray<RelatedCourse>
   loading: boolean
 }) {
   return (
