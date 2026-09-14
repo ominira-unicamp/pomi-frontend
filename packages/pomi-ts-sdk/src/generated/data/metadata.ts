@@ -3237,8 +3237,141 @@ export const queryCapabilities = {
         "filter": null
     },
     "getCalendarFeed": {
-        "parameters": [],
-        "filter": null
+        "parameters": [
+            {
+                "name": "filter",
+                "required": false,
+                "description": "Structured calendar feed filters. Use bracket notation such as filter[tagId]=1.",
+                "style": "deepObject",
+                "explode": true,
+                "schema": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "startDate": {
+                            "oneOf": [
+                                {
+                                    "format": "date-time",
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "format": "date-time",
+                                            "type": "string"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "format": "date-time",
+                                                "type": "string"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        },
+                        "endDate": {
+                            "oneOf": [
+                                {
+                                    "format": "date-time",
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "format": "date-time",
+                                            "type": "string"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "format": "date-time",
+                                                "type": "string"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        },
+                        "tagId": {
+                            "oneOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "type": "integer"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "type": "integer"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    },
+                    "type": "object"
+                }
+            }
+        ],
+        "filter": {
+            "version": 1,
+            "fields": [
+                {
+                    "path": [
+                        "startDate"
+                    ],
+                    "schema": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "operators": [
+                        "eq",
+                        "in"
+                    ]
+                },
+                {
+                    "path": [
+                        "endDate"
+                    ],
+                    "schema": {
+                        "format": "date-time",
+                        "type": "string"
+                    },
+                    "operators": [
+                        "eq",
+                        "in"
+                    ]
+                },
+                {
+                    "path": [
+                        "tagId"
+                    ],
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "operators": [
+                        "eq",
+                        "in"
+                    ]
+                }
+            ],
+            "constraints": {
+                "maxExpressions": 20,
+                "maxDepth": 3,
+                "maxParameters": 100
+            }
+        }
     },
     "getCalendarTags": {
         "parameters": [],

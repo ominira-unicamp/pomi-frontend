@@ -93,7 +93,7 @@ export function bindResources(operations: Operations, requestPath: RequestPath) 
             return { get: getOperation, list: listOperation, pages, listAll }
         })(),
         "calendar": (() => {
-            const getFeedOperation = withMetadata((context?: PomiRequestContext) => operations.getCalendarFeed(operationInput<getCalendarFeedInput>({}), context), definitions.getCalendarFeed, operationProblemTypes.getCalendarFeed)
+            const getFeedOperation = withMetadata((input: Omit<getCalendarFeedInput, never> = {}, context?: PomiRequestContext) => operations.getCalendarFeed(operationInput<getCalendarFeedInput>({ ...input }), context), definitions.getCalendarFeed, operationProblemTypes.getCalendarFeed)
             return { getFeed: getFeedOperation }
         })(),
         "calendarTags": (() => {

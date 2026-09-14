@@ -1,5 +1,6 @@
-import type { getCourseProfessorEvaluationSummaryInput, listCalendarEventsInput, listCalendarTagsInput, listCatalogCoursesInput, listCatalogProgramsInput, listCatalogsInput, listClassesInput, listClassSchedulesInput, listCoauthorsInput, listCoordinatorsInput, listCourseEvaluationSummariesInput, listCoursesInput, listCurriculumSuggestionsInput, listDailyMenusInput, listDepartmentsInput, listExchangeNoticesInput, listExchangePlacesInput, listKeywordsInput, listLanguagesInput, listProfessorDataPortalProfilesInput, listProfessorEvaluationSummariesInput, listProfessorPositionsInput, listProfessorsInput, listProgramsInput, listRoomsInput, listSpecializationsInput, listStudyPeriodsInput, listUnitsInput } from './operations.js'
+import type { getCalendarFeedInput, getCourseProfessorEvaluationSummaryInput, listCalendarEventsInput, listCalendarTagsInput, listCatalogCoursesInput, listCatalogProgramsInput, listCatalogsInput, listClassesInput, listClassSchedulesInput, listCoauthorsInput, listCoordinatorsInput, listCourseEvaluationSummariesInput, listCoursesInput, listCurriculumSuggestionsInput, listDailyMenusInput, listDepartmentsInput, listExchangeNoticesInput, listExchangePlacesInput, listKeywordsInput, listLanguagesInput, listProfessorDataPortalProfilesInput, listProfessorEvaluationSummariesInput, listProfessorPositionsInput, listProfessorsInput, listProgramsInput, listRoomsInput, listSpecializationsInput, listStudyPeriodsInput, listUnitsInput } from './operations.js'
 
+export type getCalendarFeedFilter = NonNullable<getCalendarFeedInput['filter']>
 export type getCourseProfessorEvaluationSummaryFilter = NonNullable<getCourseProfessorEvaluationSummaryInput['filter']>
 export type listCalendarEventsFilter = NonNullable<listCalendarEventsInput['filter']>
 export type listCalendarTagsFilter = NonNullable<listCalendarTagsInput['filter']>
@@ -30,6 +31,54 @@ export type listStudyPeriodsFilter = NonNullable<listStudyPeriodsInput['filter']
 export type listUnitsFilter = NonNullable<listUnitsInput['filter']>
 
 export const filterCapabilities = {
+    "getCalendarFeed": {
+        "version": 1,
+        "fields": [
+            {
+                "path": [
+                    "startDate"
+                ],
+                "schema": {
+                    "format": "date-time",
+                    "type": "string"
+                },
+                "operators": [
+                    "eq",
+                    "in"
+                ]
+            },
+            {
+                "path": [
+                    "endDate"
+                ],
+                "schema": {
+                    "format": "date-time",
+                    "type": "string"
+                },
+                "operators": [
+                    "eq",
+                    "in"
+                ]
+            },
+            {
+                "path": [
+                    "tagId"
+                ],
+                "schema": {
+                    "type": "integer"
+                },
+                "operators": [
+                    "eq",
+                    "in"
+                ]
+            }
+        ],
+        "constraints": {
+            "maxExpressions": 20,
+            "maxDepth": 3,
+            "maxParameters": 100
+        }
+    },
     "getCourseProfessorEvaluationSummary": {
         "version": 1,
         "fields": [

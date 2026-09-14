@@ -3872,7 +3872,25 @@ export interface operations {
     };
     getCalendarFeed: {
         parameters: {
-            query?: never;
+            query?: {
+
+                filter?: {
+                    startDate?: string | {
+
+                        eq?: string;
+                        in?: string[];
+                    };
+                    endDate?: string | {
+
+                        eq?: string;
+                        in?: string[];
+                    };
+                    tagId?: number | {
+                        eq?: number;
+                        in?: number[];
+                    };
+                };
+            };
             header?: never;
             path?: never;
             cookie?: never;
