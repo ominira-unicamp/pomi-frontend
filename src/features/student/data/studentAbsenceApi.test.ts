@@ -17,11 +17,21 @@ describe('student absence API', () => {
   it('lists all absences for the student', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(new Response(JSON.stringify([]), { status: 200 }))
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            data: [],
+            quantity: 0,
+            total: 0,
+            _paths: { next: null },
+          }),
+          { status: 200 },
+        ),
+      )
 
     await expect(listStudentAbsences(7, getAccessToken)).resolves.toEqual([])
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringMatching(/\/student\/7\/absences$/),
+      expect.stringMatching(/\/student\/7\/absences(?:\?|$)/),
       expect.objectContaining({ cache: 'no-store' }),
     )
   })

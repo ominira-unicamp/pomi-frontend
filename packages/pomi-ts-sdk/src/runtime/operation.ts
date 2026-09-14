@@ -68,29 +68,13 @@ export type GeneratedOperationDefinition = Readonly<{
   sdk: Readonly<{
     resource: string
     action: 'list' | 'get' | 'create' | 'update' | 'delete'
-    method?: string
+    method: string
     pathParameters?: Readonly<Record<string, string>>
   }> | null
-  pagination:
-    | Readonly<{
-        strategy?: 'link'
-        itemsField: string
-        nextField: string
-        pageParameter?: string
-        pageSizeParameter?: string
-        defaultPageSize: number
-        maxPageSize: number
-      }>
-    | Readonly<{
-        strategy: 'page-number'
-        itemsField: string
-        pageField: string
-        pageSizeField: string
-        totalField: string
-        pageParameter?: string
-        pageSizeParameter?: string
-        defaultPageSize: number
-        maxPageSize: number
-      }>
-    | null
+  pagination: Readonly<{
+    defaultMode: 'page' | 'all'
+    defaultPageSize: number
+    maxPageSize?: number
+    allowAll: boolean
+  }> | null
 }>

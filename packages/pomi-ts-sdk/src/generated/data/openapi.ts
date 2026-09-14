@@ -7,7 +7,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listProfessorsEvaluationSummaries"];
+        get: operations["listProfessorEvaluationSummaries"];
         put?: never;
         post?: never;
         delete?: never;
@@ -24,7 +24,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listCoursesEvaluationSummaries"];
+        get: operations["listCourseEvaluationSummaries"];
         put?: never;
         post?: never;
         delete?: never;
@@ -41,7 +41,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listEvaluationSummaries"];
+        get: operations["getCourseProfessorEvaluationSummary"];
         put?: never;
         post?: never;
         delete?: never;
@@ -466,7 +466,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["getCatalogProgram"];
+        get: operations["getCatalogPrograms"];
         put?: never;
         post?: never;
         delete?: never;
@@ -483,7 +483,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listCatalogProgram"];
+        get: operations["listCatalogPrograms"];
         put?: never;
         post?: never;
         delete?: never;
@@ -687,7 +687,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listCalendar"];
+        get: operations["getCalendarFeed"];
         put?: never;
         post?: never;
         delete?: never;
@@ -1214,8 +1214,7 @@ export interface components {
                 any: {
                     all: {
                         code: string;
-
-                        kind: "FULL" | "PARTIAL" | "SPECIAL";
+                        kind: components["schemas"]["CourseOfferingKind"];
                         courseId: number | null;
                     }[];
                 }[];
@@ -1229,6 +1228,8 @@ export interface components {
         };
 
         CourseOfferingPeriod: "ALL_PERIODS" | "ODD_PERIODS" | "EVEN_PERIODS" | "UNIT_DISCRETION" | null;
+
+        CourseOfferingKind: "FULL" | "PARTIAL" | "SPECIAL";
         CoordinatorEntity: {
             id: number;
             name: string;
@@ -1246,115 +1247,49 @@ export interface components {
             catalogYear: number;
             programCode: number;
             programName: string;
-            base: {
-                mandatory: {
-                    id: number;
-
-                    type: "any" | "prefix" | "specific";
-                    courseId: number | null;
-                    courseCode: string | null;
-                    courseName: string | null;
-                    prefix: string | null;
-                    catalogCourseId: number | null;
-                    _paths: {
-                        catalogCourse: string | null;
-                    };
-                }[];
-                electives: {
-                    credits: number;
-                    courses: {
-                        id: number;
-
-                        type: "any" | "prefix" | "specific";
-                        courseId: number | null;
-                        courseCode: string | null;
-                        courseName: string | null;
-                        prefix: string | null;
-                        catalogCourseId: number | null;
-                        _paths: {
-                            catalogCourse: string | null;
-                        };
-                    }[];
-                }[];
-            };
-            modalities: {
-                specializationId: number;
-                curriculumSuggestionId: number | null;
-                code: string;
-                name: string;
-                blocks: {
-                    mandatory: {
-                        id: number;
-
-                        type: "any" | "prefix" | "specific";
-                        courseId: number | null;
-                        courseCode: string | null;
-                        courseName: string | null;
-                        prefix: string | null;
-                        catalogCourseId: number | null;
-                        _paths: {
-                            catalogCourse: string | null;
-                        };
-                    }[];
-                    electives: {
-                        credits: number;
-                        courses: {
-                            id: number;
-
-                            type: "any" | "prefix" | "specific";
-                            courseId: number | null;
-                            courseCode: string | null;
-                            courseName: string | null;
-                            prefix: string | null;
-                            catalogCourseId: number | null;
-                            _paths: {
-                                catalogCourse: string | null;
-                            };
-                        }[];
-                    }[];
-                };
-            }[];
-            languages: {
-                languageId: number;
-                name: string;
-                blocks: {
-                    mandatory: {
-                        id: number;
-
-                        type: "any" | "prefix" | "specific";
-                        courseId: number | null;
-                        courseCode: string | null;
-                        courseName: string | null;
-                        prefix: string | null;
-                        catalogCourseId: number | null;
-                        _paths: {
-                            catalogCourse: string | null;
-                        };
-                    }[];
-                    electives: {
-                        credits: number;
-                        courses: {
-                            id: number;
-
-                            type: "any" | "prefix" | "specific";
-                            courseId: number | null;
-                            courseCode: string | null;
-                            courseName: string | null;
-                            prefix: string | null;
-                            catalogCourseId: number | null;
-                            _paths: {
-                                catalogCourse: string | null;
-                            };
-                        }[];
-                    }[];
-                };
-            }[];
+            base: components["schemas"]["CourseBlockSet"];
+            modalities: components["schemas"]["CatalogProgramModality"][];
+            languages: components["schemas"]["CatalogProgramLanguage"][];
             _paths: {
                 self: string;
                 catalog: string;
                 program: string;
                 curriculumSuggestions: string;
             };
+        };
+        CourseBlockSet: {
+            mandatory: components["schemas"]["CourseRequirement"][];
+            electives: components["schemas"]["ElectiveBlock"][];
+        };
+        CourseRequirement: {
+            id: number;
+            type: components["schemas"]["CourseRequirementType"];
+            courseId: number | null;
+            courseCode: string | null;
+            courseName: string | null;
+            prefix: string | null;
+            catalogCourseId: number | null;
+            _paths: {
+                catalogCourse: string | null;
+            };
+        };
+
+        CourseRequirementType: "any" | "prefix" | "specific";
+        ElectiveBlock: {
+            credits: number;
+            courses: components["schemas"]["CourseRequirement"][];
+        };
+        CatalogProgramModality: {
+            specializationId: number;
+            curriculumSuggestionId: number | null;
+            code: string;
+            name: string;
+            blocks: components["schemas"]["CourseBlockSet"];
+        };
+        CatalogProgramLanguage: {
+            languageId: number;
+            name: string;
+            blocks: components["schemas"]["CourseBlockSet"];
         };
         CurriculumSuggestionEntity: {
             id: number;
@@ -1365,8 +1300,7 @@ export interface components {
             programName: string;
             code: string;
             name: string;
-
-            type: "GENERAL" | "SPECIALIZATION" | "PRE_OPTION";
+            type: components["schemas"]["CurriculumSuggestionType"];
             specialization: {
                 id: number;
                 code: string;
@@ -1379,6 +1313,8 @@ export interface components {
                 specialization: string | null;
             };
         };
+
+        CurriculumSuggestionType: "GENERAL" | "SPECIALIZATION" | "PRE_OPTION";
         SemesterSuggestionEntity: {
             semester: number;
             electiveCredits: number;
@@ -1492,8 +1428,7 @@ export interface components {
             studyPeriodId: number;
             professorIds: number[];
             studyPeriodYear: number;
-
-            studyPeriodYearPeriod: "SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER";
+            studyPeriodYearPeriod: components["schemas"]["YearPeriod"];
             courseCode: string;
             unitId: number | null;
             unitCode: string | null;
@@ -1510,10 +1445,11 @@ export interface components {
                 professors: string;
             };
         };
+
+        YearPeriod: "SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER";
         ClassScheduleEntity: {
             id: number;
-
-            dayOfWeek: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+            dayOfWeek: components["schemas"]["DayOfWeek"];
             start: string;
             end: string;
             roomId: number;
@@ -1526,8 +1462,7 @@ export interface components {
             courseCode: string;
             studyPeriodId: number;
             studyPeriodYear: number;
-
-            studyPeriodYearPeriod: "SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER";
+            studyPeriodYearPeriod: components["schemas"]["YearPeriod"];
             _paths: {
                 entity: string;
                 studyPeriod: string;
@@ -1536,6 +1471,8 @@ export interface components {
                 class: string;
             };
         };
+
+        DayOfWeek: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
         PageClassSchedules: {
             data: components["schemas"]["ClassScheduleEntity"][];
             quantity: number;
@@ -1562,22 +1499,24 @@ export interface components {
         };
         Meal: {
             id: number;
-
-            period: "LUNCH" | "DINNER";
-
-            diet: "TRADITIONAL" | "VEGAN";
-
-            status: "AVAILABLE" | "NOT_REGISTERED";
+            period: components["schemas"]["MealPeriod"];
+            diet: components["schemas"]["MealDiet"];
+            status: components["schemas"]["MealStatus"];
             mainDish: string | null;
             items: string[];
             observations: string[];
             serviceNotes: string[];
         };
+
+        MealPeriod: "LUNCH" | "DINNER";
+
+        MealDiet: "TRADITIONAL" | "VEGAN";
+
+        MealStatus: "AVAILABLE" | "NOT_REGISTERED";
         StudyPeriodEntity: {
             id: number;
             year: number;
-
-            yearPeriod: "SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER";
+            yearPeriod: components["schemas"]["YearPeriod"];
             startDate: string;
             _paths: {
                 classes: string;
@@ -1593,7 +1532,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    listProfessorsEvaluationSummaries: {
+    listProfessorEvaluationSummaries: {
         parameters: {
             query?: {
 
@@ -1643,7 +1582,7 @@ export interface operations {
             };
         };
     };
-    listCoursesEvaluationSummaries: {
+    listCourseEvaluationSummaries: {
         parameters: {
             query?: {
 
@@ -1698,7 +1637,7 @@ export interface operations {
             };
         };
     };
-    listEvaluationSummaries: {
+    getCourseProfessorEvaluationSummary: {
         parameters: {
             query: {
 
@@ -1810,6 +1749,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     id?: number | {
                         eq?: number;
@@ -1837,7 +1780,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["UnitEntity"][];
+                    "application/json": {
+                        data: components["schemas"]["UnitEntity"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -1915,7 +1868,7 @@ export interface operations {
 
                 page?: number;
 
-                pageSize?: number;
+                pageSize?: number | "all";
 
                 filter?: {
                     catalogYear?: number | {
@@ -2218,6 +2171,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     id?: number | {
                         eq?: number;
@@ -2245,7 +2202,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProfessorPosition"][];
+                    "application/json": {
+                        data: components["schemas"]["ProfessorPosition"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -2321,6 +2288,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     unitId?: number | {
                         eq?: number;
@@ -2343,7 +2314,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Department"][];
+                    "application/json": {
+                        data: components["schemas"]["Department"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -2684,6 +2665,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     id?: number | {
                         eq?: number;
@@ -2708,7 +2693,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RoomEntity"][];
+                    "application/json": {
+                        data: components["schemas"]["RoomEntity"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -2784,6 +2779,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     year?: number | {
                         eq?: number;
@@ -2803,7 +2802,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Catalog"][];
+                    "application/json": {
+                        data: components["schemas"]["Catalog"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -2829,8 +2838,10 @@ export interface operations {
     listCatalogCourses: {
         parameters: {
             query?: {
+
                 page?: number;
-                pageSize?: number;
+
+                pageSize?: number | "all";
 
                 filter?: {
                     catalogId?: number | {
@@ -2968,8 +2979,10 @@ export interface operations {
     listCoordinators: {
         parameters: {
             query?: {
+
                 page?: number;
-                pageSize?: number;
+
+                pageSize?: number | "all";
 
                 filter?: {
                     name?: string | {
@@ -3071,7 +3084,7 @@ export interface operations {
             };
         };
     };
-    getCatalogProgram: {
+    getCatalogPrograms: {
         parameters: {
             query?: never;
             header?: never;
@@ -3120,9 +3133,13 @@ export interface operations {
             };
         };
     };
-    listCatalogProgram: {
+    listCatalogPrograms: {
         parameters: {
             query?: {
+
+                page?: number;
+
+                pageSize?: number | "all";
 
                 filter?: {
                     catalogId?: number | {
@@ -3155,7 +3172,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CatalogProgramEntity"][];
+                    "application/json": {
+                        data: components["schemas"]["CatalogProgramEntity"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -3231,6 +3258,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     catalogProgramId?: number | {
                         eq?: number;
@@ -3280,7 +3311,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CurriculumSuggestionEntity"][];
+                    "application/json": {
+                        data: components["schemas"]["CurriculumSuggestionEntity"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -3356,6 +3397,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     id?: number | {
                         eq?: number;
@@ -3378,7 +3423,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Language"][];
+                    "application/json": {
+                        data: components["schemas"]["Language"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -3454,6 +3509,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     unitId?: number | {
                         eq?: number;
@@ -3473,7 +3532,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Program"][];
+                    "application/json": {
+                        data: components["schemas"]["Program"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -3549,6 +3618,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     programId?: number | {
                         eq?: number;
@@ -3577,7 +3650,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Specialization"][];
+                    "application/json": {
+                        data: components["schemas"]["Specialization"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -3653,6 +3736,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     placeId?: number | {
                         eq?: number;
@@ -3687,7 +3774,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ExchangeNotice"][];
+                    "application/json": {
+                        data: components["schemas"]["ExchangeNotice"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -3714,6 +3811,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     id?: number | {
                         eq?: number;
@@ -3736,7 +3837,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ExchangePlaceListItem"][];
+                    "application/json": {
+                        data: components["schemas"]["ExchangePlaceListItem"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -3759,7 +3870,7 @@ export interface operations {
             };
         };
     };
-    listCalendar: {
+    getCalendarFeed: {
         parameters: {
             query?: never;
             header?: never;
@@ -3850,6 +3961,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     startDate?: string | {
 
@@ -3879,7 +3994,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CalendarEvent"][];
+                    "application/json": {
+                        data: components["schemas"]["CalendarEvent"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -3955,6 +4080,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     id?: number | {
                         eq?: number;
@@ -3977,7 +4106,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CalendarTag"][];
+                    "application/json": {
+                        data: components["schemas"]["CalendarTag"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -4346,6 +4485,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     date?: string | {
 
@@ -4369,7 +4512,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["DailyMenu"][];
+                    "application/json": {
+                        data: components["schemas"]["DailyMenu"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -4445,6 +4598,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     id?: number | {
                         eq?: number;
@@ -4473,7 +4630,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StudyPeriodEntity"][];
+                    "application/json": {
+                        data: components["schemas"]["StudyPeriodEntity"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 

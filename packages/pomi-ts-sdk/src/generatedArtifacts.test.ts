@@ -11,7 +11,7 @@ import {
   domainModelDefinitions as appDomainModels,
   queryCapabilities as appQueryCapabilities,
   type createStudentAbsencesInput,
-  type updateMeBotGrantsInput,
+  type replaceBotGrantInput,
   type listStudentCourseAttemptsOutput,
 } from './generated/app/index.js'
 import {
@@ -19,13 +19,13 @@ import {
   filterCapabilities as dataFilterCapabilities,
   operationDefinitions as dataOperations,
   operationPaths as dataPaths,
-  type getCatalogProgramOutput,
+  type getCatalogProgramsOutput,
   type getClassSchedulesOutput,
   type getCoursesOutput,
   type listCatalogCoursesOutput,
   type listCatalogsOutput,
   type listClassesOutput,
-  type listCatalogProgramOutput,
+  type listCatalogProgramsOutput,
   type listClassSchedulesOutput,
   type listCoauthorsOutput,
   type listCoursesFilter,
@@ -36,7 +36,7 @@ import {
   type listUnitsOutput,
 } from './generated/data/index.js'
 import type {
-  BlockSet,
+  CourseBlockSet as BlockSet,
   Catalog,
   CatalogCourse,
   CatalogProgram,
@@ -52,16 +52,16 @@ import type {
   Category,
   SharedPeriodPlanningPage,
   StudentCourseAttempt,
-  StudentPeoplePage,
+  StudentPublicPerson,
   Tag,
   TagRelatedCourse,
 } from './generated/app/domain.js'
 import type {
   listCategoriesOutput,
-  listCoursesTagsOutput,
-  listSharedPeriodPlanningsOutput,
+  listCourseTagsOutput,
+  listPublicSharedPeriodPlanningsOutput,
   listStudentPeopleOutput,
-  listTagsCoursesOutput,
+  listTagCoursesOutput,
   listTagsOutput,
 } from './generated/app/index.js'
 import { sdkManifest } from './generated/manifest.js'
@@ -79,10 +79,10 @@ type DomainTypeAssertions = [
   Assert<Equal<getCoursesOutput, Course>>,
   Assert<Equal<listClassSchedulesOutput['data'][number], ClassSchedule>>,
   Assert<Equal<getClassSchedulesOutput, ClassSchedule>>,
-  Assert<Equal<listUnitsOutput[number], Unit>>,
-  Assert<Equal<listCatalogsOutput[number], Catalog>>,
+  Assert<Equal<listUnitsOutput['data'][number], Unit>>,
+  Assert<Equal<listCatalogsOutput['data'][number], Catalog>>,
   Assert<Equal<listCatalogCoursesOutput['data'][number], CatalogCourse>>,
-  Assert<Equal<listStudyPeriodsOutput[number], StudyPeriod>>,
+  Assert<Equal<listStudyPeriodsOutput['data'][number], StudyPeriod>>,
   Assert<Equal<listClassesOutput['data'][number], Class>>,
   Assert<Equal<listCoauthorsOutput['data'][number], Coauthor>>,
   Assert<
@@ -91,15 +91,15 @@ type DomainTypeAssertions = [
       ProfessorDataPortalProfileSummary
     >
   >,
-  Assert<Equal<listCategoriesOutput[number], Category>>,
-  Assert<Equal<listTagsOutput[number], Tag>>,
-  Assert<Equal<listCoursesTagsOutput[number], Tag>>,
-  Assert<Equal<listTagsCoursesOutput['data'][number], TagRelatedCourse>>,
-  Assert<Equal<listCatalogProgramOutput[number], CatalogProgram>>,
-  Assert<Equal<getCatalogProgramOutput, CatalogProgram>>,
-  Assert<Equal<listStudentCourseAttemptsOutput[number], StudentCourseAttempt>>,
-  Assert<Equal<listSharedPeriodPlanningsOutput, SharedPeriodPlanningPage>>,
-  Assert<Equal<listStudentPeopleOutput, StudentPeoplePage>>,
+  Assert<Equal<listCategoriesOutput['data'][number], Category>>,
+  Assert<Equal<listTagsOutput['data'][number], Tag>>,
+  Assert<Equal<listCourseTagsOutput['data'][number], Tag>>,
+  Assert<Equal<listTagCoursesOutput['data'][number], TagRelatedCourse>>,
+  Assert<Equal<listCatalogProgramsOutput['data'][number], CatalogProgram>>,
+  Assert<Equal<getCatalogProgramsOutput, CatalogProgram>>,
+  Assert<Equal<listStudentCourseAttemptsOutput['data'][number], StudentCourseAttempt>>,
+  Assert<Equal<listPublicSharedPeriodPlanningsOutput['data'][number], SharedPeriodPlanningPage['data'][number]>>,
+  Assert<Equal<listStudentPeopleOutput['data'][number], StudentPublicPerson>>,
   AssertFalse<'_paths' extends keyof Course ? true : false>,
   AssertFalse<'_paths' extends keyof ClassSchedule ? true : false>,
   AssertFalse<'_paths' extends keyof BlockSet ? true : false>,
@@ -108,7 +108,7 @@ const domainTypeAssertions = undefined as unknown as DomainTypeAssertions
 
 test('generates separate operational manifests for Data and App', () => {
   assert.equal(Object.keys(dataOperations).length, 53)
-  assert.equal(Object.keys(appOperations).length, 70)
+  assert.equal(Object.keys(appOperations).length, 65)
   assert.equal(dataOperations.listCourses.target, 'data')
   assert.equal(dataOperations.listCourses.authentication, 'public')
   assert.equal(appOperations.listStudentAbsences.target, 'app')
@@ -121,17 +121,17 @@ test('generates separate operational manifests for Data and App', () => {
   )
   assert.equal(
     Object.values(appOperations).filter((operation) => operation.sdk).length,
-    70,
+    65,
   )
   assert.equal(dataOperations.listClasses.sdk?.resource, 'classes')
-  assert.equal(dataOperations.listClasses.pagination?.itemsField, 'data')
+  assert.equal(dataOperations.listClasses.pagination?.defaultMode, 'page')
   assert.equal(
-    appOperations.listTagsCourses.pagination?.nextField,
-    '_paths.next',
+    appOperations.listTagCourses.pagination?.defaultMode,
+    'page',
   )
   assert.equal(
-    appOperations.listSharedPeriodPlannings.pagination?.strategy,
-    'page-number',
+    appOperations.listPublicSharedPeriodPlannings.pagination?.defaultMode,
+    'page',
   )
 })
 
@@ -212,14 +212,37 @@ test('generates canonical domain models independently from operation envelopes',
   assert.deepEqual(dataDomainModels.Course, {
     schema: 'CourseEntity',
     transportFields: ['_paths'],
+    identityFields: ['id'],
+    readOnlyFields: [],
+    relations: {},
   })
   assert.deepEqual(dataDomainModels.ClassSchedule, {
     schema: 'ClassScheduleEntity',
     transportFields: ['_paths'],
+    identityFields: ['id'],
+    readOnlyFields: [],
+    relations: {
+      roomId: { resource: 'rooms', cardinality: 'one' },
+      classId: { resource: 'classes', cardinality: 'one' },
+      unitId: { resource: 'units', cardinality: 'one', nullable: true },
+      courseId: { resource: 'courses', cardinality: 'one' },
+      studyPeriodId: { resource: 'studyPeriods', cardinality: 'one' },
+    },
   })
   assert.deepEqual(appDomainModels.StudentCourseAttempt, {
     schema: 'StudentCourseAttempt',
     transportFields: ['_paths'],
+    identityFields: ['id'],
+    readOnlyFields: [],
+    relations: {
+      course: { resource: 'courses', cardinality: 'one' },
+      studyPeriod: {
+        resource: 'studyPeriods',
+        cardinality: 'one',
+        nullable: true,
+      },
+      class: { resource: 'classes', cardinality: 'one', nullable: true },
+    },
   })
 })
 
@@ -237,7 +260,7 @@ test('generates request inputs with structured filters and bodies', () => {
       date: '2026-08-20',
     },
   }
-  const grant: updateMeBotGrantsInput = {
+  const grant: replaceBotGrantInput = {
     botAuthUserId: 8,
     body: { capabilities: ['STUDENT_PROFILE_READ'] },
   }
@@ -269,7 +292,7 @@ test('exposes filter capabilities and operation-specific problems', () => {
     422,
   )
   assert.equal(appQueryCapabilities.listStudentAbsences.filter?.version, 1)
-  assert.ok(appEnumValues['StudentCourseAttempt.status'].length > 1)
+  assert.ok(appEnumValues.StudentCourseAttemptStatus.length > 1)
 })
 
 test('generates typed path and query builders', () => {
@@ -299,7 +322,7 @@ test('records 201 and 204 success contracts', () => {
     ),
   )
   assert.ok(
-    appOperations.updateMeBotGrants.responses.some(
+    appOperations.replaceBotGrant.responses.some(
       (response) => response.status === 204 && response.success,
     ),
   )

@@ -14,7 +14,7 @@ export function createStudentInterestsApi(client: PomiSdkClient) {
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentTagInterests.list(
+    return client.app.studentTagInterests.listAll(
       studentId,
       {},
       context(getAccessToken),

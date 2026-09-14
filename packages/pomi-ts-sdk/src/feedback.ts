@@ -1,25 +1,25 @@
 import {
-  createFeedbackReportBodyKindValues,
-  feedbackReportStatusValues,
-  feedbackReportTargetAcademicResourceTypeValues,
-  feedbackReportTargetFeatureKeyValues,
+  feedbackAcademicResourceTypeValues,
+  feedbackFeatureKeyValues,
+  feedbackKindValues,
+  feedbackStatusValues,
 } from './generated/app/enums.js'
-import type { createFeedbackReportsInput } from './generated/app/operations.js'
+import type { createFeedbackReportInput } from './generated/app/operations.js'
 import type {
-  FeedbackReport as GeneratedFeedbackReport,
   FeedbackReportAccepted,
+  FeedbackReport as GeneratedFeedbackReport,
 } from './generated/app/domain.js'
 import type { PomiRequestContext, PomiSdkClient } from './generatedClient.js'
 
-export const feedbackKinds = createFeedbackReportBodyKindValues
-export type FeedbackReportInput = Readonly<createFeedbackReportsInput['body']>
+export const feedbackKinds = feedbackKindValues
+export type FeedbackReportInput = Readonly<createFeedbackReportInput['body']>
 export type FeedbackKind = FeedbackReportInput['kind']
 
-export const feedbackFeatureKeys = feedbackReportTargetFeatureKeyValues
+export const feedbackFeatureKeys = feedbackFeatureKeyValues
 export type FeedbackFeatureKey = (typeof feedbackFeatureKeys)[number]
 
 export const feedbackAcademicResourceTypes =
-  feedbackReportTargetAcademicResourceTypeValues
+  feedbackAcademicResourceTypeValues
 export type FeedbackAcademicResourceType =
   (typeof feedbackAcademicResourceTypes)[number]
 
@@ -27,7 +27,7 @@ export type FeedbackTarget = FeedbackReportInput['target']
 export type FeedbackReceipt = FeedbackReportAccepted
 export type FeedbackReport = GeneratedFeedbackReport
 
-export const feedbackReportStatuses = feedbackReportStatusValues
+export const feedbackReportStatuses = feedbackStatusValues
 export type FeedbackReportStatus = (typeof feedbackReportStatuses)[number]
 type FeedbackInput = Readonly<{ input: FeedbackReportInput }>
 type StudentFeedbackInput = Readonly<{
@@ -49,7 +49,7 @@ export function createFeedbackApi(client: PomiSdkClient) {
       { studentId, input }: Required<StudentFeedbackInput>,
       { getAccessToken }: PomiRequestContext,
     ) {
-      return client.app.studentFeedbackReports.create(
+      return client.app.feedbackReports.createForStudent(
         studentId,
         input,
         context(getAccessToken!),
@@ -59,7 +59,7 @@ export function createFeedbackApi(client: PomiSdkClient) {
       { studentId }: Pick<StudentFeedbackInput, 'studentId'>,
       { getAccessToken }: PomiRequestContext,
     ) {
-      return client.app.studentFeedbackReports.list(
+      return client.app.feedbackReports.listAll(
         studentId,
         {},
         context(getAccessToken!),

@@ -1,14 +1,14 @@
 import type { StudentAbsence } from './generated/app/domain.js'
 import type {
-  StudentAbsenceDayOfWeek,
-  StudentAbsenceStudyPeriodYearPeriod,
+  DayOfWeek,
+  YearPeriod,
 } from './generated/app/enums.js'
 import type { createStudentAbsencesInput } from './generated/app/operations.js'
 import type { PomiRequestContext, PomiSdkClient } from './generatedClient.js'
 
 export type { StudentAbsence }
-export type StudyPeriodYearPeriod = StudentAbsenceStudyPeriodYearPeriod
-export type { StudentAbsenceDayOfWeek }
+export type StudyPeriodYearPeriod = YearPeriod
+export type { DayOfWeek as StudentAbsenceDayOfWeek }
 export type CreateStudentAbsenceInput = Readonly<
   createStudentAbsencesInput['body']
 >
@@ -19,7 +19,7 @@ export function createStudentAbsencesApi(client: PomiSdkClient) {
     { studentId }: StudentInput,
     context: PomiRequestContext,
   ) {
-    return client.app.studentAbsences.list(studentId, {}, context)
+    return client.app.studentAbsences.listAll(studentId, {}, context)
   }
   function createStudentAbsence(
     { studentId, input }: StudentInput & { input: CreateStudentAbsenceInput },

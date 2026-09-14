@@ -5,7 +5,7 @@ export type Domain<T> = T extends null
     : T extends ReadonlyArray<infer Item>
     ? ReadonlyArray<Domain<Item>>
     : T extends object
-    ? { readonly [Key in Exclude<keyof T, '_paths'>]: Domain<T[Key]> }
+    ? { readonly [Key in keyof T]: Domain<T[Key]> }
     : T
 
 export type PagePaths = {
@@ -28,68 +28,38 @@ export type Component<Name extends DomainComponentSchemaName> = Domain<component
 export type CurrentUserTransport = components['schemas']['CurrentUserEntity']
 export type CurrentUser = Domain<CurrentUserTransport>
 
-export type InvalidRequestProblemTransport = components['schemas']['InvalidRequestProblem']
-export type InvalidRequestProblem = Domain<InvalidRequestProblemTransport>
-
-export type ProblemFieldTransport = components['schemas']['ProblemField']
-export type ProblemField = Domain<ProblemFieldTransport>
-
-export type InternalServerErrorProblemTransport = components['schemas']['InternalServerErrorProblem']
-export type InternalServerErrorProblem = Domain<InternalServerErrorProblemTransport>
-
 export type BotIdentityTransport = components['schemas']['BotIdentityEntity']
 export type BotIdentity = Domain<BotIdentityTransport>
 
 export type BotGrantTransport = components['schemas']['BotGrantEntity']
 export type BotGrant = Domain<BotGrantTransport>
 
-export type ResourceNotFoundProblemTransport = components['schemas']['ResourceNotFoundProblem']
-export type ResourceNotFoundProblem = Domain<ResourceNotFoundProblemTransport>
-
-export type ReplaceBotGrantBodyTransport = components['schemas']['ReplaceBotGrantBody']
-export type ReplaceBotGrantBody = Domain<ReplaceBotGrantBodyTransport>
-
 export type StudentTransport = components['schemas']['StudentEntity']
-export type Student = Domain<StudentTransport>
-
-export type UniqueConstraintConflictProblemTransport = components['schemas']['UniqueConstraintConflictProblem']
-export type UniqueConstraintConflictProblem = Domain<UniqueConstraintConflictProblemTransport>
-
-export type ReferenceNotFoundProblemTransport = components['schemas']['ReferenceNotFoundProblem']
-export type ReferenceNotFoundProblem = Domain<ReferenceNotFoundProblemTransport>
-
-export type InvalidStudentProfileProblemTransport = components['schemas']['InvalidStudentProfileProblem']
-export type InvalidStudentProfileProblem = Domain<InvalidStudentProfileProblemTransport>
-
-export type CreateStudentBodyTransport = components['schemas']['CreateStudentBody']
-export type CreateStudentBody = Domain<CreateStudentBodyTransport>
-
-export type PatchStudentBodyTransport = components['schemas']['PatchStudentBody']
-export type PatchStudentBody = Domain<PatchStudentBodyTransport>
+export type Student = Domain<Omit<StudentTransport, "_paths">>
 
 export type CurriculumTransport = components['schemas']['CurriculumEntity']
-export type Curriculum = Domain<CurriculumTransport>
+export type Curriculum = Domain<Omit<CurriculumTransport, "_paths">>
 
 export type CurriculumSummaryTransport = components['schemas']['CurriculumSummaryEntity']
-export type CurriculumSummary = Domain<CurriculumSummaryTransport>
-
-export type InvalidCurriculumProblemTransport = components['schemas']['InvalidCurriculumProblem']
-export type InvalidCurriculumProblem = Domain<InvalidCurriculumProblemTransport>
+export type CurriculumSummary = Domain<Omit<CurriculumSummaryTransport, "_paths">>
 
 export type PeriodPlanningTransport = components['schemas']['PeriodPlanningEntity']
-export type PeriodPlanning = Domain<PeriodPlanningTransport>
+export type PeriodPlanning = Domain<Omit<PeriodPlanningTransport, "_paths">>
 
-export type InvalidPeriodPlanProblemTransport = components['schemas']['InvalidPeriodPlanProblem']
-export type InvalidPeriodPlanProblem = Domain<InvalidPeriodPlanProblemTransport>
+export type PlanningGuideTransport = components['schemas']['PlanningGuide']
+export type PlanningGuide = Domain<PlanningGuideTransport>
 
-export type CreatePeriodPlanningInputTransport = components['schemas']['CreatePeriodPlanningInput']
-export type CreatePeriodPlanningInput = Domain<CreatePeriodPlanningInputTransport>
+export type PeriodPlanningClassTransport = components['schemas']['PeriodPlanningClass']
+export type PeriodPlanningClass = Domain<PeriodPlanningClassTransport>
 
-export type UpdatePeriodPlanningInputTransport = components['schemas']['UpdatePeriodPlanningInput']
-export type UpdatePeriodPlanningInput = Domain<UpdatePeriodPlanningInputTransport>
+export type PeriodPlanningProfessorTransport = components['schemas']['PeriodPlanningProfessor']
+export type PeriodPlanningProfessor = Domain<PeriodPlanningProfessorTransport>
+
+export type PeriodPlanningScheduleTransport = components['schemas']['PeriodPlanningSchedule']
+export type PeriodPlanningSchedule = Domain<PeriodPlanningScheduleTransport>
 
 export type SharedPeriodPlanningPageTransport = components['schemas']['SharedPeriodPlanningPage']
-export type SharedPeriodPlanningPage = Domain<SharedPeriodPlanningPageTransport>
+export type SharedPeriodPlanningPage = Domain<Omit<SharedPeriodPlanningPageTransport, "_paths">>
 
 export type SharedPeriodPlanningTransport = components['schemas']['SharedPeriodPlanning']
 export type SharedPeriodPlanning = Domain<SharedPeriodPlanningTransport>
@@ -100,47 +70,29 @@ export type ProfessorEvaluationEligibility = Domain<ProfessorEvaluationEligibili
 export type ProfessorEvaluationTransport = components['schemas']['ProfessorEvaluation']
 export type ProfessorEvaluation = Domain<ProfessorEvaluationTransport>
 
-export type InvalidProfessorEvaluationProblemTransport = components['schemas']['InvalidProfessorEvaluationProblem']
-export type InvalidProfessorEvaluationProblem = Domain<InvalidProfessorEvaluationProblemTransport>
-
-export type ProfessorEvaluationBodyTransport = components['schemas']['ProfessorEvaluationBody']
-export type ProfessorEvaluationBody = Domain<ProfessorEvaluationBodyTransport>
-
 export type PendingProfessorEvaluationTransport = components['schemas']['PendingProfessorEvaluation']
 export type PendingProfessorEvaluation = Domain<PendingProfessorEvaluationTransport>
 
 export type StudentCourseAttemptTransport = components['schemas']['StudentCourseAttempt']
-export type StudentCourseAttempt = Domain<StudentCourseAttemptTransport>
+export type StudentCourseAttempt = Domain<Omit<StudentCourseAttemptTransport, "_paths">>
 
-export type InvalidStudentCourseAttemptProblemTransport = components['schemas']['InvalidStudentCourseAttemptProblem']
-export type InvalidStudentCourseAttemptProblem = Domain<InvalidStudentCourseAttemptProblemTransport>
+export type CourseAttemptCourseTransport = components['schemas']['CourseAttemptCourse']
+export type CourseAttemptCourse = Domain<CourseAttemptCourseTransport>
 
-export type CreateStudentCourseAttemptInputTransport = components['schemas']['CreateStudentCourseAttemptInput']
-export type CreateStudentCourseAttemptInput = Domain<CreateStudentCourseAttemptInputTransport>
+export type CourseAttemptStudyPeriodTransport = components['schemas']['CourseAttemptStudyPeriod']
+export type CourseAttemptStudyPeriod = Domain<CourseAttemptStudyPeriodTransport>
 
-export type UpdateStudentCourseAttemptInputTransport = components['schemas']['UpdateStudentCourseAttemptInput']
-export type UpdateStudentCourseAttemptInput = Domain<UpdateStudentCourseAttemptInputTransport>
+export type CourseAttemptClassTransport = components['schemas']['CourseAttemptClass']
+export type CourseAttemptClass = Domain<CourseAttemptClassTransport>
 
 export type StudentHistoryImportSummaryTransport = components['schemas']['StudentHistoryImportSummary']
 export type StudentHistoryImportSummary = Domain<StudentHistoryImportSummaryTransport>
 
-export type InvalidStudentHistoryImportProblemTransport = components['schemas']['InvalidStudentHistoryImportProblem']
-export type InvalidStudentHistoryImportProblem = Domain<InvalidStudentHistoryImportProblemTransport>
-
-export type StudentHistoryImportBodyTransport = components['schemas']['StudentHistoryImportBody']
-export type StudentHistoryImportBody = Domain<StudentHistoryImportBodyTransport>
-
 export type StudentAbsenceTransport = components['schemas']['StudentAbsence']
-export type StudentAbsence = Domain<StudentAbsenceTransport>
-
-export type InvalidStudentAbsenceProblemTransport = components['schemas']['InvalidStudentAbsenceProblem']
-export type InvalidStudentAbsenceProblem = Domain<InvalidStudentAbsenceProblemTransport>
-
-export type CreateStudentAbsenceBodyTransport = components['schemas']['CreateStudentAbsenceBody']
-export type CreateStudentAbsenceBody = Domain<CreateStudentAbsenceBodyTransport>
+export type StudentAbsence = Domain<Omit<StudentAbsenceTransport, "_paths">>
 
 export type StudentPublicProfileTransport = components['schemas']['StudentPublicProfile']
-export type StudentPublicProfile = Domain<StudentPublicProfileTransport>
+export type StudentPublicProfile = Domain<Omit<StudentPublicProfileTransport, "_paths">>
 
 export type StudentCurrentCourseTransport = components['schemas']['StudentCurrentCourse']
 export type StudentCurrentCourse = Domain<StudentCurrentCourseTransport>
@@ -149,22 +101,13 @@ export type StudentPeoplePageTransport = components['schemas']['StudentPeoplePag
 export type StudentPeoplePage = Domain<StudentPeoplePageTransport>
 
 export type StudentPublicPersonTransport = components['schemas']['StudentPublicPerson']
-export type StudentPublicPerson = Domain<StudentPublicPersonTransport>
+export type StudentPublicPerson = Domain<Omit<StudentPublicPersonTransport, "_paths">>
 
 export type StudentFriendshipTransport = components['schemas']['StudentFriendship']
-export type StudentFriendship = Domain<StudentFriendshipTransport>
+export type StudentFriendship = Domain<Omit<StudentFriendshipTransport, "_paths">>
 
 export type FeedbackReportAcceptedTransport = components['schemas']['FeedbackReportAccepted']
 export type FeedbackReportAccepted = Domain<FeedbackReportAcceptedTransport>
-
-export type InvalidFeedbackReportProblemTransport = components['schemas']['InvalidFeedbackReportProblem']
-export type InvalidFeedbackReportProblem = Domain<InvalidFeedbackReportProblemTransport>
-
-export type FeedbackRateLimitProblemTransport = components['schemas']['FeedbackRateLimitProblem']
-export type FeedbackRateLimitProblem = Domain<FeedbackRateLimitProblemTransport>
-
-export type CreateFeedbackReportBodyTransport = components['schemas']['CreateFeedbackReportBody']
-export type CreateFeedbackReportBody = Domain<CreateFeedbackReportBodyTransport>
 
 export type FeedbackReportTargetTransport = components['schemas']['FeedbackReportTarget']
 export type FeedbackReportTarget = Domain<FeedbackReportTargetTransport>
@@ -174,9 +117,6 @@ export type FeedbackReport = Domain<FeedbackReportTransport>
 
 export type ExchangeNoticeSubscriptionTransport = components['schemas']['ExchangeNoticeSubscription']
 export type ExchangeNoticeSubscription = Domain<ExchangeNoticeSubscriptionTransport>
-
-export type PatchExchangeNoticeSubscriptionBodyTransport = components['schemas']['PatchExchangeNoticeSubscriptionBody']
-export type PatchExchangeNoticeSubscriptionBody = Domain<PatchExchangeNoticeSubscriptionBodyTransport>
 
 export type CategoryTransport = components['schemas']['Category']
 export type Category = Domain<CategoryTransport>
@@ -195,240 +135,363 @@ export type StudentTagInterest = Domain<StudentTagInterestTransport>
 export const domainModelDefinitions = {
     "CurrentUser": {
         "schema": "CurrentUserEntity",
-        "transportFields": []
-    },
-    "InvalidRequestProblem": {
-        "schema": "InvalidRequestProblem",
-        "transportFields": []
-    },
-    "ProblemField": {
-        "schema": "ProblemField",
-        "transportFields": []
-    },
-    "InternalServerErrorProblem": {
-        "schema": "InternalServerErrorProblem",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "BotIdentity": {
         "schema": "BotIdentityEntity",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "BotGrant": {
         "schema": "BotGrantEntity",
-        "transportFields": []
-    },
-    "ResourceNotFoundProblem": {
-        "schema": "ResourceNotFoundProblem",
-        "transportFields": []
-    },
-    "ReplaceBotGrantBody": {
-        "schema": "ReplaceBotGrantBody",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "Student": {
         "schema": "StudentEntity",
         "transportFields": [
             "_paths"
-        ]
-    },
-    "UniqueConstraintConflictProblem": {
-        "schema": "UniqueConstraintConflictProblem",
-        "transportFields": []
-    },
-    "ReferenceNotFoundProblem": {
-        "schema": "ReferenceNotFoundProblem",
-        "transportFields": []
-    },
-    "InvalidStudentProfileProblem": {
-        "schema": "InvalidStudentProfileProblem",
-        "transportFields": []
-    },
-    "CreateStudentBody": {
-        "schema": "CreateStudentBody",
-        "transportFields": []
-    },
-    "PatchStudentBody": {
-        "schema": "PatchStudentBody",
-        "transportFields": []
+        ],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "Curriculum": {
         "schema": "CurriculumEntity",
         "transportFields": [
             "_paths"
-        ]
+        ],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "CurriculumSummary": {
         "schema": "CurriculumSummaryEntity",
         "transportFields": [
             "_paths"
-        ]
-    },
-    "InvalidCurriculumProblem": {
-        "schema": "InvalidCurriculumProblem",
-        "transportFields": []
+        ],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "PeriodPlanning": {
         "schema": "PeriodPlanningEntity",
         "transportFields": [
             "_paths"
-        ]
+        ],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {
+            "studentId": {
+                "resource": "students",
+                "cardinality": "one"
+            },
+            "studyPeriodId": {
+                "resource": "studyPeriods",
+                "cardinality": "one"
+            },
+            "curriculumId": {
+                "resource": "curricula",
+                "cardinality": "one",
+                "nullable": true
+            },
+            "classes": {
+                "resource": "classes",
+                "cardinality": "many"
+            }
+        }
     },
-    "InvalidPeriodPlanProblem": {
-        "schema": "InvalidPeriodPlanProblem",
-        "transportFields": []
+    "PlanningGuide": {
+        "schema": "PlanningGuide",
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
-    "CreatePeriodPlanningInput": {
-        "schema": "CreatePeriodPlanningInput",
-        "transportFields": []
+    "PeriodPlanningClass": {
+        "schema": "PeriodPlanningClass",
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
-    "UpdatePeriodPlanningInput": {
-        "schema": "UpdatePeriodPlanningInput",
-        "transportFields": []
+    "PeriodPlanningProfessor": {
+        "schema": "PeriodPlanningProfessor",
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
+    },
+    "PeriodPlanningSchedule": {
+        "schema": "PeriodPlanningSchedule",
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "SharedPeriodPlanningPage": {
         "schema": "SharedPeriodPlanningPage",
-        "transportFields": []
+        "transportFields": [
+            "_paths"
+        ],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "SharedPeriodPlanning": {
         "schema": "SharedPeriodPlanning",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [
+            "shareId"
+        ],
+        "readOnlyFields": [],
+        "relations": {
+            "classes": {
+                "resource": "classes",
+                "cardinality": "many"
+            }
+        }
     },
     "ProfessorEvaluationEligibility": {
         "schema": "ProfessorEvaluationEligibility",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "ProfessorEvaluation": {
         "schema": "ProfessorEvaluation",
-        "transportFields": []
-    },
-    "InvalidProfessorEvaluationProblem": {
-        "schema": "InvalidProfessorEvaluationProblem",
-        "transportFields": []
-    },
-    "ProfessorEvaluationBody": {
-        "schema": "ProfessorEvaluationBody",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "PendingProfessorEvaluation": {
         "schema": "PendingProfessorEvaluation",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "StudentCourseAttempt": {
         "schema": "StudentCourseAttempt",
         "transportFields": [
             "_paths"
-        ]
+        ],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {
+            "course": {
+                "resource": "courses",
+                "cardinality": "one"
+            },
+            "studyPeriod": {
+                "resource": "studyPeriods",
+                "cardinality": "one",
+                "nullable": true
+            },
+            "class": {
+                "resource": "classes",
+                "cardinality": "one",
+                "nullable": true
+            }
+        }
     },
-    "InvalidStudentCourseAttemptProblem": {
-        "schema": "InvalidStudentCourseAttemptProblem",
-        "transportFields": []
+    "CourseAttemptCourse": {
+        "schema": "CourseAttemptCourse",
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
-    "CreateStudentCourseAttemptInput": {
-        "schema": "CreateStudentCourseAttemptInput",
-        "transportFields": []
+    "CourseAttemptStudyPeriod": {
+        "schema": "CourseAttemptStudyPeriod",
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
-    "UpdateStudentCourseAttemptInput": {
-        "schema": "UpdateStudentCourseAttemptInput",
-        "transportFields": []
+    "CourseAttemptClass": {
+        "schema": "CourseAttemptClass",
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "StudentHistoryImportSummary": {
         "schema": "StudentHistoryImportSummary",
-        "transportFields": []
-    },
-    "InvalidStudentHistoryImportProblem": {
-        "schema": "InvalidStudentHistoryImportProblem",
-        "transportFields": []
-    },
-    "StudentHistoryImportBody": {
-        "schema": "StudentHistoryImportBody",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "StudentAbsence": {
         "schema": "StudentAbsence",
         "transportFields": [
             "_paths"
-        ]
-    },
-    "InvalidStudentAbsenceProblem": {
-        "schema": "InvalidStudentAbsenceProblem",
-        "transportFields": []
-    },
-    "CreateStudentAbsenceBody": {
-        "schema": "CreateStudentAbsenceBody",
-        "transportFields": []
+        ],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "StudentPublicProfile": {
         "schema": "StudentPublicProfile",
         "transportFields": [
             "_paths"
-        ]
+        ],
+        "identityFields": [
+            "publicId"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "StudentCurrentCourse": {
         "schema": "StudentCurrentCourse",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "StudentPeoplePage": {
         "schema": "StudentPeoplePage",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "StudentPublicPerson": {
         "schema": "StudentPublicPerson",
         "transportFields": [
             "_paths"
-        ]
+        ],
+        "identityFields": [
+            "publicId"
+        ],
+        "readOnlyFields": [],
+        "relations": {
+            "currentCourses": {
+                "resource": "courses",
+                "cardinality": "many"
+            },
+            "program": {
+                "resource": "programs",
+                "cardinality": "one",
+                "nullable": true
+            },
+            "specialization": {
+                "resource": "specializations",
+                "cardinality": "one",
+                "nullable": true
+            }
+        }
     },
     "StudentFriendship": {
         "schema": "StudentFriendship",
         "transportFields": [
             "_paths"
-        ]
+        ],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {
+            "friend": {
+                "resource": "studentSocial",
+                "cardinality": "one"
+            }
+        }
     },
     "FeedbackReportAccepted": {
         "schema": "FeedbackReportAccepted",
-        "transportFields": []
-    },
-    "InvalidFeedbackReportProblem": {
-        "schema": "InvalidFeedbackReportProblem",
-        "transportFields": []
-    },
-    "FeedbackRateLimitProblem": {
-        "schema": "FeedbackRateLimitProblem",
-        "transportFields": []
-    },
-    "CreateFeedbackReportBody": {
-        "schema": "CreateFeedbackReportBody",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "FeedbackReportTarget": {
         "schema": "FeedbackReportTarget",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "FeedbackReport": {
         "schema": "FeedbackReport",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "ExchangeNoticeSubscription": {
         "schema": "ExchangeNoticeSubscription",
-        "transportFields": []
-    },
-    "PatchExchangeNoticeSubscriptionBody": {
-        "schema": "PatchExchangeNoticeSubscriptionBody",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "Category": {
         "schema": "Category",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "Tag": {
         "schema": "Tag",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "TagRelatedCourse": {
         "schema": "TagRelatedCourse",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     },
     "StudentTagInterest": {
         "schema": "StudentTagInterest",
-        "transportFields": []
+        "transportFields": [],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
     }
 } as const

@@ -22,7 +22,15 @@ describe('student social API', () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(
-        new Response(JSON.stringify({ items: [], total: 0 }), { status: 200 }),
+        new Response(
+          JSON.stringify({
+            data: [],
+            quantity: 0,
+            total: 0,
+            _paths: { next: null },
+          }),
+          { status: 200 },
+        ),
       )
     await searchPeople(7, 'Ada Lovelace', getAccessToken)
     expect(fetchMock).toHaveBeenCalledWith(
@@ -37,7 +45,15 @@ describe('student social API', () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(
-        new Response(JSON.stringify({ items: [], total: 0 }), { status: 200 }),
+        new Response(
+          JSON.stringify({
+            data: [],
+            quantity: 0,
+            total: 0,
+            _paths: { next: null },
+          }),
+          { status: 200 },
+        ),
       )
 
     await searchPeople(7, undefined, getAccessToken)

@@ -3,20 +3,24 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import openapiTS, { astToString } from 'openapi-typescript'
 import { Project, QuoteKind } from 'ts-morph'
-import {
-  buildSdkTargetModel,
-  type ApiTarget,
-  type JsonObject,
-  type OpenApiDocument,
-  type OpenApiOperation,
-  type OpenApiResponse,
-  type OperationModel as OperationEntry,
-  type SdkTargetModel,
+import { loadSpec as loadValidatedSpec } from './loadSpec.js'
+import { isSdkOperation } from './model.js'
+import type {
+  ApiTarget,
+  JsonObject,
+  OpenApiDocument,
+  OpenApiOperation,
+  OpenApiResponse,
+  OpenApiSchema,
+  OperationModel as OperationEntry,
+  SdkOperationModel,
+  SdkTargetModel,
 } from './model.js'
 
 type DomainRegistry = {
   models: Map<string, string>
   transportFields: Map<string, ReadonlyArray<string>>
+  metadata: Map<string, NonNullable<OpenApiSchema['x-pomi-schema']>>
 }
 
 const scriptDirectory = dirname(fileURLToPath(import.meta.url))
@@ -44,43 +48,9 @@ const specs = [
 ]
 const generatedDirectory = resolve(projectDirectory, 'src/generated')
 const checkOnly = process.argv.includes('--check')
-const httpMethods = new Set([
-  'get',
-  'post',
-  'put',
-  'patch',
-  'delete',
-  'head',
-  'options',
-  'trace',
-])
 
 function isRecord(value: unknown): value is JsonObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
-function operationEntries(
-  target: ApiTarget,
-  document: OpenApiDocument,
-): Array<OperationEntry> {
-  const entries: Array<OperationEntry> = []
-  for (const [path, item] of Object.entries(document.paths ?? {})) {
-    for (const [method, value] of Object.entries(item)) {
-      if (!httpMethods.has(method) || !isRecord(value)) continue
-      entries.push({
-        target,
-        path,
-        method,
-        operation: value as OpenApiOperation,
-        document,
-      })
-    }
-  }
-  return entries.sort((left, right) =>
-    (left.operation.operationId ?? '').localeCompare(
-      right.operation.operationId ?? '',
-    ),
-  )
 }
 
 function pathParameterType(entry: OperationEntry, wireName: string) {
@@ -145,12 +115,6 @@ function pageItemSchema(document: OpenApiDocument, schema: unknown) {
   return data.items
 }
 
-function modelNameForSchema(schemaName: string) {
-  return schemaName.endsWith('Entity')
-    ? schemaName.slice(0, -'Entity'.length)
-    : schemaName
-}
-
 function domainTypeForSchema(
   document: OpenApiDocument,
   schema: unknown,
@@ -158,13 +122,13 @@ function domainTypeForSchema(
 ): string | undefined {
   const refName = schemaNameFromRef(schema)
   if (refName) {
-    const model = registry.models.get(refName)
-    if (model) return `import('./domain.js').${model}`
     const item = pageItemSchema(document, schema)
     const itemType = item
       ? domainTypeForSchema(document, item, registry)
       : undefined
-    return itemType ? `import('./domain.js').Page<${itemType}>` : undefined
+    if (itemType) return `import('./domain.js').Page<${itemType}>`
+    const model = registry.models.get(refName)
+    return model ? `import('./domain.js').${model}` : undefined
   }
   if (isRecord(schema) && schema.type === 'array') {
     const itemType = domainTypeForSchema(document, schema.items, registry)
@@ -183,21 +147,23 @@ function createDomainRegistry(
 ): DomainRegistry {
   const models = new Map<string, string>()
   const transportFields = new Map<string, ReadonlyArray<string>>()
+  const metadata = new Map<string, NonNullable<OpenApiSchema['x-pomi-schema']>>()
   const names = new Map<string, string>()
   for (const [schemaName, schema] of Object.entries(
     document.components?.schemas ?? {},
   )) {
-    if (Array.isArray(schema.enum)) continue
     const schemaMetadata = schema['x-pomi-schema']
+    if (!schemaMetadata) throw new Error(`Missing x-pomi-schema in ${schemaName}`)
+    metadata.set(schemaName, schemaMetadata)
+    if (Array.isArray(schema.enum) || schemaMetadata.generate === false) continue
     if (
-      schemaMetadata?.kind === 'input' ||
-      schemaMetadata?.kind === 'problem' ||
-      schemaMetadata?.kind === 'transport'
+      schemaMetadata.kind === 'input' ||
+      schemaMetadata.kind === 'problem' ||
+      schemaMetadata.kind === 'transport'
     ) {
       continue
     }
-    const modelName =
-      schemaMetadata?.publicName ?? modelNameForSchema(schemaName)
+    const modelName = schemaMetadata.publicName
     const existing = names.get(modelName)
     if (existing) {
       throw new Error(
@@ -207,13 +173,10 @@ function createDomainRegistry(
     names.set(modelName, schemaName)
     models.set(schemaName, modelName)
     const fields =
-      schemaMetadata?.transportFields ??
-      (isRecord(schema.properties)
-        ? Object.keys(schema.properties).filter((field) => field === '_paths')
-        : [])
+      schemaMetadata.transportFields ?? []
     transportFields.set(schemaName, fields)
   }
-  return { models, transportFields }
+  return { models, transportFields, metadata }
 }
 
 function operationSuccessType(
@@ -389,18 +352,30 @@ function operationMetadata(entry: OperationEntry) {
 
 function createDomainSource(registry: DomainRegistry) {
   const modelAliases = [...registry.models.entries()].map(
-    ([schemaName, modelName]) =>
-      `export type ${modelName}Transport = components['schemas']['${schemaName}']\nexport type ${modelName} = Domain<${modelName}Transport>`,
+    ([schemaName, modelName]) => {
+      const fields = registry.transportFields.get(schemaName) ?? []
+      const source = fields.length > 0
+        ? `Omit<${modelName}Transport, ${fields.map((field) => JSON.stringify(field)).join(' | ')}>`
+        : `${modelName}Transport`
+      return `export type ${modelName}Transport = components['schemas']['${schemaName}']\nexport type ${modelName} = Domain<${source}>`
+    },
   )
-  const catalogProgram = registry.models.has('CatalogProgramEntity')
-    ? `export type BlockSet = Domain<CatalogProgramTransport['base']>\nexport type CourseRequirement = Domain<CatalogProgramTransport['base']['mandatory'][number]>\nexport type CatalogProgramModality = Domain<CatalogProgramTransport['modalities'][number]>\nexport type CatalogProgramLanguage = Domain<CatalogProgramTransport['languages'][number]>`
-    : ''
+  const pathType = (root: string, path: string) =>
+    path.split('.').filter(Boolean).reduce((type, field) => `${type}[${JSON.stringify(field)}]`, root)
+  const domainExports = [...registry.models.entries()].flatMap(([schemaName, modelName]) =>
+    Object.entries(registry.metadata.get(schemaName)?.domainExports ?? {}).map(
+      ([name, path]) => `export type ${name} = Domain<${pathType(`${modelName}Transport`, path)}>`,
+    ),
+  )
   const definitions = Object.fromEntries(
     [...registry.models.entries()].map(([schemaName, modelName]) => [
       modelName,
       {
         schema: schemaName,
         transportFields: registry.transportFields.get(schemaName) ?? [],
+        identityFields: registry.metadata.get(schemaName)?.identityFields ?? [],
+        readOnlyFields: registry.metadata.get(schemaName)?.readOnlyFields ?? [],
+        relations: registry.metadata.get(schemaName)?.relations ?? {},
       },
     ]),
   )
@@ -411,7 +386,7 @@ export type Domain<T> = T extends null
   : T extends ReadonlyArray<infer Item>
     ? ReadonlyArray<Domain<Item>>
     : T extends object
-      ? { readonly [Key in Exclude<keyof T, '_paths'>]: Domain<T[Key]> }
+      ? { readonly [Key in keyof T]: Domain<T[Key]> }
       : T
 
 export type PagePaths = {
@@ -433,7 +408,7 @@ export type Component<Name extends DomainComponentSchemaName> = Domain<component
 
 ${modelAliases.join('\n\n')}
 
-${catalogProgram}
+${domainExports.join('\n')}
 
 export const domainModelDefinitions = ${JSON.stringify(definitions, null, 2)} as const
 `
@@ -603,27 +578,27 @@ export const runtimeOperationDefinitions = ${JSON.stringify(definitions)} as con
 function createResourcesSource(model: SdkTargetModel) {
   const { target } = model
   const entries = [...model.operations]
-  const selected = entries.filter((entry) => entry.operation['x-pomi-sdk'])
+  const selected = entries.filter(isSdkOperation)
   const imports = selected.flatMap((entry) => {
     const operationId = entry.operation.operationId!
     return [`${operationId}Input`, `${operationId}Output`]
   })
-  function paths(entry: OperationEntry) {
-    const metadata = entry.operation['x-pomi-sdk']!
+  function paths(entry: SdkOperationModel) {
+    const metadata = entry.operation['x-pomi-sdk']
     return parameterNames(entry.operation, 'path').map((wireName) => ({
       wireName,
       publicName: metadata.pathParameters?.[wireName] ?? wireName,
     }))
   }
 
-  function argumentsFor(entry: OperationEntry) {
+  function argumentsFor(entry: SdkOperationModel) {
     const operationId = entry.operation.operationId!
     const pathArguments = paths(entry)
     const args = pathArguments.map(
       ({ wireName, publicName }) =>
         `${publicName}: ${pathParameterType(entry, wireName)}`,
     )
-    const action = entry.operation['x-pomi-sdk']!.action
+    const action = entry.operation['x-pomi-sdk'].action
     const hasNonPathParameters = (entry.operation.parameters ?? []).some(
       (parameter) => parameter.in !== 'path',
     )
@@ -647,13 +622,13 @@ function createResourcesSource(model: SdkTargetModel) {
     return args.join(', ')
   }
 
-  function inputFor(entry: OperationEntry, inputExpression = 'input') {
+  function inputFor(entry: SdkOperationModel, inputExpression = 'input') {
     const operationId = entry.operation.operationId!
     const pathFields = paths(entry).map(
       ({ wireName, publicName }) =>
         `${JSON.stringify(wireName)}: ${publicName}`,
     )
-    const action = entry.operation['x-pomi-sdk']!.action
+    const action = entry.operation['x-pomi-sdk'].action
     const hasNonPathParameters = (entry.operation.parameters ?? []).some(
       (parameter) => parameter.in !== 'path',
     )
@@ -670,39 +645,39 @@ function createResourcesSource(model: SdkTargetModel) {
     ({ name: resource, operations }) => {
       const methodDeclarations = operations.map((entry) => {
         const operationId = entry.operation.operationId!
-        const metadata = entry.operation['x-pomi-sdk']!
-        const method = metadata.method ?? metadata.action
+        const metadata = entry.operation['x-pomi-sdk']
+        const method = metadata.method
         const variableName = `${method}Operation`
         return `const ${variableName} = withMetadata((${argumentsFor(entry)}) => operations.${operationId}(${inputFor(entry)}, context), definitions.${operationId}, operationProblemTypes.${operationId})`
       })
       const methodNames: Array<string> = operations.map((entry) => {
-        const metadata = entry.operation['x-pomi-sdk']!
-        const method = metadata.method ?? metadata.action
+        const metadata = entry.operation['x-pomi-sdk']
+        const method = metadata.method
         return `${method}: ${method}Operation`
       })
-      const paginated = operations.find(
+      const paginated = operations.filter(
         (entry) => entry.operation['x-pomi-pagination'],
       )
-      if (paginated) {
-        const operationId = paginated.operation.operationId!
-        const pagination = paginated.operation['x-pomi-pagination']!
-        const pageParameter = pagination.pageParameter ?? 'page'
-        const pageSizeParameter = pagination.pageSizeParameter ?? 'pageSize'
-        const defaultedInput = `{ ...input, ${JSON.stringify(pageParameter)}: input[${JSON.stringify(pageParameter)}] ?? 1, ${JSON.stringify(pageSizeParameter)}: input[${JSON.stringify(pageSizeParameter)}] ?? ${pagination.defaultPageSize} }`
+      for (const paginatedEntry of paginated) {
+        const operationId = paginatedEntry.operation.operationId!
+        const pagination = paginatedEntry.operation['x-pomi-pagination']!
+        const method = paginatedEntry.operation['x-pomi-sdk'].method
+        const pagesName = paginated.length === 1 ? 'pages' : `${method}Pages`
+        const listAllName = paginated.length === 1 ? 'listAll' : `${method}All`
+        const defaultedInput = pagination.defaultMode === 'all'
+          ? `{ ...input, pageSize: input.pageSize ?? 'all' }`
+          : `{ ...input, page: input.page ?? 1, pageSize: input.pageSize ?? ${pagination.defaultPageSize} }`
         const listAllArguments = [
-          ...paths(paginated).map(({ publicName }) => publicName),
+          ...paths(paginatedEntry).map(({ publicName }) => publicName),
           'input',
           'context',
         ].join(', ')
-        const pages =
-          pagination.strategy === 'page-number'
-            ? `const pages = (${argumentsFor(paginated)}) => paginateByPage<${operationId}Output>((page) => operations.${operationId}(${inputFor(paginated, `{ ...${defaultedInput}, ${JSON.stringify(pageParameter)}: page }`)}, context), ${defaultedInput}[${JSON.stringify(pageParameter)}], ${JSON.stringify(pagination.pageField)}, ${JSON.stringify(pagination.pageSizeField)}, ${JSON.stringify(pagination.totalField)})`
-            : `const pages = (${argumentsFor(paginated)}) => paginateByLink<${operationId}Output>(operations.${operationId}(${inputFor(paginated, defaultedInput)}, context), ${JSON.stringify(target)}, definitions.${operationId}.authentication, ${JSON.stringify(pagination.nextField)}, requestPath, context)`
+        const pages = `const ${pagesName} = (${argumentsFor(paginatedEntry)}) => paginateByLink<${operationId}Output>(operations.${operationId}(${inputFor(paginatedEntry, defaultedInput)}, context), ${JSON.stringify(target)}, definitions.${operationId}.authentication, requestPath, context)`
         methodDeclarations.push(
           pages,
-          `const listAll = async (${argumentsFor(paginated)}) => { const items: Array<${operationId}Output[${JSON.stringify(pagination.itemsField)}][number]> = []; for await (const page of pages(${listAllArguments})) items.push(...page[${JSON.stringify(pagination.itemsField)}]); return items }`,
+          `const ${listAllName} = async (${argumentsFor(paginatedEntry)}) => { const items: Array<${operationId}Output['data'][number]> = []; for await (const page of ${pagesName}(${listAllArguments})) items.push(...page.data); return items }`,
         )
-        methodNames.push('pages', 'listAll')
+        methodNames.push(pagesName, listAllName)
       }
       return `${JSON.stringify(resource)}: (() => { ${methodDeclarations.join('\n')}\nreturn { ${methodNames.join(', ')} } })()`
     },
@@ -711,50 +686,16 @@ function createResourcesSource(model: SdkTargetModel) {
   const hasPagination = selected.some(
     (entry) => entry.operation['x-pomi-pagination'],
   )
-  const hasLinkPagination = selected.some((entry) => {
-    const pagination = entry.operation['x-pomi-pagination']
-    return pagination && pagination.strategy !== 'page-number'
-  })
-  const hasPageNumberPagination = selected.some(
-    (entry) => entry.operation['x-pomi-pagination']?.strategy === 'page-number',
-  )
   const paginationHelpers = hasPagination
-    ? `function valueAtPath(value: unknown, path: string) {
-  return path.split('.').reduce<unknown>((current, key) => typeof current === 'object' && current !== null ? (current as Record<string, unknown>)[key] : undefined, value)
-}
-
-${
-  hasLinkPagination
-    ? `async function* paginateByLink<Page>(firstPage: Promise<Page>, target: ${JSON.stringify(target)}, authentication: AuthenticationMode, nextField: string, requestPath: RequestPath, context?: PomiRequestContext): AsyncIterable<Page> {
+    ? `async function* paginateByLink<Page extends { _paths: { next: string | null } }>(firstPage: Promise<Page>, target: ${JSON.stringify(target)}, authentication: AuthenticationMode, requestPath: RequestPath, context?: PomiRequestContext): AsyncIterable<Page> {
   let page = await firstPage
   yield page
-  let next = valueAtPath(page, nextField)
+  let next = page._paths.next
   while (typeof next === 'string' && next.length > 0) {
     page = await requestPath<Page>(target, next, authentication, context)
     yield page
-    next = valueAtPath(page, nextField)
+    next = page._paths.next
   }
-}
-`
-    : ''
-}
-
-${
-  hasPageNumberPagination
-    ? `async function* paginateByPage<Page>(requestPage: (page: number) => Promise<Page>, initialPage: number, pageField: string, pageSizeField: string, totalField: string): AsyncIterable<Page> {
-  let pageNumber = initialPage
-  while (true) {
-    const page = await requestPage(pageNumber)
-    yield page
-    const currentPage = valueAtPath(page, pageField)
-    const pageSize = valueAtPath(page, pageSizeField)
-    const total = valueAtPath(page, totalField)
-    if (typeof currentPage !== 'number' || typeof pageSize !== 'number' || typeof total !== 'number' || currentPage * pageSize >= total) return
-    pageNumber = currentPage + 1
-  }
-}
-`
-    : ''
 }
 `
     : ''
@@ -782,7 +723,7 @@ function operationInput<Input>(input: Input): Input {
 ${paginationHelpers}
 
 export function bindResources(operations: Operations, requestPath: RequestPath) {
-  ${hasLinkPagination ? '' : 'void requestPath'}
+  ${hasPagination ? '' : 'void requestPath'}
   return {
 ${resourceSources.map((source) => `    ${source},`).join('\n')}
   }
@@ -1007,178 +948,6 @@ export * from './runtime.js'
 `
 }
 
-function resolvedSchema(document: OpenApiDocument, schema: unknown): unknown {
-  return schemaAtRef(document, schema) ?? schema
-}
-
-function schemaHasPath(
-  document: OpenApiDocument,
-  schema: unknown,
-  path: string,
-) {
-  let current: unknown = schema
-  for (const part of path.split('.')) {
-    current = resolvedSchema(document, current)
-    if (!isRecord(current) || !isRecord(current.properties)) return false
-    current = current.properties[part]
-    if (!current) return false
-  }
-  return true
-}
-
-function successfulSchemas(entry: OperationEntry) {
-  return responseEntries(entry.operation, true).flatMap(([, response]) =>
-    contentTypeEntries(response).map(([, content]) => content.schema),
-  )
-}
-
-function detectedPagination(entry: OperationEntry) {
-  const schemas = successfulSchemas(entry)
-  if (
-    schemas.some(
-      (schema) =>
-        schemaHasPath(entry.document, schema, 'data') &&
-        schemaHasPath(entry.document, schema, '_paths.next'),
-    )
-  ) {
-    return 'link'
-  }
-  if (
-    schemas.some(
-      (schema) =>
-        schemaHasPath(entry.document, schema, 'items') &&
-        schemaHasPath(entry.document, schema, 'page') &&
-        schemaHasPath(entry.document, schema, 'pageSize') &&
-        schemaHasPath(entry.document, schema, 'total'),
-    )
-  ) {
-    return 'page-number'
-  }
-  return undefined
-}
-
-function validateSdkMetadata(entry: OperationEntry) {
-  const id = entry.operation.operationId!
-  const sdk = entry.operation['x-pomi-sdk']
-  if (!sdk) throw new Error(`Missing x-pomi-sdk in operation ${id}`)
-  if (!sdk.resource || !sdk.action) {
-    throw new Error(`Invalid x-pomi-sdk in operation ${id}`)
-  }
-  const method = sdk.method ?? sdk.action
-  if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/u.test(method)) {
-    throw new Error(`Invalid SDK method ${method} in operation ${id}`)
-  }
-  const paths = new Set(parameterNames(entry.operation, 'path'))
-  const publicNames = new Set<string>()
-  for (const [wireName, publicName] of Object.entries(
-    sdk.pathParameters ?? {},
-  )) {
-    if (!paths.has(wireName)) {
-      throw new Error(
-        `Unknown SDK path parameter ${wireName} in operation ${id}`,
-      )
-    }
-    if (!/^[A-Za-z_$][A-Za-z0-9_$]*$/u.test(publicName)) {
-      throw new Error(
-        `Invalid public path parameter ${publicName} in operation ${id}`,
-      )
-    }
-    if (publicNames.has(publicName)) {
-      throw new Error(
-        `Duplicate public path parameter ${publicName} in operation ${id}`,
-      )
-    }
-    publicNames.add(publicName)
-  }
-}
-
-function validatePaginationMetadata(entry: OperationEntry) {
-  const id = entry.operation.operationId!
-  const sdk = entry.operation['x-pomi-sdk']!
-  const pagination = entry.operation['x-pomi-pagination']
-  const detected = detectedPagination(entry)
-  if (!pagination) {
-    if (detected) {
-      throw new Error(
-        `Missing x-pomi-pagination for ${detected} operation ${id}`,
-      )
-    }
-    return
-  }
-  if (sdk.action !== 'list') {
-    throw new Error(`Pagination requires SDK action list in operation ${id}`)
-  }
-  if (
-    pagination.defaultPageSize < 1 ||
-    pagination.maxPageSize < pagination.defaultPageSize
-  ) {
-    throw new Error(`Invalid pagination limits in operation ${id}`)
-  }
-  const fields =
-    pagination.strategy === 'page-number'
-      ? [
-          pagination.itemsField,
-          pagination.pageField,
-          pagination.pageSizeField,
-          pagination.totalField,
-        ]
-      : [pagination.itemsField, pagination.nextField]
-  const schemas = successfulSchemas(entry)
-  for (const field of fields) {
-    if (
-      !schemas.some((schema) => schemaHasPath(entry.document, schema, field))
-    ) {
-      throw new Error(
-        `Pagination response field ${field} does not exist in operation ${id}`,
-      )
-    }
-  }
-  const queries = new Set(parameterNames(entry.operation, 'query'))
-  for (const parameter of [
-    pagination.pageParameter ?? 'page',
-    pagination.pageSizeParameter ?? 'pageSize',
-  ]) {
-    if (!queries.has(parameter)) {
-      throw new Error(
-        `Pagination query parameter ${parameter} does not exist in operation ${id}`,
-      )
-    }
-  }
-}
-
-async function loadSpec(target: ApiTarget, path: string) {
-  const document = JSON.parse(await readFile(path, 'utf8')) as OpenApiDocument
-  if (!document.openapi.startsWith('3.')) {
-    throw new Error(`Expected an OpenAPI 3 document: ${path}`)
-  }
-  const entries = operationEntries(target, document)
-  if (entries.length === 0)
-    throw new Error(`No HTTP operations found in ${path}`)
-  const ids = new Set<string>()
-  const resources = new Set<string>()
-  for (const entry of entries) {
-    const id = entry.operation.operationId
-    if (!id)
-      throw new Error(
-        `Operation without operationId: ${entry.method} ${entry.path}`,
-      )
-    if (ids.has(id))
-      throw new Error(`Duplicate operationId in ${target}: ${id}`)
-    ids.add(id)
-    validateSdkMetadata(entry)
-    validatePaginationMetadata(entry)
-    const sdk = entry.operation['x-pomi-sdk']!
-    const resourceOperation = `${sdk.resource}.${sdk.method ?? sdk.action}`
-    if (resources.has(resourceOperation)) {
-      throw new Error(
-        `Duplicate SDK operation in ${target}: ${resourceOperation}`,
-      )
-    }
-    resources.add(resourceOperation)
-  }
-  return buildSdkTargetModel(target, path, document, entries)
-}
-
 async function directoryFiles(root: string, directory = root) {
   const files = new Map<string, string>()
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -1260,7 +1029,7 @@ function generationReport(model: SdkTargetModel) {
 
 async function main() {
   const loaded = await Promise.all(
-    specs.map((spec) => loadSpec(spec.target, spec.path)),
+    specs.map((spec) => loadValidatedSpec(spec.target, spec.path)),
   )
   const stagedDirectory = await mkdtemp(resolve(projectDirectory, '.sdk-gen-'))
   const project = new Project({
@@ -1275,6 +1044,7 @@ async function main() {
     for (const spec of loaded) {
       const directory = resolve(stagedDirectory, spec.target)
       const registry = createDomainRegistry(spec.target, spec.document)
+      const operations = spec.operations.filter(isSdkOperation)
       const openApiAst = await openapiTS(spec.document, { alphabetize: false })
       project.createSourceFile(
         resolve(directory, 'openapi.ts'),
@@ -1283,7 +1053,7 @@ async function main() {
       )
       project.createSourceFile(
         resolve(directory, 'operations.ts'),
-        createOperationsSource([...spec.operations], spec.document, registry),
+        createOperationsSource([...operations], spec.document, registry),
         { overwrite: true },
       )
       project.createSourceFile(
@@ -1293,12 +1063,12 @@ async function main() {
       )
       project.createSourceFile(
         resolve(directory, 'inputs.ts'),
-        createInputsSource([...spec.operations]),
+        createInputsSource([...operations]),
         { overwrite: true },
       )
       project.createSourceFile(
         resolve(directory, 'bindings.ts'),
-        createBindingsSource([...spec.operations]),
+        createBindingsSource([...operations]),
         { overwrite: true },
       )
       project.createSourceFile(
@@ -1308,12 +1078,12 @@ async function main() {
       )
       project.createSourceFile(
         resolve(directory, 'filters.ts'),
-        createFiltersSource([...spec.operations]),
+        createFiltersSource([...operations]),
         { overwrite: true },
       )
       project.createSourceFile(
         resolve(directory, 'problems.ts'),
-        createProblemsSource(spec.document, [...spec.operations]),
+        createProblemsSource(spec.document, [...operations]),
         { overwrite: true },
       )
       project.createSourceFile(
@@ -1323,7 +1093,7 @@ async function main() {
       )
       project.createSourceFile(
         resolve(directory, 'paths.ts'),
-        createPathsSource([...spec.operations]),
+        createPathsSource([...operations]),
         { overwrite: true },
       )
       project.createSourceFile(
@@ -1333,7 +1103,7 @@ async function main() {
       )
       project.createSourceFile(
         resolve(directory, 'runtime.ts'),
-        createRuntimeSource([...spec.operations]),
+        createRuntimeSource([...operations]),
         { overwrite: true },
       )
       project.createSourceFile(

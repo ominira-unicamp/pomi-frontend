@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["sdk-gen/**/*.ts", "src/generated/**/*.ts", "src/runtime/**/*.ts"]
+}

@@ -1,15 +1,51 @@
-import type { listSharedPeriodPlanningsInput, listStudentAbsencesInput, listStudentCourseAttemptsInput, listStudentFriendshipsInput, listStudentProfessorEvaluationsPendingInput, listStudentSharedPeriodPlanningsInput, listTagsInput } from './operations.js'
+import type { listPendingProfessorEvaluationsInput, listPublicSharedPeriodPlanningsInput, listStudentAbsencesInput, listStudentCourseAttemptsInput, listStudentFriendshipsInput, listStudentSharedPeriodPlanningsInput, listTagsInput } from './operations.js'
 
-export type listSharedPeriodPlanningsFilter = NonNullable<listSharedPeriodPlanningsInput['filter']>
+export type listPendingProfessorEvaluationsFilter = NonNullable<listPendingProfessorEvaluationsInput['filter']>
+export type listPublicSharedPeriodPlanningsFilter = NonNullable<listPublicSharedPeriodPlanningsInput['filter']>
 export type listStudentAbsencesFilter = NonNullable<listStudentAbsencesInput['filter']>
 export type listStudentCourseAttemptsFilter = NonNullable<listStudentCourseAttemptsInput['filter']>
 export type listStudentFriendshipsFilter = NonNullable<listStudentFriendshipsInput['filter']>
-export type listStudentProfessorEvaluationsPendingFilter = NonNullable<listStudentProfessorEvaluationsPendingInput['filter']>
 export type listStudentSharedPeriodPlanningsFilter = NonNullable<listStudentSharedPeriodPlanningsInput['filter']>
 export type listTagsFilter = NonNullable<listTagsInput['filter']>
 
 export const filterCapabilities = {
-    "listSharedPeriodPlannings": {
+    "listPendingProfessorEvaluations": {
+        "version": 1,
+        "fields": [
+            {
+                "path": [
+                    "year"
+                ],
+                "schema": {
+                    "type": "integer"
+                },
+                "operators": [
+                    "eq"
+                ]
+            },
+            {
+                "path": [
+                    "yearPeriod"
+                ],
+                "schema": {
+                    "enum": [
+                        "FIRST_SEMESTER",
+                        "SECOND_SEMESTER"
+                    ],
+                    "type": "string"
+                },
+                "operators": [
+                    "eq"
+                ]
+            }
+        ],
+        "constraints": {
+            "maxExpressions": 20,
+            "maxDepth": 3,
+            "maxParameters": 100
+        }
+    },
+    "listPublicSharedPeriodPlannings": {
         "version": 1,
         "fields": [
             {
@@ -137,42 +173,6 @@ export const filterCapabilities = {
                     "enum": [
                         "INCOMING",
                         "OUTGOING"
-                    ],
-                    "type": "string"
-                },
-                "operators": [
-                    "eq"
-                ]
-            }
-        ],
-        "constraints": {
-            "maxExpressions": 20,
-            "maxDepth": 3,
-            "maxParameters": 100
-        }
-    },
-    "listStudentProfessorEvaluationsPending": {
-        "version": 1,
-        "fields": [
-            {
-                "path": [
-                    "year"
-                ],
-                "schema": {
-                    "type": "integer"
-                },
-                "operators": [
-                    "eq"
-                ]
-            },
-            {
-                "path": [
-                    "yearPeriod"
-                ],
-                "schema": {
-                    "enum": [
-                        "FIRST_SEMESTER",
-                        "SECOND_SEMESTER"
                     ],
                     "type": "string"
                 },

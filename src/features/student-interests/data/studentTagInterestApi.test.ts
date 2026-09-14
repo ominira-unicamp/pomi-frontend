@@ -13,7 +13,7 @@ describe('student tag interest API', () => {
   beforeEach(() => {
     fetchMock.mockReset()
     getAccessToken.mockClear()
-    fetchMock.mockResolvedValue(new Response('[]', { status: 200 }))
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }))
   })
 
   it('lists interests privately for the current student', async () => {
@@ -21,14 +21,22 @@ describe('student tag interest API', () => {
       { id: 8, name: 'Álgebra', categoryId: 1, parentTagId: null },
     ]
     fetchMock.mockResolvedValueOnce(
-      new Response(JSON.stringify(interests), { status: 200 }),
+      new Response(
+        JSON.stringify({
+          data: interests,
+          quantity: interests.length,
+          total: interests.length,
+          _paths: { next: null },
+        }),
+        { status: 200 },
+      ),
     )
 
     await expect(listStudentTagInterests(7, getAccessToken)).resolves.toEqual(
       interests,
     )
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringMatching(/\/student\/7\/tag-interests$/),
+      expect.stringMatching(/\/student\/7\/tag-interests(?:\?|$)/),
       expect.objectContaining({ cache: 'no-store' }),
     )
   })

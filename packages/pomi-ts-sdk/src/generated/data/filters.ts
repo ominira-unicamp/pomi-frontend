@@ -1,28 +1,28 @@
-import type { listCalendarEventsInput, listCalendarTagsInput, listCatalogCoursesInput, listCatalogProgramInput, listCatalogsInput, listClassesInput, listClassSchedulesInput, listCoauthorsInput, listCoordinatorsInput, listCoursesInput, listCoursesEvaluationSummariesInput, listCurriculumSuggestionsInput, listDailyMenusInput, listDepartmentsInput, listEvaluationSummariesInput, listExchangeNoticesInput, listExchangePlacesInput, listKeywordsInput, listLanguagesInput, listProfessorDataPortalProfilesInput, listProfessorPositionsInput, listProfessorsInput, listProfessorsEvaluationSummariesInput, listProgramsInput, listRoomsInput, listSpecializationsInput, listStudyPeriodsInput, listUnitsInput } from './operations.js'
+import type { getCourseProfessorEvaluationSummaryInput, listCalendarEventsInput, listCalendarTagsInput, listCatalogCoursesInput, listCatalogProgramsInput, listCatalogsInput, listClassesInput, listClassSchedulesInput, listCoauthorsInput, listCoordinatorsInput, listCourseEvaluationSummariesInput, listCoursesInput, listCurriculumSuggestionsInput, listDailyMenusInput, listDepartmentsInput, listExchangeNoticesInput, listExchangePlacesInput, listKeywordsInput, listLanguagesInput, listProfessorDataPortalProfilesInput, listProfessorEvaluationSummariesInput, listProfessorPositionsInput, listProfessorsInput, listProgramsInput, listRoomsInput, listSpecializationsInput, listStudyPeriodsInput, listUnitsInput } from './operations.js'
 
+export type getCourseProfessorEvaluationSummaryFilter = NonNullable<getCourseProfessorEvaluationSummaryInput['filter']>
 export type listCalendarEventsFilter = NonNullable<listCalendarEventsInput['filter']>
 export type listCalendarTagsFilter = NonNullable<listCalendarTagsInput['filter']>
 export type listCatalogCoursesFilter = NonNullable<listCatalogCoursesInput['filter']>
-export type listCatalogProgramFilter = NonNullable<listCatalogProgramInput['filter']>
+export type listCatalogProgramsFilter = NonNullable<listCatalogProgramsInput['filter']>
 export type listCatalogsFilter = NonNullable<listCatalogsInput['filter']>
 export type listClassesFilter = NonNullable<listClassesInput['filter']>
 export type listClassSchedulesFilter = NonNullable<listClassSchedulesInput['filter']>
 export type listCoauthorsFilter = NonNullable<listCoauthorsInput['filter']>
 export type listCoordinatorsFilter = NonNullable<listCoordinatorsInput['filter']>
+export type listCourseEvaluationSummariesFilter = NonNullable<listCourseEvaluationSummariesInput['filter']>
 export type listCoursesFilter = NonNullable<listCoursesInput['filter']>
-export type listCoursesEvaluationSummariesFilter = NonNullable<listCoursesEvaluationSummariesInput['filter']>
 export type listCurriculumSuggestionsFilter = NonNullable<listCurriculumSuggestionsInput['filter']>
 export type listDailyMenusFilter = NonNullable<listDailyMenusInput['filter']>
 export type listDepartmentsFilter = NonNullable<listDepartmentsInput['filter']>
-export type listEvaluationSummariesFilter = NonNullable<listEvaluationSummariesInput['filter']>
 export type listExchangeNoticesFilter = NonNullable<listExchangeNoticesInput['filter']>
 export type listExchangePlacesFilter = NonNullable<listExchangePlacesInput['filter']>
 export type listKeywordsFilter = NonNullable<listKeywordsInput['filter']>
 export type listLanguagesFilter = NonNullable<listLanguagesInput['filter']>
 export type listProfessorDataPortalProfilesFilter = NonNullable<listProfessorDataPortalProfilesInput['filter']>
+export type listProfessorEvaluationSummariesFilter = NonNullable<listProfessorEvaluationSummariesInput['filter']>
 export type listProfessorPositionsFilter = NonNullable<listProfessorPositionsInput['filter']>
 export type listProfessorsFilter = NonNullable<listProfessorsInput['filter']>
-export type listProfessorsEvaluationSummariesFilter = NonNullable<listProfessorsEvaluationSummariesInput['filter']>
 export type listProgramsFilter = NonNullable<listProgramsInput['filter']>
 export type listRoomsFilter = NonNullable<listRoomsInput['filter']>
 export type listSpecializationsFilter = NonNullable<listSpecializationsInput['filter']>
@@ -30,6 +30,42 @@ export type listStudyPeriodsFilter = NonNullable<listStudyPeriodsInput['filter']
 export type listUnitsFilter = NonNullable<listUnitsInput['filter']>
 
 export const filterCapabilities = {
+    "getCourseProfessorEvaluationSummary": {
+        "version": 1,
+        "fields": [
+            {
+                "path": [
+                    "courseId"
+                ],
+                "schema": {
+                    "minimum": 1,
+                    "type": "integer"
+                },
+                "operators": [
+                    "eq",
+                    "in"
+                ]
+            },
+            {
+                "path": [
+                    "professorId"
+                ],
+                "schema": {
+                    "minimum": 1,
+                    "type": "integer"
+                },
+                "operators": [
+                    "eq",
+                    "in"
+                ]
+            }
+        ],
+        "constraints": {
+            "maxExpressions": 20,
+            "maxDepth": 3,
+            "maxParameters": 100
+        }
+    },
     "listCalendarEvents": {
         "version": 1,
         "fields": [
@@ -227,7 +263,7 @@ export const filterCapabilities = {
             "maxParameters": 100
         }
     },
-    "listCatalogProgram": {
+    "listCatalogPrograms": {
         "version": 1,
         "fields": [
             {
@@ -654,6 +690,43 @@ export const filterCapabilities = {
             "maxParameters": 100
         }
     },
+    "listCourseEvaluationSummaries": {
+        "version": 1,
+        "fields": [
+            {
+                "path": [
+                    "courseId"
+                ],
+                "schema": {
+                    "minimum": 1,
+                    "type": "integer"
+                },
+                "operators": [
+                    "eq",
+                    "in"
+                ]
+            },
+            {
+                "path": [
+                    "courseCode"
+                ],
+                "schema": {
+                    "minLength": 1,
+                    "type": "string"
+                },
+                "operators": [
+                    "eq",
+                    "ne",
+                    "in"
+                ]
+            }
+        ],
+        "constraints": {
+            "maxExpressions": 20,
+            "maxDepth": 3,
+            "maxParameters": 100
+        }
+    },
     "listCourses": {
         "version": 1,
         "fields": [
@@ -739,43 +812,6 @@ export const filterCapabilities = {
                 },
                 "operators": [
                     "eq",
-                    "in"
-                ]
-            }
-        ],
-        "constraints": {
-            "maxExpressions": 20,
-            "maxDepth": 3,
-            "maxParameters": 100
-        }
-    },
-    "listCoursesEvaluationSummaries": {
-        "version": 1,
-        "fields": [
-            {
-                "path": [
-                    "courseId"
-                ],
-                "schema": {
-                    "minimum": 1,
-                    "type": "integer"
-                },
-                "operators": [
-                    "eq",
-                    "in"
-                ]
-            },
-            {
-                "path": [
-                    "courseCode"
-                ],
-                "schema": {
-                    "minLength": 1,
-                    "type": "string"
-                },
-                "operators": [
-                    "eq",
-                    "ne",
                     "in"
                 ]
             }
@@ -955,42 +991,6 @@ export const filterCapabilities = {
                 },
                 "operators": [
                     "eq"
-                ]
-            }
-        ],
-        "constraints": {
-            "maxExpressions": 20,
-            "maxDepth": 3,
-            "maxParameters": 100
-        }
-    },
-    "listEvaluationSummaries": {
-        "version": 1,
-        "fields": [
-            {
-                "path": [
-                    "courseId"
-                ],
-                "schema": {
-                    "minimum": 1,
-                    "type": "integer"
-                },
-                "operators": [
-                    "eq",
-                    "in"
-                ]
-            },
-            {
-                "path": [
-                    "professorId"
-                ],
-                "schema": {
-                    "minimum": 1,
-                    "type": "integer"
-                },
-                "operators": [
-                    "eq",
-                    "in"
                 ]
             }
         ],
@@ -1239,6 +1239,29 @@ export const filterCapabilities = {
             "maxParameters": 100
         }
     },
+    "listProfessorEvaluationSummaries": {
+        "version": 1,
+        "fields": [
+            {
+                "path": [
+                    "professorId"
+                ],
+                "schema": {
+                    "minimum": 1,
+                    "type": "integer"
+                },
+                "operators": [
+                    "eq",
+                    "in"
+                ]
+            }
+        ],
+        "constraints": {
+            "maxExpressions": 20,
+            "maxDepth": 3,
+            "maxParameters": 100
+        }
+    },
     "listProfessorPositions": {
         "version": 1,
         "fields": [
@@ -1299,29 +1322,6 @@ export const filterCapabilities = {
                     "classId"
                 ],
                 "schema": {
-                    "type": "integer"
-                },
-                "operators": [
-                    "eq",
-                    "in"
-                ]
-            }
-        ],
-        "constraints": {
-            "maxExpressions": 20,
-            "maxDepth": 3,
-            "maxParameters": 100
-        }
-    },
-    "listProfessorsEvaluationSummaries": {
-        "version": 1,
-        "fields": [
-            {
-                "path": [
-                    "professorId"
-                ],
-                "schema": {
-                    "minimum": 1,
                     "type": "integer"
                 },
                 "operators": [

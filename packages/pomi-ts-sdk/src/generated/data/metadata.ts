@@ -45,7 +45,11 @@ export const componentSchemas = {
             "quantity",
             "total",
             "_paths"
-        ]
+        ],
+        "x-pomi-schema": {
+            "kind": "page",
+            "publicName": "PageProfessorEvaluationSummaries"
+        }
     },
     "ProfessorEvaluationSummary": {
         "type": "object",
@@ -91,7 +95,11 @@ export const componentSchemas = {
             "difficulty",
             "professor"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "ProfessorEvaluationSummary"
+        }
     },
     "InvalidRequestProblem": {
         "type": "object",
@@ -134,7 +142,11 @@ export const componentSchemas = {
             "detail",
             "fields"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "InvalidRequestProblem"
+        }
     },
     "ProblemField": {
         "type": "object",
@@ -163,7 +175,11 @@ export const componentSchemas = {
             "path",
             "message"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "ProblemField"
+        }
     },
     "InternalServerErrorProblem": {
         "type": "object",
@@ -199,7 +215,11 @@ export const componentSchemas = {
             "status",
             "detail"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "InternalServerErrorProblem"
+        }
     },
     "PageCourseEvaluationSummaries": {
         "type": "object",
@@ -247,7 +267,11 @@ export const componentSchemas = {
             "quantity",
             "total",
             "_paths"
-        ]
+        ],
+        "x-pomi-schema": {
+            "kind": "page",
+            "publicName": "PageCourseEvaluationSummaries"
+        }
     },
     "CourseEvaluationSummary": {
         "type": "object",
@@ -297,7 +321,11 @@ export const componentSchemas = {
             "difficulty",
             "course"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "CourseEvaluationSummary"
+        }
     },
     "CourseProfessorEvaluationSummary": {
         "type": "object",
@@ -364,7 +392,11 @@ export const componentSchemas = {
             "course",
             "professor"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "CourseProfessorEvaluationSummary"
+        }
     },
     "ResourceNotFoundProblem": {
         "type": "object",
@@ -400,7 +432,11 @@ export const componentSchemas = {
             "status",
             "detail"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "ResourceNotFoundProblem"
+        }
     },
     "UnitEntity": {
         "type": "object",
@@ -437,7 +473,17 @@ export const componentSchemas = {
             "name",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Unit",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "CourseEntity": {
         "type": "object",
@@ -502,7 +548,17 @@ export const componentSchemas = {
             "unitCode",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Course",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "PageCourses": {
         "type": "object",
@@ -550,7 +606,14 @@ export const componentSchemas = {
             "quantity",
             "total",
             "_paths"
-        ]
+        ],
+        "x-pomi-schema": {
+            "kind": "page",
+            "publicName": "PageCourses",
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "ProfessorEntity": {
         "type": "object",
@@ -583,7 +646,17 @@ export const componentSchemas = {
             "name",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Professor",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "PageProfessors": {
         "type": "object",
@@ -631,7 +704,14 @@ export const componentSchemas = {
             "quantity",
             "total",
             "_paths"
-        ]
+        ],
+        "x-pomi-schema": {
+            "kind": "page",
+            "publicName": "PageProfessors",
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "ProfessorDataPortalProfileSummary": {
         "type": "object",
@@ -719,7 +799,14 @@ export const componentSchemas = {
             "position",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "ProfessorDataPortalProfileSummary",
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "Department": {
         "type": "object",
@@ -744,7 +831,14 @@ export const componentSchemas = {
             "name",
             "unitId"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Department",
+            "identityFields": [
+                "id"
+            ]
+        }
     },
     "ProfessorPosition": {
         "type": "object",
@@ -785,7 +879,14 @@ export const componentSchemas = {
             "postdoctoralModality",
             "careerReference"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "ProfessorPosition",
+            "identityFields": [
+                "id"
+            ]
+        }
     },
     "CareerReference": {
         "type": "object",
@@ -816,7 +917,11 @@ export const componentSchemas = {
             "category",
             "progressionOrder"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "CareerReference"
+        }
     },
     "ProfessorDataPortalProfile": {
         "type": "object",
@@ -1042,7 +1147,17 @@ export const componentSchemas = {
             "coauthors",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "ProfessorDataPortalProfile",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "Keyword": {
         "type": "object",
@@ -1060,7 +1175,14 @@ export const componentSchemas = {
             "id",
             "name"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Keyword",
+            "identityFields": [
+                "id"
+            ]
+        }
     },
     "Coauthor": {
         "type": "object",
@@ -1078,7 +1200,14 @@ export const componentSchemas = {
             "id",
             "name"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Coauthor",
+            "identityFields": [
+                "id"
+            ]
+        }
     },
     "RoomEntity": {
         "type": "object",
@@ -1106,7 +1235,17 @@ export const componentSchemas = {
             "code",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Room",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "Catalog": {
         "type": "object",
@@ -1180,7 +1319,17 @@ export const componentSchemas = {
             "programIds",
             "links",
             "_paths"
-        ]
+        ],
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Catalog",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "CatalogCourseEntity": {
         "type": "object",
@@ -1330,12 +1479,7 @@ export const componentSchemas = {
                                                 "minLength": 1
                                             },
                                             "kind": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "FULL",
-                                                    "PARTIAL",
-                                                    "SPECIAL"
-                                                ]
+                                                "$ref": "#/components/schemas/CourseOfferingKind"
                                             },
                                             "courseId": {
                                                 "type": "integer",
@@ -1409,7 +1553,17 @@ export const componentSchemas = {
             "prerequisites",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "CatalogCourse",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "CourseOfferingPeriod": {
         "type": "string",
@@ -1420,7 +1574,23 @@ export const componentSchemas = {
             "EVEN_PERIODS",
             "UNIT_DISCRETION",
             null
-        ]
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "CourseOfferingPeriod"
+        }
+    },
+    "CourseOfferingKind": {
+        "type": "string",
+        "enum": [
+            "FULL",
+            "PARTIAL",
+            "SPECIAL"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "CourseOfferingKind"
+        }
     },
     "CoordinatorEntity": {
         "type": "object",
@@ -1458,7 +1628,17 @@ export const componentSchemas = {
             "catalogCoursesCount",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Coordinator",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "CatalogProgramEntity": {
         "type": "object",
@@ -1485,494 +1665,18 @@ export const componentSchemas = {
                 "type": "string"
             },
             "base": {
-                "type": "object",
-                "properties": {
-                    "mandatory": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "type": "integer"
-                                },
-                                "type": {
-                                    "type": "string",
-                                    "enum": [
-                                        "any",
-                                        "prefix",
-                                        "specific"
-                                    ]
-                                },
-                                "courseId": {
-                                    "type": "integer",
-                                    "nullable": true
-                                },
-                                "courseCode": {
-                                    "type": "string",
-                                    "nullable": true
-                                },
-                                "courseName": {
-                                    "type": "string",
-                                    "nullable": true
-                                },
-                                "prefix": {
-                                    "type": "string",
-                                    "nullable": true
-                                },
-                                "catalogCourseId": {
-                                    "type": "integer",
-                                    "nullable": true
-                                },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "catalogCourse": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "catalogCourse"
-                                    ],
-                                    "additionalProperties": false
-                                }
-                            },
-                            "required": [
-                                "id",
-                                "type",
-                                "courseId",
-                                "courseCode",
-                                "courseName",
-                                "prefix",
-                                "catalogCourseId",
-                                "_paths"
-                            ]
-                        }
-                    },
-                    "electives": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "credits": {
-                                    "type": "integer"
-                                },
-                                "courses": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {
-                                                "type": "integer"
-                                            },
-                                            "type": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "any",
-                                                    "prefix",
-                                                    "specific"
-                                                ]
-                                            },
-                                            "courseId": {
-                                                "type": "integer",
-                                                "nullable": true
-                                            },
-                                            "courseCode": {
-                                                "type": "string",
-                                                "nullable": true
-                                            },
-                                            "courseName": {
-                                                "type": "string",
-                                                "nullable": true
-                                            },
-                                            "prefix": {
-                                                "type": "string",
-                                                "nullable": true
-                                            },
-                                            "catalogCourseId": {
-                                                "type": "integer",
-                                                "nullable": true
-                                            },
-                                            "_paths": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "catalogCourse": {
-                                                        "type": "string",
-                                                        "nullable": true
-                                                    }
-                                                },
-                                                "required": [
-                                                    "catalogCourse"
-                                                ],
-                                                "additionalProperties": false
-                                            }
-                                        },
-                                        "required": [
-                                            "id",
-                                            "type",
-                                            "courseId",
-                                            "courseCode",
-                                            "courseName",
-                                            "prefix",
-                                            "catalogCourseId",
-                                            "_paths"
-                                        ]
-                                    }
-                                }
-                            },
-                            "required": [
-                                "credits",
-                                "courses"
-                            ]
-                        }
-                    }
-                },
-                "required": [
-                    "mandatory",
-                    "electives"
-                ]
+                "$ref": "#/components/schemas/CourseBlockSet"
             },
             "modalities": {
                 "type": "array",
                 "items": {
-                    "type": "object",
-                    "properties": {
-                        "specializationId": {
-                            "type": "integer"
-                        },
-                        "curriculumSuggestionId": {
-                            "type": "integer",
-                            "nullable": true
-                        },
-                        "code": {
-                            "type": "string"
-                        },
-                        "name": {
-                            "type": "string"
-                        },
-                        "blocks": {
-                            "type": "object",
-                            "properties": {
-                                "mandatory": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {
-                                                "type": "integer"
-                                            },
-                                            "type": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "any",
-                                                    "prefix",
-                                                    "specific"
-                                                ]
-                                            },
-                                            "courseId": {
-                                                "type": "integer",
-                                                "nullable": true
-                                            },
-                                            "courseCode": {
-                                                "type": "string",
-                                                "nullable": true
-                                            },
-                                            "courseName": {
-                                                "type": "string",
-                                                "nullable": true
-                                            },
-                                            "prefix": {
-                                                "type": "string",
-                                                "nullable": true
-                                            },
-                                            "catalogCourseId": {
-                                                "type": "integer",
-                                                "nullable": true
-                                            },
-                                            "_paths": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "catalogCourse": {
-                                                        "type": "string",
-                                                        "nullable": true
-                                                    }
-                                                },
-                                                "required": [
-                                                    "catalogCourse"
-                                                ],
-                                                "additionalProperties": false
-                                            }
-                                        },
-                                        "required": [
-                                            "id",
-                                            "type",
-                                            "courseId",
-                                            "courseCode",
-                                            "courseName",
-                                            "prefix",
-                                            "catalogCourseId",
-                                            "_paths"
-                                        ]
-                                    }
-                                },
-                                "electives": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "credits": {
-                                                "type": "integer"
-                                            },
-                                            "courses": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer"
-                                                        },
-                                                        "type": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "any",
-                                                                "prefix",
-                                                                "specific"
-                                                            ]
-                                                        },
-                                                        "courseId": {
-                                                            "type": "integer",
-                                                            "nullable": true
-                                                        },
-                                                        "courseCode": {
-                                                            "type": "string",
-                                                            "nullable": true
-                                                        },
-                                                        "courseName": {
-                                                            "type": "string",
-                                                            "nullable": true
-                                                        },
-                                                        "prefix": {
-                                                            "type": "string",
-                                                            "nullable": true
-                                                        },
-                                                        "catalogCourseId": {
-                                                            "type": "integer",
-                                                            "nullable": true
-                                                        },
-                                                        "_paths": {
-                                                            "type": "object",
-                                                            "properties": {
-                                                                "catalogCourse": {
-                                                                    "type": "string",
-                                                                    "nullable": true
-                                                                }
-                                                            },
-                                                            "required": [
-                                                                "catalogCourse"
-                                                            ],
-                                                            "additionalProperties": false
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "id",
-                                                        "type",
-                                                        "courseId",
-                                                        "courseCode",
-                                                        "courseName",
-                                                        "prefix",
-                                                        "catalogCourseId",
-                                                        "_paths"
-                                                    ]
-                                                }
-                                            }
-                                        },
-                                        "required": [
-                                            "credits",
-                                            "courses"
-                                        ]
-                                    }
-                                }
-                            },
-                            "required": [
-                                "mandatory",
-                                "electives"
-                            ]
-                        }
-                    },
-                    "required": [
-                        "specializationId",
-                        "curriculumSuggestionId",
-                        "code",
-                        "name",
-                        "blocks"
-                    ]
+                    "$ref": "#/components/schemas/CatalogProgramModality"
                 }
             },
             "languages": {
                 "type": "array",
                 "items": {
-                    "type": "object",
-                    "properties": {
-                        "languageId": {
-                            "type": "integer"
-                        },
-                        "name": {
-                            "type": "string"
-                        },
-                        "blocks": {
-                            "type": "object",
-                            "properties": {
-                                "mandatory": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "id": {
-                                                "type": "integer"
-                                            },
-                                            "type": {
-                                                "type": "string",
-                                                "enum": [
-                                                    "any",
-                                                    "prefix",
-                                                    "specific"
-                                                ]
-                                            },
-                                            "courseId": {
-                                                "type": "integer",
-                                                "nullable": true
-                                            },
-                                            "courseCode": {
-                                                "type": "string",
-                                                "nullable": true
-                                            },
-                                            "courseName": {
-                                                "type": "string",
-                                                "nullable": true
-                                            },
-                                            "prefix": {
-                                                "type": "string",
-                                                "nullable": true
-                                            },
-                                            "catalogCourseId": {
-                                                "type": "integer",
-                                                "nullable": true
-                                            },
-                                            "_paths": {
-                                                "type": "object",
-                                                "properties": {
-                                                    "catalogCourse": {
-                                                        "type": "string",
-                                                        "nullable": true
-                                                    }
-                                                },
-                                                "required": [
-                                                    "catalogCourse"
-                                                ],
-                                                "additionalProperties": false
-                                            }
-                                        },
-                                        "required": [
-                                            "id",
-                                            "type",
-                                            "courseId",
-                                            "courseCode",
-                                            "courseName",
-                                            "prefix",
-                                            "catalogCourseId",
-                                            "_paths"
-                                        ]
-                                    }
-                                },
-                                "electives": {
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "credits": {
-                                                "type": "integer"
-                                            },
-                                            "courses": {
-                                                "type": "array",
-                                                "items": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "id": {
-                                                            "type": "integer"
-                                                        },
-                                                        "type": {
-                                                            "type": "string",
-                                                            "enum": [
-                                                                "any",
-                                                                "prefix",
-                                                                "specific"
-                                                            ]
-                                                        },
-                                                        "courseId": {
-                                                            "type": "integer",
-                                                            "nullable": true
-                                                        },
-                                                        "courseCode": {
-                                                            "type": "string",
-                                                            "nullable": true
-                                                        },
-                                                        "courseName": {
-                                                            "type": "string",
-                                                            "nullable": true
-                                                        },
-                                                        "prefix": {
-                                                            "type": "string",
-                                                            "nullable": true
-                                                        },
-                                                        "catalogCourseId": {
-                                                            "type": "integer",
-                                                            "nullable": true
-                                                        },
-                                                        "_paths": {
-                                                            "type": "object",
-                                                            "properties": {
-                                                                "catalogCourse": {
-                                                                    "type": "string",
-                                                                    "nullable": true
-                                                                }
-                                                            },
-                                                            "required": [
-                                                                "catalogCourse"
-                                                            ],
-                                                            "additionalProperties": false
-                                                        }
-                                                    },
-                                                    "required": [
-                                                        "id",
-                                                        "type",
-                                                        "courseId",
-                                                        "courseCode",
-                                                        "courseName",
-                                                        "prefix",
-                                                        "catalogCourseId",
-                                                        "_paths"
-                                                    ]
-                                                }
-                                            }
-                                        },
-                                        "required": [
-                                            "credits",
-                                            "courses"
-                                        ]
-                                    }
-                                }
-                            },
-                            "required": [
-                                "mandatory",
-                                "electives"
-                            ]
-                        }
-                    },
-                    "required": [
-                        "languageId",
-                        "name",
-                        "blocks"
-                    ]
+                    "$ref": "#/components/schemas/CatalogProgramLanguage"
                 }
             },
             "_paths": {
@@ -2012,7 +1716,213 @@ export const componentSchemas = {
             "languages",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "CatalogProgram",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ],
+            "relations": {
+                "catalogId": {
+                    "resource": "catalogs",
+                    "cardinality": "one"
+                },
+                "programId": {
+                    "resource": "programs",
+                    "cardinality": "one"
+                },
+                "modalities": {
+                    "resource": "specializations",
+                    "cardinality": "many"
+                },
+                "languages": {
+                    "resource": "languages",
+                    "cardinality": "many"
+                }
+            }
+        }
+    },
+    "CourseBlockSet": {
+        "type": "object",
+        "properties": {
+            "mandatory": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/CourseRequirement"
+                }
+            },
+            "electives": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/ElectiveBlock"
+                }
+            }
+        },
+        "required": [
+            "mandatory",
+            "electives"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "CourseBlockSet"
+        }
+    },
+    "CourseRequirement": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "integer"
+            },
+            "type": {
+                "$ref": "#/components/schemas/CourseRequirementType"
+            },
+            "courseId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "courseCode": {
+                "type": "string",
+                "nullable": true
+            },
+            "courseName": {
+                "type": "string",
+                "nullable": true
+            },
+            "prefix": {
+                "type": "string",
+                "nullable": true
+            },
+            "catalogCourseId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "_paths": {
+                "type": "object",
+                "properties": {
+                    "catalogCourse": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "catalogCourse"
+                ],
+                "additionalProperties": false
+            }
+        },
+        "required": [
+            "id",
+            "type",
+            "courseId",
+            "courseCode",
+            "courseName",
+            "prefix",
+            "catalogCourseId",
+            "_paths"
+        ],
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "CourseRequirement",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
+    },
+    "CourseRequirementType": {
+        "type": "string",
+        "enum": [
+            "any",
+            "prefix",
+            "specific"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "CourseRequirementType"
+        }
+    },
+    "ElectiveBlock": {
+        "type": "object",
+        "properties": {
+            "credits": {
+                "type": "integer"
+            },
+            "courses": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/CourseRequirement"
+                }
+            }
+        },
+        "required": [
+            "credits",
+            "courses"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "ElectiveBlock"
+        }
+    },
+    "CatalogProgramModality": {
+        "type": "object",
+        "properties": {
+            "specializationId": {
+                "type": "integer"
+            },
+            "curriculumSuggestionId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "code": {
+                "type": "string"
+            },
+            "name": {
+                "type": "string"
+            },
+            "blocks": {
+                "$ref": "#/components/schemas/CourseBlockSet"
+            }
+        },
+        "required": [
+            "specializationId",
+            "curriculumSuggestionId",
+            "code",
+            "name",
+            "blocks"
+        ],
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "CatalogProgramModality"
+        }
+    },
+    "CatalogProgramLanguage": {
+        "type": "object",
+        "properties": {
+            "languageId": {
+                "type": "integer"
+            },
+            "name": {
+                "type": "string"
+            },
+            "blocks": {
+                "$ref": "#/components/schemas/CourseBlockSet"
+            }
+        },
+        "required": [
+            "languageId",
+            "name",
+            "blocks"
+        ],
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "CatalogProgramLanguage"
+        }
     },
     "CurriculumSuggestionEntity": {
         "type": "object",
@@ -2055,12 +1965,7 @@ export const componentSchemas = {
                 "minLength": 1
             },
             "type": {
-                "type": "string",
-                "enum": [
-                    "GENERAL",
-                    "SPECIALIZATION",
-                    "PRE_OPTION"
-                ]
+                "$ref": "#/components/schemas/CurriculumSuggestionType"
             },
             "specialization": {
                 "type": "object",
@@ -2132,7 +2037,29 @@ export const componentSchemas = {
             "semesters",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "CurriculumSuggestion",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
+    },
+    "CurriculumSuggestionType": {
+        "type": "string",
+        "enum": [
+            "GENERAL",
+            "SPECIALIZATION",
+            "PRE_OPTION"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "CurriculumSuggestionType"
+        }
     },
     "SemesterSuggestionEntity": {
         "type": "object",
@@ -2158,7 +2085,11 @@ export const componentSchemas = {
             "electiveCredits",
             "courses"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "SemesterSuggestion"
+        }
     },
     "CurriculumSuggestionCourseEntity": {
         "type": "object",
@@ -2187,7 +2118,14 @@ export const componentSchemas = {
             "name",
             "credits"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "CurriculumSuggestionCourse",
+            "identityFields": [
+                "id"
+            ]
+        }
     },
     "Language": {
         "type": "object",
@@ -2218,7 +2156,17 @@ export const componentSchemas = {
             "name",
             "catalogLanguagesCount",
             "_paths"
-        ]
+        ],
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Language",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "Program": {
         "type": "object",
@@ -2281,7 +2229,17 @@ export const componentSchemas = {
             "catalogProgramsCount",
             "studentsCount",
             "_paths"
-        ]
+        ],
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Program",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "Specialization": {
         "type": "object",
@@ -2343,7 +2301,17 @@ export const componentSchemas = {
             "catalogSpecializationsCount",
             "studentsCount",
             "_paths"
-        ]
+        ],
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Specialization",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "ExchangeNotice": {
         "type": "object",
@@ -2413,7 +2381,17 @@ export const componentSchemas = {
             "files",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "ExchangeNotice",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "ExchangePlace": {
         "type": "object",
@@ -2445,7 +2423,17 @@ export const componentSchemas = {
             "name",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "ExchangePlace",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "ExchangeNoticeFile": {
         "type": "object",
@@ -2469,7 +2457,14 @@ export const componentSchemas = {
             "name",
             "url"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "ExchangeNoticeFile",
+            "identityFields": [
+                "id"
+            ]
+        }
     },
     "ExchangePlaceListItem": {
         "type": "object",
@@ -2500,7 +2495,14 @@ export const componentSchemas = {
             "name",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "ExchangePlaceListItem",
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "CalendarEvent": {
         "type": "object",
@@ -2575,7 +2577,17 @@ export const componentSchemas = {
             "tags",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "CalendarEvent",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "CalendarTag": {
         "type": "object",
@@ -2603,7 +2615,17 @@ export const componentSchemas = {
             "name",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "CalendarTag",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "ClassEntity": {
         "type": "object",
@@ -2636,13 +2658,7 @@ export const componentSchemas = {
                 "type": "integer"
             },
             "studyPeriodYearPeriod": {
-                "type": "string",
-                "enum": [
-                    "SUMMER",
-                    "FIRST_SEMESTER",
-                    "WINTER",
-                    "SECOND_SEMESTER"
-                ]
+                "$ref": "#/components/schemas/YearPeriod"
             },
             "courseCode": {
                 "type": "string"
@@ -2723,7 +2739,30 @@ export const componentSchemas = {
             "professors",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Class",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
+    },
+    "YearPeriod": {
+        "type": "string",
+        "enum": [
+            "SUMMER",
+            "FIRST_SEMESTER",
+            "WINTER",
+            "SECOND_SEMESTER"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "YearPeriod"
+        }
     },
     "ClassScheduleEntity": {
         "type": "object",
@@ -2732,16 +2771,7 @@ export const componentSchemas = {
                 "type": "integer"
             },
             "dayOfWeek": {
-                "type": "string",
-                "enum": [
-                    "MONDAY",
-                    "TUESDAY",
-                    "WEDNESDAY",
-                    "THURSDAY",
-                    "FRIDAY",
-                    "SATURDAY",
-                    "SUNDAY"
-                ]
+                "$ref": "#/components/schemas/DayOfWeek"
             },
             "start": {
                 "type": "string"
@@ -2782,13 +2812,7 @@ export const componentSchemas = {
                 "type": "integer"
             },
             "studyPeriodYearPeriod": {
-                "type": "string",
-                "enum": [
-                    "SUMMER",
-                    "FIRST_SEMESTER",
-                    "WINTER",
-                    "SECOND_SEMESTER"
-                ]
+                "$ref": "#/components/schemas/YearPeriod"
             },
             "_paths": {
                 "type": "object",
@@ -2838,7 +2862,56 @@ export const componentSchemas = {
             "studyPeriodYearPeriod",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "ClassSchedule",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ],
+            "relations": {
+                "roomId": {
+                    "resource": "rooms",
+                    "cardinality": "one"
+                },
+                "classId": {
+                    "resource": "classes",
+                    "cardinality": "one"
+                },
+                "unitId": {
+                    "resource": "units",
+                    "cardinality": "one",
+                    "nullable": true
+                },
+                "courseId": {
+                    "resource": "courses",
+                    "cardinality": "one"
+                },
+                "studyPeriodId": {
+                    "resource": "studyPeriods",
+                    "cardinality": "one"
+                }
+            }
+        }
+    },
+    "DayOfWeek": {
+        "type": "string",
+        "enum": [
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+            "FRIDAY",
+            "SATURDAY",
+            "SUNDAY"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "DayOfWeek"
+        }
     },
     "PageClassSchedules": {
         "type": "object",
@@ -2886,7 +2959,14 @@ export const componentSchemas = {
             "quantity",
             "total",
             "_paths"
-        ]
+        ],
+        "x-pomi-schema": {
+            "kind": "page",
+            "publicName": "PageClassSchedules",
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "DailyMenu": {
         "type": "object",
@@ -2935,7 +3015,17 @@ export const componentSchemas = {
             "updatedAt",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "DailyMenu",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "Meal": {
         "type": "object",
@@ -2946,25 +3036,13 @@ export const componentSchemas = {
                 "exclusiveMinimum": true
             },
             "period": {
-                "type": "string",
-                "enum": [
-                    "LUNCH",
-                    "DINNER"
-                ]
+                "$ref": "#/components/schemas/MealPeriod"
             },
             "diet": {
-                "type": "string",
-                "enum": [
-                    "TRADITIONAL",
-                    "VEGAN"
-                ]
+                "$ref": "#/components/schemas/MealDiet"
             },
             "status": {
-                "type": "string",
-                "enum": [
-                    "AVAILABLE",
-                    "NOT_REGISTERED"
-                ]
+                "$ref": "#/components/schemas/MealStatus"
             },
             "mainDish": {
                 "type": "string",
@@ -2999,7 +3077,47 @@ export const componentSchemas = {
             "observations",
             "serviceNotes"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Meal",
+            "identityFields": [
+                "id"
+            ]
+        }
+    },
+    "MealPeriod": {
+        "type": "string",
+        "enum": [
+            "LUNCH",
+            "DINNER"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "MealPeriod"
+        }
+    },
+    "MealDiet": {
+        "type": "string",
+        "enum": [
+            "TRADITIONAL",
+            "VEGAN"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "MealDiet"
+        }
+    },
+    "MealStatus": {
+        "type": "string",
+        "enum": [
+            "AVAILABLE",
+            "NOT_REGISTERED"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "MealStatus"
+        }
     },
     "StudyPeriodEntity": {
         "type": "object",
@@ -3011,13 +3129,7 @@ export const componentSchemas = {
                 "type": "integer"
             },
             "yearPeriod": {
-                "type": "string",
-                "enum": [
-                    "SUMMER",
-                    "FIRST_SEMESTER",
-                    "WINTER",
-                    "SECOND_SEMESTER"
-                ]
+                "$ref": "#/components/schemas/YearPeriod"
             },
             "startDate": {
                 "anyOf": [
@@ -3053,16 +3165,21 @@ export const componentSchemas = {
             "startDate",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "StudyPeriod",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     }
 } as const
 
 export const enumValues = {
-    "CatalogCourseEntity.prerequisites.any[].all[].kind": [
-        "FULL",
-        "PARTIAL",
-        "SPECIAL"
-    ],
     "CourseOfferingPeriod": [
         "ALL_PERIODS",
         "ODD_PERIODS",
@@ -3070,48 +3187,28 @@ export const enumValues = {
         "UNIT_DISCRETION",
         null
     ],
-    "CatalogProgramEntity.base.mandatory[].type": [
+    "CourseOfferingKind": [
+        "FULL",
+        "PARTIAL",
+        "SPECIAL"
+    ],
+    "CourseRequirementType": [
         "any",
         "prefix",
         "specific"
     ],
-    "CatalogProgramEntity.base.electives[].courses[].type": [
-        "any",
-        "prefix",
-        "specific"
-    ],
-    "CatalogProgramEntity.modalities[].blocks.mandatory[].type": [
-        "any",
-        "prefix",
-        "specific"
-    ],
-    "CatalogProgramEntity.modalities[].blocks.electives[].courses[].type": [
-        "any",
-        "prefix",
-        "specific"
-    ],
-    "CatalogProgramEntity.languages[].blocks.mandatory[].type": [
-        "any",
-        "prefix",
-        "specific"
-    ],
-    "CatalogProgramEntity.languages[].blocks.electives[].courses[].type": [
-        "any",
-        "prefix",
-        "specific"
-    ],
-    "CurriculumSuggestionEntity.type": [
+    "CurriculumSuggestionType": [
         "GENERAL",
         "SPECIALIZATION",
         "PRE_OPTION"
     ],
-    "ClassEntity.studyPeriodYearPeriod": [
+    "YearPeriod": [
         "SUMMER",
         "FIRST_SEMESTER",
         "WINTER",
         "SECOND_SEMESTER"
     ],
-    "ClassScheduleEntity.dayOfWeek": [
+    "DayOfWeek": [
         "MONDAY",
         "TUESDAY",
         "WEDNESDAY",
@@ -3120,34 +3217,26 @@ export const enumValues = {
         "SATURDAY",
         "SUNDAY"
     ],
-    "ClassScheduleEntity.studyPeriodYearPeriod": [
-        "SUMMER",
-        "FIRST_SEMESTER",
-        "WINTER",
-        "SECOND_SEMESTER"
-    ],
-    "Meal.period": [
+    "MealPeriod": [
         "LUNCH",
         "DINNER"
     ],
-    "Meal.diet": [
+    "MealDiet": [
         "TRADITIONAL",
         "VEGAN"
     ],
-    "Meal.status": [
+    "MealStatus": [
         "AVAILABLE",
         "NOT_REGISTERED"
-    ],
-    "StudyPeriodEntity.yearPeriod": [
-        "SUMMER",
-        "FIRST_SEMESTER",
-        "WINTER",
-        "SECOND_SEMESTER"
     ]
 } as const
 
 export const queryCapabilities = {
     "getCalendarEvents": {
+        "parameters": [],
+        "filter": null
+    },
+    "getCalendarFeed": {
         "parameters": [],
         "filter": null
     },
@@ -3159,7 +3248,7 @@ export const queryCapabilities = {
         "parameters": [],
         "filter": null
     },
-    "getCatalogProgram": {
+    "getCatalogPrograms": {
         "parameters": [],
         "filter": null
     },
@@ -3182,6 +3271,109 @@ export const queryCapabilities = {
     "getCoordinators": {
         "parameters": [],
         "filter": null
+    },
+    "getCourseProfessorEvaluationSummary": {
+        "parameters": [
+            {
+                "name": "filter",
+                "required": true,
+                "description": "Structured evaluation summary filters. Use filter[courseId]=1&filter[professorId]=2.",
+                "style": "deepObject",
+                "explode": true,
+                "schema": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "courseId": {
+                            "oneOf": [
+                                {
+                                    "minimum": 1,
+                                    "type": "integer"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "minimum": 1,
+                                            "type": "integer"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "minimum": 1,
+                                                "type": "integer"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        },
+                        "professorId": {
+                            "oneOf": [
+                                {
+                                    "minimum": 1,
+                                    "type": "integer"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "minimum": 1,
+                                            "type": "integer"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "minimum": 1,
+                                                "type": "integer"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    },
+                    "type": "object"
+                }
+            }
+        ],
+        "filter": {
+            "version": 1,
+            "fields": [
+                {
+                    "path": [
+                        "courseId"
+                    ],
+                    "schema": {
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "operators": [
+                        "eq",
+                        "in"
+                    ]
+                },
+                {
+                    "path": [
+                        "professorId"
+                    ],
+                    "schema": {
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "operators": [
+                        "eq",
+                        "in"
+                    ]
+                }
+            ],
+            "constraints": {
+                "maxExpressions": 20,
+                "maxDepth": 3,
+                "maxParameters": 100
+            }
+        }
     },
     "getCourses": {
         "parameters": [],
@@ -3243,12 +3435,42 @@ export const queryCapabilities = {
         "parameters": [],
         "filter": null
     },
-    "listCalendar": {
-        "parameters": [],
-        "filter": null
-    },
     "listCalendarEvents": {
         "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -3387,6 +3609,40 @@ export const queryCapabilities = {
     "listCalendarTags": {
         "parameters": [
             {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
+            {
                 "name": "filter",
                 "required": false,
                 "description": "Structured calendar tag filters. Use bracket notation such as filter[name]=feriado.",
@@ -3480,23 +3736,35 @@ export const queryCapabilities = {
             {
                 "name": "page",
                 "required": false,
-                "description": null,
+                "description": "Page number. The first page is 1.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
-                    "minimum": 1
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
                 }
             },
             {
                 "name": "pageSize",
                 "required": false,
-                "description": null,
+                "description": "Number of items per page, or \"all\" to return every item.",
                 "style": null,
                 "explode": null,
                 "schema": {
-                    "type": "integer",
-                    "minimum": 1
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
                 }
             },
             {
@@ -3832,8 +4100,42 @@ export const queryCapabilities = {
             }
         }
     },
-    "listCatalogProgram": {
+    "listCatalogPrograms": {
         "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -3998,6 +4300,40 @@ export const queryCapabilities = {
     "listCatalogs": {
         "parameters": [
             {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
+            {
                 "name": "filter",
                 "required": false,
                 "description": "Structured catalog filters. Use bracket notation such as filter[year]=2025.",
@@ -4061,27 +4397,27 @@ export const queryCapabilities = {
             {
                 "name": "page",
                 "required": false,
-                "description": "The page number to retrieve (default: 1)",
+                "description": "Page number. The first page is 1.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "default": 1,
-                    "description": "The page number to retrieve (default: 1)"
+                    "description": "Page number. The first page is 1."
                 }
             },
             {
                 "name": "pageSize",
                 "required": false,
-                "description": "The number of items per page (default: 20)",
+                "description": "Number of items per page.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "default": 20,
-                    "description": "The number of items per page (default: 20)"
+                    "description": "Number of items per page."
                 }
             },
             {
@@ -4462,27 +4798,27 @@ export const queryCapabilities = {
             {
                 "name": "page",
                 "required": false,
-                "description": "The page number to retrieve (default: 1)",
+                "description": "Page number. The first page is 1.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "default": 1,
-                    "description": "The page number to retrieve (default: 1)"
+                    "description": "Page number. The first page is 1."
                 }
             },
             {
                 "name": "pageSize",
                 "required": false,
-                "description": "The number of items per page (default: 20)",
+                "description": "Number of items per page.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "default": 20,
-                    "description": "The number of items per page (default: 20)"
+                    "description": "Number of items per page."
                 }
             },
             {
@@ -4989,27 +5325,27 @@ export const queryCapabilities = {
             {
                 "name": "page",
                 "required": false,
-                "description": "The page number to retrieve (default: 1)",
+                "description": "Page number. The first page is 1.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "default": 1,
-                    "description": "The page number to retrieve (default: 1)"
+                    "description": "Page number. The first page is 1."
                 }
             },
             {
                 "name": "pageSize",
                 "required": false,
-                "description": "The number of items per page (default: 20)",
+                "description": "Number of items per page.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "default": 20,
-                    "description": "The number of items per page (default: 20)"
+                    "description": "Number of items per page."
                 }
             },
             {
@@ -5072,23 +5408,35 @@ export const queryCapabilities = {
             {
                 "name": "page",
                 "required": false,
-                "description": null,
+                "description": "Page number. The first page is 1.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
-                    "minimum": 1
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
                 }
             },
             {
                 "name": "pageSize",
                 "required": false,
-                "description": null,
+                "description": "Number of items per page, or \"all\" to return every item.",
                 "style": null,
                 "explode": null,
                 "schema": {
-                    "type": "integer",
-                    "minimum": 1
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
                 }
             },
             {
@@ -5146,30 +5494,175 @@ export const queryCapabilities = {
             }
         }
     },
-    "listCourses": {
+    "listCourseEvaluationSummaries": {
         "parameters": [
             {
                 "name": "page",
                 "required": false,
-                "description": "Page number. If omitted together with pageSize, all courses are returned.",
+                "description": "Page number. The first page is 1.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
-                    "description": "Page number. If omitted together with pageSize, all courses are returned."
+                    "default": 1,
+                    "description": "Page number. The first page is 1."
                 }
             },
             {
                 "name": "pageSize",
                 "required": false,
-                "description": "Number of courses per page. If omitted together with page, all courses are returned.",
+                "description": "Number of items per page.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
-                    "description": "Number of courses per page. If omitted together with page, all courses are returned."
+                    "default": 20,
+                    "description": "Number of items per page."
+                }
+            },
+            {
+                "name": "filter",
+                "required": false,
+                "description": "Structured course summary filters. Use filter[courseCode]=MC102.",
+                "style": "deepObject",
+                "explode": true,
+                "schema": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "courseId": {
+                            "oneOf": [
+                                {
+                                    "minimum": 1,
+                                    "type": "integer"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "minimum": 1,
+                                            "type": "integer"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "minimum": 1,
+                                                "type": "integer"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        },
+                        "courseCode": {
+                            "oneOf": [
+                                {
+                                    "minLength": 1,
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "minLength": 1,
+                                            "type": "string"
+                                        },
+                                        "ne": {
+                                            "minLength": 1,
+                                            "type": "string"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "minLength": 1,
+                                                "type": "string"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    },
+                    "type": "object"
+                }
+            }
+        ],
+        "filter": {
+            "version": 1,
+            "fields": [
+                {
+                    "path": [
+                        "courseId"
+                    ],
+                    "schema": {
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "operators": [
+                        "eq",
+                        "in"
+                    ]
+                },
+                {
+                    "path": [
+                        "courseCode"
+                    ],
+                    "schema": {
+                        "minLength": 1,
+                        "type": "string"
+                    },
+                    "operators": [
+                        "eq",
+                        "ne",
+                        "in"
+                    ]
+                }
+            ],
+            "constraints": {
+                "maxExpressions": 20,
+                "maxDepth": 3,
+                "maxParameters": 100
+            }
+        }
+    },
+    "listCourses": {
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 1000
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
                 }
             },
             {
@@ -5459,142 +5952,42 @@ export const queryCapabilities = {
             }
         }
     },
-    "listCoursesEvaluationSummaries": {
+    "listCurriculumSuggestions": {
         "parameters": [
             {
                 "name": "page",
                 "required": false,
-                "description": "The page number to retrieve (default: 1)",
+                "description": "Page number. The first page is 1.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
-                    "default": 1,
-                    "description": "The page number to retrieve (default: 1)"
+                    "description": "Page number. The first page is 1."
                 }
             },
             {
                 "name": "pageSize",
                 "required": false,
-                "description": "The number of items per page (default: 20)",
+                "description": "Number of items per page, or \"all\" to return every item.",
                 "style": null,
                 "explode": null,
                 "schema": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "default": 20,
-                    "description": "The number of items per page (default: 20)"
-                }
-            },
-            {
-                "name": "filter",
-                "required": false,
-                "description": "Structured course summary filters. Use filter[courseCode]=MC102.",
-                "style": "deepObject",
-                "explode": true,
-                "schema": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "courseId": {
-                            "oneOf": [
-                                {
-                                    "minimum": 1,
-                                    "type": "integer"
-                                },
-                                {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "eq": {
-                                            "minimum": 1,
-                                            "type": "integer"
-                                        },
-                                        "in": {
-                                            "items": {
-                                                "minimum": 1,
-                                                "type": "integer"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
                         },
-                        "courseCode": {
-                            "oneOf": [
-                                {
-                                    "minLength": 1,
-                                    "type": "string"
-                                },
-                                {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "eq": {
-                                            "minLength": 1,
-                                            "type": "string"
-                                        },
-                                        "ne": {
-                                            "minLength": 1,
-                                            "type": "string"
-                                        },
-                                        "in": {
-                                            "items": {
-                                                "minLength": 1,
-                                                "type": "string"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
                             ]
                         }
-                    },
-                    "type": "object"
-                }
-            }
-        ],
-        "filter": {
-            "version": 1,
-            "fields": [
-                {
-                    "path": [
-                        "courseId"
                     ],
-                    "schema": {
-                        "minimum": 1,
-                        "type": "integer"
-                    },
-                    "operators": [
-                        "eq",
-                        "in"
-                    ]
-                },
-                {
-                    "path": [
-                        "courseCode"
-                    ],
-                    "schema": {
-                        "minLength": 1,
-                        "type": "string"
-                    },
-                    "operators": [
-                        "eq",
-                        "ne",
-                        "in"
-                    ]
+                    "description": "Number of items per page, or \"all\" to return every item."
                 }
-            ],
-            "constraints": {
-                "maxExpressions": 20,
-                "maxDepth": 3,
-                "maxParameters": 100
-            }
-        }
-    },
-    "listCurriculumSuggestions": {
-        "parameters": [
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -5948,6 +6341,40 @@ export const queryCapabilities = {
     "listDailyMenus": {
         "parameters": [
             {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
+            {
                 "name": "filter",
                 "required": false,
                 "description": "Structured daily menu filters. Use bracket notation such as filter[date][gte]=2026-08-20.",
@@ -6014,6 +6441,40 @@ export const queryCapabilities = {
     },
     "listDepartments": {
         "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -6107,111 +6568,42 @@ export const queryCapabilities = {
             }
         }
     },
-    "listEvaluationSummaries": {
-        "parameters": [
-            {
-                "name": "filter",
-                "required": true,
-                "description": "Structured evaluation summary filters. Use filter[courseId]=1&filter[professorId]=2.",
-                "style": "deepObject",
-                "explode": true,
-                "schema": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "courseId": {
-                            "oneOf": [
-                                {
-                                    "minimum": 1,
-                                    "type": "integer"
-                                },
-                                {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "eq": {
-                                            "minimum": 1,
-                                            "type": "integer"
-                                        },
-                                        "in": {
-                                            "items": {
-                                                "minimum": 1,
-                                                "type": "integer"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
-                        },
-                        "professorId": {
-                            "oneOf": [
-                                {
-                                    "minimum": 1,
-                                    "type": "integer"
-                                },
-                                {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "eq": {
-                                            "minimum": 1,
-                                            "type": "integer"
-                                        },
-                                        "in": {
-                                            "items": {
-                                                "minimum": 1,
-                                                "type": "integer"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
-                        }
-                    },
-                    "type": "object"
-                }
-            }
-        ],
-        "filter": {
-            "version": 1,
-            "fields": [
-                {
-                    "path": [
-                        "courseId"
-                    ],
-                    "schema": {
-                        "minimum": 1,
-                        "type": "integer"
-                    },
-                    "operators": [
-                        "eq",
-                        "in"
-                    ]
-                },
-                {
-                    "path": [
-                        "professorId"
-                    ],
-                    "schema": {
-                        "minimum": 1,
-                        "type": "integer"
-                    },
-                    "operators": [
-                        "eq",
-                        "in"
-                    ]
-                }
-            ],
-            "constraints": {
-                "maxExpressions": 20,
-                "maxDepth": 3,
-                "maxParameters": 100
-            }
-        }
-    },
     "listExchangeNotices": {
         "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -6378,6 +6770,40 @@ export const queryCapabilities = {
     "listExchangePlaces": {
         "parameters": [
             {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
+            {
                 "name": "filter",
                 "required": false,
                 "description": "Structured exchange place filters. Use bracket notation such as filter[name]=França.",
@@ -6475,27 +6901,27 @@ export const queryCapabilities = {
             {
                 "name": "page",
                 "required": false,
-                "description": "The page number to retrieve (default: 1)",
+                "description": "Page number. The first page is 1.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "default": 1,
-                    "description": "The page number to retrieve (default: 1)"
+                    "description": "Page number. The first page is 1."
                 }
             },
             {
                 "name": "pageSize",
                 "required": false,
-                "description": "The number of items per page (default: 20)",
+                "description": "Number of items per page.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "default": 20,
-                    "description": "The number of items per page (default: 20)"
+                    "description": "Number of items per page."
                 }
             },
             {
@@ -6555,6 +6981,40 @@ export const queryCapabilities = {
     },
     "listLanguages": {
         "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -6649,27 +7109,27 @@ export const queryCapabilities = {
             {
                 "name": "page",
                 "required": false,
-                "description": "The page number to retrieve (default: 1)",
+                "description": "Page number. The first page is 1.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "default": 1,
-                    "description": "The page number to retrieve (default: 1)"
+                    "description": "Page number. The first page is 1."
                 }
             },
             {
                 "name": "pageSize",
                 "required": false,
-                "description": "The number of items per page (default: 20)",
+                "description": "Number of items per page.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "default": 20,
-                    "description": "The number of items per page (default: 20)"
+                    "description": "Number of items per page."
                 }
             },
             {
@@ -6917,8 +7377,133 @@ export const queryCapabilities = {
             }
         }
     },
+    "listProfessorEvaluationSummaries": {
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 20,
+                    "description": "Number of items per page."
+                }
+            },
+            {
+                "name": "filter",
+                "required": false,
+                "description": "Structured professor summary filters. Use filter[professorId]=1.",
+                "style": "deepObject",
+                "explode": true,
+                "schema": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "professorId": {
+                            "oneOf": [
+                                {
+                                    "minimum": 1,
+                                    "type": "integer"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "minimum": 1,
+                                            "type": "integer"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "minimum": 1,
+                                                "type": "integer"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    },
+                    "type": "object"
+                }
+            }
+        ],
+        "filter": {
+            "version": 1,
+            "fields": [
+                {
+                    "path": [
+                        "professorId"
+                    ],
+                    "schema": {
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "operators": [
+                        "eq",
+                        "in"
+                    ]
+                }
+            ],
+            "constraints": {
+                "maxExpressions": 20,
+                "maxDepth": 3,
+                "maxParameters": 100
+            }
+        }
+    },
     "listProfessorPositions": {
         "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -7071,27 +7656,27 @@ export const queryCapabilities = {
             {
                 "name": "page",
                 "required": false,
-                "description": "The page number to retrieve (default: 1)",
+                "description": "Page number. The first page is 1.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "default": 1,
-                    "description": "The page number to retrieve (default: 1)"
+                    "description": "Page number. The first page is 1."
                 }
             },
             {
                 "name": "pageSize",
                 "required": false,
-                "description": "The number of items per page (default: 20)",
+                "description": "Number of items per page.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "default": 20,
-                    "description": "The number of items per page (default: 20)"
+                    "description": "Number of items per page."
                 }
             },
             {
@@ -7153,99 +7738,42 @@ export const queryCapabilities = {
             }
         }
     },
-    "listProfessorsEvaluationSummaries": {
+    "listPrograms": {
         "parameters": [
             {
                 "name": "page",
                 "required": false,
-                "description": "The page number to retrieve (default: 1)",
+                "description": "Page number. The first page is 1.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
-                    "default": 1,
-                    "description": "The page number to retrieve (default: 1)"
+                    "description": "Page number. The first page is 1."
                 }
             },
             {
                 "name": "pageSize",
                 "required": false,
-                "description": "The number of items per page (default: 20)",
+                "description": "Number of items per page, or \"all\" to return every item.",
                 "style": null,
                 "explode": null,
                 "schema": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "default": 20,
-                    "description": "The number of items per page (default: 20)"
-                }
-            },
-            {
-                "name": "filter",
-                "required": false,
-                "description": "Structured professor summary filters. Use filter[professorId]=1.",
-                "style": "deepObject",
-                "explode": true,
-                "schema": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "professorId": {
-                            "oneOf": [
-                                {
-                                    "minimum": 1,
-                                    "type": "integer"
-                                },
-                                {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "eq": {
-                                            "minimum": 1,
-                                            "type": "integer"
-                                        },
-                                        "in": {
-                                            "items": {
-                                                "minimum": 1,
-                                                "type": "integer"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
                             ]
                         }
-                    },
-                    "type": "object"
-                }
-            }
-        ],
-        "filter": {
-            "version": 1,
-            "fields": [
-                {
-                    "path": [
-                        "professorId"
                     ],
-                    "schema": {
-                        "minimum": 1,
-                        "type": "integer"
-                    },
-                    "operators": [
-                        "eq",
-                        "in"
-                    ]
+                    "description": "Number of items per page, or \"all\" to return every item."
                 }
-            ],
-            "constraints": {
-                "maxExpressions": 20,
-                "maxDepth": 3,
-                "maxParameters": 100
-            }
-        }
-    },
-    "listPrograms": {
-        "parameters": [
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -7307,6 +7835,40 @@ export const queryCapabilities = {
     },
     "listRooms": {
         "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -7411,6 +7973,40 @@ export const queryCapabilities = {
     },
     "listSpecializations": {
         "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -7557,6 +8153,40 @@ export const queryCapabilities = {
     },
     "listStudyPeriods": {
         "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -7710,6 +8340,40 @@ export const queryCapabilities = {
     },
     "listUnits": {
         "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
             {
                 "name": "filter",
                 "required": false,

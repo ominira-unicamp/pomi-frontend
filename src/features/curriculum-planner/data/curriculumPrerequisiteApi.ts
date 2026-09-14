@@ -79,7 +79,7 @@ function ruleFromApi(
 }
 
 async function loadForYear(year: number): Promise<CurrentYearPrerequisites> {
-  const catalogs = await pomiSdk.data.catalogs.list({ filter: { year } })
+  const catalogs = await pomiSdk.data.catalogs.listAll({ filter: { year } })
   const catalog = catalogs.find((item) => item.year === year)
   if (!catalog) throw new CurrentCatalogUnavailableError(year)
   const courses = await pomiSdk.data.catalogCourses.listAll({

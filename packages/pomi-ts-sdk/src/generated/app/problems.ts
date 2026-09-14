@@ -102,16 +102,23 @@ export const problemCatalog = {
 } as const
 
 export const operationProblemTypes = {
-    "createCategories": [
+    "acceptStudentFriendship": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:resource-not-found",
+        "urn:pomi:problem:unique-constraint-conflict",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "addCourseTag": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:reference-not-found",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "createCategory": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:unique-constraint-conflict",
         "urn:pomi:problem:internal-server-error"
     ],
-    "createExchangeNoticeSubscriptionsUnsubscribe": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "createFeedbackReports": [
+    "createFeedbackReport": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:reference-not-found",
@@ -133,41 +140,29 @@ export const operationProblemTypes = {
         "urn:pomi:problem:invalid-student-course-attempt",
         "urn:pomi:problem:internal-server-error"
     ],
-    "createStudentCourseHistory": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:resource-not-found",
-        "urn:pomi:problem:invalid-student-history-import",
-        "urn:pomi:problem:internal-server-error"
-    ],
     "createStudentCurricula": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:reference-not-found",
         "urn:pomi:problem:invalid-curriculum",
         "urn:pomi:problem:internal-server-error"
     ],
-    "createStudentFeedbackReports": [
+    "createStudentFeedbackReport": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:reference-not-found",
         "urn:pomi:problem:invalid-feedback-report",
         "urn:pomi:problem:internal-server-error"
     ],
-    "createStudentFriendships": [
+    "createStudentFriendship": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:unique-constraint-conflict",
         "urn:pomi:problem:internal-server-error"
     ],
-    "createStudentFriendshipsAccept": [
+    "createStudentHistory": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
-        "urn:pomi:problem:unique-constraint-conflict",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "createStudentPeriodPlan": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:reference-not-found",
-        "urn:pomi:problem:invalid-period-plan",
+        "urn:pomi:problem:invalid-student-history-import",
         "urn:pomi:problem:internal-server-error"
     ],
     "createStudentPeriodPlannings": [
@@ -183,21 +178,16 @@ export const operationProblemTypes = {
         "urn:pomi:problem:invalid-student-profile",
         "urn:pomi:problem:internal-server-error"
     ],
-    "createTags": [
+    "createTag": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:unique-constraint-conflict",
         "urn:pomi:problem:reference-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
-    "deleteCategories": [
+    "deleteCategory": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:unique-constraint-conflict",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "deleteCoursesTags": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:reference-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
     "deleteStudentAbsences": [
@@ -215,12 +205,7 @@ export const operationProblemTypes = {
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
-    "deleteStudentFriendships": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:resource-not-found",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "deleteStudentPeriodPlan": [
+    "deleteStudentFriendship": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
@@ -236,22 +221,36 @@ export const operationProblemTypes = {
         "urn:pomi:problem:invalid-student-profile",
         "urn:pomi:problem:internal-server-error"
     ],
-    "deleteStudentTagInterests": [
+    "deleteStudentTagInterest": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
-    "deleteTags": [
+    "deleteTag": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:unique-constraint-conflict",
         "urn:pomi:problem:internal-server-error"
     ],
-    "getCategories": [
+    "getCategory": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
-    "getSharedPeriodPlannings": [
+    "getCurrentUser": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "getExchangeNoticeSubscription": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "getProfessorEvaluation": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:reference-not-found",
+        "urn:pomi:problem:invalid-professor-evaluation",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "getPublicSharedPeriodPlanning": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
@@ -266,17 +265,17 @@ export const operationProblemTypes = {
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
-    "getStudentPeople": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:resource-not-found",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "getStudentPeriodPlan": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:resource-not-found",
-        "urn:pomi:problem:internal-server-error"
-    ],
     "getStudentPeriodPlannings": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:resource-not-found",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "getStudentPerson": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:resource-not-found",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "getStudentPublicProfile": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
@@ -286,14 +285,18 @@ export const operationProblemTypes = {
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
-    "getStudentSharedPeriodPlannings": [
+    "getStudentSharedPeriodPlanning": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
-    "getTags": [
+    "getTag": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "listBotGrants": [
+        "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
     "listBots": [
@@ -304,20 +307,16 @@ export const operationProblemTypes = {
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
-    "listCoursesTags": [
+    "listCourseTags": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
-    "listMe": [
+    "listPendingProfessorEvaluations": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
-    "listMeBotGrants": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "listSharedPeriodPlannings": [
+    "listPublicSharedPeriodPlannings": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
@@ -325,21 +324,11 @@ export const operationProblemTypes = {
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
-    "listStudentClassesProfessorsEvaluation": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:reference-not-found",
-        "urn:pomi:problem:invalid-professor-evaluation",
-        "urn:pomi:problem:internal-server-error"
-    ],
     "listStudentCourseAttempts": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
     "listStudentCurricula": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "listStudentExchangeNoticeSubscription": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
@@ -355,21 +344,8 @@ export const operationProblemTypes = {
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
-    "listStudentPeriodPlan": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:internal-server-error"
-    ],
     "listStudentPeriodPlannings": [
         "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "listStudentProfessorEvaluationsPending": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "listStudentPublicProfile": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
     "listStudentSharedPeriodPlannings": [
@@ -380,32 +356,41 @@ export const operationProblemTypes = {
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
-    "listTags": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "listTagsCourses": [
+    "listTagCourses": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
-    "updateCategories": [
+    "listTags": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "removeCourseTag": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:reference-not-found",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "replaceBotGrant": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:resource-not-found",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "unsubscribeExchangeNotices": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "updateCategory": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:unique-constraint-conflict",
         "urn:pomi:problem:internal-server-error"
     ],
-    "updateCoursesTags": [
+    "updateExchangeNoticeSubscription": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:reference-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
-    "updateMeBotGrants": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:resource-not-found",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "updateStudentClassesProfessorsEvaluation": [
+    "updateProfessorEvaluation": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:reference-not-found",
         "urn:pomi:problem:invalid-professor-evaluation",
@@ -424,18 +409,6 @@ export const operationProblemTypes = {
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:reference-not-found",
         "urn:pomi:problem:invalid-curriculum",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "updateStudentExchangeNoticeSubscription": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:reference-not-found",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "updateStudentPeriodPlan": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:resource-not-found",
-        "urn:pomi:problem:reference-not-found",
-        "urn:pomi:problem:invalid-period-plan",
         "urn:pomi:problem:internal-server-error"
     ],
     "updateStudentPeriodPlannings": [
@@ -457,12 +430,12 @@ export const operationProblemTypes = {
         "urn:pomi:problem:invalid-student-profile",
         "urn:pomi:problem:internal-server-error"
     ],
-    "updateStudentTagInterests": [
+    "updateStudentTagInterest": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:reference-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
-    "updateTags": [
+    "updateTag": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:unique-constraint-conflict",

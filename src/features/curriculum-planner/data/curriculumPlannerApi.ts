@@ -213,7 +213,7 @@ async function loadStaticData(): Promise<
 > {
   try {
     const [rawPrograms, coursesPage] = await Promise.all([
-      pomiSdk.data.catalogProgram.list({}),
+      pomiSdk.data.catalogPrograms.listAll({}),
       pomiSdk.data.courses.listAll({}),
     ])
     const programs = expectArray(rawPrograms).map(parseCatalogProgram)

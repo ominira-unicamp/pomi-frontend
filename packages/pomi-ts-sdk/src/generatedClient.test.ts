@@ -104,7 +104,7 @@ test('returns undefined for documented 204 responses', async () => {
     async () => new Response(null, { status: 204 }),
     async () => 'token',
   )
-  const result = await sdk.app.updateMeBotGrants({
+  const result = await sdk.app.replaceBotGrant({
     botAuthUserId: 8,
     body: { capabilities: ['STUDENT_PROFILE_READ'] },
   })
@@ -207,8 +207,7 @@ test('exposes expressive course operations and follows generated pagination meta
   })
 
   assert.deepEqual(courses, [{ id: 1 }, { id: 2 }])
-  assert.match(requests[0] ?? '', /page=1/)
-  assert.match(requests[0] ?? '', /pageSize=20/)
+  assert.match(requests[0] ?? '', /pageSize=all/)
   assert.equal(requests[1], 'https://data.example.test/courses?page=2')
   assert.equal(sdk.data.courses.list.meta.sdk?.resource, 'courses')
 })
@@ -265,7 +264,7 @@ test('supports generated pagination for resources with path parameters', async (
     )
   })
 
-  const courses = await sdk.app.tagsCourses.listAll(4, {
+  const courses = await sdk.app.courseTags.listCoursesForTagAll(4, {
     page: 1,
     pageSize: 100,
   })

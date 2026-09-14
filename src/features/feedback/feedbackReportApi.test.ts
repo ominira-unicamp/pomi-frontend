@@ -76,7 +76,14 @@ describe('feedbackReportApi', () => {
         updatedAt: '2026-09-01T12:00:00.000Z',
       },
     ] as const
-    const fetchMock = vi.fn().mockResolvedValue(Response.json(reports))
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json({
+        data: reports,
+        quantity: reports.length,
+        total: reports.length,
+        _paths: { next: null },
+      }),
+    )
     vi.stubGlobal('fetch', fetchMock)
     const getAccessToken = vi.fn().mockResolvedValue('access-token')
 

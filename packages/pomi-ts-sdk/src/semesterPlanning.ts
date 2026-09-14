@@ -10,7 +10,7 @@ import type {
   StudyPeriod as GeneratedStudyPeriod,
 } from './generated/data/domain.js'
 import type { PeriodPlanning as GeneratedPlanning } from './generated/app/domain.js'
-import type { PeriodPlanningEntityVisibility } from './generated/app/enums.js'
+import type { PlanningVisibility } from './generated/app/enums.js'
 import type { PomiSdkClient } from './generatedClient.js'
 
 export type SemesterApiStudyPeriod = GeneratedStudyPeriod
@@ -19,7 +19,7 @@ export type SemesterApiClass = GeneratedClass
 export type SemesterApiMeeting = GeneratedClassSchedule
 export type ProfessorEvaluationSummary = GeneratedProfessorEvaluationSummary
 
-export type SemesterPlanningVisibility = PeriodPlanningEntityVisibility
+export type SemesterPlanningVisibility = PlanningVisibility
 
 export type SemesterPlanningGuideInput = Readonly<{
   mode: 'curriculum' | 'program' | 'none'
@@ -98,7 +98,7 @@ function guideToApi(guide: SemesterPlanningGuideInput) {
 
 export function createSemesterPlanningApi(client: PomiSdkClient) {
   function listStudyPeriods() {
-    return client.data.studyPeriods.list({})
+    return client.data.studyPeriods.listAll({})
   }
 
   function listCourses() {
@@ -122,7 +122,7 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
   }
 
   function listProfessorEvaluationSummaries() {
-    return client.data.professorsEvaluationSummaries.listAll({
+    return client.data.evaluationSummaries.listByProfessorAll({
       page: 1,
       pageSize: 100,
     })
@@ -132,7 +132,7 @@ export function createSemesterPlanningApi(client: PomiSdkClient) {
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.periodPlannings.list(
+    return client.app.periodPlannings.listAll(
       studentId,
       {},
       {

@@ -1,5 +1,5 @@
 import type {
-  BlockSet,
+  CourseBlockSet as BlockSet,
   CatalogProgram,
   CatalogProgramLanguage,
   CatalogProgramModality,
@@ -52,7 +52,7 @@ export type CurriculumApiCoursesPage = Readonly<{
 
 export function createCurriculumPlannerApi(client: PomiSdkClient) {
   function listCatalogPrograms() {
-    return client.data.catalogProgram.list({})
+    return client.data.catalogPrograms.listAll({})
   }
 
   async function listCourses(): Promise<CurriculumApiCoursesPage> {

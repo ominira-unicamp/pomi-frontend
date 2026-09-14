@@ -30,6 +30,10 @@ export const operationProblemTypes = {
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
+    "getCalendarFeed": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:internal-server-error"
+    ],
     "getCalendarTags": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
@@ -40,7 +44,7 @@ export const operationProblemTypes = {
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
-    "getCatalogProgram": [
+    "getCatalogPrograms": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
@@ -66,6 +70,11 @@ export const operationProblemTypes = {
         "urn:pomi:problem:internal-server-error"
     ],
     "getCoordinators": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:resource-not-found",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "getCourseProfessorEvaluationSummary": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
@@ -145,10 +154,6 @@ export const operationProblemTypes = {
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
-    "listCalendar": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:internal-server-error"
-    ],
     "listCalendarEvents": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
@@ -161,7 +166,7 @@ export const operationProblemTypes = {
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
-    "listCatalogProgram": [
+    "listCatalogPrograms": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
@@ -185,11 +190,11 @@ export const operationProblemTypes = {
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
-    "listCourses": [
+    "listCourseEvaluationSummaries": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
-    "listCoursesEvaluationSummaries": [
+    "listCourses": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
@@ -203,11 +208,6 @@ export const operationProblemTypes = {
     ],
     "listDepartments": [
         "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "listEvaluationSummaries": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
     "listExchangeNotices": [
@@ -230,15 +230,15 @@ export const operationProblemTypes = {
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
+    "listProfessorEvaluationSummaries": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:internal-server-error"
+    ],
     "listProfessorPositions": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
     "listProfessors": [
-        "urn:pomi:problem:invalid-request",
-        "urn:pomi:problem:internal-server-error"
-    ],
-    "listProfessorsEvaluationSummaries": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],

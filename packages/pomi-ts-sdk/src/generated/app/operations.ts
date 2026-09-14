@@ -16,54 +16,48 @@ type HeaderInput<Header> = [NonNullable<Header>] extends [never]
 type OperationInput<Path, Query, Header, Body, BodyRequired extends boolean> =
     ParameterRecord<Path> & ParameterRecord<Query> & HeaderInput<Header> & BodyInput<Body, BodyRequired>
 
-export type createCategoriesInput = OperationInput<operations["createCategories"]['parameters']['path'], operations["createCategories"]['parameters']['query'], operations["createCategories"]['parameters']['header'], RequestBodyOf<operations["createCategories"]>, true>
-export type createCategoriesOutput = import('./domain.js').Category
-export type createCategoriesProblem = operations["createCategories"]['responses'][400]['content']["application/problem+json"] | operations["createCategories"]['responses'][409]['content']["application/problem+json"] | operations["createCategories"]['responses'][500]['content']["application/problem+json"]
-export type createExchangeNoticeSubscriptionsUnsubscribeInput = OperationInput<operations["createExchangeNoticeSubscriptionsUnsubscribe"]['parameters']['path'], operations["createExchangeNoticeSubscriptionsUnsubscribe"]['parameters']['query'], operations["createExchangeNoticeSubscriptionsUnsubscribe"]['parameters']['header'], RequestBodyOf<operations["createExchangeNoticeSubscriptionsUnsubscribe"]>, false>
-export type createExchangeNoticeSubscriptionsUnsubscribeOutput = operations["createExchangeNoticeSubscriptionsUnsubscribe"]['responses'][200]['content']["application/json"]
-export type createExchangeNoticeSubscriptionsUnsubscribeProblem = operations["createExchangeNoticeSubscriptionsUnsubscribe"]['responses'][400]['content']["application/problem+json"] | operations["createExchangeNoticeSubscriptionsUnsubscribe"]['responses'][500]['content']["application/problem+json"]
-export type createFeedbackReportsInput = OperationInput<operations["createFeedbackReports"]['parameters']['path'], operations["createFeedbackReports"]['parameters']['query'], operations["createFeedbackReports"]['parameters']['header'], RequestBodyOf<operations["createFeedbackReports"]>, true>
-export type createFeedbackReportsOutput = import('./domain.js').FeedbackReportAccepted
-export type createFeedbackReportsProblem = operations["createFeedbackReports"]['responses'][400]['content']["application/problem+json"] | operations["createFeedbackReports"]['responses'][404]['content']["application/problem+json"] | operations["createFeedbackReports"]['responses'][422]['content']["application/problem+json"] | operations["createFeedbackReports"]['responses'][429]['content']["application/problem+json"] | operations["createFeedbackReports"]['responses'][500]['content']["application/problem+json"]
+export type acceptStudentFriendshipInput = OperationInput<operations["acceptStudentFriendship"]['parameters']['path'], operations["acceptStudentFriendship"]['parameters']['query'], operations["acceptStudentFriendship"]['parameters']['header'], RequestBodyOf<operations["acceptStudentFriendship"]>, false>
+export type acceptStudentFriendshipOutput = import('./domain.js').StudentFriendship
+export type acceptStudentFriendshipProblem = operations["acceptStudentFriendship"]['responses'][400]['content']["application/problem+json"] | operations["acceptStudentFriendship"]['responses'][404]['content']["application/problem+json"] | operations["acceptStudentFriendship"]['responses'][409]['content']["application/problem+json"] | operations["acceptStudentFriendship"]['responses'][500]['content']["application/problem+json"]
+export type addCourseTagInput = OperationInput<operations["addCourseTag"]['parameters']['path'], operations["addCourseTag"]['parameters']['query'], operations["addCourseTag"]['parameters']['header'], RequestBodyOf<operations["addCourseTag"]>, false>
+export type addCourseTagOutput = void
+export type addCourseTagProblem = operations["addCourseTag"]['responses'][400]['content']["application/problem+json"] | operations["addCourseTag"]['responses'][422]['content']["application/problem+json"] | operations["addCourseTag"]['responses'][500]['content']["application/problem+json"]
+export type createCategoryInput = OperationInput<operations["createCategory"]['parameters']['path'], operations["createCategory"]['parameters']['query'], operations["createCategory"]['parameters']['header'], RequestBodyOf<operations["createCategory"]>, true>
+export type createCategoryOutput = import('./domain.js').Category
+export type createCategoryProblem = operations["createCategory"]['responses'][400]['content']["application/problem+json"] | operations["createCategory"]['responses'][409]['content']["application/problem+json"] | operations["createCategory"]['responses'][500]['content']["application/problem+json"]
+export type createFeedbackReportInput = OperationInput<operations["createFeedbackReport"]['parameters']['path'], operations["createFeedbackReport"]['parameters']['query'], operations["createFeedbackReport"]['parameters']['header'], RequestBodyOf<operations["createFeedbackReport"]>, true>
+export type createFeedbackReportOutput = import('./domain.js').FeedbackReportAccepted
+export type createFeedbackReportProblem = operations["createFeedbackReport"]['responses'][400]['content']["application/problem+json"] | operations["createFeedbackReport"]['responses'][404]['content']["application/problem+json"] | operations["createFeedbackReport"]['responses'][422]['content']["application/problem+json"] | operations["createFeedbackReport"]['responses'][429]['content']["application/problem+json"] | operations["createFeedbackReport"]['responses'][500]['content']["application/problem+json"]
 export type createStudentAbsencesInput = OperationInput<operations["createStudentAbsences"]['parameters']['path'], operations["createStudentAbsences"]['parameters']['query'], operations["createStudentAbsences"]['parameters']['header'], RequestBodyOf<operations["createStudentAbsences"]>, true>
 export type createStudentAbsencesOutput = import('./domain.js').StudentAbsence
 export type createStudentAbsencesProblem = operations["createStudentAbsences"]['responses'][400]['content']["application/problem+json"] | operations["createStudentAbsences"]['responses'][409]['content']["application/problem+json"] | operations["createStudentAbsences"]['responses'][422]['content']["application/problem+json"] | operations["createStudentAbsences"]['responses'][500]['content']["application/problem+json"]
 export type createStudentCourseAttemptsInput = OperationInput<operations["createStudentCourseAttempts"]['parameters']['path'], operations["createStudentCourseAttempts"]['parameters']['query'], operations["createStudentCourseAttempts"]['parameters']['header'], RequestBodyOf<operations["createStudentCourseAttempts"]>, true>
 export type createStudentCourseAttemptsOutput = import('./domain.js').StudentCourseAttempt
 export type createStudentCourseAttemptsProblem = operations["createStudentCourseAttempts"]['responses'][400]['content']["application/problem+json"] | operations["createStudentCourseAttempts"]['responses'][409]['content']["application/problem+json"] | operations["createStudentCourseAttempts"]['responses'][422]['content']["application/problem+json"] | operations["createStudentCourseAttempts"]['responses'][500]['content']["application/problem+json"]
-export type createStudentCourseHistoryInput = OperationInput<operations["createStudentCourseHistory"]['parameters']['path'], operations["createStudentCourseHistory"]['parameters']['query'], operations["createStudentCourseHistory"]['parameters']['header'], RequestBodyOf<operations["createStudentCourseHistory"]>, true>
-export type createStudentCourseHistoryOutput = import('./domain.js').StudentHistoryImportSummary
-export type createStudentCourseHistoryProblem = operations["createStudentCourseHistory"]['responses'][400]['content']["application/problem+json"] | operations["createStudentCourseHistory"]['responses'][404]['content']["application/problem+json"] | operations["createStudentCourseHistory"]['responses'][422]['content']["application/problem+json"] | operations["createStudentCourseHistory"]['responses'][500]['content']["application/problem+json"]
 export type createStudentCurriculaInput = OperationInput<operations["createStudentCurricula"]['parameters']['path'], operations["createStudentCurricula"]['parameters']['query'], operations["createStudentCurricula"]['parameters']['header'], RequestBodyOf<operations["createStudentCurricula"]>, true>
 export type createStudentCurriculaOutput = import('./domain.js').Curriculum
 export type createStudentCurriculaProblem = operations["createStudentCurricula"]['responses'][400]['content']["application/problem+json"] | operations["createStudentCurricula"]['responses'][422]['content']["application/problem+json"] | operations["createStudentCurricula"]['responses'][500]['content']["application/problem+json"]
-export type createStudentFeedbackReportsInput = OperationInput<operations["createStudentFeedbackReports"]['parameters']['path'], operations["createStudentFeedbackReports"]['parameters']['query'], operations["createStudentFeedbackReports"]['parameters']['header'], RequestBodyOf<operations["createStudentFeedbackReports"]>, true>
-export type createStudentFeedbackReportsOutput = import('./domain.js').FeedbackReportAccepted
-export type createStudentFeedbackReportsProblem = operations["createStudentFeedbackReports"]['responses'][400]['content']["application/problem+json"] | operations["createStudentFeedbackReports"]['responses'][404]['content']["application/problem+json"] | operations["createStudentFeedbackReports"]['responses'][422]['content']["application/problem+json"] | operations["createStudentFeedbackReports"]['responses'][500]['content']["application/problem+json"]
-export type createStudentFriendshipsInput = OperationInput<operations["createStudentFriendships"]['parameters']['path'], operations["createStudentFriendships"]['parameters']['query'], operations["createStudentFriendships"]['parameters']['header'], RequestBodyOf<operations["createStudentFriendships"]>, true>
-export type createStudentFriendshipsOutput = import('./domain.js').StudentFriendship
-export type createStudentFriendshipsProblem = operations["createStudentFriendships"]['responses'][400]['content']["application/problem+json"] | operations["createStudentFriendships"]['responses'][404]['content']["application/problem+json"] | operations["createStudentFriendships"]['responses'][409]['content']["application/problem+json"] | operations["createStudentFriendships"]['responses'][500]['content']["application/problem+json"]
-export type createStudentFriendshipsAcceptInput = OperationInput<operations["createStudentFriendshipsAccept"]['parameters']['path'], operations["createStudentFriendshipsAccept"]['parameters']['query'], operations["createStudentFriendshipsAccept"]['parameters']['header'], RequestBodyOf<operations["createStudentFriendshipsAccept"]>, false>
-export type createStudentFriendshipsAcceptOutput = import('./domain.js').StudentFriendship
-export type createStudentFriendshipsAcceptProblem = operations["createStudentFriendshipsAccept"]['responses'][400]['content']["application/problem+json"] | operations["createStudentFriendshipsAccept"]['responses'][404]['content']["application/problem+json"] | operations["createStudentFriendshipsAccept"]['responses'][409]['content']["application/problem+json"] | operations["createStudentFriendshipsAccept"]['responses'][500]['content']["application/problem+json"]
-export type createStudentPeriodPlanInput = OperationInput<operations["createStudentPeriodPlan"]['parameters']['path'], operations["createStudentPeriodPlan"]['parameters']['query'], operations["createStudentPeriodPlan"]['parameters']['header'], RequestBodyOf<operations["createStudentPeriodPlan"]>, true>
-export type createStudentPeriodPlanOutput = import('./domain.js').PeriodPlanning
-export type createStudentPeriodPlanProblem = operations["createStudentPeriodPlan"]['responses'][400]['content']["application/problem+json"] | operations["createStudentPeriodPlan"]['responses'][422]['content']["application/problem+json"] | operations["createStudentPeriodPlan"]['responses'][500]['content']["application/problem+json"]
+export type createStudentFeedbackReportInput = OperationInput<operations["createStudentFeedbackReport"]['parameters']['path'], operations["createStudentFeedbackReport"]['parameters']['query'], operations["createStudentFeedbackReport"]['parameters']['header'], RequestBodyOf<operations["createStudentFeedbackReport"]>, true>
+export type createStudentFeedbackReportOutput = import('./domain.js').FeedbackReportAccepted
+export type createStudentFeedbackReportProblem = operations["createStudentFeedbackReport"]['responses'][400]['content']["application/problem+json"] | operations["createStudentFeedbackReport"]['responses'][404]['content']["application/problem+json"] | operations["createStudentFeedbackReport"]['responses'][422]['content']["application/problem+json"] | operations["createStudentFeedbackReport"]['responses'][500]['content']["application/problem+json"]
+export type createStudentFriendshipInput = OperationInput<operations["createStudentFriendship"]['parameters']['path'], operations["createStudentFriendship"]['parameters']['query'], operations["createStudentFriendship"]['parameters']['header'], RequestBodyOf<operations["createStudentFriendship"]>, true>
+export type createStudentFriendshipOutput = import('./domain.js').StudentFriendship
+export type createStudentFriendshipProblem = operations["createStudentFriendship"]['responses'][400]['content']["application/problem+json"] | operations["createStudentFriendship"]['responses'][404]['content']["application/problem+json"] | operations["createStudentFriendship"]['responses'][409]['content']["application/problem+json"] | operations["createStudentFriendship"]['responses'][500]['content']["application/problem+json"]
+export type createStudentHistoryInput = OperationInput<operations["createStudentHistory"]['parameters']['path'], operations["createStudentHistory"]['parameters']['query'], operations["createStudentHistory"]['parameters']['header'], RequestBodyOf<operations["createStudentHistory"]>, true>
+export type createStudentHistoryOutput = import('./domain.js').StudentHistoryImportSummary
+export type createStudentHistoryProblem = operations["createStudentHistory"]['responses'][400]['content']["application/problem+json"] | operations["createStudentHistory"]['responses'][404]['content']["application/problem+json"] | operations["createStudentHistory"]['responses'][422]['content']["application/problem+json"] | operations["createStudentHistory"]['responses'][500]['content']["application/problem+json"]
 export type createStudentPeriodPlanningsInput = OperationInput<operations["createStudentPeriodPlannings"]['parameters']['path'], operations["createStudentPeriodPlannings"]['parameters']['query'], operations["createStudentPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["createStudentPeriodPlannings"]>, true>
 export type createStudentPeriodPlanningsOutput = import('./domain.js').PeriodPlanning
 export type createStudentPeriodPlanningsProblem = operations["createStudentPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["createStudentPeriodPlannings"]['responses'][422]['content']["application/problem+json"] | operations["createStudentPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
 export type createStudentsInput = OperationInput<operations["createStudents"]['parameters']['path'], operations["createStudents"]['parameters']['query'], operations["createStudents"]['parameters']['header'], RequestBodyOf<operations["createStudents"]>, true>
 export type createStudentsOutput = import('./domain.js').Student
 export type createStudentsProblem = operations["createStudents"]['responses'][400]['content']["application/problem+json"] | operations["createStudents"]['responses'][409]['content']["application/problem+json"] | operations["createStudents"]['responses'][422]['content']["application/problem+json"] | operations["createStudents"]['responses'][500]['content']["application/problem+json"]
-export type createTagsInput = OperationInput<operations["createTags"]['parameters']['path'], operations["createTags"]['parameters']['query'], operations["createTags"]['parameters']['header'], RequestBodyOf<operations["createTags"]>, true>
-export type createTagsOutput = import('./domain.js').Tag
-export type createTagsProblem = operations["createTags"]['responses'][400]['content']["application/problem+json"] | operations["createTags"]['responses'][409]['content']["application/problem+json"] | operations["createTags"]['responses'][422]['content']["application/problem+json"] | operations["createTags"]['responses'][500]['content']["application/problem+json"]
-export type deleteCategoriesInput = OperationInput<operations["deleteCategories"]['parameters']['path'], operations["deleteCategories"]['parameters']['query'], operations["deleteCategories"]['parameters']['header'], RequestBodyOf<operations["deleteCategories"]>, false>
-export type deleteCategoriesOutput = void
-export type deleteCategoriesProblem = operations["deleteCategories"]['responses'][400]['content']["application/problem+json"] | operations["deleteCategories"]['responses'][404]['content']["application/problem+json"] | operations["deleteCategories"]['responses'][409]['content']["application/problem+json"] | operations["deleteCategories"]['responses'][500]['content']["application/problem+json"]
-export type deleteCoursesTagsInput = OperationInput<operations["deleteCoursesTags"]['parameters']['path'], operations["deleteCoursesTags"]['parameters']['query'], operations["deleteCoursesTags"]['parameters']['header'], RequestBodyOf<operations["deleteCoursesTags"]>, false>
-export type deleteCoursesTagsOutput = void
-export type deleteCoursesTagsProblem = operations["deleteCoursesTags"]['responses'][400]['content']["application/problem+json"] | operations["deleteCoursesTags"]['responses'][422]['content']["application/problem+json"] | operations["deleteCoursesTags"]['responses'][500]['content']["application/problem+json"]
+export type createTagInput = OperationInput<operations["createTag"]['parameters']['path'], operations["createTag"]['parameters']['query'], operations["createTag"]['parameters']['header'], RequestBodyOf<operations["createTag"]>, true>
+export type createTagOutput = import('./domain.js').Tag
+export type createTagProblem = operations["createTag"]['responses'][400]['content']["application/problem+json"] | operations["createTag"]['responses'][409]['content']["application/problem+json"] | operations["createTag"]['responses'][422]['content']["application/problem+json"] | operations["createTag"]['responses'][500]['content']["application/problem+json"]
+export type deleteCategoryInput = OperationInput<operations["deleteCategory"]['parameters']['path'], operations["deleteCategory"]['parameters']['query'], operations["deleteCategory"]['parameters']['header'], RequestBodyOf<operations["deleteCategory"]>, false>
+export type deleteCategoryOutput = void
+export type deleteCategoryProblem = operations["deleteCategory"]['responses'][400]['content']["application/problem+json"] | operations["deleteCategory"]['responses'][404]['content']["application/problem+json"] | operations["deleteCategory"]['responses'][409]['content']["application/problem+json"] | operations["deleteCategory"]['responses'][500]['content']["application/problem+json"]
 export type deleteStudentAbsencesInput = OperationInput<operations["deleteStudentAbsences"]['parameters']['path'], operations["deleteStudentAbsences"]['parameters']['query'], operations["deleteStudentAbsences"]['parameters']['header'], RequestBodyOf<operations["deleteStudentAbsences"]>, false>
 export type deleteStudentAbsencesOutput = void
 export type deleteStudentAbsencesProblem = operations["deleteStudentAbsences"]['responses'][400]['content']["application/problem+json"] | operations["deleteStudentAbsences"]['responses'][404]['content']["application/problem+json"] | operations["deleteStudentAbsences"]['responses'][500]['content']["application/problem+json"]
@@ -73,144 +67,135 @@ export type deleteStudentCourseAttemptsProblem = operations["deleteStudentCourse
 export type deleteStudentCurriculaInput = OperationInput<operations["deleteStudentCurricula"]['parameters']['path'], operations["deleteStudentCurricula"]['parameters']['query'], operations["deleteStudentCurricula"]['parameters']['header'], RequestBodyOf<operations["deleteStudentCurricula"]>, false>
 export type deleteStudentCurriculaOutput = void
 export type deleteStudentCurriculaProblem = operations["deleteStudentCurricula"]['responses'][400]['content']["application/problem+json"] | operations["deleteStudentCurricula"]['responses'][404]['content']["application/problem+json"] | operations["deleteStudentCurricula"]['responses'][500]['content']["application/problem+json"]
-export type deleteStudentFriendshipsInput = OperationInput<operations["deleteStudentFriendships"]['parameters']['path'], operations["deleteStudentFriendships"]['parameters']['query'], operations["deleteStudentFriendships"]['parameters']['header'], RequestBodyOf<operations["deleteStudentFriendships"]>, false>
-export type deleteStudentFriendshipsOutput = void
-export type deleteStudentFriendshipsProblem = operations["deleteStudentFriendships"]['responses'][400]['content']["application/problem+json"] | operations["deleteStudentFriendships"]['responses'][404]['content']["application/problem+json"] | operations["deleteStudentFriendships"]['responses'][500]['content']["application/problem+json"]
-export type deleteStudentPeriodPlanInput = OperationInput<operations["deleteStudentPeriodPlan"]['parameters']['path'], operations["deleteStudentPeriodPlan"]['parameters']['query'], operations["deleteStudentPeriodPlan"]['parameters']['header'], RequestBodyOf<operations["deleteStudentPeriodPlan"]>, false>
-export type deleteStudentPeriodPlanOutput = void
-export type deleteStudentPeriodPlanProblem = operations["deleteStudentPeriodPlan"]['responses'][400]['content']["application/problem+json"] | operations["deleteStudentPeriodPlan"]['responses'][404]['content']["application/problem+json"] | operations["deleteStudentPeriodPlan"]['responses'][500]['content']["application/problem+json"]
+export type deleteStudentFriendshipInput = OperationInput<operations["deleteStudentFriendship"]['parameters']['path'], operations["deleteStudentFriendship"]['parameters']['query'], operations["deleteStudentFriendship"]['parameters']['header'], RequestBodyOf<operations["deleteStudentFriendship"]>, false>
+export type deleteStudentFriendshipOutput = void
+export type deleteStudentFriendshipProblem = operations["deleteStudentFriendship"]['responses'][400]['content']["application/problem+json"] | operations["deleteStudentFriendship"]['responses'][404]['content']["application/problem+json"] | operations["deleteStudentFriendship"]['responses'][500]['content']["application/problem+json"]
 export type deleteStudentPeriodPlanningsInput = OperationInput<operations["deleteStudentPeriodPlannings"]['parameters']['path'], operations["deleteStudentPeriodPlannings"]['parameters']['query'], operations["deleteStudentPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["deleteStudentPeriodPlannings"]>, false>
 export type deleteStudentPeriodPlanningsOutput = void
 export type deleteStudentPeriodPlanningsProblem = operations["deleteStudentPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["deleteStudentPeriodPlannings"]['responses'][404]['content']["application/problem+json"] | operations["deleteStudentPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
 export type deleteStudentsInput = OperationInput<operations["deleteStudents"]['parameters']['path'], operations["deleteStudents"]['parameters']['query'], operations["deleteStudents"]['parameters']['header'], RequestBodyOf<operations["deleteStudents"]>, true>
 export type deleteStudentsOutput = void
 export type deleteStudentsProblem = operations["deleteStudents"]['responses'][400]['content']["application/problem+json"] | operations["deleteStudents"]['responses'][404]['content']["application/problem+json"] | operations["deleteStudents"]['responses'][422]['content']["application/problem+json"] | operations["deleteStudents"]['responses'][500]['content']["application/problem+json"]
-export type deleteStudentTagInterestsInput = OperationInput<operations["deleteStudentTagInterests"]['parameters']['path'], operations["deleteStudentTagInterests"]['parameters']['query'], operations["deleteStudentTagInterests"]['parameters']['header'], RequestBodyOf<operations["deleteStudentTagInterests"]>, false>
-export type deleteStudentTagInterestsOutput = void
-export type deleteStudentTagInterestsProblem = operations["deleteStudentTagInterests"]['responses'][400]['content']["application/problem+json"] | operations["deleteStudentTagInterests"]['responses'][500]['content']["application/problem+json"]
-export type deleteTagsInput = OperationInput<operations["deleteTags"]['parameters']['path'], operations["deleteTags"]['parameters']['query'], operations["deleteTags"]['parameters']['header'], RequestBodyOf<operations["deleteTags"]>, false>
-export type deleteTagsOutput = void
-export type deleteTagsProblem = operations["deleteTags"]['responses'][400]['content']["application/problem+json"] | operations["deleteTags"]['responses'][404]['content']["application/problem+json"] | operations["deleteTags"]['responses'][409]['content']["application/problem+json"] | operations["deleteTags"]['responses'][500]['content']["application/problem+json"]
-export type getCategoriesInput = OperationInput<operations["getCategories"]['parameters']['path'], operations["getCategories"]['parameters']['query'], operations["getCategories"]['parameters']['header'], RequestBodyOf<operations["getCategories"]>, false>
-export type getCategoriesOutput = import('./domain.js').Category
-export type getCategoriesProblem = operations["getCategories"]['responses'][400]['content']["application/problem+json"] | operations["getCategories"]['responses'][404]['content']["application/problem+json"] | operations["getCategories"]['responses'][500]['content']["application/problem+json"]
-export type getSharedPeriodPlanningsInput = OperationInput<operations["getSharedPeriodPlannings"]['parameters']['path'], operations["getSharedPeriodPlannings"]['parameters']['query'], operations["getSharedPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["getSharedPeriodPlannings"]>, false>
-export type getSharedPeriodPlanningsOutput = import('./domain.js').SharedPeriodPlanning
-export type getSharedPeriodPlanningsProblem = operations["getSharedPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["getSharedPeriodPlannings"]['responses'][404]['content']["application/problem+json"] | operations["getSharedPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
+export type deleteStudentTagInterestInput = OperationInput<operations["deleteStudentTagInterest"]['parameters']['path'], operations["deleteStudentTagInterest"]['parameters']['query'], operations["deleteStudentTagInterest"]['parameters']['header'], RequestBodyOf<operations["deleteStudentTagInterest"]>, false>
+export type deleteStudentTagInterestOutput = void
+export type deleteStudentTagInterestProblem = operations["deleteStudentTagInterest"]['responses'][400]['content']["application/problem+json"] | operations["deleteStudentTagInterest"]['responses'][500]['content']["application/problem+json"]
+export type deleteTagInput = OperationInput<operations["deleteTag"]['parameters']['path'], operations["deleteTag"]['parameters']['query'], operations["deleteTag"]['parameters']['header'], RequestBodyOf<operations["deleteTag"]>, false>
+export type deleteTagOutput = void
+export type deleteTagProblem = operations["deleteTag"]['responses'][400]['content']["application/problem+json"] | operations["deleteTag"]['responses'][404]['content']["application/problem+json"] | operations["deleteTag"]['responses'][409]['content']["application/problem+json"] | operations["deleteTag"]['responses'][500]['content']["application/problem+json"]
+export type getCategoryInput = OperationInput<operations["getCategory"]['parameters']['path'], operations["getCategory"]['parameters']['query'], operations["getCategory"]['parameters']['header'], RequestBodyOf<operations["getCategory"]>, false>
+export type getCategoryOutput = import('./domain.js').Category
+export type getCategoryProblem = operations["getCategory"]['responses'][400]['content']["application/problem+json"] | operations["getCategory"]['responses'][404]['content']["application/problem+json"] | operations["getCategory"]['responses'][500]['content']["application/problem+json"]
+export type getCurrentUserInput = OperationInput<operations["getCurrentUser"]['parameters']['path'], operations["getCurrentUser"]['parameters']['query'], operations["getCurrentUser"]['parameters']['header'], RequestBodyOf<operations["getCurrentUser"]>, false>
+export type getCurrentUserOutput = import('./domain.js').CurrentUser
+export type getCurrentUserProblem = operations["getCurrentUser"]['responses'][400]['content']["application/problem+json"] | operations["getCurrentUser"]['responses'][500]['content']["application/problem+json"]
+export type getExchangeNoticeSubscriptionInput = OperationInput<operations["getExchangeNoticeSubscription"]['parameters']['path'], operations["getExchangeNoticeSubscription"]['parameters']['query'], operations["getExchangeNoticeSubscription"]['parameters']['header'], RequestBodyOf<operations["getExchangeNoticeSubscription"]>, false>
+export type getExchangeNoticeSubscriptionOutput = import('./domain.js').ExchangeNoticeSubscription
+export type getExchangeNoticeSubscriptionProblem = operations["getExchangeNoticeSubscription"]['responses'][400]['content']["application/problem+json"] | operations["getExchangeNoticeSubscription"]['responses'][500]['content']["application/problem+json"]
+export type getProfessorEvaluationInput = OperationInput<operations["getProfessorEvaluation"]['parameters']['path'], operations["getProfessorEvaluation"]['parameters']['query'], operations["getProfessorEvaluation"]['parameters']['header'], RequestBodyOf<operations["getProfessorEvaluation"]>, false>
+export type getProfessorEvaluationOutput = import('./domain.js').ProfessorEvaluationEligibility
+export type getProfessorEvaluationProblem = operations["getProfessorEvaluation"]['responses'][400]['content']["application/problem+json"] | operations["getProfessorEvaluation"]['responses'][422]['content']["application/problem+json"] | operations["getProfessorEvaluation"]['responses'][500]['content']["application/problem+json"]
+export type getPublicSharedPeriodPlanningInput = OperationInput<operations["getPublicSharedPeriodPlanning"]['parameters']['path'], operations["getPublicSharedPeriodPlanning"]['parameters']['query'], operations["getPublicSharedPeriodPlanning"]['parameters']['header'], RequestBodyOf<operations["getPublicSharedPeriodPlanning"]>, false>
+export type getPublicSharedPeriodPlanningOutput = import('./domain.js').SharedPeriodPlanning
+export type getPublicSharedPeriodPlanningProblem = operations["getPublicSharedPeriodPlanning"]['responses'][400]['content']["application/problem+json"] | operations["getPublicSharedPeriodPlanning"]['responses'][404]['content']["application/problem+json"] | operations["getPublicSharedPeriodPlanning"]['responses'][500]['content']["application/problem+json"]
 export type getStudentCourseAttemptsInput = OperationInput<operations["getStudentCourseAttempts"]['parameters']['path'], operations["getStudentCourseAttempts"]['parameters']['query'], operations["getStudentCourseAttempts"]['parameters']['header'], RequestBodyOf<operations["getStudentCourseAttempts"]>, false>
 export type getStudentCourseAttemptsOutput = import('./domain.js').StudentCourseAttempt
 export type getStudentCourseAttemptsProblem = operations["getStudentCourseAttempts"]['responses'][400]['content']["application/problem+json"] | operations["getStudentCourseAttempts"]['responses'][404]['content']["application/problem+json"] | operations["getStudentCourseAttempts"]['responses'][500]['content']["application/problem+json"]
 export type getStudentCurriculaInput = OperationInput<operations["getStudentCurricula"]['parameters']['path'], operations["getStudentCurricula"]['parameters']['query'], operations["getStudentCurricula"]['parameters']['header'], RequestBodyOf<operations["getStudentCurricula"]>, false>
 export type getStudentCurriculaOutput = import('./domain.js').Curriculum
 export type getStudentCurriculaProblem = operations["getStudentCurricula"]['responses'][400]['content']["application/problem+json"] | operations["getStudentCurricula"]['responses'][404]['content']["application/problem+json"] | operations["getStudentCurricula"]['responses'][500]['content']["application/problem+json"]
-export type getStudentPeopleInput = OperationInput<operations["getStudentPeople"]['parameters']['path'], operations["getStudentPeople"]['parameters']['query'], operations["getStudentPeople"]['parameters']['header'], RequestBodyOf<operations["getStudentPeople"]>, false>
-export type getStudentPeopleOutput = import('./domain.js').StudentPublicPerson
-export type getStudentPeopleProblem = operations["getStudentPeople"]['responses'][400]['content']["application/problem+json"] | operations["getStudentPeople"]['responses'][404]['content']["application/problem+json"] | operations["getStudentPeople"]['responses'][500]['content']["application/problem+json"]
-export type getStudentPeriodPlanInput = OperationInput<operations["getStudentPeriodPlan"]['parameters']['path'], operations["getStudentPeriodPlan"]['parameters']['query'], operations["getStudentPeriodPlan"]['parameters']['header'], RequestBodyOf<operations["getStudentPeriodPlan"]>, false>
-export type getStudentPeriodPlanOutput = import('./domain.js').PeriodPlanning
-export type getStudentPeriodPlanProblem = operations["getStudentPeriodPlan"]['responses'][400]['content']["application/problem+json"] | operations["getStudentPeriodPlan"]['responses'][404]['content']["application/problem+json"] | operations["getStudentPeriodPlan"]['responses'][500]['content']["application/problem+json"]
 export type getStudentPeriodPlanningsInput = OperationInput<operations["getStudentPeriodPlannings"]['parameters']['path'], operations["getStudentPeriodPlannings"]['parameters']['query'], operations["getStudentPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["getStudentPeriodPlannings"]>, false>
 export type getStudentPeriodPlanningsOutput = import('./domain.js').PeriodPlanning
 export type getStudentPeriodPlanningsProblem = operations["getStudentPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["getStudentPeriodPlannings"]['responses'][404]['content']["application/problem+json"] | operations["getStudentPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
+export type getStudentPersonInput = OperationInput<operations["getStudentPerson"]['parameters']['path'], operations["getStudentPerson"]['parameters']['query'], operations["getStudentPerson"]['parameters']['header'], RequestBodyOf<operations["getStudentPerson"]>, false>
+export type getStudentPersonOutput = import('./domain.js').StudentPublicPerson
+export type getStudentPersonProblem = operations["getStudentPerson"]['responses'][400]['content']["application/problem+json"] | operations["getStudentPerson"]['responses'][404]['content']["application/problem+json"] | operations["getStudentPerson"]['responses'][500]['content']["application/problem+json"]
+export type getStudentPublicProfileInput = OperationInput<operations["getStudentPublicProfile"]['parameters']['path'], operations["getStudentPublicProfile"]['parameters']['query'], operations["getStudentPublicProfile"]['parameters']['header'], RequestBodyOf<operations["getStudentPublicProfile"]>, false>
+export type getStudentPublicProfileOutput = import('./domain.js').StudentPublicProfile
+export type getStudentPublicProfileProblem = operations["getStudentPublicProfile"]['responses'][400]['content']["application/problem+json"] | operations["getStudentPublicProfile"]['responses'][404]['content']["application/problem+json"] | operations["getStudentPublicProfile"]['responses'][500]['content']["application/problem+json"]
 export type getStudentsInput = OperationInput<operations["getStudents"]['parameters']['path'], operations["getStudents"]['parameters']['query'], operations["getStudents"]['parameters']['header'], RequestBodyOf<operations["getStudents"]>, false>
 export type getStudentsOutput = import('./domain.js').Student
 export type getStudentsProblem = operations["getStudents"]['responses'][400]['content']["application/problem+json"] | operations["getStudents"]['responses'][404]['content']["application/problem+json"] | operations["getStudents"]['responses'][500]['content']["application/problem+json"]
-export type getStudentSharedPeriodPlanningsInput = OperationInput<operations["getStudentSharedPeriodPlannings"]['parameters']['path'], operations["getStudentSharedPeriodPlannings"]['parameters']['query'], operations["getStudentSharedPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["getStudentSharedPeriodPlannings"]>, false>
-export type getStudentSharedPeriodPlanningsOutput = import('./domain.js').SharedPeriodPlanning
-export type getStudentSharedPeriodPlanningsProblem = operations["getStudentSharedPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["getStudentSharedPeriodPlannings"]['responses'][404]['content']["application/problem+json"] | operations["getStudentSharedPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
-export type getTagsInput = OperationInput<operations["getTags"]['parameters']['path'], operations["getTags"]['parameters']['query'], operations["getTags"]['parameters']['header'], RequestBodyOf<operations["getTags"]>, false>
-export type getTagsOutput = import('./domain.js').Tag
-export type getTagsProblem = operations["getTags"]['responses'][400]['content']["application/problem+json"] | operations["getTags"]['responses'][404]['content']["application/problem+json"] | operations["getTags"]['responses'][500]['content']["application/problem+json"]
+export type getStudentSharedPeriodPlanningInput = OperationInput<operations["getStudentSharedPeriodPlanning"]['parameters']['path'], operations["getStudentSharedPeriodPlanning"]['parameters']['query'], operations["getStudentSharedPeriodPlanning"]['parameters']['header'], RequestBodyOf<operations["getStudentSharedPeriodPlanning"]>, false>
+export type getStudentSharedPeriodPlanningOutput = import('./domain.js').SharedPeriodPlanning
+export type getStudentSharedPeriodPlanningProblem = operations["getStudentSharedPeriodPlanning"]['responses'][400]['content']["application/problem+json"] | operations["getStudentSharedPeriodPlanning"]['responses'][404]['content']["application/problem+json"] | operations["getStudentSharedPeriodPlanning"]['responses'][500]['content']["application/problem+json"]
+export type getTagInput = OperationInput<operations["getTag"]['parameters']['path'], operations["getTag"]['parameters']['query'], operations["getTag"]['parameters']['header'], RequestBodyOf<operations["getTag"]>, false>
+export type getTagOutput = import('./domain.js').Tag
+export type getTagProblem = operations["getTag"]['responses'][400]['content']["application/problem+json"] | operations["getTag"]['responses'][404]['content']["application/problem+json"] | operations["getTag"]['responses'][500]['content']["application/problem+json"]
+export type listBotGrantsInput = OperationInput<operations["listBotGrants"]['parameters']['path'], operations["listBotGrants"]['parameters']['query'], operations["listBotGrants"]['parameters']['header'], RequestBodyOf<operations["listBotGrants"]>, false>
+export type listBotGrantsOutput = import('./domain.js').Page<import('./domain.js').BotGrant>
+export type listBotGrantsProblem = operations["listBotGrants"]['responses'][400]['content']["application/problem+json"] | operations["listBotGrants"]['responses'][500]['content']["application/problem+json"]
 export type listBotsInput = OperationInput<operations["listBots"]['parameters']['path'], operations["listBots"]['parameters']['query'], operations["listBots"]['parameters']['header'], RequestBodyOf<operations["listBots"]>, false>
-export type listBotsOutput = ReadonlyArray<import('./domain.js').BotIdentity>
+export type listBotsOutput = import('./domain.js').Page<import('./domain.js').BotIdentity>
 export type listBotsProblem = operations["listBots"]['responses'][400]['content']["application/problem+json"] | operations["listBots"]['responses'][500]['content']["application/problem+json"]
 export type listCategoriesInput = OperationInput<operations["listCategories"]['parameters']['path'], operations["listCategories"]['parameters']['query'], operations["listCategories"]['parameters']['header'], RequestBodyOf<operations["listCategories"]>, false>
-export type listCategoriesOutput = ReadonlyArray<import('./domain.js').Category>
+export type listCategoriesOutput = import('./domain.js').Page<import('./domain.js').Category>
 export type listCategoriesProblem = operations["listCategories"]['responses'][400]['content']["application/problem+json"] | operations["listCategories"]['responses'][500]['content']["application/problem+json"]
-export type listCoursesTagsInput = OperationInput<operations["listCoursesTags"]['parameters']['path'], operations["listCoursesTags"]['parameters']['query'], operations["listCoursesTags"]['parameters']['header'], RequestBodyOf<operations["listCoursesTags"]>, false>
-export type listCoursesTagsOutput = ReadonlyArray<import('./domain.js').Tag>
-export type listCoursesTagsProblem = operations["listCoursesTags"]['responses'][400]['content']["application/problem+json"] | operations["listCoursesTags"]['responses'][404]['content']["application/problem+json"] | operations["listCoursesTags"]['responses'][500]['content']["application/problem+json"]
-export type listMeInput = OperationInput<operations["listMe"]['parameters']['path'], operations["listMe"]['parameters']['query'], operations["listMe"]['parameters']['header'], RequestBodyOf<operations["listMe"]>, false>
-export type listMeOutput = import('./domain.js').CurrentUser
-export type listMeProblem = operations["listMe"]['responses'][400]['content']["application/problem+json"] | operations["listMe"]['responses'][500]['content']["application/problem+json"]
-export type listMeBotGrantsInput = OperationInput<operations["listMeBotGrants"]['parameters']['path'], operations["listMeBotGrants"]['parameters']['query'], operations["listMeBotGrants"]['parameters']['header'], RequestBodyOf<operations["listMeBotGrants"]>, false>
-export type listMeBotGrantsOutput = ReadonlyArray<import('./domain.js').BotGrant>
-export type listMeBotGrantsProblem = operations["listMeBotGrants"]['responses'][400]['content']["application/problem+json"] | operations["listMeBotGrants"]['responses'][500]['content']["application/problem+json"]
-export type listSharedPeriodPlanningsInput = OperationInput<operations["listSharedPeriodPlannings"]['parameters']['path'], operations["listSharedPeriodPlannings"]['parameters']['query'], operations["listSharedPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["listSharedPeriodPlannings"]>, false>
-export type listSharedPeriodPlanningsOutput = import('./domain.js').SharedPeriodPlanningPage
-export type listSharedPeriodPlanningsProblem = operations["listSharedPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["listSharedPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
+export type listCourseTagsInput = OperationInput<operations["listCourseTags"]['parameters']['path'], operations["listCourseTags"]['parameters']['query'], operations["listCourseTags"]['parameters']['header'], RequestBodyOf<operations["listCourseTags"]>, false>
+export type listCourseTagsOutput = import('./domain.js').Page<import('./domain.js').Tag>
+export type listCourseTagsProblem = operations["listCourseTags"]['responses'][400]['content']["application/problem+json"] | operations["listCourseTags"]['responses'][404]['content']["application/problem+json"] | operations["listCourseTags"]['responses'][500]['content']["application/problem+json"]
+export type listPendingProfessorEvaluationsInput = OperationInput<operations["listPendingProfessorEvaluations"]['parameters']['path'], operations["listPendingProfessorEvaluations"]['parameters']['query'], operations["listPendingProfessorEvaluations"]['parameters']['header'], RequestBodyOf<operations["listPendingProfessorEvaluations"]>, false>
+export type listPendingProfessorEvaluationsOutput = import('./domain.js').Page<import('./domain.js').PendingProfessorEvaluation>
+export type listPendingProfessorEvaluationsProblem = operations["listPendingProfessorEvaluations"]['responses'][400]['content']["application/problem+json"] | operations["listPendingProfessorEvaluations"]['responses'][500]['content']["application/problem+json"]
+export type listPublicSharedPeriodPlanningsInput = OperationInput<operations["listPublicSharedPeriodPlannings"]['parameters']['path'], operations["listPublicSharedPeriodPlannings"]['parameters']['query'], operations["listPublicSharedPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["listPublicSharedPeriodPlannings"]>, false>
+export type listPublicSharedPeriodPlanningsOutput = import('./domain.js').Page<import('./domain.js').SharedPeriodPlanning>
+export type listPublicSharedPeriodPlanningsProblem = operations["listPublicSharedPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["listPublicSharedPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
 export type listStudentAbsencesInput = OperationInput<operations["listStudentAbsences"]['parameters']['path'], operations["listStudentAbsences"]['parameters']['query'], operations["listStudentAbsences"]['parameters']['header'], RequestBodyOf<operations["listStudentAbsences"]>, false>
-export type listStudentAbsencesOutput = ReadonlyArray<import('./domain.js').StudentAbsence>
+export type listStudentAbsencesOutput = import('./domain.js').Page<import('./domain.js').StudentAbsence>
 export type listStudentAbsencesProblem = operations["listStudentAbsences"]['responses'][400]['content']["application/problem+json"] | operations["listStudentAbsences"]['responses'][500]['content']["application/problem+json"]
-export type listStudentClassesProfessorsEvaluationInput = OperationInput<operations["listStudentClassesProfessorsEvaluation"]['parameters']['path'], operations["listStudentClassesProfessorsEvaluation"]['parameters']['query'], operations["listStudentClassesProfessorsEvaluation"]['parameters']['header'], RequestBodyOf<operations["listStudentClassesProfessorsEvaluation"]>, false>
-export type listStudentClassesProfessorsEvaluationOutput = import('./domain.js').ProfessorEvaluationEligibility
-export type listStudentClassesProfessorsEvaluationProblem = operations["listStudentClassesProfessorsEvaluation"]['responses'][400]['content']["application/problem+json"] | operations["listStudentClassesProfessorsEvaluation"]['responses'][422]['content']["application/problem+json"] | operations["listStudentClassesProfessorsEvaluation"]['responses'][500]['content']["application/problem+json"]
 export type listStudentCourseAttemptsInput = OperationInput<operations["listStudentCourseAttempts"]['parameters']['path'], operations["listStudentCourseAttempts"]['parameters']['query'], operations["listStudentCourseAttempts"]['parameters']['header'], RequestBodyOf<operations["listStudentCourseAttempts"]>, false>
-export type listStudentCourseAttemptsOutput = ReadonlyArray<import('./domain.js').StudentCourseAttempt>
+export type listStudentCourseAttemptsOutput = import('./domain.js').Page<import('./domain.js').StudentCourseAttempt>
 export type listStudentCourseAttemptsProblem = operations["listStudentCourseAttempts"]['responses'][400]['content']["application/problem+json"] | operations["listStudentCourseAttempts"]['responses'][500]['content']["application/problem+json"]
 export type listStudentCurriculaInput = OperationInput<operations["listStudentCurricula"]['parameters']['path'], operations["listStudentCurricula"]['parameters']['query'], operations["listStudentCurricula"]['parameters']['header'], RequestBodyOf<operations["listStudentCurricula"]>, false>
-export type listStudentCurriculaOutput = ReadonlyArray<import('./domain.js').CurriculumSummary>
+export type listStudentCurriculaOutput = import('./domain.js').Page<import('./domain.js').CurriculumSummary>
 export type listStudentCurriculaProblem = operations["listStudentCurricula"]['responses'][400]['content']["application/problem+json"] | operations["listStudentCurricula"]['responses'][500]['content']["application/problem+json"]
-export type listStudentExchangeNoticeSubscriptionInput = OperationInput<operations["listStudentExchangeNoticeSubscription"]['parameters']['path'], operations["listStudentExchangeNoticeSubscription"]['parameters']['query'], operations["listStudentExchangeNoticeSubscription"]['parameters']['header'], RequestBodyOf<operations["listStudentExchangeNoticeSubscription"]>, false>
-export type listStudentExchangeNoticeSubscriptionOutput = import('./domain.js').ExchangeNoticeSubscription
-export type listStudentExchangeNoticeSubscriptionProblem = operations["listStudentExchangeNoticeSubscription"]['responses'][400]['content']["application/problem+json"] | operations["listStudentExchangeNoticeSubscription"]['responses'][500]['content']["application/problem+json"]
 export type listStudentFeedbackReportsInput = OperationInput<operations["listStudentFeedbackReports"]['parameters']['path'], operations["listStudentFeedbackReports"]['parameters']['query'], operations["listStudentFeedbackReports"]['parameters']['header'], RequestBodyOf<operations["listStudentFeedbackReports"]>, false>
-export type listStudentFeedbackReportsOutput = ReadonlyArray<import('./domain.js').FeedbackReport>
+export type listStudentFeedbackReportsOutput = import('./domain.js').Page<import('./domain.js').FeedbackReport>
 export type listStudentFeedbackReportsProblem = operations["listStudentFeedbackReports"]['responses'][400]['content']["application/problem+json"] | operations["listStudentFeedbackReports"]['responses'][500]['content']["application/problem+json"]
 export type listStudentFriendshipsInput = OperationInput<operations["listStudentFriendships"]['parameters']['path'], operations["listStudentFriendships"]['parameters']['query'], operations["listStudentFriendships"]['parameters']['header'], RequestBodyOf<operations["listStudentFriendships"]>, false>
-export type listStudentFriendshipsOutput = ReadonlyArray<import('./domain.js').StudentFriendship>
+export type listStudentFriendshipsOutput = import('./domain.js').Page<import('./domain.js').StudentFriendship>
 export type listStudentFriendshipsProblem = operations["listStudentFriendships"]['responses'][400]['content']["application/problem+json"] | operations["listStudentFriendships"]['responses'][500]['content']["application/problem+json"]
 export type listStudentPeopleInput = OperationInput<operations["listStudentPeople"]['parameters']['path'], operations["listStudentPeople"]['parameters']['query'], operations["listStudentPeople"]['parameters']['header'], RequestBodyOf<operations["listStudentPeople"]>, false>
-export type listStudentPeopleOutput = import('./domain.js').StudentPeoplePage
+export type listStudentPeopleOutput = import('./domain.js').Page<import('./domain.js').StudentPublicPerson>
 export type listStudentPeopleProblem = operations["listStudentPeople"]['responses'][400]['content']["application/problem+json"] | operations["listStudentPeople"]['responses'][500]['content']["application/problem+json"]
-export type listStudentPeriodPlanInput = OperationInput<operations["listStudentPeriodPlan"]['parameters']['path'], operations["listStudentPeriodPlan"]['parameters']['query'], operations["listStudentPeriodPlan"]['parameters']['header'], RequestBodyOf<operations["listStudentPeriodPlan"]>, false>
-export type listStudentPeriodPlanOutput = ReadonlyArray<import('./domain.js').PeriodPlanning>
-export type listStudentPeriodPlanProblem = operations["listStudentPeriodPlan"]['responses'][400]['content']["application/problem+json"] | operations["listStudentPeriodPlan"]['responses'][500]['content']["application/problem+json"]
 export type listStudentPeriodPlanningsInput = OperationInput<operations["listStudentPeriodPlannings"]['parameters']['path'], operations["listStudentPeriodPlannings"]['parameters']['query'], operations["listStudentPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["listStudentPeriodPlannings"]>, false>
-export type listStudentPeriodPlanningsOutput = ReadonlyArray<import('./domain.js').PeriodPlanning>
+export type listStudentPeriodPlanningsOutput = import('./domain.js').Page<import('./domain.js').PeriodPlanning>
 export type listStudentPeriodPlanningsProblem = operations["listStudentPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["listStudentPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
-export type listStudentProfessorEvaluationsPendingInput = OperationInput<operations["listStudentProfessorEvaluationsPending"]['parameters']['path'], operations["listStudentProfessorEvaluationsPending"]['parameters']['query'], operations["listStudentProfessorEvaluationsPending"]['parameters']['header'], RequestBodyOf<operations["listStudentProfessorEvaluationsPending"]>, false>
-export type listStudentProfessorEvaluationsPendingOutput = ReadonlyArray<import('./domain.js').PendingProfessorEvaluation>
-export type listStudentProfessorEvaluationsPendingProblem = operations["listStudentProfessorEvaluationsPending"]['responses'][400]['content']["application/problem+json"] | operations["listStudentProfessorEvaluationsPending"]['responses'][500]['content']["application/problem+json"]
-export type listStudentPublicProfileInput = OperationInput<operations["listStudentPublicProfile"]['parameters']['path'], operations["listStudentPublicProfile"]['parameters']['query'], operations["listStudentPublicProfile"]['parameters']['header'], RequestBodyOf<operations["listStudentPublicProfile"]>, false>
-export type listStudentPublicProfileOutput = import('./domain.js').StudentPublicProfile
-export type listStudentPublicProfileProblem = operations["listStudentPublicProfile"]['responses'][400]['content']["application/problem+json"] | operations["listStudentPublicProfile"]['responses'][404]['content']["application/problem+json"] | operations["listStudentPublicProfile"]['responses'][500]['content']["application/problem+json"]
 export type listStudentSharedPeriodPlanningsInput = OperationInput<operations["listStudentSharedPeriodPlannings"]['parameters']['path'], operations["listStudentSharedPeriodPlannings"]['parameters']['query'], operations["listStudentSharedPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["listStudentSharedPeriodPlannings"]>, false>
-export type listStudentSharedPeriodPlanningsOutput = import('./domain.js').SharedPeriodPlanningPage
+export type listStudentSharedPeriodPlanningsOutput = import('./domain.js').Page<import('./domain.js').SharedPeriodPlanning>
 export type listStudentSharedPeriodPlanningsProblem = operations["listStudentSharedPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["listStudentSharedPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
 export type listStudentTagInterestsInput = OperationInput<operations["listStudentTagInterests"]['parameters']['path'], operations["listStudentTagInterests"]['parameters']['query'], operations["listStudentTagInterests"]['parameters']['header'], RequestBodyOf<operations["listStudentTagInterests"]>, false>
-export type listStudentTagInterestsOutput = ReadonlyArray<import('./domain.js').StudentTagInterest>
+export type listStudentTagInterestsOutput = import('./domain.js').Page<import('./domain.js').StudentTagInterest>
 export type listStudentTagInterestsProblem = operations["listStudentTagInterests"]['responses'][400]['content']["application/problem+json"] | operations["listStudentTagInterests"]['responses'][500]['content']["application/problem+json"]
+export type listTagCoursesInput = OperationInput<operations["listTagCourses"]['parameters']['path'], operations["listTagCourses"]['parameters']['query'], operations["listTagCourses"]['parameters']['header'], RequestBodyOf<operations["listTagCourses"]>, false>
+export type listTagCoursesOutput = import('./domain.js').Page<import('./domain.js').TagRelatedCourse>
+export type listTagCoursesProblem = operations["listTagCourses"]['responses'][400]['content']["application/problem+json"] | operations["listTagCourses"]['responses'][404]['content']["application/problem+json"] | operations["listTagCourses"]['responses'][500]['content']["application/problem+json"]
 export type listTagsInput = OperationInput<operations["listTags"]['parameters']['path'], operations["listTags"]['parameters']['query'], operations["listTags"]['parameters']['header'], RequestBodyOf<operations["listTags"]>, false>
-export type listTagsOutput = ReadonlyArray<import('./domain.js').Tag>
+export type listTagsOutput = import('./domain.js').Page<import('./domain.js').Tag>
 export type listTagsProblem = operations["listTags"]['responses'][400]['content']["application/problem+json"] | operations["listTags"]['responses'][500]['content']["application/problem+json"]
-export type listTagsCoursesInput = OperationInput<operations["listTagsCourses"]['parameters']['path'], operations["listTagsCourses"]['parameters']['query'], operations["listTagsCourses"]['parameters']['header'], RequestBodyOf<operations["listTagsCourses"]>, false>
-export type listTagsCoursesOutput = import('./domain.js').Page<import('./domain.js').TagRelatedCourse>
-export type listTagsCoursesProblem = operations["listTagsCourses"]['responses'][400]['content']["application/problem+json"] | operations["listTagsCourses"]['responses'][404]['content']["application/problem+json"] | operations["listTagsCourses"]['responses'][500]['content']["application/problem+json"]
-export type updateCategoriesInput = OperationInput<operations["updateCategories"]['parameters']['path'], operations["updateCategories"]['parameters']['query'], operations["updateCategories"]['parameters']['header'], RequestBodyOf<operations["updateCategories"]>, true>
-export type updateCategoriesOutput = import('./domain.js').Category
-export type updateCategoriesProblem = operations["updateCategories"]['responses'][400]['content']["application/problem+json"] | operations["updateCategories"]['responses'][404]['content']["application/problem+json"] | operations["updateCategories"]['responses'][409]['content']["application/problem+json"] | operations["updateCategories"]['responses'][500]['content']["application/problem+json"]
-export type updateCoursesTagsInput = OperationInput<operations["updateCoursesTags"]['parameters']['path'], operations["updateCoursesTags"]['parameters']['query'], operations["updateCoursesTags"]['parameters']['header'], RequestBodyOf<operations["updateCoursesTags"]>, false>
-export type updateCoursesTagsOutput = void
-export type updateCoursesTagsProblem = operations["updateCoursesTags"]['responses'][400]['content']["application/problem+json"] | operations["updateCoursesTags"]['responses'][422]['content']["application/problem+json"] | operations["updateCoursesTags"]['responses'][500]['content']["application/problem+json"]
-export type updateMeBotGrantsInput = OperationInput<operations["updateMeBotGrants"]['parameters']['path'], operations["updateMeBotGrants"]['parameters']['query'], operations["updateMeBotGrants"]['parameters']['header'], RequestBodyOf<operations["updateMeBotGrants"]>, true>
-export type updateMeBotGrantsOutput = void
-export type updateMeBotGrantsProblem = operations["updateMeBotGrants"]['responses'][400]['content']["application/problem+json"] | operations["updateMeBotGrants"]['responses'][404]['content']["application/problem+json"] | operations["updateMeBotGrants"]['responses'][500]['content']["application/problem+json"]
-export type updateStudentClassesProfessorsEvaluationInput = OperationInput<operations["updateStudentClassesProfessorsEvaluation"]['parameters']['path'], operations["updateStudentClassesProfessorsEvaluation"]['parameters']['query'], operations["updateStudentClassesProfessorsEvaluation"]['parameters']['header'], RequestBodyOf<operations["updateStudentClassesProfessorsEvaluation"]>, true>
-export type updateStudentClassesProfessorsEvaluationOutput = import('./domain.js').ProfessorEvaluation
-export type updateStudentClassesProfessorsEvaluationProblem = operations["updateStudentClassesProfessorsEvaluation"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentClassesProfessorsEvaluation"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentClassesProfessorsEvaluation"]['responses'][500]['content']["application/problem+json"]
+export type removeCourseTagInput = OperationInput<operations["removeCourseTag"]['parameters']['path'], operations["removeCourseTag"]['parameters']['query'], operations["removeCourseTag"]['parameters']['header'], RequestBodyOf<operations["removeCourseTag"]>, false>
+export type removeCourseTagOutput = void
+export type removeCourseTagProblem = operations["removeCourseTag"]['responses'][400]['content']["application/problem+json"] | operations["removeCourseTag"]['responses'][422]['content']["application/problem+json"] | operations["removeCourseTag"]['responses'][500]['content']["application/problem+json"]
+export type replaceBotGrantInput = OperationInput<operations["replaceBotGrant"]['parameters']['path'], operations["replaceBotGrant"]['parameters']['query'], operations["replaceBotGrant"]['parameters']['header'], RequestBodyOf<operations["replaceBotGrant"]>, true>
+export type replaceBotGrantOutput = void
+export type replaceBotGrantProblem = operations["replaceBotGrant"]['responses'][400]['content']["application/problem+json"] | operations["replaceBotGrant"]['responses'][404]['content']["application/problem+json"] | operations["replaceBotGrant"]['responses'][500]['content']["application/problem+json"]
+export type unsubscribeExchangeNoticesInput = OperationInput<operations["unsubscribeExchangeNotices"]['parameters']['path'], operations["unsubscribeExchangeNotices"]['parameters']['query'], operations["unsubscribeExchangeNotices"]['parameters']['header'], RequestBodyOf<operations["unsubscribeExchangeNotices"]>, false>
+export type unsubscribeExchangeNoticesOutput = operations["unsubscribeExchangeNotices"]['responses'][200]['content']["application/json"]
+export type unsubscribeExchangeNoticesProblem = operations["unsubscribeExchangeNotices"]['responses'][400]['content']["application/problem+json"] | operations["unsubscribeExchangeNotices"]['responses'][500]['content']["application/problem+json"]
+export type updateCategoryInput = OperationInput<operations["updateCategory"]['parameters']['path'], operations["updateCategory"]['parameters']['query'], operations["updateCategory"]['parameters']['header'], RequestBodyOf<operations["updateCategory"]>, true>
+export type updateCategoryOutput = import('./domain.js').Category
+export type updateCategoryProblem = operations["updateCategory"]['responses'][400]['content']["application/problem+json"] | operations["updateCategory"]['responses'][404]['content']["application/problem+json"] | operations["updateCategory"]['responses'][409]['content']["application/problem+json"] | operations["updateCategory"]['responses'][500]['content']["application/problem+json"]
+export type updateExchangeNoticeSubscriptionInput = OperationInput<operations["updateExchangeNoticeSubscription"]['parameters']['path'], operations["updateExchangeNoticeSubscription"]['parameters']['query'], operations["updateExchangeNoticeSubscription"]['parameters']['header'], RequestBodyOf<operations["updateExchangeNoticeSubscription"]>, true>
+export type updateExchangeNoticeSubscriptionOutput = import('./domain.js').ExchangeNoticeSubscription
+export type updateExchangeNoticeSubscriptionProblem = operations["updateExchangeNoticeSubscription"]['responses'][400]['content']["application/problem+json"] | operations["updateExchangeNoticeSubscription"]['responses'][422]['content']["application/problem+json"] | operations["updateExchangeNoticeSubscription"]['responses'][500]['content']["application/problem+json"]
+export type updateProfessorEvaluationInput = OperationInput<operations["updateProfessorEvaluation"]['parameters']['path'], operations["updateProfessorEvaluation"]['parameters']['query'], operations["updateProfessorEvaluation"]['parameters']['header'], RequestBodyOf<operations["updateProfessorEvaluation"]>, true>
+export type updateProfessorEvaluationOutput = import('./domain.js').ProfessorEvaluation
+export type updateProfessorEvaluationProblem = operations["updateProfessorEvaluation"]['responses'][400]['content']["application/problem+json"] | operations["updateProfessorEvaluation"]['responses'][422]['content']["application/problem+json"] | operations["updateProfessorEvaluation"]['responses'][500]['content']["application/problem+json"]
 export type updateStudentCourseAttemptsInput = OperationInput<operations["updateStudentCourseAttempts"]['parameters']['path'], operations["updateStudentCourseAttempts"]['parameters']['query'], operations["updateStudentCourseAttempts"]['parameters']['header'], RequestBodyOf<operations["updateStudentCourseAttempts"]>, true>
 export type updateStudentCourseAttemptsOutput = import('./domain.js').StudentCourseAttempt
 export type updateStudentCourseAttemptsProblem = operations["updateStudentCourseAttempts"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentCourseAttempts"]['responses'][404]['content']["application/problem+json"] | operations["updateStudentCourseAttempts"]['responses'][409]['content']["application/problem+json"] | operations["updateStudentCourseAttempts"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentCourseAttempts"]['responses'][500]['content']["application/problem+json"]
 export type updateStudentCurriculaInput = OperationInput<operations["updateStudentCurricula"]['parameters']['path'], operations["updateStudentCurricula"]['parameters']['query'], operations["updateStudentCurricula"]['parameters']['header'], RequestBodyOf<operations["updateStudentCurricula"]>, true>
 export type updateStudentCurriculaOutput = import('./domain.js').Curriculum
 export type updateStudentCurriculaProblem = operations["updateStudentCurricula"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentCurricula"]['responses'][404]['content']["application/problem+json"] | operations["updateStudentCurricula"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentCurricula"]['responses'][500]['content']["application/problem+json"]
-export type updateStudentExchangeNoticeSubscriptionInput = OperationInput<operations["updateStudentExchangeNoticeSubscription"]['parameters']['path'], operations["updateStudentExchangeNoticeSubscription"]['parameters']['query'], operations["updateStudentExchangeNoticeSubscription"]['parameters']['header'], RequestBodyOf<operations["updateStudentExchangeNoticeSubscription"]>, true>
-export type updateStudentExchangeNoticeSubscriptionOutput = import('./domain.js').ExchangeNoticeSubscription
-export type updateStudentExchangeNoticeSubscriptionProblem = operations["updateStudentExchangeNoticeSubscription"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentExchangeNoticeSubscription"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentExchangeNoticeSubscription"]['responses'][500]['content']["application/problem+json"]
-export type updateStudentPeriodPlanInput = OperationInput<operations["updateStudentPeriodPlan"]['parameters']['path'], operations["updateStudentPeriodPlan"]['parameters']['query'], operations["updateStudentPeriodPlan"]['parameters']['header'], RequestBodyOf<operations["updateStudentPeriodPlan"]>, true>
-export type updateStudentPeriodPlanOutput = import('./domain.js').PeriodPlanning
-export type updateStudentPeriodPlanProblem = operations["updateStudentPeriodPlan"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentPeriodPlan"]['responses'][404]['content']["application/problem+json"] | operations["updateStudentPeriodPlan"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentPeriodPlan"]['responses'][500]['content']["application/problem+json"]
 export type updateStudentPeriodPlanningsInput = OperationInput<operations["updateStudentPeriodPlannings"]['parameters']['path'], operations["updateStudentPeriodPlannings"]['parameters']['query'], operations["updateStudentPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["updateStudentPeriodPlannings"]>, true>
 export type updateStudentPeriodPlanningsOutput = import('./domain.js').PeriodPlanning
 export type updateStudentPeriodPlanningsProblem = operations["updateStudentPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentPeriodPlannings"]['responses'][404]['content']["application/problem+json"] | operations["updateStudentPeriodPlannings"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
@@ -220,235 +205,418 @@ export type updateStudentPublicProfileProblem = operations["updateStudentPublicP
 export type updateStudentsInput = OperationInput<operations["updateStudents"]['parameters']['path'], operations["updateStudents"]['parameters']['query'], operations["updateStudents"]['parameters']['header'], RequestBodyOf<operations["updateStudents"]>, true>
 export type updateStudentsOutput = import('./domain.js').Student
 export type updateStudentsProblem = operations["updateStudents"]['responses'][400]['content']["application/problem+json"] | operations["updateStudents"]['responses'][404]['content']["application/problem+json"] | operations["updateStudents"]['responses'][422]['content']["application/problem+json"] | operations["updateStudents"]['responses'][500]['content']["application/problem+json"]
-export type updateStudentTagInterestsInput = OperationInput<operations["updateStudentTagInterests"]['parameters']['path'], operations["updateStudentTagInterests"]['parameters']['query'], operations["updateStudentTagInterests"]['parameters']['header'], RequestBodyOf<operations["updateStudentTagInterests"]>, false>
-export type updateStudentTagInterestsOutput = void
-export type updateStudentTagInterestsProblem = operations["updateStudentTagInterests"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentTagInterests"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentTagInterests"]['responses'][500]['content']["application/problem+json"]
-export type updateTagsInput = OperationInput<operations["updateTags"]['parameters']['path'], operations["updateTags"]['parameters']['query'], operations["updateTags"]['parameters']['header'], RequestBodyOf<operations["updateTags"]>, true>
-export type updateTagsOutput = import('./domain.js').Tag
-export type updateTagsProblem = operations["updateTags"]['responses'][400]['content']["application/problem+json"] | operations["updateTags"]['responses'][404]['content']["application/problem+json"] | operations["updateTags"]['responses'][409]['content']["application/problem+json"] | operations["updateTags"]['responses'][422]['content']["application/problem+json"] | operations["updateTags"]['responses'][500]['content']["application/problem+json"]
+export type updateStudentTagInterestInput = OperationInput<operations["updateStudentTagInterest"]['parameters']['path'], operations["updateStudentTagInterest"]['parameters']['query'], operations["updateStudentTagInterest"]['parameters']['header'], RequestBodyOf<operations["updateStudentTagInterest"]>, false>
+export type updateStudentTagInterestOutput = void
+export type updateStudentTagInterestProblem = operations["updateStudentTagInterest"]['responses'][400]['content']["application/problem+json"] | operations["updateStudentTagInterest"]['responses'][422]['content']["application/problem+json"] | operations["updateStudentTagInterest"]['responses'][500]['content']["application/problem+json"]
+export type updateTagInput = OperationInput<operations["updateTag"]['parameters']['path'], operations["updateTag"]['parameters']['query'], operations["updateTag"]['parameters']['header'], RequestBodyOf<operations["updateTag"]>, true>
+export type updateTagOutput = import('./domain.js').Tag
+export type updateTagProblem = operations["updateTag"]['responses'][400]['content']["application/problem+json"] | operations["updateTag"]['responses'][404]['content']["application/problem+json"] | operations["updateTag"]['responses'][409]['content']["application/problem+json"] | operations["updateTag"]['responses'][422]['content']["application/problem+json"] | operations["updateTag"]['responses'][500]['content']["application/problem+json"]
 
 export interface OperationInputs {
-    createCategories: createCategoriesInput
-    createExchangeNoticeSubscriptionsUnsubscribe: createExchangeNoticeSubscriptionsUnsubscribeInput
-    createFeedbackReports: createFeedbackReportsInput
+    acceptStudentFriendship: acceptStudentFriendshipInput
+    addCourseTag: addCourseTagInput
+    createCategory: createCategoryInput
+    createFeedbackReport: createFeedbackReportInput
     createStudentAbsences: createStudentAbsencesInput
     createStudentCourseAttempts: createStudentCourseAttemptsInput
-    createStudentCourseHistory: createStudentCourseHistoryInput
     createStudentCurricula: createStudentCurriculaInput
-    createStudentFeedbackReports: createStudentFeedbackReportsInput
-    createStudentFriendships: createStudentFriendshipsInput
-    createStudentFriendshipsAccept: createStudentFriendshipsAcceptInput
-    createStudentPeriodPlan: createStudentPeriodPlanInput
+    createStudentFeedbackReport: createStudentFeedbackReportInput
+    createStudentFriendship: createStudentFriendshipInput
+    createStudentHistory: createStudentHistoryInput
     createStudentPeriodPlannings: createStudentPeriodPlanningsInput
     createStudents: createStudentsInput
-    createTags: createTagsInput
-    deleteCategories: deleteCategoriesInput
-    deleteCoursesTags: deleteCoursesTagsInput
+    createTag: createTagInput
+    deleteCategory: deleteCategoryInput
     deleteStudentAbsences: deleteStudentAbsencesInput
     deleteStudentCourseAttempts: deleteStudentCourseAttemptsInput
     deleteStudentCurricula: deleteStudentCurriculaInput
-    deleteStudentFriendships: deleteStudentFriendshipsInput
-    deleteStudentPeriodPlan: deleteStudentPeriodPlanInput
+    deleteStudentFriendship: deleteStudentFriendshipInput
     deleteStudentPeriodPlannings: deleteStudentPeriodPlanningsInput
     deleteStudents: deleteStudentsInput
-    deleteStudentTagInterests: deleteStudentTagInterestsInput
-    deleteTags: deleteTagsInput
-    getCategories: getCategoriesInput
-    getSharedPeriodPlannings: getSharedPeriodPlanningsInput
+    deleteStudentTagInterest: deleteStudentTagInterestInput
+    deleteTag: deleteTagInput
+    getCategory: getCategoryInput
+    getCurrentUser: getCurrentUserInput
+    getExchangeNoticeSubscription: getExchangeNoticeSubscriptionInput
+    getProfessorEvaluation: getProfessorEvaluationInput
+    getPublicSharedPeriodPlanning: getPublicSharedPeriodPlanningInput
     getStudentCourseAttempts: getStudentCourseAttemptsInput
     getStudentCurricula: getStudentCurriculaInput
-    getStudentPeople: getStudentPeopleInput
-    getStudentPeriodPlan: getStudentPeriodPlanInput
     getStudentPeriodPlannings: getStudentPeriodPlanningsInput
+    getStudentPerson: getStudentPersonInput
+    getStudentPublicProfile: getStudentPublicProfileInput
     getStudents: getStudentsInput
-    getStudentSharedPeriodPlannings: getStudentSharedPeriodPlanningsInput
-    getTags: getTagsInput
+    getStudentSharedPeriodPlanning: getStudentSharedPeriodPlanningInput
+    getTag: getTagInput
+    listBotGrants: listBotGrantsInput
     listBots: listBotsInput
     listCategories: listCategoriesInput
-    listCoursesTags: listCoursesTagsInput
-    listMe: listMeInput
-    listMeBotGrants: listMeBotGrantsInput
-    listSharedPeriodPlannings: listSharedPeriodPlanningsInput
+    listCourseTags: listCourseTagsInput
+    listPendingProfessorEvaluations: listPendingProfessorEvaluationsInput
+    listPublicSharedPeriodPlannings: listPublicSharedPeriodPlanningsInput
     listStudentAbsences: listStudentAbsencesInput
-    listStudentClassesProfessorsEvaluation: listStudentClassesProfessorsEvaluationInput
     listStudentCourseAttempts: listStudentCourseAttemptsInput
     listStudentCurricula: listStudentCurriculaInput
-    listStudentExchangeNoticeSubscription: listStudentExchangeNoticeSubscriptionInput
     listStudentFeedbackReports: listStudentFeedbackReportsInput
     listStudentFriendships: listStudentFriendshipsInput
     listStudentPeople: listStudentPeopleInput
-    listStudentPeriodPlan: listStudentPeriodPlanInput
     listStudentPeriodPlannings: listStudentPeriodPlanningsInput
-    listStudentProfessorEvaluationsPending: listStudentProfessorEvaluationsPendingInput
-    listStudentPublicProfile: listStudentPublicProfileInput
     listStudentSharedPeriodPlannings: listStudentSharedPeriodPlanningsInput
     listStudentTagInterests: listStudentTagInterestsInput
+    listTagCourses: listTagCoursesInput
     listTags: listTagsInput
-    listTagsCourses: listTagsCoursesInput
-    updateCategories: updateCategoriesInput
-    updateCoursesTags: updateCoursesTagsInput
-    updateMeBotGrants: updateMeBotGrantsInput
-    updateStudentClassesProfessorsEvaluation: updateStudentClassesProfessorsEvaluationInput
+    removeCourseTag: removeCourseTagInput
+    replaceBotGrant: replaceBotGrantInput
+    unsubscribeExchangeNotices: unsubscribeExchangeNoticesInput
+    updateCategory: updateCategoryInput
+    updateExchangeNoticeSubscription: updateExchangeNoticeSubscriptionInput
+    updateProfessorEvaluation: updateProfessorEvaluationInput
     updateStudentCourseAttempts: updateStudentCourseAttemptsInput
     updateStudentCurricula: updateStudentCurriculaInput
-    updateStudentExchangeNoticeSubscription: updateStudentExchangeNoticeSubscriptionInput
-    updateStudentPeriodPlan: updateStudentPeriodPlanInput
     updateStudentPeriodPlannings: updateStudentPeriodPlanningsInput
     updateStudentPublicProfile: updateStudentPublicProfileInput
     updateStudents: updateStudentsInput
-    updateStudentTagInterests: updateStudentTagInterestsInput
-    updateTags: updateTagsInput
+    updateStudentTagInterest: updateStudentTagInterestInput
+    updateTag: updateTagInput
 }
 
 export interface OperationOutputs {
-    createCategories: createCategoriesOutput
-    createExchangeNoticeSubscriptionsUnsubscribe: createExchangeNoticeSubscriptionsUnsubscribeOutput
-    createFeedbackReports: createFeedbackReportsOutput
+    acceptStudentFriendship: acceptStudentFriendshipOutput
+    addCourseTag: addCourseTagOutput
+    createCategory: createCategoryOutput
+    createFeedbackReport: createFeedbackReportOutput
     createStudentAbsences: createStudentAbsencesOutput
     createStudentCourseAttempts: createStudentCourseAttemptsOutput
-    createStudentCourseHistory: createStudentCourseHistoryOutput
     createStudentCurricula: createStudentCurriculaOutput
-    createStudentFeedbackReports: createStudentFeedbackReportsOutput
-    createStudentFriendships: createStudentFriendshipsOutput
-    createStudentFriendshipsAccept: createStudentFriendshipsAcceptOutput
-    createStudentPeriodPlan: createStudentPeriodPlanOutput
+    createStudentFeedbackReport: createStudentFeedbackReportOutput
+    createStudentFriendship: createStudentFriendshipOutput
+    createStudentHistory: createStudentHistoryOutput
     createStudentPeriodPlannings: createStudentPeriodPlanningsOutput
     createStudents: createStudentsOutput
-    createTags: createTagsOutput
-    deleteCategories: deleteCategoriesOutput
-    deleteCoursesTags: deleteCoursesTagsOutput
+    createTag: createTagOutput
+    deleteCategory: deleteCategoryOutput
     deleteStudentAbsences: deleteStudentAbsencesOutput
     deleteStudentCourseAttempts: deleteStudentCourseAttemptsOutput
     deleteStudentCurricula: deleteStudentCurriculaOutput
-    deleteStudentFriendships: deleteStudentFriendshipsOutput
-    deleteStudentPeriodPlan: deleteStudentPeriodPlanOutput
+    deleteStudentFriendship: deleteStudentFriendshipOutput
     deleteStudentPeriodPlannings: deleteStudentPeriodPlanningsOutput
     deleteStudents: deleteStudentsOutput
-    deleteStudentTagInterests: deleteStudentTagInterestsOutput
-    deleteTags: deleteTagsOutput
-    getCategories: getCategoriesOutput
-    getSharedPeriodPlannings: getSharedPeriodPlanningsOutput
+    deleteStudentTagInterest: deleteStudentTagInterestOutput
+    deleteTag: deleteTagOutput
+    getCategory: getCategoryOutput
+    getCurrentUser: getCurrentUserOutput
+    getExchangeNoticeSubscription: getExchangeNoticeSubscriptionOutput
+    getProfessorEvaluation: getProfessorEvaluationOutput
+    getPublicSharedPeriodPlanning: getPublicSharedPeriodPlanningOutput
     getStudentCourseAttempts: getStudentCourseAttemptsOutput
     getStudentCurricula: getStudentCurriculaOutput
-    getStudentPeople: getStudentPeopleOutput
-    getStudentPeriodPlan: getStudentPeriodPlanOutput
     getStudentPeriodPlannings: getStudentPeriodPlanningsOutput
+    getStudentPerson: getStudentPersonOutput
+    getStudentPublicProfile: getStudentPublicProfileOutput
     getStudents: getStudentsOutput
-    getStudentSharedPeriodPlannings: getStudentSharedPeriodPlanningsOutput
-    getTags: getTagsOutput
+    getStudentSharedPeriodPlanning: getStudentSharedPeriodPlanningOutput
+    getTag: getTagOutput
+    listBotGrants: listBotGrantsOutput
     listBots: listBotsOutput
     listCategories: listCategoriesOutput
-    listCoursesTags: listCoursesTagsOutput
-    listMe: listMeOutput
-    listMeBotGrants: listMeBotGrantsOutput
-    listSharedPeriodPlannings: listSharedPeriodPlanningsOutput
+    listCourseTags: listCourseTagsOutput
+    listPendingProfessorEvaluations: listPendingProfessorEvaluationsOutput
+    listPublicSharedPeriodPlannings: listPublicSharedPeriodPlanningsOutput
     listStudentAbsences: listStudentAbsencesOutput
-    listStudentClassesProfessorsEvaluation: listStudentClassesProfessorsEvaluationOutput
     listStudentCourseAttempts: listStudentCourseAttemptsOutput
     listStudentCurricula: listStudentCurriculaOutput
-    listStudentExchangeNoticeSubscription: listStudentExchangeNoticeSubscriptionOutput
     listStudentFeedbackReports: listStudentFeedbackReportsOutput
     listStudentFriendships: listStudentFriendshipsOutput
     listStudentPeople: listStudentPeopleOutput
-    listStudentPeriodPlan: listStudentPeriodPlanOutput
     listStudentPeriodPlannings: listStudentPeriodPlanningsOutput
-    listStudentProfessorEvaluationsPending: listStudentProfessorEvaluationsPendingOutput
-    listStudentPublicProfile: listStudentPublicProfileOutput
     listStudentSharedPeriodPlannings: listStudentSharedPeriodPlanningsOutput
     listStudentTagInterests: listStudentTagInterestsOutput
+    listTagCourses: listTagCoursesOutput
     listTags: listTagsOutput
-    listTagsCourses: listTagsCoursesOutput
-    updateCategories: updateCategoriesOutput
-    updateCoursesTags: updateCoursesTagsOutput
-    updateMeBotGrants: updateMeBotGrantsOutput
-    updateStudentClassesProfessorsEvaluation: updateStudentClassesProfessorsEvaluationOutput
+    removeCourseTag: removeCourseTagOutput
+    replaceBotGrant: replaceBotGrantOutput
+    unsubscribeExchangeNotices: unsubscribeExchangeNoticesOutput
+    updateCategory: updateCategoryOutput
+    updateExchangeNoticeSubscription: updateExchangeNoticeSubscriptionOutput
+    updateProfessorEvaluation: updateProfessorEvaluationOutput
     updateStudentCourseAttempts: updateStudentCourseAttemptsOutput
     updateStudentCurricula: updateStudentCurriculaOutput
-    updateStudentExchangeNoticeSubscription: updateStudentExchangeNoticeSubscriptionOutput
-    updateStudentPeriodPlan: updateStudentPeriodPlanOutput
     updateStudentPeriodPlannings: updateStudentPeriodPlanningsOutput
     updateStudentPublicProfile: updateStudentPublicProfileOutput
     updateStudents: updateStudentsOutput
-    updateStudentTagInterests: updateStudentTagInterestsOutput
-    updateTags: updateTagsOutput
+    updateStudentTagInterest: updateStudentTagInterestOutput
+    updateTag: updateTagOutput
 }
 
 export interface OperationProblems {
-    createCategories: createCategoriesProblem
-    createExchangeNoticeSubscriptionsUnsubscribe: createExchangeNoticeSubscriptionsUnsubscribeProblem
-    createFeedbackReports: createFeedbackReportsProblem
+    acceptStudentFriendship: acceptStudentFriendshipProblem
+    addCourseTag: addCourseTagProblem
+    createCategory: createCategoryProblem
+    createFeedbackReport: createFeedbackReportProblem
     createStudentAbsences: createStudentAbsencesProblem
     createStudentCourseAttempts: createStudentCourseAttemptsProblem
-    createStudentCourseHistory: createStudentCourseHistoryProblem
     createStudentCurricula: createStudentCurriculaProblem
-    createStudentFeedbackReports: createStudentFeedbackReportsProblem
-    createStudentFriendships: createStudentFriendshipsProblem
-    createStudentFriendshipsAccept: createStudentFriendshipsAcceptProblem
-    createStudentPeriodPlan: createStudentPeriodPlanProblem
+    createStudentFeedbackReport: createStudentFeedbackReportProblem
+    createStudentFriendship: createStudentFriendshipProblem
+    createStudentHistory: createStudentHistoryProblem
     createStudentPeriodPlannings: createStudentPeriodPlanningsProblem
     createStudents: createStudentsProblem
-    createTags: createTagsProblem
-    deleteCategories: deleteCategoriesProblem
-    deleteCoursesTags: deleteCoursesTagsProblem
+    createTag: createTagProblem
+    deleteCategory: deleteCategoryProblem
     deleteStudentAbsences: deleteStudentAbsencesProblem
     deleteStudentCourseAttempts: deleteStudentCourseAttemptsProblem
     deleteStudentCurricula: deleteStudentCurriculaProblem
-    deleteStudentFriendships: deleteStudentFriendshipsProblem
-    deleteStudentPeriodPlan: deleteStudentPeriodPlanProblem
+    deleteStudentFriendship: deleteStudentFriendshipProblem
     deleteStudentPeriodPlannings: deleteStudentPeriodPlanningsProblem
     deleteStudents: deleteStudentsProblem
-    deleteStudentTagInterests: deleteStudentTagInterestsProblem
-    deleteTags: deleteTagsProblem
-    getCategories: getCategoriesProblem
-    getSharedPeriodPlannings: getSharedPeriodPlanningsProblem
+    deleteStudentTagInterest: deleteStudentTagInterestProblem
+    deleteTag: deleteTagProblem
+    getCategory: getCategoryProblem
+    getCurrentUser: getCurrentUserProblem
+    getExchangeNoticeSubscription: getExchangeNoticeSubscriptionProblem
+    getProfessorEvaluation: getProfessorEvaluationProblem
+    getPublicSharedPeriodPlanning: getPublicSharedPeriodPlanningProblem
     getStudentCourseAttempts: getStudentCourseAttemptsProblem
     getStudentCurricula: getStudentCurriculaProblem
-    getStudentPeople: getStudentPeopleProblem
-    getStudentPeriodPlan: getStudentPeriodPlanProblem
     getStudentPeriodPlannings: getStudentPeriodPlanningsProblem
+    getStudentPerson: getStudentPersonProblem
+    getStudentPublicProfile: getStudentPublicProfileProblem
     getStudents: getStudentsProblem
-    getStudentSharedPeriodPlannings: getStudentSharedPeriodPlanningsProblem
-    getTags: getTagsProblem
+    getStudentSharedPeriodPlanning: getStudentSharedPeriodPlanningProblem
+    getTag: getTagProblem
+    listBotGrants: listBotGrantsProblem
     listBots: listBotsProblem
     listCategories: listCategoriesProblem
-    listCoursesTags: listCoursesTagsProblem
-    listMe: listMeProblem
-    listMeBotGrants: listMeBotGrantsProblem
-    listSharedPeriodPlannings: listSharedPeriodPlanningsProblem
+    listCourseTags: listCourseTagsProblem
+    listPendingProfessorEvaluations: listPendingProfessorEvaluationsProblem
+    listPublicSharedPeriodPlannings: listPublicSharedPeriodPlanningsProblem
     listStudentAbsences: listStudentAbsencesProblem
-    listStudentClassesProfessorsEvaluation: listStudentClassesProfessorsEvaluationProblem
     listStudentCourseAttempts: listStudentCourseAttemptsProblem
     listStudentCurricula: listStudentCurriculaProblem
-    listStudentExchangeNoticeSubscription: listStudentExchangeNoticeSubscriptionProblem
     listStudentFeedbackReports: listStudentFeedbackReportsProblem
     listStudentFriendships: listStudentFriendshipsProblem
     listStudentPeople: listStudentPeopleProblem
-    listStudentPeriodPlan: listStudentPeriodPlanProblem
     listStudentPeriodPlannings: listStudentPeriodPlanningsProblem
-    listStudentProfessorEvaluationsPending: listStudentProfessorEvaluationsPendingProblem
-    listStudentPublicProfile: listStudentPublicProfileProblem
     listStudentSharedPeriodPlannings: listStudentSharedPeriodPlanningsProblem
     listStudentTagInterests: listStudentTagInterestsProblem
+    listTagCourses: listTagCoursesProblem
     listTags: listTagsProblem
-    listTagsCourses: listTagsCoursesProblem
-    updateCategories: updateCategoriesProblem
-    updateCoursesTags: updateCoursesTagsProblem
-    updateMeBotGrants: updateMeBotGrantsProblem
-    updateStudentClassesProfessorsEvaluation: updateStudentClassesProfessorsEvaluationProblem
+    removeCourseTag: removeCourseTagProblem
+    replaceBotGrant: replaceBotGrantProblem
+    unsubscribeExchangeNotices: unsubscribeExchangeNoticesProblem
+    updateCategory: updateCategoryProblem
+    updateExchangeNoticeSubscription: updateExchangeNoticeSubscriptionProblem
+    updateProfessorEvaluation: updateProfessorEvaluationProblem
     updateStudentCourseAttempts: updateStudentCourseAttemptsProblem
     updateStudentCurricula: updateStudentCurriculaProblem
-    updateStudentExchangeNoticeSubscription: updateStudentExchangeNoticeSubscriptionProblem
-    updateStudentPeriodPlan: updateStudentPeriodPlanProblem
     updateStudentPeriodPlannings: updateStudentPeriodPlanningsProblem
     updateStudentPublicProfile: updateStudentPublicProfileProblem
     updateStudents: updateStudentsProblem
-    updateStudentTagInterests: updateStudentTagInterestsProblem
-    updateTags: updateTagsProblem
+    updateStudentTagInterest: updateStudentTagInterestProblem
+    updateTag: updateTagProblem
 }
 
 export const operationDefinitions = {
-    "createCategories": {
-        "operationId": "createCategories",
+    "acceptStudentFriendship": {
+        "operationId": "acceptStudentFriendship",
+        "target": "app",
+        "method": "POST",
+        "path": "/student/{sid}/friendships/{id}/accept",
+        "authentication": "required",
+        "tags": [
+            "student-social"
+        ],
+        "summary": "acceptStudentFriendship",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [
+            "sid",
+            "id"
+        ],
+        "queryParameters": [],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": null,
+        "responses": [
+            {
+                "status": 200,
+                "success": true,
+                "contents": [
+                    {
+                        "contentType": "application/json",
+                        "schema": {
+                            "$ref": "#/components/schemas/StudentFriendship"
+                        }
+                    }
+                ],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 404,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/ResourceNotFoundProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:resource-not-found"
+                ]
+            },
+            {
+                "status": 409,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/UniqueConstraintConflictProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:unique-constraint-conflict"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
+            "parameters": [],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "studentSocial",
+            "method": "acceptFriendship",
+            "action": "update",
+            "pathParameters": {
+                "sid": "studentId",
+                "id": "friendshipId"
+            }
+        },
+        "pagination": null
+    },
+    "addCourseTag": {
+        "operationId": "addCourseTag",
+        "target": "app",
+        "method": "PUT",
+        "path": "/courses/{courseId}/tags/{tagId}",
+        "authentication": "required",
+        "tags": [
+            "course-tags"
+        ],
+        "summary": "addCourseTag",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [
+            "courseId",
+            "tagId"
+        ],
+        "queryParameters": [],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": null,
+        "responses": [
+            {
+                "status": 204,
+                "success": true,
+                "contents": [],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 422,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/ReferenceNotFoundProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:reference-not-found"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
+            "parameters": [],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "courseTags",
+            "method": "add",
+            "action": "update",
+            "pathParameters": {
+                "courseId": "courseId",
+                "tagId": "tagId"
+            }
+        },
+        "pagination": null
+    },
+    "createCategory": {
+        "operationId": "createCategory",
         "target": "app",
         "method": "POST",
         "path": "/categories",
@@ -456,7 +624,7 @@ export const operationDefinitions = {
         "tags": [
             "categories"
         ],
-        "summary": "Create Categories",
+        "summary": "Create Category",
         "description": null,
         "deprecated": false,
         "pathParameters": [],
@@ -546,112 +714,13 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "categories",
-            "action": "create",
-            "pathParameters": {}
+            "method": "create",
+            "action": "create"
         },
         "pagination": null
     },
-    "createExchangeNoticeSubscriptionsUnsubscribe": {
-        "operationId": "createExchangeNoticeSubscriptionsUnsubscribe",
-        "target": "app",
-        "method": "POST",
-        "path": "/exchange-notice-subscriptions/unsubscribe",
-        "authentication": "public",
-        "tags": [
-            "exchange-notice-subscriptions"
-        ],
-        "summary": "Create ExchangeNoticeSubscriptionsUnsubscribe",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [],
-        "queryParameters": [
-            "token"
-        ],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "type": "object",
-                            "properties": {
-                                "enabled": {
-                                    "type": "boolean",
-                                    "enum": [
-                                        false
-                                    ]
-                                }
-                            },
-                            "required": [
-                                "enabled"
-                            ],
-                            "additionalProperties": false
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [
-                {
-                    "name": "token",
-                    "required": true,
-                    "description": null,
-                    "style": null,
-                    "explode": null,
-                    "schema": {
-                        "type": "string",
-                        "minLength": 1
-                    }
-                }
-            ],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "exchangeNoticeSubscriptionsUnsubscribe",
-            "action": "create",
-            "pathParameters": {}
-        },
-        "pagination": null
-    },
-    "createFeedbackReports": {
-        "operationId": "createFeedbackReports",
+    "createFeedbackReport": {
+        "operationId": "createFeedbackReport",
         "target": "app",
         "method": "POST",
         "path": "/feedback-reports",
@@ -659,7 +728,7 @@ export const operationDefinitions = {
         "tags": [
             "feedback-reports"
         ],
-        "summary": "Create FeedbackReports",
+        "summary": "Create FeedbackReport",
         "description": null,
         "deprecated": false,
         "pathParameters": [],
@@ -784,8 +853,8 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "feedbackReports",
-            "action": "create",
-            "pathParameters": {}
+            "method": "create",
+            "action": "create"
         },
         "pagination": null
     },
@@ -910,6 +979,7 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "studentAbsences",
+            "method": "create",
             "action": "create",
             "pathParameters": {
                 "sid": "studentId"
@@ -1039,119 +1109,7 @@ export const operationDefinitions = {
         "sdk": {
             "resource": "courseAttempts",
             "action": "create",
-            "pathParameters": {
-                "sid": "studentId"
-            }
-        },
-        "pagination": null
-    },
-    "createStudentCourseHistory": {
-        "operationId": "createStudentCourseHistory",
-        "target": "app",
-        "method": "POST",
-        "path": "/student/{sid}/course-history",
-        "authentication": "required",
-        "tags": [
-            "student-course-history"
-        ],
-        "summary": "Create StudentCourseHistory",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": {
-            "required": true,
-            "contentType": "application/json",
-            "schema": {
-                "$ref": "#/components/schemas/StudentHistoryImportBody"
-            }
-        },
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "$ref": "#/components/schemas/StudentHistoryImportSummary"
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 404,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/ResourceNotFoundProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:resource-not-found"
-                ]
-            },
-            {
-                "status": 422,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidStudentHistoryImportProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-student-history-import"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "studentCourseHistory",
-            "action": "create",
+            "method": "create",
             "pathParameters": {
                 "sid": "studentId"
             }
@@ -1365,7 +1323,8 @@ export const operationDefinitions = {
             "filter": null
         },
         "sdk": {
-            "resource": "studentCurricula",
+            "resource": "curricula",
+            "method": "create",
             "action": "create",
             "pathParameters": {
                 "sid": "studentId"
@@ -1373,8 +1332,8 @@ export const operationDefinitions = {
         },
         "pagination": null
     },
-    "createStudentFeedbackReports": {
-        "operationId": "createStudentFeedbackReports",
+    "createStudentFeedbackReport": {
+        "operationId": "createStudentFeedbackReport",
         "target": "app",
         "method": "POST",
         "path": "/student/{sid}/feedback-reports",
@@ -1382,7 +1341,7 @@ export const operationDefinitions = {
         "tags": [
             "feedback-reports"
         ],
-        "summary": "Create StudentFeedbackReports",
+        "summary": "Create StudentFeedbackReport",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -1493,7 +1452,8 @@ export const operationDefinitions = {
             "filter": null
         },
         "sdk": {
-            "resource": "studentFeedbackReports",
+            "resource": "feedbackReports",
+            "method": "createForStudent",
             "action": "create",
             "pathParameters": {
                 "sid": "studentId"
@@ -1501,8 +1461,8 @@ export const operationDefinitions = {
         },
         "pagination": null
     },
-    "createStudentFriendships": {
-        "operationId": "createStudentFriendships",
+    "createStudentFriendship": {
+        "operationId": "createStudentFriendship",
         "target": "app",
         "method": "POST",
         "path": "/student/{sid}/friendships",
@@ -1510,7 +1470,7 @@ export const operationDefinitions = {
         "tags": [
             "student-social"
         ],
-        "summary": "Create StudentFriendships",
+        "summary": "Create StudentFriendship",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -1616,7 +1576,8 @@ export const operationDefinitions = {
             "filter": null
         },
         "sdk": {
-            "resource": "studentFriendships",
+            "resource": "studentSocial",
+            "method": "createFriendship",
             "action": "create",
             "pathParameters": {
                 "sid": "studentId"
@@ -1624,26 +1585,31 @@ export const operationDefinitions = {
         },
         "pagination": null
     },
-    "createStudentFriendshipsAccept": {
-        "operationId": "createStudentFriendshipsAccept",
+    "createStudentHistory": {
+        "operationId": "createStudentHistory",
         "target": "app",
         "method": "POST",
-        "path": "/student/{sid}/friendships/{id}/accept",
+        "path": "/student/{sid}/course-history",
         "authentication": "required",
         "tags": [
-            "student-social"
+            "student-course-history"
         ],
-        "summary": "Create StudentFriendshipsAccept",
+        "summary": "Create StudentHistory",
         "description": null,
         "deprecated": false,
         "pathParameters": [
-            "sid",
-            "id"
+            "sid"
         ],
         "queryParameters": [],
         "headerParameters": [],
         "cookieParameters": [],
-        "requestBody": null,
+        "requestBody": {
+            "required": true,
+            "contentType": "application/json",
+            "schema": {
+                "$ref": "#/components/schemas/StudentHistoryImportBody"
+            }
+        },
         "responses": [
             {
                 "status": 200,
@@ -1652,7 +1618,7 @@ export const operationDefinitions = {
                     {
                         "contentType": "application/json",
                         "schema": {
-                            "$ref": "#/components/schemas/StudentFriendship"
+                            "$ref": "#/components/schemas/StudentHistoryImportSummary"
                         }
                     }
                 ],
@@ -1689,132 +1655,18 @@ export const operationDefinitions = {
                 ]
             },
             {
-                "status": 409,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/UniqueConstraintConflictProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:unique-constraint-conflict"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "studentFriendshipsAccept",
-            "action": "create",
-            "pathParameters": {
-                "sid": "studentId",
-                "id": "studentFriendshipsAcceptId"
-            }
-        },
-        "pagination": null
-    },
-    "createStudentPeriodPlan": {
-        "operationId": "createStudentPeriodPlan",
-        "target": "app",
-        "method": "POST",
-        "path": "/student/{sid}/period-plan",
-        "authentication": "required",
-        "tags": [
-            "period-plannings"
-        ],
-        "summary": "Create StudentPeriodPlan",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": {
-            "required": true,
-            "contentType": "application/json",
-            "schema": {
-                "$ref": "#/components/schemas/CreatePeriodPlanningInput"
-            }
-        },
-        "responses": [
-            {
-                "status": 201,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "$ref": "#/components/schemas/PeriodPlanningEntity"
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
                 "status": 422,
                 "success": false,
                 "contents": [
                     {
                         "contentType": "application/problem+json",
                         "schema": {
-                            "oneOf": [
-                                {
-                                    "$ref": "#/components/schemas/ReferenceNotFoundProblem"
-                                },
-                                {
-                                    "$ref": "#/components/schemas/InvalidPeriodPlanProblem"
-                                }
-                            ],
-                            "discriminator": {
-                                "propertyName": "type",
-                                "mapping": {
-                                    "urn:pomi:problem:reference-not-found": "#/components/schemas/ReferenceNotFoundProblem",
-                                    "urn:pomi:problem:invalid-period-plan": "#/components/schemas/InvalidPeriodPlanProblem"
-                                }
-                            }
+                            "$ref": "#/components/schemas/InvalidStudentHistoryImportProblem"
                         }
                     }
                 ],
                 "problemTypes": [
-                    "urn:pomi:problem:reference-not-found",
-                    "urn:pomi:problem:invalid-period-plan"
+                    "urn:pomi:problem:invalid-student-history-import"
                 ]
             },
             {
@@ -1838,7 +1690,8 @@ export const operationDefinitions = {
             "filter": null
         },
         "sdk": {
-            "resource": "studentPeriodPlan",
+            "resource": "studentHistory",
+            "method": "create",
             "action": "create",
             "pathParameters": {
                 "sid": "studentId"
@@ -1953,6 +1806,7 @@ export const operationDefinitions = {
         "sdk": {
             "resource": "periodPlannings",
             "action": "create",
+            "method": "create",
             "pathParameters": {
                 "sid": "studentId"
             }
@@ -2091,13 +1945,13 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "students",
-            "action": "create",
-            "pathParameters": {}
+            "method": "create",
+            "action": "create"
         },
         "pagination": null
     },
-    "createTags": {
-        "operationId": "createTags",
+    "createTag": {
+        "operationId": "createTag",
         "target": "app",
         "method": "POST",
         "path": "/tags",
@@ -2105,7 +1959,7 @@ export const operationDefinitions = {
         "tags": [
             "tags"
         ],
-        "summary": "Create Tags",
+        "summary": "Create Tag",
         "description": null,
         "deprecated": false,
         "pathParameters": [],
@@ -2223,13 +2077,13 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "tags",
-            "action": "create",
-            "pathParameters": {}
+            "method": "create",
+            "action": "create"
         },
         "pagination": null
     },
-    "deleteCategories": {
-        "operationId": "deleteCategories",
+    "deleteCategory": {
+        "operationId": "deleteCategory",
         "target": "app",
         "method": "DELETE",
         "path": "/categories/{id}",
@@ -2237,7 +2091,7 @@ export const operationDefinitions = {
         "tags": [
             "categories"
         ],
-        "summary": "Delete Categories",
+        "summary": "Delete Category",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -2321,96 +2175,10 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "categories",
+            "method": "delete",
             "action": "delete",
             "pathParameters": {
                 "id": "categoryId"
-            }
-        },
-        "pagination": null
-    },
-    "deleteCoursesTags": {
-        "operationId": "deleteCoursesTags",
-        "target": "app",
-        "method": "DELETE",
-        "path": "/courses/{courseId}/tags/{tagId}",
-        "authentication": "required",
-        "tags": [
-            "course-tags"
-        ],
-        "summary": "Delete CoursesTags",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "courseId",
-            "tagId"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 204,
-                "success": true,
-                "contents": [],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 422,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/ReferenceNotFoundProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:reference-not-found"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "coursesTags",
-            "action": "delete",
-            "pathParameters": {
-                "courseId": "courseId",
-                "tagId": "tagId"
             }
         },
         "pagination": null
@@ -2494,6 +2262,7 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "studentAbsences",
+            "method": "delete",
             "action": "delete",
             "pathParameters": {
                 "sid": "studentId",
@@ -2582,6 +2351,7 @@ export const operationDefinitions = {
         "sdk": {
             "resource": "courseAttempts",
             "action": "delete",
+            "method": "delete",
             "pathParameters": {
                 "sid": "studentId",
                 "id": "courseAttemptId"
@@ -2667,17 +2437,18 @@ export const operationDefinitions = {
             "filter": null
         },
         "sdk": {
-            "resource": "studentCurricula",
+            "resource": "curricula",
+            "method": "delete",
             "action": "delete",
             "pathParameters": {
                 "sid": "studentId",
-                "id": "studentCurriculaId"
+                "id": "curriculumId"
             }
         },
         "pagination": null
     },
-    "deleteStudentFriendships": {
-        "operationId": "deleteStudentFriendships",
+    "deleteStudentFriendship": {
+        "operationId": "deleteStudentFriendship",
         "target": "app",
         "method": "DELETE",
         "path": "/student/{sid}/friendships/{id}",
@@ -2685,7 +2456,7 @@ export const operationDefinitions = {
         "tags": [
             "student-social"
         ],
-        "summary": "Delete StudentFriendships",
+        "summary": "Delete StudentFriendship",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -2754,98 +2525,12 @@ export const operationDefinitions = {
             "filter": null
         },
         "sdk": {
-            "resource": "studentFriendships",
+            "resource": "studentSocial",
+            "method": "removeFriendship",
             "action": "delete",
             "pathParameters": {
                 "sid": "studentId",
-                "id": "studentFriendshipId"
-            }
-        },
-        "pagination": null
-    },
-    "deleteStudentPeriodPlan": {
-        "operationId": "deleteStudentPeriodPlan",
-        "target": "app",
-        "method": "DELETE",
-        "path": "/student/{sid}/period-plan/{id}",
-        "authentication": "required",
-        "tags": [
-            "period-plannings"
-        ],
-        "summary": "Delete StudentPeriodPlan",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid",
-            "id"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 204,
-                "success": true,
-                "contents": [],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 404,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/ResourceNotFoundProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:resource-not-found"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "studentPeriodPlan",
-            "action": "delete",
-            "pathParameters": {
-                "sid": "studentId",
-                "id": "studentPeriodPlanId"
+                "id": "friendshipId"
             }
         },
         "pagination": null
@@ -2930,6 +2615,7 @@ export const operationDefinitions = {
         "sdk": {
             "resource": "periodPlannings",
             "action": "delete",
+            "method": "delete",
             "pathParameters": {
                 "sid": "studentId",
                 "id": "periodPlanningId"
@@ -3046,6 +2732,7 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "students",
+            "method": "delete",
             "action": "delete",
             "pathParameters": {
                 "id": "studentId"
@@ -3053,8 +2740,8 @@ export const operationDefinitions = {
         },
         "pagination": null
     },
-    "deleteStudentTagInterests": {
-        "operationId": "deleteStudentTagInterests",
+    "deleteStudentTagInterest": {
+        "operationId": "deleteStudentTagInterest",
         "target": "app",
         "method": "DELETE",
         "path": "/student/{sid}/tag-interests/{tagId}",
@@ -3062,7 +2749,7 @@ export const operationDefinitions = {
         "tags": [
             "student-tag-interests"
         ],
-        "summary": "Delete StudentTagInterests",
+        "summary": "Delete StudentTagInterest",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -3117,6 +2804,7 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "studentTagInterests",
+            "method": "delete",
             "action": "delete",
             "pathParameters": {
                 "sid": "studentId",
@@ -3125,8 +2813,8 @@ export const operationDefinitions = {
         },
         "pagination": null
     },
-    "deleteTags": {
-        "operationId": "deleteTags",
+    "deleteTag": {
+        "operationId": "deleteTag",
         "target": "app",
         "method": "DELETE",
         "path": "/tags/{id}",
@@ -3134,7 +2822,7 @@ export const operationDefinitions = {
         "tags": [
             "tags"
         ],
-        "summary": "Delete Tags",
+        "summary": "Delete Tag",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -3218,6 +2906,7 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "tags",
+            "method": "delete",
             "action": "delete",
             "pathParameters": {
                 "id": "tagId"
@@ -3225,8 +2914,8 @@ export const operationDefinitions = {
         },
         "pagination": null
     },
-    "getCategories": {
-        "operationId": "getCategories",
+    "getCategory": {
+        "operationId": "getCategory",
         "target": "app",
         "method": "GET",
         "path": "/categories/{id}",
@@ -3234,7 +2923,7 @@ export const operationDefinitions = {
         "tags": [
             "categories"
         ],
-        "summary": "Get Categories",
+        "summary": "Get Category",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -3310,6 +2999,7 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "categories",
+            "method": "get",
             "action": "get",
             "pathParameters": {
                 "id": "categoryId"
@@ -3317,8 +3007,271 @@ export const operationDefinitions = {
         },
         "pagination": null
     },
-    "getSharedPeriodPlannings": {
-        "operationId": "getSharedPeriodPlannings",
+    "getCurrentUser": {
+        "operationId": "getCurrentUser",
+        "target": "app",
+        "method": "GET",
+        "path": "/me",
+        "authentication": "required",
+        "tags": [
+            "current-user"
+        ],
+        "summary": "Get CurrentUser",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [],
+        "queryParameters": [],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": null,
+        "responses": [
+            {
+                "status": 200,
+                "success": true,
+                "contents": [
+                    {
+                        "contentType": "application/json",
+                        "schema": {
+                            "$ref": "#/components/schemas/CurrentUserEntity"
+                        }
+                    }
+                ],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
+            "parameters": [],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "currentUser",
+            "method": "get",
+            "action": "get"
+        },
+        "pagination": null
+    },
+    "getExchangeNoticeSubscription": {
+        "operationId": "getExchangeNoticeSubscription",
+        "target": "app",
+        "method": "GET",
+        "path": "/student/{sid}/exchange-notice-subscription",
+        "authentication": "required",
+        "tags": [
+            "exchange-notice-subscriptions"
+        ],
+        "summary": "Get ExchangeNoticeSubscription",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [
+            "sid"
+        ],
+        "queryParameters": [],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": null,
+        "responses": [
+            {
+                "status": 200,
+                "success": true,
+                "contents": [
+                    {
+                        "contentType": "application/json",
+                        "schema": {
+                            "$ref": "#/components/schemas/ExchangeNoticeSubscription"
+                        }
+                    }
+                ],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
+            "parameters": [],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "exchangeNoticeSubscriptions",
+            "method": "get",
+            "action": "get",
+            "pathParameters": {
+                "sid": "studentId"
+            }
+        },
+        "pagination": null
+    },
+    "getProfessorEvaluation": {
+        "operationId": "getProfessorEvaluation",
+        "target": "app",
+        "method": "GET",
+        "path": "/student/{sid}/classes/{classId}/professors/{professorId}/evaluation",
+        "authentication": "required",
+        "tags": [
+            "professor-evaluations"
+        ],
+        "summary": "Get ProfessorEvaluation",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [
+            "sid",
+            "classId",
+            "professorId"
+        ],
+        "queryParameters": [],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": null,
+        "responses": [
+            {
+                "status": 200,
+                "success": true,
+                "contents": [
+                    {
+                        "contentType": "application/json",
+                        "schema": {
+                            "$ref": "#/components/schemas/ProfessorEvaluationEligibility"
+                        }
+                    }
+                ],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 422,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "oneOf": [
+                                {
+                                    "$ref": "#/components/schemas/ReferenceNotFoundProblem"
+                                },
+                                {
+                                    "$ref": "#/components/schemas/InvalidProfessorEvaluationProblem"
+                                }
+                            ],
+                            "discriminator": {
+                                "propertyName": "type",
+                                "mapping": {
+                                    "urn:pomi:problem:reference-not-found": "#/components/schemas/ReferenceNotFoundProblem",
+                                    "urn:pomi:problem:invalid-professor-evaluation": "#/components/schemas/InvalidProfessorEvaluationProblem"
+                                }
+                            }
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:reference-not-found",
+                    "urn:pomi:problem:invalid-professor-evaluation"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
+            "parameters": [],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "professorEvaluations",
+            "method": "get",
+            "action": "get",
+            "pathParameters": {
+                "sid": "studentId",
+                "classId": "classId",
+                "professorId": "professorId"
+            }
+        },
+        "pagination": null
+    },
+    "getPublicSharedPeriodPlanning": {
+        "operationId": "getPublicSharedPeriodPlanning",
         "target": "app",
         "method": "GET",
         "path": "/shared-period-plannings/{shareId}",
@@ -3326,7 +3279,7 @@ export const operationDefinitions = {
         "tags": [
             "shared-period-plannings"
         ],
-        "summary": "Get SharedPeriodPlannings",
+        "summary": "Get PublicSharedPeriodPlanning",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -3402,6 +3355,7 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "sharedPeriodPlannings",
+            "method": "getPublic",
             "action": "get",
             "pathParameters": {
                 "shareId": "shareId"
@@ -3496,6 +3450,7 @@ export const operationDefinitions = {
         "sdk": {
             "resource": "courseAttempts",
             "action": "get",
+            "method": "get",
             "pathParameters": {
                 "sid": "studentId",
                 "id": "courseAttemptId"
@@ -3588,199 +3543,12 @@ export const operationDefinitions = {
             "filter": null
         },
         "sdk": {
-            "resource": "studentCurricula",
+            "resource": "curricula",
+            "method": "get",
             "action": "get",
             "pathParameters": {
                 "sid": "studentId",
-                "id": "studentCurriculaId"
-            }
-        },
-        "pagination": null
-    },
-    "getStudentPeople": {
-        "operationId": "getStudentPeople",
-        "target": "app",
-        "method": "GET",
-        "path": "/student/{sid}/people/{publicId}",
-        "authentication": "required",
-        "tags": [
-            "student-social"
-        ],
-        "summary": "Get StudentPeople",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid",
-            "publicId"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "$ref": "#/components/schemas/StudentPublicPerson"
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 404,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/ResourceNotFoundProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:resource-not-found"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "studentPeople",
-            "action": "get",
-            "pathParameters": {
-                "sid": "studentId",
-                "publicId": "publicId"
-            }
-        },
-        "pagination": null
-    },
-    "getStudentPeriodPlan": {
-        "operationId": "getStudentPeriodPlan",
-        "target": "app",
-        "method": "GET",
-        "path": "/student/{sid}/period-plan/{id}",
-        "authentication": "required",
-        "tags": [
-            "period-plannings"
-        ],
-        "summary": "Get StudentPeriodPlan",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid",
-            "id"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "$ref": "#/components/schemas/PeriodPlanningEntity"
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 404,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/ResourceNotFoundProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:resource-not-found"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "studentPeriodPlan",
-            "action": "get",
-            "pathParameters": {
-                "sid": "studentId",
-                "id": "studentPeriodPlanId"
+                "id": "curriculumId"
             }
         },
         "pagination": null
@@ -3872,9 +3640,198 @@ export const operationDefinitions = {
         "sdk": {
             "resource": "periodPlannings",
             "action": "get",
+            "method": "get",
             "pathParameters": {
                 "sid": "studentId",
                 "id": "periodPlanningId"
+            }
+        },
+        "pagination": null
+    },
+    "getStudentPerson": {
+        "operationId": "getStudentPerson",
+        "target": "app",
+        "method": "GET",
+        "path": "/student/{sid}/people/{publicId}",
+        "authentication": "required",
+        "tags": [
+            "student-social"
+        ],
+        "summary": "Get StudentPerson",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [
+            "sid",
+            "publicId"
+        ],
+        "queryParameters": [],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": null,
+        "responses": [
+            {
+                "status": 200,
+                "success": true,
+                "contents": [
+                    {
+                        "contentType": "application/json",
+                        "schema": {
+                            "$ref": "#/components/schemas/StudentPublicPerson"
+                        }
+                    }
+                ],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 404,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/ResourceNotFoundProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:resource-not-found"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
+            "parameters": [],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "studentSocial",
+            "method": "getPerson",
+            "action": "get",
+            "pathParameters": {
+                "sid": "studentId",
+                "publicId": "publicId"
+            }
+        },
+        "pagination": null
+    },
+    "getStudentPublicProfile": {
+        "operationId": "getStudentPublicProfile",
+        "target": "app",
+        "method": "GET",
+        "path": "/student/{sid}/public-profile",
+        "authentication": "required",
+        "tags": [
+            "student-social"
+        ],
+        "summary": "Get StudentPublicProfile",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [
+            "sid"
+        ],
+        "queryParameters": [],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": null,
+        "responses": [
+            {
+                "status": 200,
+                "success": true,
+                "contents": [
+                    {
+                        "contentType": "application/json",
+                        "schema": {
+                            "$ref": "#/components/schemas/StudentPublicProfile"
+                        }
+                    }
+                ],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 404,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/ResourceNotFoundProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:resource-not-found"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
+            "parameters": [],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "studentSocial",
+            "method": "getProfile",
+            "action": "get",
+            "pathParameters": {
+                "sid": "studentId"
             }
         },
         "pagination": null
@@ -3964,6 +3921,7 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "students",
+            "method": "get",
             "action": "get",
             "pathParameters": {
                 "id": "studentId"
@@ -3971,8 +3929,8 @@ export const operationDefinitions = {
         },
         "pagination": null
     },
-    "getStudentSharedPeriodPlannings": {
-        "operationId": "getStudentSharedPeriodPlannings",
+    "getStudentSharedPeriodPlanning": {
+        "operationId": "getStudentSharedPeriodPlanning",
         "target": "app",
         "method": "GET",
         "path": "/student/{sid}/shared-period-plannings/{shareId}",
@@ -3980,7 +3938,7 @@ export const operationDefinitions = {
         "tags": [
             "shared-period-plannings"
         ],
-        "summary": "Get StudentSharedPeriodPlannings",
+        "summary": "Get StudentSharedPeriodPlanning",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -4056,7 +4014,8 @@ export const operationDefinitions = {
             "filter": null
         },
         "sdk": {
-            "resource": "studentSharedPeriodPlannings",
+            "resource": "sharedPeriodPlannings",
+            "method": "getForStudent",
             "action": "get",
             "pathParameters": {
                 "sid": "studentId",
@@ -4065,8 +4024,8 @@ export const operationDefinitions = {
         },
         "pagination": null
     },
-    "getTags": {
-        "operationId": "getTags",
+    "getTag": {
+        "operationId": "getTag",
         "target": "app",
         "method": "GET",
         "path": "/tags/{id}",
@@ -4074,7 +4033,7 @@ export const operationDefinitions = {
         "tags": [
             "tags"
         ],
-        "summary": "Get Tags",
+        "summary": "Get Tag",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -4150,12 +4109,173 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "tags",
+            "method": "get",
             "action": "get",
             "pathParameters": {
                 "id": "tagId"
             }
         },
         "pagination": null
+    },
+    "listBotGrants": {
+        "operationId": "listBotGrants",
+        "target": "app",
+        "method": "GET",
+        "path": "/me/bot-grants",
+        "authentication": "required",
+        "tags": [
+            "bot-grants"
+        ],
+        "summary": "List BotGrants",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [],
+        "queryParameters": [
+            "page",
+            "pageSize"
+        ],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": null,
+        "responses": [
+            {
+                "status": 200,
+                "success": true,
+                "contents": [
+                    {
+                        "contentType": "application/json",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/BotGrantEntity"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
+                        }
+                    }
+                ],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
+            "parameters": [
+                {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page, or \"all\" to return every item.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all"
+                                ]
+                            }
+                        ],
+                        "description": "Number of items per page, or \"all\" to return every item."
+                    }
+                }
+            ],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "botGrants",
+            "method": "list",
+            "action": "list"
+        },
+        "pagination": {
+            "defaultMode": "all",
+            "defaultPageSize": 20,
+            "allowAll": true
+        }
     },
     "listBots": {
         "operationId": "listBots",
@@ -4170,7 +4290,10 @@ export const operationDefinitions = {
         "description": null,
         "deprecated": false,
         "pathParameters": [],
-        "queryParameters": [],
+        "queryParameters": [
+            "page",
+            "pageSize"
+        ],
         "headerParameters": [],
         "cookieParameters": [],
         "requestBody": null,
@@ -4182,10 +4305,52 @@ export const operationDefinitions = {
                     {
                         "contentType": "application/json",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/BotIdentityEntity"
-                            }
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/BotIdentityEntity"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
                         }
                     }
                 ],
@@ -4223,15 +4388,54 @@ export const operationDefinitions = {
             }
         ],
         "query": {
-            "parameters": [],
+            "parameters": [
+                {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page, or \"all\" to return every item.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all"
+                                ]
+                            }
+                        ],
+                        "description": "Number of items per page, or \"all\" to return every item."
+                    }
+                }
+            ],
             "filter": null
         },
         "sdk": {
             "resource": "bots",
-            "action": "list",
-            "pathParameters": {}
+            "method": "list",
+            "action": "list"
         },
-        "pagination": null
+        "pagination": {
+            "defaultMode": "all",
+            "defaultPageSize": 20,
+            "allowAll": true
+        }
     },
     "listCategories": {
         "operationId": "listCategories",
@@ -4246,7 +4450,10 @@ export const operationDefinitions = {
         "description": null,
         "deprecated": false,
         "pathParameters": [],
-        "queryParameters": [],
+        "queryParameters": [
+            "page",
+            "pageSize"
+        ],
         "headerParameters": [],
         "cookieParameters": [],
         "requestBody": null,
@@ -4258,10 +4465,52 @@ export const operationDefinitions = {
                     {
                         "contentType": "application/json",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/Category"
-                            }
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Category"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
                         }
                     }
                 ],
@@ -4299,18 +4548,57 @@ export const operationDefinitions = {
             }
         ],
         "query": {
-            "parameters": [],
+            "parameters": [
+                {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page, or \"all\" to return every item.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all"
+                                ]
+                            }
+                        ],
+                        "description": "Number of items per page, or \"all\" to return every item."
+                    }
+                }
+            ],
             "filter": null
         },
         "sdk": {
             "resource": "categories",
-            "action": "list",
-            "pathParameters": {}
+            "method": "list",
+            "action": "list"
         },
-        "pagination": null
+        "pagination": {
+            "defaultMode": "all",
+            "defaultPageSize": 20,
+            "allowAll": true
+        }
     },
-    "listCoursesTags": {
-        "operationId": "listCoursesTags",
+    "listCourseTags": {
+        "operationId": "listCourseTags",
         "target": "app",
         "method": "GET",
         "path": "/courses/{courseId}/tags",
@@ -4318,13 +4606,16 @@ export const operationDefinitions = {
         "tags": [
             "course-tags"
         ],
-        "summary": "List CoursesTags",
+        "summary": "List CourseTags",
         "description": null,
         "deprecated": false,
         "pathParameters": [
             "courseId"
         ],
-        "queryParameters": [],
+        "queryParameters": [
+            "page",
+            "pageSize"
+        ],
         "headerParameters": [],
         "cookieParameters": [],
         "requestBody": null,
@@ -4336,10 +4627,52 @@ export const operationDefinitions = {
                     {
                         "contentType": "application/json",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/Tag"
-                            }
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Tag"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
                         }
                     }
                 ],
@@ -4392,32 +4725,78 @@ export const operationDefinitions = {
             }
         ],
         "query": {
-            "parameters": [],
+            "parameters": [
+                {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page, or \"all\" to return every item.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all"
+                                ]
+                            }
+                        ],
+                        "description": "Number of items per page, or \"all\" to return every item."
+                    }
+                }
+            ],
             "filter": null
         },
         "sdk": {
-            "resource": "coursesTags",
+            "resource": "courseTags",
+            "method": "listForCourse",
             "action": "list",
             "pathParameters": {
                 "courseId": "courseId"
             }
         },
-        "pagination": null
+        "pagination": {
+            "defaultMode": "all",
+            "defaultPageSize": 20,
+            "allowAll": true
+        }
     },
-    "listMe": {
-        "operationId": "listMe",
+    "listPendingProfessorEvaluations": {
+        "operationId": "listPendingProfessorEvaluations",
         "target": "app",
         "method": "GET",
-        "path": "/me",
+        "path": "/student/{sid}/professor-evaluations/pending",
         "authentication": "required",
         "tags": [
-            "current-user"
+            "professor-evaluations"
         ],
-        "summary": "List Me",
+        "summary": "List PendingProfessorEvaluations",
         "description": null,
         "deprecated": false,
-        "pathParameters": [],
-        "queryParameters": [],
+        "pathParameters": [
+            "sid"
+        ],
+        "queryParameters": [
+            "page",
+            "pageSize",
+            "filter"
+        ],
         "headerParameters": [],
         "cookieParameters": [],
         "requestBody": null,
@@ -4429,7 +4808,52 @@ export const operationDefinitions = {
                     {
                         "contentType": "application/json",
                         "schema": {
-                            "$ref": "#/components/schemas/CurrentUserEntity"
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PendingProfessorEvaluation"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
                         }
                     }
                 ],
@@ -4467,94 +4891,148 @@ export const operationDefinitions = {
             }
         ],
         "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "me",
-            "action": "list",
-            "pathParameters": {}
-        },
-        "pagination": null
-    },
-    "listMeBotGrants": {
-        "operationId": "listMeBotGrants",
-        "target": "app",
-        "method": "GET",
-        "path": "/me/bot-grants",
-        "authentication": "required",
-        "tags": [
-            "bot-grants"
-        ],
-        "summary": "List MeBotGrants",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/BotGrantEntity"
+            "parameters": [
+                {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page, or \"all\" to return every item.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all"
+                                ]
                             }
-                        }
+                        ],
+                        "description": "Number of items per page, or \"all\" to return every item."
                     }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
+                },
+                {
+                    "name": "filter",
+                    "required": true,
+                    "description": "Pending evaluation filters. Use filter[year]=2026&filter[yearPeriod]=FIRST_SEMESTER.",
+                    "style": "deepObject",
+                    "explode": true,
+                    "schema": {
+                        "additionalProperties": false,
+                        "properties": {
+                            "year": {
+                                "oneOf": [
+                                    {
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "eq": {
+                                                "type": "integer"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                ]
+                            },
+                            "yearPeriod": {
+                                "oneOf": [
+                                    {
+                                        "enum": [
+                                            "FIRST_SEMESTER",
+                                            "SECOND_SEMESTER"
+                                        ],
+                                        "type": "string"
+                                    },
+                                    {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "eq": {
+                                                "enum": [
+                                                    "FIRST_SEMESTER",
+                                                    "SECOND_SEMESTER"
+                                                ],
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                ]
+                            }
+                        },
+                        "type": "object"
+                    }
+                }
+            ],
+            "filter": {
+                "version": 1,
+                "fields": [
                     {
-                        "contentType": "application/problem+json",
+                        "path": [
+                            "year"
+                        ],
                         "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
+                            "type": "integer"
+                        },
+                        "operators": [
+                            "eq"
+                        ]
+                    },
                     {
-                        "contentType": "application/problem+json",
+                        "path": [
+                            "yearPeriod"
+                        ],
                         "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
+                            "enum": [
+                                "FIRST_SEMESTER",
+                                "SECOND_SEMESTER"
+                            ],
+                            "type": "string"
+                        },
+                        "operators": [
+                            "eq"
+                        ]
                     }
                 ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
+                "constraints": {
+                    "maxExpressions": 20,
+                    "maxDepth": 3,
+                    "maxParameters": 100
+                }
             }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
         },
         "sdk": {
-            "resource": "meBotGrants",
+            "resource": "professorEvaluations",
+            "method": "listPending",
             "action": "list",
-            "pathParameters": {}
+            "pathParameters": {
+                "sid": "studentId"
+            }
         },
-        "pagination": null
+        "pagination": {
+            "defaultMode": "all",
+            "defaultPageSize": 20,
+            "allowAll": true
+        }
     },
-    "listSharedPeriodPlannings": {
-        "operationId": "listSharedPeriodPlannings",
+    "listPublicSharedPeriodPlannings": {
+        "operationId": "listPublicSharedPeriodPlannings",
         "target": "app",
         "method": "GET",
         "path": "/shared-period-plannings",
@@ -4562,7 +5040,7 @@ export const operationDefinitions = {
         "tags": [
             "shared-period-plannings"
         ],
-        "summary": "List SharedPeriodPlannings",
+        "summary": "List PublicSharedPeriodPlannings",
         "description": null,
         "deprecated": false,
         "pathParameters": [],
@@ -4625,26 +5103,26 @@ export const operationDefinitions = {
                 {
                     "name": "page",
                     "required": false,
-                    "description": null,
+                    "description": "Page number. The first page is 1.",
                     "style": null,
                     "explode": null,
                     "schema": {
                         "type": "integer",
                         "minimum": 1,
-                        "default": 1
+                        "description": "Page number. The first page is 1."
                     }
                 },
                 {
                     "name": "pageSize",
                     "required": false,
-                    "description": null,
+                    "description": "Number of items per page.",
                     "style": null,
                     "explode": null,
                     "schema": {
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 50,
-                        "default": 20
+                        "description": "Number of items per page."
                     }
                 },
                 {
@@ -4719,16 +5197,14 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "sharedPeriodPlannings",
-            "action": "list"
+            "action": "list",
+            "method": "list"
         },
         "pagination": {
-            "strategy": "page-number",
-            "itemsField": "items",
-            "pageField": "page",
-            "pageSizeField": "pageSize",
-            "totalField": "total",
+            "defaultMode": "page",
             "defaultPageSize": 20,
-            "maxPageSize": 50
+            "maxPageSize": 50,
+            "allowAll": false
         }
     },
     "listStudentAbsences": {
@@ -4747,6 +5223,8 @@ export const operationDefinitions = {
             "sid"
         ],
         "queryParameters": [
+            "page",
+            "pageSize",
             "filter"
         ],
         "headerParameters": [],
@@ -4760,10 +5238,52 @@ export const operationDefinitions = {
                     {
                         "contentType": "application/json",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/StudentAbsence"
-                            }
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/StudentAbsence"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
                         }
                     }
                 ],
@@ -4802,6 +5322,40 @@ export const operationDefinitions = {
         ],
         "query": {
             "parameters": [
+                {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page, or \"all\" to return every item.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all"
+                                ]
+                            }
+                        ],
+                        "description": "Number of items per page, or \"all\" to return every item."
+                    }
+                },
                 {
                     "name": "filter",
                     "required": false,
@@ -4863,123 +5417,17 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "studentAbsences",
+            "method": "list",
             "action": "list",
             "pathParameters": {
                 "sid": "studentId"
             }
         },
-        "pagination": null
-    },
-    "listStudentClassesProfessorsEvaluation": {
-        "operationId": "listStudentClassesProfessorsEvaluation",
-        "target": "app",
-        "method": "GET",
-        "path": "/student/{sid}/classes/{classId}/professors/{professorId}/evaluation",
-        "authentication": "required",
-        "tags": [
-            "professor-evaluations"
-        ],
-        "summary": "List StudentClassesProfessorsEvaluation",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid",
-            "classId",
-            "professorId"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "$ref": "#/components/schemas/ProfessorEvaluationEligibility"
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 422,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "oneOf": [
-                                {
-                                    "$ref": "#/components/schemas/ReferenceNotFoundProblem"
-                                },
-                                {
-                                    "$ref": "#/components/schemas/InvalidProfessorEvaluationProblem"
-                                }
-                            ],
-                            "discriminator": {
-                                "propertyName": "type",
-                                "mapping": {
-                                    "urn:pomi:problem:reference-not-found": "#/components/schemas/ReferenceNotFoundProblem",
-                                    "urn:pomi:problem:invalid-professor-evaluation": "#/components/schemas/InvalidProfessorEvaluationProblem"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:reference-not-found",
-                    "urn:pomi:problem:invalid-professor-evaluation"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "studentClassesProfessorsEvaluation",
-            "action": "list",
-            "pathParameters": {
-                "sid": "studentId",
-                "classId": "classId",
-                "professorId": "professorId"
-            }
-        },
-        "pagination": null
+        "pagination": {
+            "defaultMode": "all",
+            "defaultPageSize": 20,
+            "allowAll": true
+        }
     },
     "listStudentCourseAttempts": {
         "operationId": "listStudentCourseAttempts",
@@ -4997,6 +5445,8 @@ export const operationDefinitions = {
             "sid"
         ],
         "queryParameters": [
+            "page",
+            "pageSize",
             "filter"
         ],
         "headerParameters": [],
@@ -5010,10 +5460,52 @@ export const operationDefinitions = {
                     {
                         "contentType": "application/json",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/StudentCourseAttempt"
-                            }
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/StudentCourseAttempt"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
                         }
                     }
                 ],
@@ -5052,6 +5544,40 @@ export const operationDefinitions = {
         ],
         "query": {
             "parameters": [
+                {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page, or \"all\" to return every item.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all"
+                                ]
+                            }
+                        ],
+                        "description": "Number of items per page, or \"all\" to return every item."
+                    }
+                },
                 {
                     "name": "filter",
                     "required": false,
@@ -5226,11 +5752,16 @@ export const operationDefinitions = {
         "sdk": {
             "resource": "courseAttempts",
             "action": "list",
+            "method": "list",
             "pathParameters": {
                 "sid": "studentId"
             }
         },
-        "pagination": null
+        "pagination": {
+            "defaultMode": "all",
+            "defaultPageSize": 20,
+            "allowAll": true
+        }
     },
     "listStudentCurricula": {
         "operationId": "listStudentCurricula",
@@ -5247,245 +5778,9 @@ export const operationDefinitions = {
         "pathParameters": [
             "sid"
         ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/CurriculumSummaryEntity"
-                            }
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "studentCurricula",
-            "action": "list",
-            "pathParameters": {
-                "sid": "studentId"
-            }
-        },
-        "pagination": null
-    },
-    "listStudentExchangeNoticeSubscription": {
-        "operationId": "listStudentExchangeNoticeSubscription",
-        "target": "app",
-        "method": "GET",
-        "path": "/student/{sid}/exchange-notice-subscription",
-        "authentication": "required",
-        "tags": [
-            "exchange-notice-subscriptions"
-        ],
-        "summary": "List StudentExchangeNoticeSubscription",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "$ref": "#/components/schemas/ExchangeNoticeSubscription"
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "studentExchangeNoticeSubscription",
-            "action": "list",
-            "pathParameters": {
-                "sid": "studentId"
-            }
-        },
-        "pagination": null
-    },
-    "listStudentFeedbackReports": {
-        "operationId": "listStudentFeedbackReports",
-        "target": "app",
-        "method": "GET",
-        "path": "/student/{sid}/feedback-reports",
-        "authentication": "required",
-        "tags": [
-            "feedback-reports"
-        ],
-        "summary": "List StudentFeedbackReports",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/FeedbackReport"
-                            }
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "studentFeedbackReports",
-            "action": "list",
-            "pathParameters": {
-                "sid": "studentId"
-            }
-        },
-        "pagination": null
-    },
-    "listStudentFriendships": {
-        "operationId": "listStudentFriendships",
-        "target": "app",
-        "method": "GET",
-        "path": "/student/{sid}/friendships",
-        "authentication": "required",
-        "tags": [
-            "student-social"
-        ],
-        "summary": "List StudentFriendships",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid"
-        ],
         "queryParameters": [
-            "filter"
+            "page",
+            "pageSize"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -5498,10 +5793,52 @@ export const operationDefinitions = {
                     {
                         "contentType": "application/json",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/StudentFriendship"
-                            }
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/CurriculumSummaryEntity"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
                         }
                     }
                 ],
@@ -5540,6 +5877,371 @@ export const operationDefinitions = {
         ],
         "query": {
             "parameters": [
+                {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page, or \"all\" to return every item.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all"
+                                ]
+                            }
+                        ],
+                        "description": "Number of items per page, or \"all\" to return every item."
+                    }
+                }
+            ],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "curricula",
+            "method": "list",
+            "action": "list",
+            "pathParameters": {
+                "sid": "studentId"
+            }
+        },
+        "pagination": {
+            "defaultMode": "all",
+            "defaultPageSize": 20,
+            "allowAll": true
+        }
+    },
+    "listStudentFeedbackReports": {
+        "operationId": "listStudentFeedbackReports",
+        "target": "app",
+        "method": "GET",
+        "path": "/student/{sid}/feedback-reports",
+        "authentication": "required",
+        "tags": [
+            "feedback-reports"
+        ],
+        "summary": "List StudentFeedbackReports",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [
+            "sid"
+        ],
+        "queryParameters": [
+            "page",
+            "pageSize"
+        ],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": null,
+        "responses": [
+            {
+                "status": 200,
+                "success": true,
+                "contents": [
+                    {
+                        "contentType": "application/json",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/FeedbackReport"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
+                        }
+                    }
+                ],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
+            "parameters": [
+                {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page, or \"all\" to return every item.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all"
+                                ]
+                            }
+                        ],
+                        "description": "Number of items per page, or \"all\" to return every item."
+                    }
+                }
+            ],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "feedbackReports",
+            "method": "listForStudent",
+            "action": "list",
+            "pathParameters": {
+                "sid": "studentId"
+            }
+        },
+        "pagination": {
+            "defaultMode": "all",
+            "defaultPageSize": 20,
+            "allowAll": true
+        }
+    },
+    "listStudentFriendships": {
+        "operationId": "listStudentFriendships",
+        "target": "app",
+        "method": "GET",
+        "path": "/student/{sid}/friendships",
+        "authentication": "required",
+        "tags": [
+            "student-social"
+        ],
+        "summary": "List StudentFriendships",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [
+            "sid"
+        ],
+        "queryParameters": [
+            "page",
+            "pageSize",
+            "filter"
+        ],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": null,
+        "responses": [
+            {
+                "status": 200,
+                "success": true,
+                "contents": [
+                    {
+                        "contentType": "application/json",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/StudentFriendship"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
+                        }
+                    }
+                ],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
+            "parameters": [
+                {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page, or \"all\" to return every item.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all"
+                                ]
+                            }
+                        ],
+                        "description": "Number of items per page, or \"all\" to return every item."
+                    }
+                },
                 {
                     "name": "filter",
                     "required": false,
@@ -5655,13 +6357,18 @@ export const operationDefinitions = {
             }
         },
         "sdk": {
-            "resource": "studentFriendships",
+            "resource": "studentSocial",
+            "method": "listFriendships",
             "action": "list",
             "pathParameters": {
                 "sid": "studentId"
             }
         },
-        "pagination": null
+        "pagination": {
+            "defaultMode": "all",
+            "defaultPageSize": 20,
+            "allowAll": true
+        }
     },
     "listStudentPeople": {
         "operationId": "listStudentPeople",
@@ -5679,9 +6386,9 @@ export const operationDefinitions = {
             "sid"
         ],
         "queryParameters": [
-            "query",
             "page",
-            "pageSize"
+            "pageSize",
+            "query"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -5734,6 +6441,31 @@ export const operationDefinitions = {
         "query": {
             "parameters": [
                 {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 50,
+                        "description": "Number of items per page."
+                    }
+                },
+                {
                     "name": "query",
                     "required": false,
                     "description": null,
@@ -5743,31 +6475,6 @@ export const operationDefinitions = {
                         "type": "string",
                         "minLength": 1
                     }
-                },
-                {
-                    "name": "page",
-                    "required": false,
-                    "description": null,
-                    "style": null,
-                    "explode": null,
-                    "schema": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "default": 1
-                    }
-                },
-                {
-                    "name": "pageSize",
-                    "required": false,
-                    "description": null,
-                    "style": null,
-                    "explode": null,
-                    "schema": {
-                        "type": "integer",
-                        "minimum": 1,
-                        "maximum": 50,
-                        "default": 20
-                    }
                 }
             ],
             "filter": null
@@ -5775,99 +6482,17 @@ export const operationDefinitions = {
         "sdk": {
             "resource": "studentPeople",
             "action": "list",
+            "method": "list",
             "pathParameters": {
                 "sid": "studentId"
             }
         },
         "pagination": {
-            "strategy": "page-number",
-            "itemsField": "items",
-            "pageField": "page",
-            "pageSizeField": "pageSize",
-            "totalField": "total",
+            "defaultMode": "page",
             "defaultPageSize": 20,
-            "maxPageSize": 50
+            "maxPageSize": 50,
+            "allowAll": false
         }
-    },
-    "listStudentPeriodPlan": {
-        "operationId": "listStudentPeriodPlan",
-        "target": "app",
-        "method": "GET",
-        "path": "/student/{sid}/period-plan",
-        "authentication": "required",
-        "tags": [
-            "period-plannings"
-        ],
-        "summary": "List StudentPeriodPlan",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/PeriodPlanningEntity"
-                            }
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "studentPeriodPlan",
-            "action": "list",
-            "pathParameters": {
-                "sid": "studentId"
-            }
-        },
-        "pagination": null
     },
     "listStudentPeriodPlannings": {
         "operationId": "listStudentPeriodPlannings",
@@ -5884,88 +6509,9 @@ export const operationDefinitions = {
         "pathParameters": [
             "sid"
         ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/PeriodPlanningEntity"
-                            }
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "periodPlannings",
-            "action": "list",
-            "pathParameters": {
-                "sid": "studentId"
-            }
-        },
-        "pagination": null
-    },
-    "listStudentProfessorEvaluationsPending": {
-        "operationId": "listStudentProfessorEvaluationsPending",
-        "target": "app",
-        "method": "GET",
-        "path": "/student/{sid}/professor-evaluations/pending",
-        "authentication": "required",
-        "tags": [
-            "professor-evaluations"
-        ],
-        "summary": "List StudentProfessorEvaluationsPending",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid"
-        ],
         "queryParameters": [
-            "filter"
+            "page",
+            "pageSize"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -5978,10 +6524,52 @@ export const operationDefinitions = {
                     {
                         "contentType": "application/json",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/PendingProfessorEvaluation"
-                            }
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PeriodPlanningEntity"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
                         }
                     }
                 ],
@@ -6021,196 +6609,55 @@ export const operationDefinitions = {
         "query": {
             "parameters": [
                 {
-                    "name": "filter",
-                    "required": true,
-                    "description": "Pending evaluation filters. Use filter[year]=2026&filter[yearPeriod]=FIRST_SEMESTER.",
-                    "style": "deepObject",
-                    "explode": true,
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
                     "schema": {
-                        "additionalProperties": false,
-                        "properties": {
-                            "year": {
-                                "oneOf": [
-                                    {
-                                        "type": "integer"
-                                    },
-                                    {
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "eq": {
-                                                "type": "integer"
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
-                                ]
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page, or \"all\" to return every item.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1
                             },
-                            "yearPeriod": {
-                                "oneOf": [
-                                    {
-                                        "enum": [
-                                            "FIRST_SEMESTER",
-                                            "SECOND_SEMESTER"
-                                        ],
-                                        "type": "string"
-                                    },
-                                    {
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "eq": {
-                                                "enum": [
-                                                    "FIRST_SEMESTER",
-                                                    "SECOND_SEMESTER"
-                                                ],
-                                                "type": "string"
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all"
                                 ]
                             }
-                        },
-                        "type": "object"
+                        ],
+                        "description": "Number of items per page, or \"all\" to return every item."
                     }
                 }
             ],
-            "filter": {
-                "version": 1,
-                "fields": [
-                    {
-                        "path": [
-                            "year"
-                        ],
-                        "schema": {
-                            "type": "integer"
-                        },
-                        "operators": [
-                            "eq"
-                        ]
-                    },
-                    {
-                        "path": [
-                            "yearPeriod"
-                        ],
-                        "schema": {
-                            "enum": [
-                                "FIRST_SEMESTER",
-                                "SECOND_SEMESTER"
-                            ],
-                            "type": "string"
-                        },
-                        "operators": [
-                            "eq"
-                        ]
-                    }
-                ],
-                "constraints": {
-                    "maxExpressions": 20,
-                    "maxDepth": 3,
-                    "maxParameters": 100
-                }
-            }
-        },
-        "sdk": {
-            "resource": "studentProfessorEvaluationsPending",
-            "action": "list",
-            "pathParameters": {
-                "sid": "studentId"
-            }
-        },
-        "pagination": null
-    },
-    "listStudentPublicProfile": {
-        "operationId": "listStudentPublicProfile",
-        "target": "app",
-        "method": "GET",
-        "path": "/student/{sid}/public-profile",
-        "authentication": "required",
-        "tags": [
-            "student-social"
-        ],
-        "summary": "List StudentPublicProfile",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "$ref": "#/components/schemas/StudentPublicProfile"
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 404,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/ResourceNotFoundProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:resource-not-found"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
             "filter": null
         },
         "sdk": {
-            "resource": "studentPublicProfile",
+            "resource": "periodPlannings",
             "action": "list",
+            "method": "list",
             "pathParameters": {
                 "sid": "studentId"
             }
         },
-        "pagination": null
+        "pagination": {
+            "defaultMode": "all",
+            "defaultPageSize": 20,
+            "allowAll": true
+        }
     },
     "listStudentSharedPeriodPlannings": {
         "operationId": "listStudentSharedPeriodPlannings",
@@ -6285,26 +6732,26 @@ export const operationDefinitions = {
                 {
                     "name": "page",
                     "required": false,
-                    "description": null,
+                    "description": "Page number. The first page is 1.",
                     "style": null,
                     "explode": null,
                     "schema": {
                         "type": "integer",
                         "minimum": 1,
-                        "default": 1
+                        "description": "Page number. The first page is 1."
                     }
                 },
                 {
                     "name": "pageSize",
                     "required": false,
-                    "description": null,
+                    "description": "Number of items per page.",
                     "style": null,
                     "explode": null,
                     "schema": {
                         "type": "integer",
                         "minimum": 1,
                         "maximum": 50,
-                        "default": 20
+                        "description": "Number of items per page."
                     }
                 },
                 {
@@ -6373,18 +6820,16 @@ export const operationDefinitions = {
         "sdk": {
             "resource": "studentSharedPeriodPlannings",
             "action": "list",
+            "method": "list",
             "pathParameters": {
                 "sid": "studentId"
             }
         },
         "pagination": {
-            "strategy": "page-number",
-            "itemsField": "items",
-            "pageField": "page",
-            "pageSizeField": "pageSize",
-            "totalField": "total",
+            "defaultMode": "page",
             "defaultPageSize": 20,
-            "maxPageSize": 50
+            "maxPageSize": 50,
+            "allowAll": false
         }
     },
     "listStudentTagInterests": {
@@ -6402,86 +6847,9 @@ export const operationDefinitions = {
         "pathParameters": [
             "sid"
         ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": null,
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/StudentTagInterest"
-                            }
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "studentTagInterests",
-            "action": "list",
-            "pathParameters": {
-                "sid": "studentId"
-            }
-        },
-        "pagination": null
-    },
-    "listTags": {
-        "operationId": "listTags",
-        "target": "app",
-        "method": "GET",
-        "path": "/tags",
-        "authentication": "public",
-        "tags": [
-            "tags"
-        ],
-        "summary": "List Tags",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [],
         "queryParameters": [
-            "filter"
+            "page",
+            "pageSize"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -6494,10 +6862,52 @@ export const operationDefinitions = {
                     {
                         "contentType": "application/json",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/components/schemas/Tag"
-                            }
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/StudentTagInterest"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
                         }
                     }
                 ],
@@ -6536,6 +6946,376 @@ export const operationDefinitions = {
         ],
         "query": {
             "parameters": [
+                {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page, or \"all\" to return every item.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all"
+                                ]
+                            }
+                        ],
+                        "description": "Number of items per page, or \"all\" to return every item."
+                    }
+                }
+            ],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "studentTagInterests",
+            "method": "list",
+            "action": "list",
+            "pathParameters": {
+                "sid": "studentId"
+            }
+        },
+        "pagination": {
+            "defaultMode": "all",
+            "defaultPageSize": 20,
+            "allowAll": true
+        }
+    },
+    "listTagCourses": {
+        "operationId": "listTagCourses",
+        "target": "app",
+        "method": "GET",
+        "path": "/tags/{id}/courses",
+        "authentication": "public",
+        "tags": [
+            "course-tags"
+        ],
+        "summary": "List TagCourses",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [
+            "id"
+        ],
+        "queryParameters": [
+            "page",
+            "pageSize"
+        ],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": null,
+        "responses": [
+            {
+                "status": 200,
+                "success": true,
+                "contents": [
+                    {
+                        "contentType": "application/json",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/TagRelatedCourse"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
+                        }
+                    }
+                ],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 404,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/ResourceNotFoundProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:resource-not-found"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
+            "parameters": [
+                {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "default": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "default": 20,
+                        "description": "Number of items per page."
+                    }
+                }
+            ],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "courseTags",
+            "method": "listCoursesForTag",
+            "action": "list",
+            "pathParameters": {
+                "id": "tagId"
+            }
+        },
+        "pagination": {
+            "defaultMode": "page",
+            "defaultPageSize": 20,
+            "allowAll": false
+        }
+    },
+    "listTags": {
+        "operationId": "listTags",
+        "target": "app",
+        "method": "GET",
+        "path": "/tags",
+        "authentication": "public",
+        "tags": [
+            "tags"
+        ],
+        "summary": "List Tags",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [],
+        "queryParameters": [
+            "page",
+            "pageSize",
+            "filter"
+        ],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": null,
+        "responses": [
+            {
+                "status": 200,
+                "success": true,
+                "contents": [
+                    {
+                        "contentType": "application/json",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "data": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Tag"
+                                    }
+                                },
+                                "quantity": {
+                                    "type": "integer"
+                                },
+                                "total": {
+                                    "type": "integer"
+                                },
+                                "_paths": {
+                                    "type": "object",
+                                    "properties": {
+                                        "firstPage": {
+                                            "type": "string"
+                                        },
+                                        "lastPage": {
+                                            "type": "string"
+                                        },
+                                        "next": {
+                                            "type": "string",
+                                            "nullable": true
+                                        },
+                                        "prev": {
+                                            "type": "string",
+                                            "nullable": true
+                                        }
+                                    },
+                                    "required": [
+                                        "firstPage",
+                                        "lastPage",
+                                        "next",
+                                        "prev"
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "data",
+                                "quantity",
+                                "total",
+                                "_paths"
+                            ]
+                        }
+                    }
+                ],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
+            "parameters": [
+                {
+                    "name": "page",
+                    "required": false,
+                    "description": "Page number. The first page is 1.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "Page number. The first page is 1."
+                    }
+                },
+                {
+                    "name": "pageSize",
+                    "required": false,
+                    "description": "Number of items per page, or \"all\" to return every item.",
+                    "style": null,
+                    "explode": null,
+                    "schema": {
+                        "anyOf": [
+                            {
+                                "type": "integer",
+                                "minimum": 1
+                            },
+                            {
+                                "type": "string",
+                                "enum": [
+                                    "all"
+                                ]
+                            }
+                        ],
+                        "description": "Number of items per page, or \"all\" to return every item."
+                    }
+                },
                 {
                     "name": "filter",
                     "required": false,
@@ -6677,90 +7457,133 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "tags",
-            "action": "list",
-            "pathParameters": {}
+            "method": "list",
+            "action": "list"
         },
-        "pagination": null
+        "pagination": {
+            "defaultMode": "all",
+            "defaultPageSize": 20,
+            "allowAll": true
+        }
     },
-    "listTagsCourses": {
-        "operationId": "listTagsCourses",
+    "removeCourseTag": {
+        "operationId": "removeCourseTag",
         "target": "app",
-        "method": "GET",
-        "path": "/tags/{id}/courses",
-        "authentication": "public",
+        "method": "DELETE",
+        "path": "/courses/{courseId}/tags/{tagId}",
+        "authentication": "required",
         "tags": [
             "course-tags"
         ],
-        "summary": "List TagsCourses",
+        "summary": "removeCourseTag",
         "description": null,
         "deprecated": false,
         "pathParameters": [
-            "id"
+            "courseId",
+            "tagId"
         ],
-        "queryParameters": [
-            "page",
-            "pageSize"
-        ],
+        "queryParameters": [],
         "headerParameters": [],
         "cookieParameters": [],
         "requestBody": null,
         "responses": [
             {
-                "status": 200,
+                "status": 204,
                 "success": true,
+                "contents": [],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
                 "contents": [
                     {
-                        "contentType": "application/json",
+                        "contentType": "application/problem+json",
                         "schema": {
-                            "type": "object",
-                            "properties": {
-                                "data": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/TagRelatedCourse"
-                                    }
-                                },
-                                "quantity": {
-                                    "type": "integer"
-                                },
-                                "total": {
-                                    "type": "integer"
-                                },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
-                                }
-                            },
-                            "required": [
-                                "data",
-                                "quantity",
-                                "total",
-                                "_paths"
-                            ]
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
                         }
                     }
                 ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 422,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/ReferenceNotFoundProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:reference-not-found"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
+            "parameters": [],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "courseTags",
+            "method": "remove",
+            "action": "delete",
+            "pathParameters": {
+                "courseId": "courseId",
+                "tagId": "tagId"
+            }
+        },
+        "pagination": null
+    },
+    "replaceBotGrant": {
+        "operationId": "replaceBotGrant",
+        "target": "app",
+        "method": "PUT",
+        "path": "/me/bot-grants/{botAuthUserId}",
+        "authentication": "required",
+        "tags": [
+            "bot-grants"
+        ],
+        "summary": "replaceBotGrant",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [
+            "botAuthUserId"
+        ],
+        "queryParameters": [],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": {
+            "required": true,
+            "contentType": "application/json",
+            "schema": {
+                "$ref": "#/components/schemas/ReplaceBotGrantBody"
+            }
+        },
+        "responses": [
+            {
+                "status": 204,
+                "success": true,
+                "contents": [],
                 "problemTypes": []
             },
             {
@@ -6810,48 +7633,120 @@ export const operationDefinitions = {
             }
         ],
         "query": {
+            "parameters": [],
+            "filter": null
+        },
+        "sdk": {
+            "resource": "botGrants",
+            "method": "replace",
+            "action": "update",
+            "pathParameters": {
+                "botAuthUserId": "botAuthUserId"
+            }
+        },
+        "pagination": null
+    },
+    "unsubscribeExchangeNotices": {
+        "operationId": "unsubscribeExchangeNotices",
+        "target": "app",
+        "method": "POST",
+        "path": "/exchange-notice-subscriptions/unsubscribe",
+        "authentication": "public",
+        "tags": [
+            "exchange-notice-subscriptions"
+        ],
+        "summary": "unsubscribeExchangeNotices",
+        "description": null,
+        "deprecated": false,
+        "pathParameters": [],
+        "queryParameters": [
+            "token"
+        ],
+        "headerParameters": [],
+        "cookieParameters": [],
+        "requestBody": null,
+        "responses": [
+            {
+                "status": 200,
+                "success": true,
+                "contents": [
+                    {
+                        "contentType": "application/json",
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "enabled": {
+                                    "type": "boolean",
+                                    "enum": [
+                                        false
+                                    ]
+                                }
+                            },
+                            "required": [
+                                "enabled"
+                            ],
+                            "additionalProperties": false
+                        }
+                    }
+                ],
+                "problemTypes": []
+            },
+            {
+                "status": 400,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InvalidRequestProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:invalid-request"
+                ]
+            },
+            {
+                "status": 500,
+                "success": false,
+                "contents": [
+                    {
+                        "contentType": "application/problem+json",
+                        "schema": {
+                            "$ref": "#/components/schemas/InternalServerErrorProblem"
+                        }
+                    }
+                ],
+                "problemTypes": [
+                    "urn:pomi:problem:internal-server-error"
+                ]
+            }
+        ],
+        "query": {
             "parameters": [
                 {
-                    "name": "page",
-                    "required": false,
+                    "name": "token",
+                    "required": true,
                     "description": null,
                     "style": null,
                     "explode": null,
                     "schema": {
-                        "type": "integer",
-                        "minimum": 1
-                    }
-                },
-                {
-                    "name": "pageSize",
-                    "required": false,
-                    "description": null,
-                    "style": null,
-                    "explode": null,
-                    "schema": {
-                        "type": "integer",
-                        "minimum": 1
+                        "type": "string",
+                        "minLength": 1
                     }
                 }
             ],
             "filter": null
         },
         "sdk": {
-            "resource": "tagsCourses",
-            "action": "list",
-            "pathParameters": {
-                "id": "tagsCourseId"
-            }
+            "resource": "exchangeNoticeSubscriptions",
+            "method": "unsubscribe",
+            "action": "update"
         },
-        "pagination": {
-            "itemsField": "data",
-            "nextField": "_paths.next",
-            "defaultPageSize": 100,
-            "maxPageSize": 1000
-        }
+        "pagination": null
     },
-    "updateCategories": {
-        "operationId": "updateCategories",
+    "updateCategory": {
+        "operationId": "updateCategory",
         "target": "app",
         "method": "PUT",
         "path": "/categories/{id}",
@@ -6859,7 +7754,7 @@ export const operationDefinitions = {
         "tags": [
             "categories"
         ],
-        "summary": "Update Categories",
+        "summary": "Update Category",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -6966,6 +7861,7 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "categories",
+            "method": "update",
             "action": "update",
             "pathParameters": {
                 "id": "categoryId"
@@ -6973,31 +7869,43 @@ export const operationDefinitions = {
         },
         "pagination": null
     },
-    "updateCoursesTags": {
-        "operationId": "updateCoursesTags",
+    "updateExchangeNoticeSubscription": {
+        "operationId": "updateExchangeNoticeSubscription",
         "target": "app",
-        "method": "PUT",
-        "path": "/courses/{courseId}/tags/{tagId}",
+        "method": "PATCH",
+        "path": "/student/{sid}/exchange-notice-subscription",
         "authentication": "required",
         "tags": [
-            "course-tags"
+            "exchange-notice-subscriptions"
         ],
-        "summary": "Update CoursesTags",
+        "summary": "Update ExchangeNoticeSubscription",
         "description": null,
         "deprecated": false,
         "pathParameters": [
-            "courseId",
-            "tagId"
+            "sid"
         ],
         "queryParameters": [],
         "headerParameters": [],
         "cookieParameters": [],
-        "requestBody": null,
+        "requestBody": {
+            "required": true,
+            "contentType": "application/json",
+            "schema": {
+                "$ref": "#/components/schemas/PatchExchangeNoticeSubscriptionBody"
+            }
+        },
         "responses": [
             {
-                "status": 204,
+                "status": 200,
                 "success": true,
-                "contents": [],
+                "contents": [
+                    {
+                        "contentType": "application/json",
+                        "schema": {
+                            "$ref": "#/components/schemas/ExchangeNoticeSubscription"
+                        }
+                    }
+                ],
                 "problemTypes": []
             },
             {
@@ -7051,108 +7959,17 @@ export const operationDefinitions = {
             "filter": null
         },
         "sdk": {
-            "resource": "coursesTags",
+            "resource": "exchangeNoticeSubscriptions",
+            "method": "update",
             "action": "update",
             "pathParameters": {
-                "courseId": "courseId",
-                "tagId": "tagId"
+                "sid": "studentId"
             }
         },
         "pagination": null
     },
-    "updateMeBotGrants": {
-        "operationId": "updateMeBotGrants",
-        "target": "app",
-        "method": "PUT",
-        "path": "/me/bot-grants/{botAuthUserId}",
-        "authentication": "required",
-        "tags": [
-            "bot-grants"
-        ],
-        "summary": "Update MeBotGrants",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "botAuthUserId"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": {
-            "required": true,
-            "contentType": "application/json",
-            "schema": {
-                "$ref": "#/components/schemas/ReplaceBotGrantBody"
-            }
-        },
-        "responses": [
-            {
-                "status": 204,
-                "success": true,
-                "contents": [],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 404,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/ResourceNotFoundProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:resource-not-found"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "meBotGrants",
-            "action": "update",
-            "pathParameters": {
-                "botAuthUserId": "botAuthUserId"
-            }
-        },
-        "pagination": null
-    },
-    "updateStudentClassesProfessorsEvaluation": {
-        "operationId": "updateStudentClassesProfessorsEvaluation",
+    "updateProfessorEvaluation": {
+        "operationId": "updateProfessorEvaluation",
         "target": "app",
         "method": "PUT",
         "path": "/student/{sid}/classes/{classId}/professors/{professorId}/evaluation",
@@ -7160,7 +7977,7 @@ export const operationDefinitions = {
         "tags": [
             "professor-evaluations"
         ],
-        "summary": "Update StudentClassesProfessorsEvaluation",
+        "summary": "Update ProfessorEvaluation",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -7258,7 +8075,8 @@ export const operationDefinitions = {
             "filter": null
         },
         "sdk": {
-            "resource": "studentClassesProfessorsEvaluation",
+            "resource": "professorEvaluations",
+            "method": "update",
             "action": "update",
             "pathParameters": {
                 "sid": "studentId",
@@ -7406,6 +8224,7 @@ export const operationDefinitions = {
         "sdk": {
             "resource": "courseAttempts",
             "action": "update",
+            "method": "update",
             "pathParameters": {
                 "sid": "studentId",
                 "id": "courseAttemptId"
@@ -7684,239 +8503,12 @@ export const operationDefinitions = {
             "filter": null
         },
         "sdk": {
-            "resource": "studentCurricula",
+            "resource": "curricula",
+            "method": "update",
             "action": "update",
             "pathParameters": {
                 "sid": "studentId",
-                "id": "studentCurriculaId"
-            }
-        },
-        "pagination": null
-    },
-    "updateStudentExchangeNoticeSubscription": {
-        "operationId": "updateStudentExchangeNoticeSubscription",
-        "target": "app",
-        "method": "PATCH",
-        "path": "/student/{sid}/exchange-notice-subscription",
-        "authentication": "required",
-        "tags": [
-            "exchange-notice-subscriptions"
-        ],
-        "summary": "Update StudentExchangeNoticeSubscription",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": {
-            "required": true,
-            "contentType": "application/json",
-            "schema": {
-                "$ref": "#/components/schemas/PatchExchangeNoticeSubscriptionBody"
-            }
-        },
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "$ref": "#/components/schemas/ExchangeNoticeSubscription"
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 422,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/ReferenceNotFoundProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:reference-not-found"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "studentExchangeNoticeSubscription",
-            "action": "update",
-            "pathParameters": {
-                "sid": "studentId"
-            }
-        },
-        "pagination": null
-    },
-    "updateStudentPeriodPlan": {
-        "operationId": "updateStudentPeriodPlan",
-        "target": "app",
-        "method": "PATCH",
-        "path": "/student/{sid}/period-plan/{id}",
-        "authentication": "required",
-        "tags": [
-            "period-plannings"
-        ],
-        "summary": "Update StudentPeriodPlan",
-        "description": null,
-        "deprecated": false,
-        "pathParameters": [
-            "sid",
-            "id"
-        ],
-        "queryParameters": [],
-        "headerParameters": [],
-        "cookieParameters": [],
-        "requestBody": {
-            "required": true,
-            "contentType": "application/json",
-            "schema": {
-                "$ref": "#/components/schemas/UpdatePeriodPlanningInput"
-            }
-        },
-        "responses": [
-            {
-                "status": 200,
-                "success": true,
-                "contents": [
-                    {
-                        "contentType": "application/json",
-                        "schema": {
-                            "$ref": "#/components/schemas/PeriodPlanningEntity"
-                        }
-                    }
-                ],
-                "problemTypes": []
-            },
-            {
-                "status": 400,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InvalidRequestProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:invalid-request"
-                ]
-            },
-            {
-                "status": 404,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/ResourceNotFoundProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:resource-not-found"
-                ]
-            },
-            {
-                "status": 422,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "oneOf": [
-                                {
-                                    "$ref": "#/components/schemas/ReferenceNotFoundProblem"
-                                },
-                                {
-                                    "$ref": "#/components/schemas/InvalidPeriodPlanProblem"
-                                }
-                            ],
-                            "discriminator": {
-                                "propertyName": "type",
-                                "mapping": {
-                                    "urn:pomi:problem:reference-not-found": "#/components/schemas/ReferenceNotFoundProblem",
-                                    "urn:pomi:problem:invalid-period-plan": "#/components/schemas/InvalidPeriodPlanProblem"
-                                }
-                            }
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:reference-not-found",
-                    "urn:pomi:problem:invalid-period-plan"
-                ]
-            },
-            {
-                "status": 500,
-                "success": false,
-                "contents": [
-                    {
-                        "contentType": "application/problem+json",
-                        "schema": {
-                            "$ref": "#/components/schemas/InternalServerErrorProblem"
-                        }
-                    }
-                ],
-                "problemTypes": [
-                    "urn:pomi:problem:internal-server-error"
-                ]
-            }
-        ],
-        "query": {
-            "parameters": [],
-            "filter": null
-        },
-        "sdk": {
-            "resource": "studentPeriodPlan",
-            "action": "update",
-            "pathParameters": {
-                "sid": "studentId",
-                "id": "studentPeriodPlanId"
+                "id": "curriculumId"
             }
         },
         "pagination": null
@@ -8044,6 +8636,7 @@ export const operationDefinitions = {
         "sdk": {
             "resource": "periodPlannings",
             "action": "update",
+            "method": "update",
             "pathParameters": {
                 "sid": "studentId",
                 "id": "periodPlanningId"
@@ -8090,12 +8683,7 @@ export const operationDefinitions = {
                         "maxLength": 280
                     },
                     "currentCoursesVisibility": {
-                        "type": "string",
-                        "enum": [
-                            "PRIVATE",
-                            "FRIENDS",
-                            "PUBLIC"
-                        ]
+                        "$ref": "#/components/schemas/StudentProfileVisibility"
                     }
                 },
                 "additionalProperties": false
@@ -8166,7 +8754,8 @@ export const operationDefinitions = {
             "filter": null
         },
         "sdk": {
-            "resource": "studentPublicProfile",
+            "resource": "studentSocial",
+            "method": "updateProfile",
             "action": "update",
             "pathParameters": {
                 "sid": "studentId"
@@ -8295,6 +8884,7 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "students",
+            "method": "update",
             "action": "update",
             "pathParameters": {
                 "id": "studentId"
@@ -8302,8 +8892,8 @@ export const operationDefinitions = {
         },
         "pagination": null
     },
-    "updateStudentTagInterests": {
-        "operationId": "updateStudentTagInterests",
+    "updateStudentTagInterest": {
+        "operationId": "updateStudentTagInterest",
         "target": "app",
         "method": "PUT",
         "path": "/student/{sid}/tag-interests/{tagId}",
@@ -8311,7 +8901,7 @@ export const operationDefinitions = {
         "tags": [
             "student-tag-interests"
         ],
-        "summary": "Update StudentTagInterests",
+        "summary": "Update StudentTagInterest",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -8381,6 +8971,7 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "studentTagInterests",
+            "method": "update",
             "action": "update",
             "pathParameters": {
                 "sid": "studentId",
@@ -8389,8 +8980,8 @@ export const operationDefinitions = {
         },
         "pagination": null
     },
-    "updateTags": {
-        "operationId": "updateTags",
+    "updateTag": {
+        "operationId": "updateTag",
         "target": "app",
         "method": "PUT",
         "path": "/tags/{id}",
@@ -8398,7 +8989,7 @@ export const operationDefinitions = {
         "tags": [
             "tags"
         ],
-        "summary": "Update Tags",
+        "summary": "Update Tag",
         "description": null,
         "deprecated": false,
         "pathParameters": [
@@ -8533,6 +9124,7 @@ export const operationDefinitions = {
         },
         "sdk": {
             "resource": "tags",
+            "method": "update",
             "action": "update",
             "pathParameters": {
                 "id": "tagId"

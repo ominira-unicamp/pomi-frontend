@@ -7,7 +7,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listMe"];
+        get: operations["getCurrentUser"];
         put?: never;
         post?: never;
         delete?: never;
@@ -41,7 +41,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listMeBotGrants"];
+        get: operations["listBotGrants"];
         put?: never;
         post?: never;
         delete?: never;
@@ -59,7 +59,7 @@ export interface paths {
         };
         get?: never;
 
-        put: operations["updateMeBotGrants"];
+        put: operations["replaceBotGrant"];
         post?: never;
         delete?: never;
         options?: never;
@@ -222,7 +222,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listSharedPeriodPlannings"];
+        get: operations["listPublicSharedPeriodPlannings"];
         put?: never;
         post?: never;
         delete?: never;
@@ -239,7 +239,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["getSharedPeriodPlannings"];
+        get: operations["getPublicSharedPeriodPlanning"];
         put?: never;
         post?: never;
         delete?: never;
@@ -273,7 +273,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["getStudentSharedPeriodPlannings"];
+        get: operations["getStudentSharedPeriodPlanning"];
         put?: never;
         post?: never;
         delete?: never;
@@ -290,9 +290,9 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listStudentClassesProfessorsEvaluation"];
+        get: operations["getProfessorEvaluation"];
 
-        put: operations["updateStudentClassesProfessorsEvaluation"];
+        put: operations["updateProfessorEvaluation"];
         post?: never;
         delete?: never;
         options?: never;
@@ -308,7 +308,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listStudentProfessorEvaluationsPending"];
+        get: operations["listPendingProfessorEvaluations"];
         put?: never;
         post?: never;
         delete?: never;
@@ -364,7 +364,7 @@ export interface paths {
         get?: never;
         put?: never;
 
-        post: operations["createStudentCourseHistory"];
+        post: operations["createStudentHistory"];
         delete?: never;
         options?: never;
         head?: never;
@@ -414,7 +414,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listStudentPublicProfile"];
+        get: operations["getStudentPublicProfile"];
         put?: never;
         post?: never;
         delete?: never;
@@ -449,7 +449,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["getStudentPeople"];
+        get: operations["getStudentPerson"];
         put?: never;
         post?: never;
         delete?: never;
@@ -469,7 +469,7 @@ export interface paths {
         get: operations["listStudentFriendships"];
         put?: never;
 
-        post: operations["createStudentFriendships"];
+        post: operations["createStudentFriendship"];
         delete?: never;
         options?: never;
         head?: never;
@@ -486,7 +486,7 @@ export interface paths {
         get?: never;
         put?: never;
 
-        post: operations["createStudentFriendshipsAccept"];
+        post: operations["acceptStudentFriendship"];
         delete?: never;
         options?: never;
         head?: never;
@@ -504,7 +504,7 @@ export interface paths {
         put?: never;
         post?: never;
 
-        delete: operations["deleteStudentFriendships"];
+        delete: operations["deleteStudentFriendship"];
         options?: never;
         head?: never;
         patch?: never;
@@ -520,7 +520,7 @@ export interface paths {
         get?: never;
         put?: never;
 
-        post: operations["createFeedbackReports"];
+        post: operations["createFeedbackReport"];
         delete?: never;
         options?: never;
         head?: never;
@@ -538,7 +538,7 @@ export interface paths {
         get: operations["listStudentFeedbackReports"];
         put?: never;
 
-        post: operations["createStudentFeedbackReports"];
+        post: operations["createStudentFeedbackReport"];
         delete?: never;
         options?: never;
         head?: never;
@@ -553,14 +553,14 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listStudentExchangeNoticeSubscription"];
+        get: operations["getExchangeNoticeSubscription"];
         put?: never;
         post?: never;
         delete?: never;
         options?: never;
         head?: never;
 
-        patch: operations["updateStudentExchangeNoticeSubscription"];
+        patch: operations["updateExchangeNoticeSubscription"];
         trace?: never;
     };
     "/exchange-notice-subscriptions/unsubscribe": {
@@ -573,7 +573,7 @@ export interface paths {
         get?: never;
         put?: never;
 
-        post: operations["createExchangeNoticeSubscriptionsUnsubscribe"];
+        post: operations["unsubscribeExchangeNotices"];
         delete?: never;
         options?: never;
         head?: never;
@@ -591,7 +591,7 @@ export interface paths {
         get: operations["listCategories"];
         put?: never;
 
-        post: operations["createCategories"];
+        post: operations["createCategory"];
         delete?: never;
         options?: never;
         head?: never;
@@ -606,12 +606,12 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["getCategories"];
+        get: operations["getCategory"];
 
-        put: operations["updateCategories"];
+        put: operations["updateCategory"];
         post?: never;
 
-        delete: operations["deleteCategories"];
+        delete: operations["deleteCategory"];
         options?: never;
         head?: never;
         patch?: never;
@@ -628,7 +628,7 @@ export interface paths {
         get: operations["listTags"];
         put?: never;
 
-        post: operations["createTags"];
+        post: operations["createTag"];
         delete?: never;
         options?: never;
         head?: never;
@@ -643,12 +643,12 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["getTags"];
+        get: operations["getTag"];
 
-        put: operations["updateTags"];
+        put: operations["updateTag"];
         post?: never;
 
-        delete: operations["deleteTags"];
+        delete: operations["deleteTag"];
         options?: never;
         head?: never;
         patch?: never;
@@ -662,7 +662,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listCoursesTags"];
+        get: operations["listCourseTags"];
         put?: never;
         post?: never;
         delete?: never;
@@ -679,7 +679,7 @@ export interface paths {
             cookie?: never;
         };
 
-        get: operations["listTagsCourses"];
+        get: operations["listTagCourses"];
         put?: never;
         post?: never;
         delete?: never;
@@ -697,10 +697,10 @@ export interface paths {
         };
         get?: never;
 
-        put: operations["updateCoursesTags"];
+        put: operations["addCourseTag"];
         post?: never;
 
-        delete: operations["deleteCoursesTags"];
+        delete: operations["removeCourseTag"];
         options?: never;
         head?: never;
         patch?: never;
@@ -732,10 +732,10 @@ export interface paths {
         };
         get?: never;
 
-        put: operations["updateStudentTagInterests"];
+        put: operations["updateStudentTagInterest"];
         post?: never;
 
-        delete: operations["deleteStudentTagInterests"];
+        delete: operations["deleteStudentTagInterest"];
         options?: never;
         head?: never;
         patch?: never;
@@ -788,8 +788,7 @@ export interface components {
             id: number;
             studentId: number;
             botAuthUserId: number;
-
-            capability: "STUDENT_PROFILE_READ" | "STUDENT_PROFILE_WRITE" | "STUDENT_HISTORY_READ" | "STUDENT_HISTORY_WRITE" | "STUDENT_PLANNING_READ" | "STUDENT_PLANNING_WRITE" | "STUDENT_SOCIAL_READ" | "STUDENT_SOCIAL_WRITE" | "STUDENT_FEEDBACK_READ" | "STUDENT_FEEDBACK_WRITE";
+            capability: components["schemas"]["StudentCapability"];
 
             createdAt: string | null;
 
@@ -799,6 +798,8 @@ export interface components {
                 displayName: string | null;
             };
         };
+
+        StudentCapability: "STUDENT_PROFILE_READ" | "STUDENT_PROFILE_WRITE" | "STUDENT_HISTORY_READ" | "STUDENT_HISTORY_WRITE" | "STUDENT_PLANNING_READ" | "STUDENT_PLANNING_WRITE" | "STUDENT_SOCIAL_READ" | "STUDENT_SOCIAL_WRITE" | "STUDENT_FEEDBACK_READ" | "STUDENT_FEEDBACK_WRITE";
         ResourceNotFoundProblem: {
 
             type: "urn:pomi:problem:resource-not-found";
@@ -810,7 +811,7 @@ export interface components {
             instance?: string;
         };
         ReplaceBotGrantBody: {
-            capabilities: ("STUDENT_PROFILE_READ" | "STUDENT_PROFILE_WRITE" | "STUDENT_HISTORY_READ" | "STUDENT_HISTORY_WRITE" | "STUDENT_PLANNING_READ" | "STUDENT_PLANNING_WRITE" | "STUDENT_SOCIAL_READ" | "STUDENT_SOCIAL_WRITE" | "STUDENT_FEEDBACK_READ" | "STUDENT_FEEDBACK_WRITE")[];
+            capabilities: components["schemas"]["StudentCapability"][];
         };
         StudentEntity: {
             id: number;
@@ -956,51 +957,17 @@ export interface components {
             name: string;
             studyPeriodId: number;
             studyPeriodYear: number;
-
-            studyPeriodYearPeriod: "SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER";
+            studyPeriodYearPeriod: components["schemas"]["YearPeriod"];
             curriculumId: number | null;
-
-            visibility: "PRIVATE" | "FRIENDS" | "PUBLIC";
+            visibility: components["schemas"]["PlanningVisibility"];
 
             shareId: string;
-            guide: {
-
-                mode: "CURRICULUM" | "PROGRAM" | "NONE";
-
-                curriculumSource: "SAVED" | "SUGGESTION" | null;
-                curriculumId: number | null;
-                suggestionId: number | null;
-                suggestionCatalogProgramId?: number | null;
-                catalogProgramId: number | null;
-                specializationId: number | null;
-                languageId: number | null;
-                manualCourseIds: number[];
-            };
+            guide: components["schemas"]["PlanningGuide"];
 
             createdAt: string;
 
             updatedAt: string;
-            classes: {
-                id: number;
-                code: string;
-                reservations: number[];
-                courseId: number;
-                courseCode: string;
-                courseCredits: number;
-                professors: {
-                    id: number;
-                    name: string;
-                }[];
-                classSchedules: {
-                    id: number;
-
-                    dayOfWeek: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
-                    start: string;
-                    end: string;
-                    roomId: number;
-                    roomCode: string;
-                }[];
-            }[];
+            classes: components["schemas"]["PeriodPlanningClass"][];
             _paths: {
                 self: string;
                 student: string;
@@ -1008,6 +975,49 @@ export interface components {
                 curriculum: string | null;
             };
         };
+
+        YearPeriod: "SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER";
+
+        PlanningVisibility: "PRIVATE" | "FRIENDS" | "PUBLIC";
+        PlanningGuide: {
+            mode: components["schemas"]["PlanningGuideMode"];
+            curriculumSource: components["schemas"]["PlanningCurriculumSource"];
+            curriculumId: number | null;
+            suggestionId: number | null;
+            suggestionCatalogProgramId?: number | null;
+            catalogProgramId: number | null;
+            specializationId: number | null;
+            languageId: number | null;
+            manualCourseIds: number[];
+        };
+
+        PlanningGuideMode: "CURRICULUM" | "PROGRAM" | "NONE";
+
+        PlanningCurriculumSource: "SAVED" | "SUGGESTION" | null;
+        PeriodPlanningClass: {
+            id: number;
+            code: string;
+            reservations: number[];
+            courseId: number;
+            courseCode: string;
+            courseCredits: number;
+            professors: components["schemas"]["PeriodPlanningProfessor"][];
+            classSchedules: components["schemas"]["PeriodPlanningSchedule"][];
+        };
+        PeriodPlanningProfessor: {
+            id: number;
+            name: string;
+        };
+        PeriodPlanningSchedule: {
+            id: number;
+            dayOfWeek: components["schemas"]["DayOfWeek"];
+            start: string;
+            end: string;
+            roomId: number;
+            roomCode: string;
+        };
+
+        DayOfWeek: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
         InvalidPeriodPlanProblem: {
 
             type: "urn:pomi:problem:invalid-period-plan";
@@ -1027,39 +1037,14 @@ export interface components {
             name?: string;
             studyPeriodId: number;
             curriculumId?: number | null;
-            guide?: {
-
-                mode: "CURRICULUM" | "PROGRAM" | "NONE";
-
-                curriculumSource: "SAVED" | "SUGGESTION" | null;
-                curriculumId: number | null;
-                suggestionId: number | null;
-                suggestionCatalogProgramId?: number | null;
-                catalogProgramId: number | null;
-                specializationId: number | null;
-                languageId: number | null;
-                manualCourseIds: number[];
-            };
+            guide?: components["schemas"]["PlanningGuide"];
             classes: number[];
         };
         UpdatePeriodPlanningInput: {
             name?: string;
-
-            visibility?: "PRIVATE" | "FRIENDS" | "PUBLIC";
+            visibility?: components["schemas"]["PlanningVisibility"];
             curriculumId?: number | null;
-            guide?: {
-
-                mode: "CURRICULUM" | "PROGRAM" | "NONE";
-
-                curriculumSource: "SAVED" | "SUGGESTION" | null;
-                curriculumId: number | null;
-                suggestionId: number | null;
-                suggestionCatalogProgramId?: number | null;
-                catalogProgramId: number | null;
-                specializationId: number | null;
-                languageId: number | null;
-                manualCourseIds: number[];
-            };
+            guide?: components["schemas"]["PlanningGuide"];
             classes?: {
                 set?: number[];
                 add?: number[];
@@ -1067,52 +1052,37 @@ export interface components {
             };
         };
         SharedPeriodPlanningPage: {
-            items: components["schemas"]["SharedPeriodPlanning"][];
-            page: number;
-            pageSize: number;
+            data: components["schemas"]["SharedPeriodPlanning"][];
+            quantity: number;
             total: number;
+            _paths: {
+                firstPage: string;
+                lastPage: string;
+                next: string | null;
+                prev: string | null;
+            };
         };
         SharedPeriodPlanning: {
 
             shareId: string;
             name: string;
-
-            visibility: "FRIENDS" | "PUBLIC";
+            visibility: components["schemas"]["SharedPlanningVisibility"];
             studyPeriodId: number;
             studyPeriodYear: number;
-
-            studyPeriodYearPeriod: "SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER";
+            studyPeriodYearPeriod: components["schemas"]["YearPeriod"];
             owner: {
 
                 publicId: string;
                 displayName: string;
             } | null;
-            classes: {
-                id: number;
-                code: string;
-                reservations: number[];
-                courseId: number;
-                courseCode: string;
-                courseCredits: number;
-                professors: {
-                    id: number;
-                    name: string;
-                }[];
-                classSchedules: {
-                    id: number;
-
-                    dayOfWeek: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
-                    start: string;
-                    end: string;
-                    roomId: number;
-                    roomCode: string;
-                }[];
-            }[];
+            classes: components["schemas"]["PeriodPlanningClass"][];
 
             createdAt: string;
 
             updatedAt: string;
         };
+
+        SharedPlanningVisibility: "FRIENDS" | "PUBLIC";
         ProfessorEvaluationEligibility: {
             eligible: boolean;
             evaluation: components["schemas"]["ProfessorEvaluation"];
@@ -1174,39 +1144,16 @@ export interface components {
             courseId: number;
             studyPeriodId: number | null;
             classId: number | null;
-
-            evaluationMode: "GRADE_AND_ATTENDANCE" | "ATTENDANCE" | "CONCEPT";
-
-            status: "ENROLLED" | "DROPPED" | "APPROVED" | "FAILED_BY_GRADE" | "APPROVED_BY_ATTENDANCE" | "APPROVED_BY_PROFICIENCY" | "FAILED_BY_ATTENDANCE" | "SUFFICIENT" | "INSUFFICIENT";
+            evaluationMode: components["schemas"]["CourseEvaluationMode"];
+            status: components["schemas"]["StudentCourseAttemptStatus"];
             grade: number | null;
 
             createdAt: string;
 
             updatedAt: string;
-            course: {
-                id: number;
-                code: string;
-                name: string;
-                credits: number;
-                unit: {
-                    id: number;
-                    code: string;
-                } | null;
-            };
-            studyPeriod: {
-                id: number;
-                year: number;
-
-                yearPeriod: "SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER";
-            } | null;
-            class: {
-                id: number;
-                code: string;
-                professors: {
-                    id: number;
-                    name: string;
-                }[];
-            } | null;
+            course: components["schemas"]["CourseAttemptCourse"];
+            studyPeriod: components["schemas"]["CourseAttemptStudyPeriod"];
+            class: components["schemas"]["CourseAttemptClass"];
             _paths: {
                 self: string;
                 student: string;
@@ -1215,6 +1162,33 @@ export interface components {
                 class: string | null;
             };
         };
+
+        CourseEvaluationMode: "GRADE_AND_ATTENDANCE" | "ATTENDANCE" | "CONCEPT";
+
+        StudentCourseAttemptStatus: "ENROLLED" | "DROPPED" | "APPROVED" | "FAILED_BY_GRADE" | "APPROVED_BY_ATTENDANCE" | "APPROVED_BY_PROFICIENCY" | "FAILED_BY_ATTENDANCE" | "SUFFICIENT" | "INSUFFICIENT";
+        CourseAttemptCourse: {
+            id: number;
+            code: string;
+            name: string;
+            credits: number;
+            unit: {
+                id: number;
+                code: string;
+            } | null;
+        };
+        CourseAttemptStudyPeriod: {
+            id: number;
+            year: number;
+            yearPeriod: components["schemas"]["YearPeriod"];
+        } | null;
+        CourseAttemptClass: {
+            id: number;
+            code: string;
+            professors: {
+                id: number;
+                name: string;
+            }[];
+        } | null;
         InvalidStudentCourseAttemptProblem: {
 
             type: "urn:pomi:problem:invalid-student-course-attempt";
@@ -1234,19 +1208,15 @@ export interface components {
             courseId: number;
             studyPeriodId?: number | null;
             classId?: number | null;
-
-            evaluationMode?: "GRADE_AND_ATTENDANCE" | "ATTENDANCE" | "CONCEPT";
-
-            status: "ENROLLED" | "DROPPED" | "APPROVED" | "FAILED_BY_GRADE" | "APPROVED_BY_ATTENDANCE" | "APPROVED_BY_PROFICIENCY" | "FAILED_BY_ATTENDANCE" | "SUFFICIENT" | "INSUFFICIENT";
+            evaluationMode?: components["schemas"]["CourseEvaluationMode"];
+            status: components["schemas"]["StudentCourseAttemptStatus"];
             grade?: number | null;
         };
         UpdateStudentCourseAttemptInput: {
             studyPeriodId?: number | null;
             classId?: number | null;
-
-            evaluationMode?: "GRADE_AND_ATTENDANCE" | "ATTENDANCE" | "CONCEPT";
-
-            status?: "ENROLLED" | "DROPPED" | "APPROVED" | "FAILED_BY_GRADE" | "APPROVED_BY_ATTENDANCE" | "APPROVED_BY_PROFICIENCY" | "FAILED_BY_ATTENDANCE" | "SUFFICIENT" | "INSUFFICIENT";
+            evaluationMode?: components["schemas"]["CourseEvaluationMode"];
+            status?: components["schemas"]["StudentCourseAttemptStatus"];
             grade?: number | null;
         };
         StudentHistoryImportSummary: {
@@ -1285,19 +1255,19 @@ export interface components {
             };
             semesters: {
                 year: number;
-
-                yearPeriod: "SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER";
+                yearPeriod: components["schemas"]["YearPeriod"];
                 courses: {
                     code: string;
                     name: string;
                     grade: number | null;
                     workloadHours: number | null;
                     credits: number | null;
-
-                    status: "APPROVED" | "APPROVED_BY_ATTENDANCE" | "APPROVED_BY_PROFICIENCY" | "DROPPED" | "FAILED_BY_ATTENDANCE" | "SUFFICIENT";
+                    status: components["schemas"]["HistoryCourseStatus"];
                 }[];
             }[];
         };
+
+        HistoryCourseStatus: "APPROVED" | "APPROVED_BY_ATTENDANCE" | "APPROVED_BY_PROFICIENCY" | "DROPPED" | "FAILED_BY_ATTENDANCE" | "SUFFICIENT";
         StudentAbsence: {
             id: number;
             studentCourseAttemptId: number;
@@ -1310,14 +1280,12 @@ export interface components {
             updatedAt: string;
             studyPeriodId: number;
             studyPeriodYear: number;
-
-            studyPeriodYearPeriod: "SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER";
+            studyPeriodYearPeriod: components["schemas"]["YearPeriod"];
             courseId: number;
             courseCode: string;
             classId: number;
             classCode: string;
-
-            dayOfWeek: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+            dayOfWeek: components["schemas"]["DayOfWeek"];
             start: string;
             end: string;
             _paths: {
@@ -1373,8 +1341,7 @@ export interface components {
                 self: string;
             };
             enabled: boolean;
-
-            currentCoursesVisibility: "PRIVATE" | "FRIENDS" | "PUBLIC";
+            currentCoursesVisibility: components["schemas"]["StudentProfileVisibility"];
         };
         StudentCurrentCourse: {
             courseCode: string;
@@ -1382,18 +1349,24 @@ export interface components {
             classCode: string | null;
             schedules: {
                 id: number;
-
-                dayOfWeek: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
+                dayOfWeek: components["schemas"]["DayOfWeek"];
                 start: string;
                 end: string;
                 roomCode: string;
             }[];
         };
+
+        StudentProfileVisibility: "PRIVATE" | "FRIENDS" | "PUBLIC";
         StudentPeoplePage: {
-            items: components["schemas"]["StudentPublicPerson"][];
-            page: number;
-            pageSize: number;
+            data: components["schemas"]["StudentPublicPerson"][];
+            quantity: number;
             total: number;
+            _paths: {
+                firstPage: string;
+                lastPage: string;
+                next: string | null;
+                prev: string | null;
+            };
         };
         StudentPublicPerson: {
 
@@ -1420,10 +1393,8 @@ export interface components {
         };
         StudentFriendship: {
             id: number;
-
-            status: "PENDING" | "ACCEPTED";
-
-            direction: "INCOMING" | "OUTGOING" | "NONE";
+            status: components["schemas"]["StudentFriendshipStatus"];
+            direction: components["schemas"]["StudentFriendshipDirection"];
             friend: components["schemas"]["StudentPublicPerson"];
 
             createdAt: string;
@@ -1434,6 +1405,10 @@ export interface components {
                 friend: string;
             };
         };
+
+        StudentFriendshipStatus: "PENDING" | "ACCEPTED";
+
+        StudentFriendshipDirection: "INCOMING" | "OUTGOING" | "NONE";
         FeedbackReportAccepted: {
 
             createdAt: string;
@@ -1465,38 +1440,39 @@ export interface components {
             retryAfterSeconds: number;
         };
         CreateFeedbackReportBody: {
-
-            kind: "BUG" | "SUGGESTION" | "DATA_ISSUE";
+            kind: components["schemas"]["FeedbackKind"];
             target: components["schemas"]["FeedbackReportTarget"];
             title: string;
             description: string;
             sourcePath?: string;
         };
+
+        FeedbackKind: "BUG" | "SUGGESTION" | "DATA_ISSUE";
         FeedbackReportTarget: {
 
             type: "GENERAL";
         } | {
 
             type: "FEATURE";
-
-            featureKey: "home" | "curriculum-planner" | "semester-planner" | "course-situation" | "agenda" | "social" | "academic-data";
+            featureKey: components["schemas"]["FeedbackFeatureKey"];
         } | {
 
             type: "ACADEMIC_RESOURCE";
-
-            academicResourceType: "COURSE" | "CATALOG_COURSE" | "CATALOG_PROGRAM" | "CURRICULUM_SUGGESTION" | "CLASS" | "CLASS_SCHEDULE" | "STUDY_PERIOD" | "DAILY_MENU" | "CALENDAR_EVENT";
+            academicResourceType: components["schemas"]["FeedbackAcademicResourceType"];
             academicResourceId: number;
         };
+
+        FeedbackFeatureKey: "home" | "curriculum-planner" | "semester-planner" | "course-situation" | "agenda" | "social" | "academic-data";
+
+        FeedbackAcademicResourceType: "COURSE" | "CATALOG_COURSE" | "CATALOG_PROGRAM" | "CURRICULUM_SUGGESTION" | "CLASS" | "CLASS_SCHEDULE" | "STUDY_PERIOD" | "DAILY_MENU" | "CALENDAR_EVENT";
         FeedbackReport: {
             id: number;
-
-            kind: "BUG" | "SUGGESTION" | "DATA_ISSUE";
+            kind: components["schemas"]["FeedbackKind"];
             target: components["schemas"]["FeedbackReportTarget"];
             title: string;
             description: string;
             sourcePath: string | null;
-
-            status: "OPEN" | "IN_PROGRESS" | "CLOSED";
+            status: components["schemas"]["FeedbackStatus"];
             adminMessage: string | null;
             reporterStudentId: number | null;
 
@@ -1504,6 +1480,8 @@ export interface components {
 
             updatedAt: string;
         };
+
+        FeedbackStatus: "OPEN" | "IN_PROGRESS" | "CLOSED";
         ExchangeNoticeSubscription: {
             studentId: number;
             enabled: boolean;
@@ -1544,7 +1522,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    listMe: {
+    getCurrentUser: {
         parameters: {
             query?: never;
             header?: never;
@@ -1584,7 +1562,12 @@ export interface operations {
     };
     listBots: {
         parameters: {
-            query?: never;
+            query?: {
+
+                page?: number;
+
+                pageSize?: number | "all";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1597,7 +1580,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BotIdentityEntity"][];
+                    "application/json": {
+                        data: components["schemas"]["BotIdentityEntity"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -1620,9 +1613,14 @@ export interface operations {
             };
         };
     };
-    listMeBotGrants: {
+    listBotGrants: {
         parameters: {
-            query?: never;
+            query?: {
+
+                page?: number;
+
+                pageSize?: number | "all";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1635,7 +1633,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["BotGrantEntity"][];
+                    "application/json": {
+                        data: components["schemas"]["BotGrantEntity"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -1658,7 +1666,7 @@ export interface operations {
             };
         };
     };
-    updateMeBotGrants: {
+    replaceBotGrant: {
         parameters: {
             query?: never;
             header?: never;
@@ -2150,7 +2158,12 @@ export interface operations {
     };
     listStudentCurricula: {
         parameters: {
-            query?: never;
+            query?: {
+
+                page?: number;
+
+                pageSize?: number | "all";
+            };
             header?: never;
             path: {
                 sid: number;
@@ -2165,7 +2178,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["CurriculumSummaryEntity"][];
+                    "application/json": {
+                        data: components["schemas"]["CurriculumSummaryEntity"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -2426,7 +2449,12 @@ export interface operations {
     };
     listStudentPeriodPlannings: {
         parameters: {
-            query?: never;
+            query?: {
+
+                page?: number;
+
+                pageSize?: number | "all";
+            };
             header?: never;
             path: {
                 sid: number;
@@ -2441,7 +2469,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PeriodPlanningEntity"][];
+                    "application/json": {
+                        data: components["schemas"]["PeriodPlanningEntity"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -2682,7 +2720,12 @@ export interface operations {
     };
     listStudentPeriodPlan: {
         parameters: {
-            query?: never;
+            query?: {
+
+                page?: number;
+
+                pageSize?: number | "all";
+            };
             header?: never;
             path: {
                 sid: number;
@@ -2697,7 +2740,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PeriodPlanningEntity"][];
+                    "application/json": {
+                        data: components["schemas"]["PeriodPlanningEntity"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -2774,10 +2827,12 @@ export interface operations {
             };
         };
     };
-    listSharedPeriodPlannings: {
+    listPublicSharedPeriodPlannings: {
         parameters: {
             query?: {
+
                 page?: number;
+
                 pageSize?: number;
                 query?: string;
 
@@ -2823,7 +2878,7 @@ export interface operations {
             };
         };
     };
-    getSharedPeriodPlannings: {
+    getPublicSharedPeriodPlanning: {
         parameters: {
             query?: never;
             header?: never;
@@ -2875,7 +2930,9 @@ export interface operations {
     listStudentSharedPeriodPlannings: {
         parameters: {
             query?: {
+
                 page?: number;
+
                 pageSize?: number;
 
                 filter?: {
@@ -2923,7 +2980,7 @@ export interface operations {
             };
         };
     };
-    getStudentSharedPeriodPlannings: {
+    getStudentSharedPeriodPlanning: {
         parameters: {
             query?: never;
             header?: never;
@@ -2973,7 +3030,7 @@ export interface operations {
             };
         };
     };
-    listStudentClassesProfessorsEvaluation: {
+    getProfessorEvaluation: {
         parameters: {
             query?: never;
             header?: never;
@@ -3024,7 +3081,7 @@ export interface operations {
             };
         };
     };
-    updateStudentClassesProfessorsEvaluation: {
+    updateProfessorEvaluation: {
         parameters: {
             query?: never;
             header?: never;
@@ -3080,9 +3137,13 @@ export interface operations {
             };
         };
     };
-    listStudentProfessorEvaluationsPending: {
+    listPendingProfessorEvaluations: {
         parameters: {
             query: {
+
+                page?: number;
+
+                pageSize?: number | "all";
 
                 filter: {
                     year?: number | {
@@ -3108,7 +3169,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["PendingProfessorEvaluation"][];
+                    "application/json": {
+                        data: components["schemas"]["PendingProfessorEvaluation"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -3306,6 +3377,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     status?: ("ENROLLED" | "DROPPED" | "APPROVED" | "FAILED_BY_GRADE" | "APPROVED_BY_ATTENDANCE" | "APPROVED_BY_PROFICIENCY" | "FAILED_BY_ATTENDANCE" | "SUFFICIENT" | "INSUFFICIENT") | {
 
@@ -3336,7 +3411,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StudentCourseAttempt"][];
+                    "application/json": {
+                        data: components["schemas"]["StudentCourseAttempt"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -3422,7 +3507,7 @@ export interface operations {
             };
         };
     };
-    createStudentCourseHistory: {
+    createStudentHistory: {
         parameters: {
             query?: never;
             header?: never;
@@ -3489,6 +3574,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     courseAttemptId?: number | {
                         eq?: number;
@@ -3510,7 +3599,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StudentAbsence"][];
+                    "application/json": {
+                        data: components["schemas"]["StudentAbsence"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -3644,7 +3743,7 @@ export interface operations {
             };
         };
     };
-    listStudentPublicProfile: {
+    getStudentPublicProfile: {
         parameters: {
             query?: never;
             header?: never;
@@ -3709,8 +3808,7 @@ export interface operations {
                     enabled?: boolean;
                     displayName?: string | null;
                     bio?: string | null;
-
-                    currentCoursesVisibility?: "PRIVATE" | "FRIENDS" | "PUBLIC";
+                    currentCoursesVisibility?: components["schemas"]["StudentProfileVisibility"];
                 };
             };
         };
@@ -3756,9 +3854,11 @@ export interface operations {
     listStudentPeople: {
         parameters: {
             query?: {
-                query?: string;
+
                 page?: number;
+
                 pageSize?: number;
+                query?: string;
             };
             header?: never;
             path: {
@@ -3797,7 +3897,7 @@ export interface operations {
             };
         };
     };
-    getStudentPeople: {
+    getStudentPerson: {
         parameters: {
             query?: never;
             header?: never;
@@ -3851,6 +3951,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     status?: ("PENDING" | "ACCEPTED") | {
 
@@ -3877,7 +3981,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StudentFriendship"][];
+                    "application/json": {
+                        data: components["schemas"]["StudentFriendship"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -3900,7 +4014,7 @@ export interface operations {
             };
         };
     };
-    createStudentFriendships: {
+    createStudentFriendship: {
         parameters: {
             query?: never;
             header?: never;
@@ -3966,7 +4080,7 @@ export interface operations {
             };
         };
     };
-    createStudentFriendshipsAccept: {
+    acceptStudentFriendship: {
         parameters: {
             query?: never;
             header?: never;
@@ -4025,7 +4139,7 @@ export interface operations {
             };
         };
     };
-    deleteStudentFriendships: {
+    deleteStudentFriendship: {
         parameters: {
             query?: never;
             header?: never;
@@ -4073,7 +4187,7 @@ export interface operations {
             };
         };
     };
-    createFeedbackReports: {
+    createFeedbackReport: {
         parameters: {
             query?: never;
             header?: never;
@@ -4145,7 +4259,12 @@ export interface operations {
     };
     listStudentFeedbackReports: {
         parameters: {
-            query?: never;
+            query?: {
+
+                page?: number;
+
+                pageSize?: number | "all";
+            };
             header?: never;
             path: {
                 sid: number;
@@ -4160,7 +4279,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["FeedbackReport"][];
+                    "application/json": {
+                        data: components["schemas"]["FeedbackReport"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -4183,7 +4312,7 @@ export interface operations {
             };
         };
     };
-    createStudentFeedbackReports: {
+    createStudentFeedbackReport: {
         parameters: {
             query?: never;
             header?: never;
@@ -4246,7 +4375,7 @@ export interface operations {
             };
         };
     };
-    listStudentExchangeNoticeSubscription: {
+    getExchangeNoticeSubscription: {
         parameters: {
             query?: never;
             header?: never;
@@ -4286,7 +4415,7 @@ export interface operations {
             };
         };
     };
-    updateStudentExchangeNoticeSubscription: {
+    updateExchangeNoticeSubscription: {
         parameters: {
             query?: never;
             header?: never;
@@ -4340,7 +4469,7 @@ export interface operations {
             };
         };
     };
-    createExchangeNoticeSubscriptionsUnsubscribe: {
+    unsubscribeExchangeNotices: {
         parameters: {
             query: {
                 token: string;
@@ -4385,7 +4514,12 @@ export interface operations {
     };
     listCategories: {
         parameters: {
-            query?: never;
+            query?: {
+
+                page?: number;
+
+                pageSize?: number | "all";
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4398,7 +4532,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Category"][];
+                    "application/json": {
+                        data: components["schemas"]["Category"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -4421,7 +4565,7 @@ export interface operations {
             };
         };
     };
-    createCategories: {
+    createCategory: {
         parameters: {
             query?: never;
             header?: never;
@@ -4475,7 +4619,7 @@ export interface operations {
             };
         };
     };
-    getCategories: {
+    getCategory: {
         parameters: {
             query?: never;
             header?: never;
@@ -4524,7 +4668,7 @@ export interface operations {
             };
         };
     };
-    updateCategories: {
+    updateCategory: {
         parameters: {
             query?: never;
             header?: never;
@@ -4589,7 +4733,7 @@ export interface operations {
             };
         };
     };
-    deleteCategories: {
+    deleteCategory: {
         parameters: {
             query?: never;
             header?: never;
@@ -4649,6 +4793,10 @@ export interface operations {
         parameters: {
             query?: {
 
+                page?: number;
+
+                pageSize?: number | "all";
+
                 filter?: {
                     categoryId?: number | {
                         eq?: number;
@@ -4676,7 +4824,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Tag"][];
+                    "application/json": {
+                        data: components["schemas"]["Tag"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -4699,7 +4857,7 @@ export interface operations {
             };
         };
     };
-    createTags: {
+    createTag: {
         parameters: {
             query?: never;
             header?: never;
@@ -4764,7 +4922,7 @@ export interface operations {
             };
         };
     };
-    getTags: {
+    getTag: {
         parameters: {
             query?: never;
             header?: never;
@@ -4813,7 +4971,7 @@ export interface operations {
             };
         };
     };
-    updateTags: {
+    updateTag: {
         parameters: {
             query?: never;
             header?: never;
@@ -4889,7 +5047,7 @@ export interface operations {
             };
         };
     };
-    deleteTags: {
+    deleteTag: {
         parameters: {
             query?: never;
             header?: never;
@@ -4945,9 +5103,14 @@ export interface operations {
             };
         };
     };
-    listCoursesTags: {
+    listCourseTags: {
         parameters: {
-            query?: never;
+            query?: {
+
+                page?: number;
+
+                pageSize?: number | "all";
+            };
             header?: never;
             path: {
                 courseId: number;
@@ -4962,7 +5125,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Tag"][];
+                    "application/json": {
+                        data: components["schemas"]["Tag"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -4994,10 +5167,12 @@ export interface operations {
             };
         };
     };
-    listTagsCourses: {
+    listTagCourses: {
         parameters: {
             query?: {
+
                 page?: number;
+
                 pageSize?: number;
             };
             header?: never;
@@ -5056,7 +5231,7 @@ export interface operations {
             };
         };
     };
-    updateCoursesTags: {
+    addCourseTag: {
         parameters: {
             query?: never;
             header?: never;
@@ -5104,7 +5279,7 @@ export interface operations {
             };
         };
     };
-    deleteCoursesTags: {
+    removeCourseTag: {
         parameters: {
             query?: never;
             header?: never;
@@ -5154,7 +5329,12 @@ export interface operations {
     };
     listStudentTagInterests: {
         parameters: {
-            query?: never;
+            query?: {
+
+                page?: number;
+
+                pageSize?: number | "all";
+            };
             header?: never;
             path: {
                 sid: number;
@@ -5169,7 +5349,17 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["StudentTagInterest"][];
+                    "application/json": {
+                        data: components["schemas"]["StudentTagInterest"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
                 };
             };
 
@@ -5192,7 +5382,7 @@ export interface operations {
             };
         };
     };
-    updateStudentTagInterests: {
+    updateStudentTagInterest: {
         parameters: {
             query?: never;
             header?: never;
@@ -5240,7 +5430,7 @@ export interface operations {
             };
         };
     };
-    deleteStudentTagInterests: {
+    deleteStudentTagInterest: {
         parameters: {
             query?: never;
             header?: never;

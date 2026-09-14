@@ -40,7 +40,7 @@ export function createSharedPeriodPlanningApi(client: PomiSdkClient) {
     ownerPublicId: string,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentSharedPeriodPlannings.list(
+    const pages = client.app.studentSharedPeriodPlannings.pages(
       studentId,
       {
         page: 1,
@@ -48,18 +48,23 @@ export function createSharedPeriodPlanningApi(client: PomiSdkClient) {
         filter: { ownerPublicId },
       },
       { getAccessToken },
-    ) as Promise<
-      Readonly<{
-        items: ReadonlyArray<SharedPeriodPlanning>
-        page: number
-        pageSize: number
-        total: number
-      }>
-    >
+    )
+    const items: Array<GeneratedSharedPeriodPlanning> = []
+    let total = 0
+    for await (const page of pages) {
+      items.push(...page.data)
+      total = page.total
+    }
+    return {
+      items,
+      page: 1,
+      pageSize: 20,
+      total,
+    }
   }
 
   async function getPublicSharedPeriodPlanning(shareId: string) {
-    return client.app.sharedPeriodPlannings.get(shareId)
+    return client.app.sharedPeriodPlannings.getPublic(shareId)
   }
 
   async function getSharedPeriodPlanningForStudent(
@@ -67,7 +72,7 @@ export function createSharedPeriodPlanningApi(client: PomiSdkClient) {
     shareId: string,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentSharedPeriodPlannings.get(studentId, shareId, {
+    return client.app.sharedPeriodPlannings.getForStudent(studentId, shareId, {
       getAccessToken,
     })
   }

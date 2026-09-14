@@ -11,7 +11,14 @@ describe('exchange API', () => {
   afterEach(() => vi.unstubAllGlobals())
 
   it('loads notices from the public data API without authentication', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(Response.json([]))
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json({
+        data: [],
+        quantity: 0,
+        total: 0,
+        _paths: { next: null },
+      }),
+    )
     vi.stubGlobal('fetch', fetchMock)
 
     await listExchangeNotices()

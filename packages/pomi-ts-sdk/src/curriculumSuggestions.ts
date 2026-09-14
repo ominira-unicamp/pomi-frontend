@@ -6,7 +6,7 @@ export type CurriculumSuggestionApiType = CurriculumSuggestionApi['type']
 
 export function createCurriculumSuggestionsApi(client: PomiSdkClient) {
   function listCurriculumSuggestions(catalogProgramId: number) {
-    return client.data.curriculumSuggestions.list({
+    return client.data.curriculumSuggestions.listAll({
       filter: { catalogProgramId },
     })
   }

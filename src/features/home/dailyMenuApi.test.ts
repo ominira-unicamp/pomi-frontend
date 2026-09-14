@@ -6,7 +6,17 @@ describe('daily menu API', () => {
   it('loads menus for the requested date range', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(new Response(JSON.stringify([]), { status: 200 }))
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            data: [],
+            quantity: 0,
+            total: 0,
+            _paths: { next: null },
+          }),
+          { status: 200 },
+        ),
+      )
 
     await expect(listDailyMenus('2026-08-21')).resolves.toEqual([])
 

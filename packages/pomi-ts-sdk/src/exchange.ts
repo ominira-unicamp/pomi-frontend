@@ -1,39 +1,48 @@
 import type {
-  ExchangeNoticeFile as GeneratedExchangeNoticeFile,
-  ExchangeNotice as GeneratedExchangeNotice,
   ExchangePlaceListItem,
+  ExchangeNotice as GeneratedExchangeNotice,
+  ExchangeNoticeFile as GeneratedExchangeNoticeFile,
 } from './generated/data/domain.js'
 import type { ExchangeNoticeSubscription as GeneratedExchangeNoticeSubscription } from './generated/app/domain.js'
-import type { updateStudentExchangeNoticeSubscriptionInput } from './generated/app/operations.js'
+import type { updateExchangeNoticeSubscriptionInput } from './generated/app/operations.js'
 import type { PomiSdkClient } from './generatedClient.js'
 
+type WithoutPaths<T> = T extends ReadonlyArray<infer Item>
+  ? ReadonlyArray<WithoutPaths<Item>>
+  : T extends object
+    ? {
+        readonly [Key in keyof T as Key extends '_paths'
+          ? never
+          : Key]: WithoutPaths<T[Key]>
+      }
+    : T
+
 export type ExchangePlace = ExchangePlaceListItem
-export type ExchangeNotice = GeneratedExchangeNotice
+export type ExchangeNotice = WithoutPaths<GeneratedExchangeNotice>
 export type ExchangeNoticeFile = GeneratedExchangeNoticeFile
 export type ExchangeNoticeSubscription = GeneratedExchangeNoticeSubscription
 
 export type ExchangeNoticeSubscriptionPatch = Readonly<
-  Omit<updateStudentExchangeNoticeSubscriptionInput['body'], 'placeIds'> & {
+  Omit<updateExchangeNoticeSubscriptionInput['body'], 'placeIds'> & {
     placeIds?: ReadonlyArray<number>
   }
 >
 
 export function createExchangeApi(client: PomiSdkClient) {
   function listExchangeNotices() {
-    return client.data.exchangeNotices.list({})
+    return client.data.exchangeNotices.listAll({})
   }
 
   function listExchangePlaces() {
-    return client.data.exchangePlaces.list({})
+    return client.data.exchangePlaces.listAll({})
   }
 
   function getExchangeNoticeSubscription(
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentExchangeNoticeSubscription.list(
+    return client.app.exchangeNoticeSubscriptions.get(
       studentId,
-      {},
       {
         getAccessToken,
       },
@@ -45,7 +54,7 @@ export function createExchangeApi(client: PomiSdkClient) {
     patch: ExchangeNoticeSubscriptionPatch,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentExchangeNoticeSubscription.update(
+    return client.app.exchangeNoticeSubscriptions.update(
       studentId,
       {
         ...patch,

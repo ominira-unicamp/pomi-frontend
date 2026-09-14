@@ -6,9 +6,9 @@ import type {
   Class as GeneratedClass,
   ClassSchedule as GeneratedClassSchedule,
   Course as GeneratedCourse,
-  Page,
   StudyPeriod as GeneratedStudyPeriod,
   Unit as GeneratedUnit,
+  Page,
 } from './generated/data/domain.js'
 import type {
   Category as GeneratedCategory,
@@ -39,23 +39,23 @@ export function createCourseCatalogApi(client: PomiSdkClient) {
   }
 
   function listUnits() {
-    return client.data.units.list({})
+    return client.data.units.listAll({})
   }
 
   function listCatalogs() {
-    return client.data.catalogs.list({})
+    return client.data.catalogs.listAll({})
   }
 
   function listCategories() {
-    return client.app.categories.list({})
+    return client.app.categories.listAll({})
   }
 
   function listTags() {
-    return client.app.tags.list({})
+    return client.app.tags.listAll({})
   }
 
   function listCourseTags(courseId: number) {
-    return client.app.coursesTags.list(courseId, {})
+    return client.app.courseTags.listForCourseAll(courseId, {})
   }
 
   function listCatalogCourses(courseId: number) {
@@ -67,7 +67,7 @@ export function createCourseCatalogApi(client: PomiSdkClient) {
   }
 
   function listStudyPeriods() {
-    return client.data.studyPeriods.list({})
+    return client.data.studyPeriods.listAll({})
   }
 
   function listCourseClasses(courseId: number, studyPeriodId: number) {
@@ -90,7 +90,7 @@ export function createCourseCatalogApi(client: PomiSdkClient) {
   }
 
   function listRelatedCourses(tagId: number) {
-    return client.app.tagsCourses.listAll(tagId, {
+    return client.app.courseTags.listCoursesForTagAll(tagId, {
       page: 1,
       pageSize: 100,
     })
@@ -101,14 +101,14 @@ export function createCourseCatalogApi(client: PomiSdkClient) {
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    await client.app.coursesTags.update(courseId, tagId, { getAccessToken })
+    await client.app.courseTags.add(courseId, tagId, { getAccessToken })
   }
   async function deleteCourseTag(
     courseId: number,
     tagId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    await client.app.coursesTags.delete(courseId, tagId, { getAccessToken })
+    await client.app.courseTags.remove(courseId, tagId, { getAccessToken })
   }
 
   return {

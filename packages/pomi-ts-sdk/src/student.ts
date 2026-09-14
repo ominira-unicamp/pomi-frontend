@@ -1,25 +1,37 @@
 import type {
+  CourseAttemptClass,
+  CourseAttemptStudyPeriod,
+  PendingProfessorEvaluation as GeneratedPendingProfessorEvaluation,
   ProfessorEvaluation as GeneratedProfessorEvaluation,
   ProfessorEvaluationEligibility as GeneratedProfessorEvaluationEligibility,
-  PendingProfessorEvaluation as GeneratedPendingProfessorEvaluation,
   Student as GeneratedStudent,
+  StudentCourseAttempt as GeneratedStudentCourseAttempt,
   StudentHistoryImportSummary as GeneratedStudentHistoryImportSummary,
-  StudentCourseAttemptTransport,
 } from './generated/app/domain.js'
 import type {
   createStudentCourseAttemptsInput,
-  createStudentCourseHistoryInput,
+  createStudentHistoryInput,
   createStudentsInput,
-  updateStudentClassesProfessorsEvaluationInput,
+  updateProfessorEvaluationInput,
   updateStudentCourseAttemptsInput,
   updateStudentsInput,
 } from './generated/app/operations.js'
 import type {
-  ClassSchedule as GeneratedClassSchedule,
   ClassTransport,
+  ClassSchedule as GeneratedClassSchedule,
   StudyPeriod as GeneratedStudyPeriod,
 } from './generated/data/domain.js'
 import type { PomiSdkClient } from './generatedClient.js'
+
+type WithoutPaths<T> = T extends ReadonlyArray<infer Item>
+  ? ReadonlyArray<WithoutPaths<Item>>
+  : T extends object
+    ? {
+        readonly [Key in keyof T as Key extends '_paths'
+          ? never
+          : Key]: WithoutPaths<T[Key]>
+      }
+    : T
 
 export type StudentProfile = Pick<
   GeneratedStudent,
@@ -31,7 +43,20 @@ export type StudentProfile = Pick<
   | 'entryYear'
   | 'languageId'
 >
-export type StudentCourseAttempt = StudentCourseAttemptTransport
+export type StudentCourseAttempt = Omit<
+  WithoutPaths<GeneratedStudentCourseAttempt>,
+  'studyPeriod' | 'class'
+> & {
+  studyPeriod: WithoutPaths<CourseAttemptStudyPeriod> | null
+  class: WithoutPaths<CourseAttemptClass> | null
+  _paths: Readonly<{
+    self: string
+    student: string
+    course: string
+    studyPeriod: string | null
+    class: string | null
+  }>
+}
 export type StudentCourseEvaluationMode = StudentCourseAttempt['evaluationMode']
 export type StudentCourseAttemptStatus = StudentCourseAttempt['status']
 type DeepReadonly<T> = T extends (...args: Array<never>) => unknown
@@ -42,7 +67,7 @@ type DeepReadonly<T> = T extends (...args: Array<never>) => unknown
       ? { readonly [Key in keyof T]: DeepReadonly<T[Key]> }
       : T
 export type StudentHistoryImport = DeepReadonly<
-  createStudentCourseHistoryInput['body']
+  createStudentHistoryInput['body']
 >
 export type StudentHistoryImportSummary =
   Readonly<GeneratedStudentHistoryImportSummary>
@@ -50,7 +75,7 @@ export type ProfessorEvaluation = GeneratedProfessorEvaluation
 export type ProfessorEvaluationEligibility =
   GeneratedProfessorEvaluationEligibility
 export type PendingProfessorEvaluation = GeneratedPendingProfessorEvaluation
-export type StudentCourseAttemptClass = ClassTransport
+export type StudentCourseAttemptClass = WithoutPaths<ClassTransport>
 export type StudentClassSchedule = Pick<
   GeneratedClassSchedule,
   | 'id'
@@ -69,7 +94,7 @@ export type StudyPeriodYearPeriod = StudyPeriod['yearPeriod']
 type StudentProfilePatch = Readonly<Partial<updateStudentsInput['body']>>
 type ProfessorEvaluationBody = Readonly<
   Pick<
-    updateStudentClassesProfessorsEvaluationInput['body'],
+    updateProfessorEvaluationInput['body'],
     'wouldTakeAgain' | 'fairness' | 'clarity' | 'difficulty'
   >
 >
@@ -80,7 +105,7 @@ type PatchAttemptBody = Readonly<updateStudentCourseAttemptsInput['body']>
 
 export function createStudentApi(client: PomiSdkClient) {
   function getCurrentStudent(getAccessToken: () => Promise<string>) {
-    return client.app.me.list({}, { getAccessToken })
+    return client.app.currentUser.get({ getAccessToken })
   }
 
   function registerCurrentStudent(
@@ -111,7 +136,7 @@ export function createStudentApi(client: PomiSdkClient) {
   }
 
   function listStudyPeriods() {
-    return client.data.studyPeriods.list({})
+    return client.data.studyPeriods.listAll({})
   }
 
   async function getCourseEvaluationForStudyPeriod(
@@ -151,11 +176,11 @@ export function createStudentApi(client: PomiSdkClient) {
     studentId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.courseAttempts.list(
+    return client.app.courseAttempts.listAll(
       studentId,
       {},
       { getAccessToken },
-    ) as Promise<ReadonlyArray<StudentCourseAttempt>>
+    ) as unknown as Promise<ReadonlyArray<StudentCourseAttempt>>
   }
 
   function importStudentHistory(
@@ -163,9 +188,9 @@ export function createStudentApi(client: PomiSdkClient) {
     body: StudentHistoryImport,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentCourseHistory.create(
+    return client.app.studentHistory.create(
       studentId,
-      body as createStudentCourseHistoryInput['body'],
+      body as createStudentHistoryInput['body'],
       { getAccessToken },
     )
   }
@@ -176,11 +201,10 @@ export function createStudentApi(client: PomiSdkClient) {
     professorId: number,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentClassesProfessorsEvaluation.list(
+    return client.app.professorEvaluations.get(
       studentId,
       classId,
       professorId,
-      {},
       { getAccessToken },
     )
   }
@@ -192,7 +216,7 @@ export function createStudentApi(client: PomiSdkClient) {
     body: ProfessorEvaluationBody,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentClassesProfessorsEvaluation.update(
+    return client.app.professorEvaluations.update(
       studentId,
       classId,
       professorId,
@@ -209,7 +233,7 @@ export function createStudentApi(client: PomiSdkClient) {
     }>,
     getAccessToken: () => Promise<string>,
   ) {
-    return client.app.studentProfessorEvaluationsPending.list(
+    return client.app.professorEvaluations.listAll(
       studentId,
       { filter: period },
       { getAccessToken },
@@ -223,7 +247,7 @@ export function createStudentApi(client: PomiSdkClient) {
   ) {
     return client.app.courseAttempts.create(studentId, body, {
       getAccessToken,
-    }) as Promise<StudentCourseAttempt>
+    })
   }
 
   function patchStudentCourseAttempt(
@@ -234,7 +258,7 @@ export function createStudentApi(client: PomiSdkClient) {
   ) {
     return client.app.courseAttempts.update(studentId, attemptId, body, {
       getAccessToken,
-    }) as Promise<StudentCourseAttempt>
+    })
   }
 
   async function deleteStudentCourseAttempt(

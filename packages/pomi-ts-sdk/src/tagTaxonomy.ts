@@ -1,8 +1,8 @@
-import type { createTagsInput } from './generated/app/operations.js'
+import type { createTagInput } from './generated/app/operations.js'
 import type {
   Category as GeneratedCategory,
-  Tag as GeneratedTag,
   TagRelatedCourse as GeneratedRelatedCourse,
+  Tag as GeneratedTag,
 } from './generated/app/domain.js'
 import type { PomiSdkClient } from './generatedClient.js'
 
@@ -10,19 +10,19 @@ export type Category = GeneratedCategory
 export type Tag = GeneratedTag
 export type RelatedCourse = GeneratedRelatedCourse
 
-export type TagInput = Readonly<createTagsInput['body']>
+export type TagInput = Readonly<createTagInput['body']>
 
 export function createTagTaxonomyApi(client: PomiSdkClient) {
   function listCategories() {
-    return client.app.categories.list({})
+    return client.app.categories.listAll({})
   }
 
   function listTags() {
-    return client.app.tags.list({})
+    return client.app.tags.listAll({})
   }
 
   function listRelatedCourses(tagId: number) {
-    return client.app.tagsCourses.listAll(tagId, { page: 1, pageSize: 100 })
+    return client.app.courseTags.listCoursesForTagAll(tagId, { page: 1, pageSize: 100 })
   }
 
   function createCategory(name: string, getAccessToken: () => Promise<string>) {

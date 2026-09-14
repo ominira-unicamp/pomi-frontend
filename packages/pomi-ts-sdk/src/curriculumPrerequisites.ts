@@ -8,7 +8,7 @@ export type CurriculumApiPrerequisiteItem =
 
 export function createCurriculumPrerequisitesApi(client: PomiSdkClient) {
   function listCatalogs(year: number) {
-    return client.data.catalogs.list({ filter: { year } })
+    return client.data.catalogs.listAll({ filter: { year } })
   }
 
   function listCatalogCourses(catalogId: number) {

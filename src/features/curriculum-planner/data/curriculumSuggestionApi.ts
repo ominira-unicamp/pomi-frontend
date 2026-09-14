@@ -92,7 +92,7 @@ function parseSuggestion(value: unknown): CurriculumSuggestion {
 export async function loadCurriculumSuggestions(
   catalogProgramId: CatalogProgramId,
 ) {
-  const value = await pomiSdk.data.curriculumSuggestions.list({
+  const value = await pomiSdk.data.curriculumSuggestions.listAll({
     filter: { catalogProgramId: Number(catalogProgramId) },
   })
   return value

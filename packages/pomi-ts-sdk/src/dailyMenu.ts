@@ -11,7 +11,7 @@ type ListDailyMenusInput = Readonly<{ startDate: string; endDate: string }>
 
 export function createDailyMenuApi(client: PomiSdkClient) {
   function listDailyMenus({ startDate, endDate }: ListDailyMenusInput) {
-    return client.data.dailyMenus.list({
+    return client.data.dailyMenus.listAll({
       filter: { date: { gte: startDate, lte: endDate } },
     })
   }

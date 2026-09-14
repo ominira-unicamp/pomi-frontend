@@ -39,8 +39,10 @@
     "./tag-taxonomy": "./src/tagTaxonomy.ts"
   },
   "scripts": {
-    "generate": "tsx sdk-gen/generate.ts",
-    "generate:check": "tsx sdk-gen/generate.ts --check",
+    "generate": "node --import tsx sdk-gen/generate.ts",
+    "generate:check": "node --import tsx sdk-gen/generate.ts --check",
+    "generate:typecheck": "tsc --noEmit -p tsconfig.generated.json",
+    "test:generator": "node --import tsx --test sdk-gen/*.test.ts",
     "architecture:check": "node scripts/check-architecture.mjs",
     "check": "npm run generate:check && npm run architecture:check && tsc --noEmit -p tsconfig.json",
     "test": "node --import tsx --test src/generated*.test.ts",

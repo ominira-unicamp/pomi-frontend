@@ -6,12 +6,12 @@ export type JsonObject = Record<string, unknown>
 export type SdkOperationMetadata = {
   resource: string
   action: 'list' | 'get' | 'create' | 'update' | 'delete'
-  method?: string
+  method: string
   pathParameters?: Readonly<Record<string, string>>
 }
 
 export type SdkSchemaMetadata = {
-  kind?:
+  kind:
     | 'entity'
     | 'value-object'
     | 'projection'
@@ -19,35 +19,30 @@ export type SdkSchemaMetadata = {
     | 'page'
     | 'problem'
     | 'transport'
-  publicName?: string
+  publicName: string
   transportFields?: ReadonlyArray<string>
+  identityFields?: ReadonlyArray<string>
+  readOnlyFields?: ReadonlyArray<string>
+  relations?: Readonly<
+    Record<
+      string,
+      Readonly<{
+        resource: string
+        cardinality: 'one' | 'many'
+        nullable?: boolean
+      }>
+    >
+  >
+  domainExports?: Readonly<Record<string, string>>
+  generate?: boolean
 }
 
-export type LinkPaginationMetadata = {
-  strategy?: 'link'
-  itemsField: string
-  nextField: string
-  pageParameter?: string
-  pageSizeParameter?: string
+export type PaginationMetadata = {
+  defaultMode: 'page' | 'all'
   defaultPageSize: number
-  maxPageSize: number
+  maxPageSize?: number
+  allowAll: boolean
 }
-
-export type PageNumberPaginationMetadata = {
-  strategy: 'page-number'
-  itemsField: string
-  pageField: string
-  pageSizeField: string
-  totalField: string
-  pageParameter?: string
-  pageSizeParameter?: string
-  defaultPageSize: number
-  maxPageSize: number
-}
-
-export type PaginationMetadata =
-  | LinkPaginationMetadata
-  | PageNumberPaginationMetadata
 
 export type OpenApiParameter = JsonObject & {
   name?: string
@@ -79,7 +74,7 @@ export type OpenApiOperation = JsonObject & {
   parameters?: ReadonlyArray<OpenApiParameter>
   requestBody?: OpenApiRequestBody
   responses?: Readonly<Record<string, OpenApiResponse>>
-  'x-pomi-sdk'?: SdkOperationMetadata
+  'x-pomi-sdk'?: SdkOperationMetadata | false
   'x-pomi-pagination'?: PaginationMetadata
 }
 
@@ -103,9 +98,19 @@ export type OperationModel = {
   document: OpenApiDocument
 }
 
+export type SdkOperationModel = OperationModel & {
+  operation: OpenApiOperation & { 'x-pomi-sdk': SdkOperationMetadata }
+}
+
+export function isSdkOperation(
+  operation: OperationModel,
+): operation is SdkOperationModel {
+  return Boolean(operation.operation['x-pomi-sdk'])
+}
+
 export type ResourceModel = {
   name: string
-  operations: ReadonlyArray<OperationModel>
+  operations: ReadonlyArray<SdkOperationModel>
 }
 
 export type SdkTargetModel = {
@@ -123,10 +128,9 @@ export function buildSdkTargetModel(
   document: OpenApiDocument,
   operations: ReadonlyArray<OperationModel>,
 ): SdkTargetModel {
-  const grouped = new Map<string, Array<OperationModel>>()
-  for (const operation of operations) {
-    const resource = operation.operation['x-pomi-sdk']?.resource
-    if (!resource) continue
+  const grouped = new Map<string, Array<SdkOperationModel>>()
+  for (const operation of operations.filter(isSdkOperation)) {
+    const resource = operation.operation['x-pomi-sdk'].resource
     grouped.set(resource, [...(grouped.get(resource) ?? []), operation])
   }
   return {

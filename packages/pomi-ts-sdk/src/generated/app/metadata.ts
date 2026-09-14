@@ -28,7 +28,14 @@ export const componentSchemas = {
             "capabilities",
             "studentId"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "CurrentUser",
+            "identityFields": [
+                "id"
+            ]
+        }
     },
     "InvalidRequestProblem": {
         "type": "object",
@@ -71,7 +78,11 @@ export const componentSchemas = {
             "detail",
             "fields"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "InvalidRequestProblem"
+        }
     },
     "ProblemField": {
         "type": "object",
@@ -100,7 +111,11 @@ export const componentSchemas = {
             "path",
             "message"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "ProblemField"
+        }
     },
     "InternalServerErrorProblem": {
         "type": "object",
@@ -136,7 +151,11 @@ export const componentSchemas = {
             "status",
             "detail"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "InternalServerErrorProblem"
+        }
     },
     "BotIdentityEntity": {
         "type": "object",
@@ -153,7 +172,14 @@ export const componentSchemas = {
             "id",
             "displayName"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "BotIdentity",
+            "identityFields": [
+                "id"
+            ]
+        }
     },
     "BotGrantEntity": {
         "type": "object",
@@ -168,19 +194,7 @@ export const componentSchemas = {
                 "type": "integer"
             },
             "capability": {
-                "type": "string",
-                "enum": [
-                    "STUDENT_PROFILE_READ",
-                    "STUDENT_PROFILE_WRITE",
-                    "STUDENT_HISTORY_READ",
-                    "STUDENT_HISTORY_WRITE",
-                    "STUDENT_PLANNING_READ",
-                    "STUDENT_PLANNING_WRITE",
-                    "STUDENT_SOCIAL_READ",
-                    "STUDENT_SOCIAL_WRITE",
-                    "STUDENT_FEEDBACK_READ",
-                    "STUDENT_FEEDBACK_WRITE"
-                ]
+                "$ref": "#/components/schemas/StudentCapability"
             },
             "createdAt": {
                 "type": "string",
@@ -218,7 +232,33 @@ export const componentSchemas = {
             "revokedAt",
             "botAuthUser"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "BotGrant",
+            "identityFields": [
+                "id"
+            ]
+        }
+    },
+    "StudentCapability": {
+        "type": "string",
+        "enum": [
+            "STUDENT_PROFILE_READ",
+            "STUDENT_PROFILE_WRITE",
+            "STUDENT_HISTORY_READ",
+            "STUDENT_HISTORY_WRITE",
+            "STUDENT_PLANNING_READ",
+            "STUDENT_PLANNING_WRITE",
+            "STUDENT_SOCIAL_READ",
+            "STUDENT_SOCIAL_WRITE",
+            "STUDENT_FEEDBACK_READ",
+            "STUDENT_FEEDBACK_WRITE"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "StudentCapability"
+        }
     },
     "ResourceNotFoundProblem": {
         "type": "object",
@@ -254,7 +294,11 @@ export const componentSchemas = {
             "status",
             "detail"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "ResourceNotFoundProblem"
+        }
     },
     "ReplaceBotGrantBody": {
         "type": "object",
@@ -262,26 +306,18 @@ export const componentSchemas = {
             "capabilities": {
                 "type": "array",
                 "items": {
-                    "type": "string",
-                    "enum": [
-                        "STUDENT_PROFILE_READ",
-                        "STUDENT_PROFILE_WRITE",
-                        "STUDENT_HISTORY_READ",
-                        "STUDENT_HISTORY_WRITE",
-                        "STUDENT_PLANNING_READ",
-                        "STUDENT_PLANNING_WRITE",
-                        "STUDENT_SOCIAL_READ",
-                        "STUDENT_SOCIAL_WRITE",
-                        "STUDENT_FEEDBACK_READ",
-                        "STUDENT_FEEDBACK_WRITE"
-                    ]
+                    "$ref": "#/components/schemas/StudentCapability"
                 }
             }
         },
         "required": [
             "capabilities"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "ReplaceBotGrantBody"
+        }
     },
     "StudentEntity": {
         "type": "object",
@@ -344,7 +380,17 @@ export const componentSchemas = {
             "languageId",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Student",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "UniqueConstraintConflictProblem": {
         "type": "object",
@@ -387,7 +433,11 @@ export const componentSchemas = {
             "detail",
             "fields"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "UniqueConstraintConflictProblem"
+        }
     },
     "ReferenceNotFoundProblem": {
         "type": "object",
@@ -431,7 +481,11 @@ export const componentSchemas = {
             "detail",
             "fields"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "ReferenceNotFoundProblem"
+        }
     },
     "InvalidStudentProfileProblem": {
         "type": "object",
@@ -495,7 +549,11 @@ export const componentSchemas = {
             "detail",
             "fields"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "InvalidStudentProfileProblem"
+        }
     },
     "CreateStudentBody": {
         "type": "object",
@@ -529,7 +587,11 @@ export const componentSchemas = {
         "required": [
             "name"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "CreateStudentBody"
+        }
     },
     "PatchStudentBody": {
         "type": "object",
@@ -563,7 +625,11 @@ export const componentSchemas = {
                 "nullable": true
             }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "PatchStudentBody"
+        }
     },
     "CurriculumEntity": {
         "type": "object",
@@ -735,7 +801,17 @@ export const componentSchemas = {
             "updatedAt",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Curriculum",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "CurriculumSummaryEntity": {
         "type": "object",
@@ -810,7 +886,17 @@ export const componentSchemas = {
             "updatedAt",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "CurriculumSummary",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "InvalidCurriculumProblem": {
         "type": "object",
@@ -873,7 +959,11 @@ export const componentSchemas = {
             "detail",
             "fields"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "InvalidCurriculumProblem"
+        }
     },
     "PeriodPlanningEntity": {
         "type": "object",
@@ -894,92 +984,21 @@ export const componentSchemas = {
                 "type": "integer"
             },
             "studyPeriodYearPeriod": {
-                "type": "string",
-                "enum": [
-                    "SUMMER",
-                    "FIRST_SEMESTER",
-                    "WINTER",
-                    "SECOND_SEMESTER"
-                ]
+                "$ref": "#/components/schemas/YearPeriod"
             },
             "curriculumId": {
                 "type": "integer",
                 "nullable": true
             },
             "visibility": {
-                "type": "string",
-                "enum": [
-                    "PRIVATE",
-                    "FRIENDS",
-                    "PUBLIC"
-                ]
+                "$ref": "#/components/schemas/PlanningVisibility"
             },
             "shareId": {
                 "type": "string",
                 "format": "uuid"
             },
             "guide": {
-                "type": "object",
-                "properties": {
-                    "mode": {
-                        "type": "string",
-                        "enum": [
-                            "CURRICULUM",
-                            "PROGRAM",
-                            "NONE"
-                        ]
-                    },
-                    "curriculumSource": {
-                        "type": "string",
-                        "nullable": true,
-                        "enum": [
-                            "SAVED",
-                            "SUGGESTION",
-                            null
-                        ]
-                    },
-                    "curriculumId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "suggestionId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "suggestionCatalogProgramId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "catalogProgramId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "specializationId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "languageId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "manualCourseIds": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "required": [
-                    "mode",
-                    "curriculumSource",
-                    "curriculumId",
-                    "suggestionId",
-                    "catalogProgramId",
-                    "specializationId",
-                    "languageId",
-                    "manualCourseIds"
-                ],
-                "additionalProperties": false
+                "$ref": "#/components/schemas/PlanningGuide"
             },
             "createdAt": {
                 "type": "string",
@@ -992,104 +1011,7 @@ export const componentSchemas = {
             "classes": {
                 "type": "array",
                 "items": {
-                    "type": "object",
-                    "properties": {
-                        "id": {
-                            "type": "integer"
-                        },
-                        "code": {
-                            "type": "string"
-                        },
-                        "reservations": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "courseId": {
-                            "type": "integer"
-                        },
-                        "courseCode": {
-                            "type": "string"
-                        },
-                        "courseCredits": {
-                            "type": "number"
-                        },
-                        "professors": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "id": {
-                                        "type": "integer"
-                                    },
-                                    "name": {
-                                        "type": "string"
-                                    }
-                                },
-                                "required": [
-                                    "id",
-                                    "name"
-                                ],
-                                "additionalProperties": false
-                            }
-                        },
-                        "classSchedules": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "id": {
-                                        "type": "integer"
-                                    },
-                                    "dayOfWeek": {
-                                        "type": "string",
-                                        "enum": [
-                                            "MONDAY",
-                                            "TUESDAY",
-                                            "WEDNESDAY",
-                                            "THURSDAY",
-                                            "FRIDAY",
-                                            "SATURDAY",
-                                            "SUNDAY"
-                                        ]
-                                    },
-                                    "start": {
-                                        "type": "string"
-                                    },
-                                    "end": {
-                                        "type": "string"
-                                    },
-                                    "roomId": {
-                                        "type": "integer"
-                                    },
-                                    "roomCode": {
-                                        "type": "string"
-                                    }
-                                },
-                                "required": [
-                                    "id",
-                                    "dayOfWeek",
-                                    "start",
-                                    "end",
-                                    "roomId",
-                                    "roomCode"
-                                ],
-                                "additionalProperties": false
-                            }
-                        }
-                    },
-                    "required": [
-                        "id",
-                        "code",
-                        "reservations",
-                        "courseId",
-                        "courseCode",
-                        "courseCredits",
-                        "professors",
-                        "classSchedules"
-                    ],
-                    "additionalProperties": false
+                    "$ref": "#/components/schemas/PeriodPlanningClass"
                 }
             },
             "_paths": {
@@ -1134,7 +1056,267 @@ export const componentSchemas = {
             "classes",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "PeriodPlanning",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ],
+            "relations": {
+                "studentId": {
+                    "resource": "students",
+                    "cardinality": "one"
+                },
+                "studyPeriodId": {
+                    "resource": "studyPeriods",
+                    "cardinality": "one"
+                },
+                "curriculumId": {
+                    "resource": "curricula",
+                    "cardinality": "one",
+                    "nullable": true
+                },
+                "classes": {
+                    "resource": "classes",
+                    "cardinality": "many"
+                }
+            }
+        }
+    },
+    "YearPeriod": {
+        "type": "string",
+        "enum": [
+            "SUMMER",
+            "FIRST_SEMESTER",
+            "WINTER",
+            "SECOND_SEMESTER"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "YearPeriod"
+        }
+    },
+    "PlanningVisibility": {
+        "type": "string",
+        "enum": [
+            "PRIVATE",
+            "FRIENDS",
+            "PUBLIC"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "PlanningVisibility"
+        }
+    },
+    "PlanningGuide": {
+        "type": "object",
+        "properties": {
+            "mode": {
+                "$ref": "#/components/schemas/PlanningGuideMode"
+            },
+            "curriculumSource": {
+                "$ref": "#/components/schemas/PlanningCurriculumSource"
+            },
+            "curriculumId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "suggestionId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "suggestionCatalogProgramId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "catalogProgramId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "specializationId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "languageId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "manualCourseIds": {
+                "type": "array",
+                "items": {
+                    "type": "integer"
+                }
+            }
+        },
+        "required": [
+            "mode",
+            "curriculumSource",
+            "curriculumId",
+            "suggestionId",
+            "catalogProgramId",
+            "specializationId",
+            "languageId",
+            "manualCourseIds"
+        ],
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "PlanningGuide"
+        }
+    },
+    "PlanningGuideMode": {
+        "type": "string",
+        "enum": [
+            "CURRICULUM",
+            "PROGRAM",
+            "NONE"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "PlanningGuideMode"
+        }
+    },
+    "PlanningCurriculumSource": {
+        "type": "string",
+        "nullable": true,
+        "enum": [
+            "SAVED",
+            "SUGGESTION",
+            null
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "PlanningCurriculumSource"
+        }
+    },
+    "PeriodPlanningClass": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "integer"
+            },
+            "code": {
+                "type": "string"
+            },
+            "reservations": {
+                "type": "array",
+                "items": {
+                    "type": "integer"
+                }
+            },
+            "courseId": {
+                "type": "integer"
+            },
+            "courseCode": {
+                "type": "string"
+            },
+            "courseCredits": {
+                "type": "number"
+            },
+            "professors": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/PeriodPlanningProfessor"
+                }
+            },
+            "classSchedules": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/PeriodPlanningSchedule"
+                }
+            }
+        },
+        "required": [
+            "id",
+            "code",
+            "reservations",
+            "courseId",
+            "courseCode",
+            "courseCredits",
+            "professors",
+            "classSchedules"
+        ],
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "PeriodPlanningClass"
+        }
+    },
+    "PeriodPlanningProfessor": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "integer"
+            },
+            "name": {
+                "type": "string"
+            }
+        },
+        "required": [
+            "id",
+            "name"
+        ],
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "PeriodPlanningProfessor"
+        }
+    },
+    "PeriodPlanningSchedule": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "integer"
+            },
+            "dayOfWeek": {
+                "$ref": "#/components/schemas/DayOfWeek"
+            },
+            "start": {
+                "type": "string"
+            },
+            "end": {
+                "type": "string"
+            },
+            "roomId": {
+                "type": "integer"
+            },
+            "roomCode": {
+                "type": "string"
+            }
+        },
+        "required": [
+            "id",
+            "dayOfWeek",
+            "start",
+            "end",
+            "roomId",
+            "roomCode"
+        ],
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "PeriodPlanningSchedule"
+        }
+    },
+    "DayOfWeek": {
+        "type": "string",
+        "enum": [
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+            "FRIDAY",
+            "SATURDAY",
+            "SUNDAY"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "DayOfWeek"
+        }
     },
     "InvalidPeriodPlanProblem": {
         "type": "object",
@@ -1197,7 +1379,11 @@ export const componentSchemas = {
             "detail",
             "fields"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "InvalidPeriodPlanProblem"
+        }
     },
     "CreatePeriodPlanningInput": {
         "type": "object",
@@ -1214,67 +1400,7 @@ export const componentSchemas = {
                 "nullable": true
             },
             "guide": {
-                "type": "object",
-                "properties": {
-                    "mode": {
-                        "type": "string",
-                        "enum": [
-                            "CURRICULUM",
-                            "PROGRAM",
-                            "NONE"
-                        ]
-                    },
-                    "curriculumSource": {
-                        "type": "string",
-                        "nullable": true,
-                        "enum": [
-                            "SAVED",
-                            "SUGGESTION",
-                            null
-                        ]
-                    },
-                    "curriculumId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "suggestionId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "suggestionCatalogProgramId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "catalogProgramId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "specializationId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "languageId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "manualCourseIds": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "required": [
-                    "mode",
-                    "curriculumSource",
-                    "curriculumId",
-                    "suggestionId",
-                    "catalogProgramId",
-                    "specializationId",
-                    "languageId",
-                    "manualCourseIds"
-                ],
-                "additionalProperties": false
+                "$ref": "#/components/schemas/PlanningGuide"
             },
             "classes": {
                 "type": "array",
@@ -1287,7 +1413,11 @@ export const componentSchemas = {
             "studyPeriodId",
             "classes"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "CreatePeriodPlanningInput"
+        }
     },
     "UpdatePeriodPlanningInput": {
         "type": "object",
@@ -1297,79 +1427,14 @@ export const componentSchemas = {
                 "minLength": 1
             },
             "visibility": {
-                "type": "string",
-                "enum": [
-                    "PRIVATE",
-                    "FRIENDS",
-                    "PUBLIC"
-                ]
+                "$ref": "#/components/schemas/PlanningVisibility"
             },
             "curriculumId": {
                 "type": "integer",
                 "nullable": true
             },
             "guide": {
-                "type": "object",
-                "properties": {
-                    "mode": {
-                        "type": "string",
-                        "enum": [
-                            "CURRICULUM",
-                            "PROGRAM",
-                            "NONE"
-                        ]
-                    },
-                    "curriculumSource": {
-                        "type": "string",
-                        "nullable": true,
-                        "enum": [
-                            "SAVED",
-                            "SUGGESTION",
-                            null
-                        ]
-                    },
-                    "curriculumId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "suggestionId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "suggestionCatalogProgramId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "catalogProgramId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "specializationId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "languageId": {
-                        "type": "integer",
-                        "nullable": true
-                    },
-                    "manualCourseIds": {
-                        "type": "array",
-                        "items": {
-                            "type": "integer"
-                        }
-                    }
-                },
-                "required": [
-                    "mode",
-                    "curriculumSource",
-                    "curriculumId",
-                    "suggestionId",
-                    "catalogProgramId",
-                    "specializationId",
-                    "languageId",
-                    "manualCourseIds"
-                ],
-                "additionalProperties": false
+                "$ref": "#/components/schemas/PlanningGuide"
             },
             "classes": {
                 "type": "object",
@@ -1395,34 +1460,66 @@ export const componentSchemas = {
                 }
             }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "UpdatePeriodPlanningInput"
+        }
     },
     "SharedPeriodPlanningPage": {
         "type": "object",
         "properties": {
-            "items": {
+            "data": {
                 "type": "array",
                 "items": {
                     "$ref": "#/components/schemas/SharedPeriodPlanning"
                 }
             },
-            "page": {
-                "type": "integer"
-            },
-            "pageSize": {
+            "quantity": {
                 "type": "integer"
             },
             "total": {
                 "type": "integer"
+            },
+            "_paths": {
+                "type": "object",
+                "properties": {
+                    "firstPage": {
+                        "type": "string"
+                    },
+                    "lastPage": {
+                        "type": "string"
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "prev": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "firstPage",
+                    "lastPage",
+                    "next",
+                    "prev"
+                ]
             }
         },
         "required": [
-            "items",
-            "page",
-            "pageSize",
-            "total"
+            "data",
+            "quantity",
+            "total",
+            "_paths"
         ],
-        "additionalProperties": false
+        "x-pomi-schema": {
+            "kind": "page",
+            "publicName": "SharedPeriodPlanningPage",
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "SharedPeriodPlanning": {
         "type": "object",
@@ -1435,11 +1532,7 @@ export const componentSchemas = {
                 "type": "string"
             },
             "visibility": {
-                "type": "string",
-                "enum": [
-                    "FRIENDS",
-                    "PUBLIC"
-                ]
+                "$ref": "#/components/schemas/SharedPlanningVisibility"
             },
             "studyPeriodId": {
                 "type": "integer"
@@ -1448,13 +1541,7 @@ export const componentSchemas = {
                 "type": "integer"
             },
             "studyPeriodYearPeriod": {
-                "type": "string",
-                "enum": [
-                    "SUMMER",
-                    "FIRST_SEMESTER",
-                    "WINTER",
-                    "SECOND_SEMESTER"
-                ]
+                "$ref": "#/components/schemas/YearPeriod"
             },
             "owner": {
                 "type": "object",
@@ -1477,104 +1564,7 @@ export const componentSchemas = {
             "classes": {
                 "type": "array",
                 "items": {
-                    "type": "object",
-                    "properties": {
-                        "id": {
-                            "type": "integer"
-                        },
-                        "code": {
-                            "type": "string"
-                        },
-                        "reservations": {
-                            "type": "array",
-                            "items": {
-                                "type": "integer"
-                            }
-                        },
-                        "courseId": {
-                            "type": "integer"
-                        },
-                        "courseCode": {
-                            "type": "string"
-                        },
-                        "courseCredits": {
-                            "type": "number"
-                        },
-                        "professors": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "id": {
-                                        "type": "integer"
-                                    },
-                                    "name": {
-                                        "type": "string"
-                                    }
-                                },
-                                "required": [
-                                    "id",
-                                    "name"
-                                ],
-                                "additionalProperties": false
-                            }
-                        },
-                        "classSchedules": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "id": {
-                                        "type": "integer"
-                                    },
-                                    "dayOfWeek": {
-                                        "type": "string",
-                                        "enum": [
-                                            "MONDAY",
-                                            "TUESDAY",
-                                            "WEDNESDAY",
-                                            "THURSDAY",
-                                            "FRIDAY",
-                                            "SATURDAY",
-                                            "SUNDAY"
-                                        ]
-                                    },
-                                    "start": {
-                                        "type": "string"
-                                    },
-                                    "end": {
-                                        "type": "string"
-                                    },
-                                    "roomId": {
-                                        "type": "integer"
-                                    },
-                                    "roomCode": {
-                                        "type": "string"
-                                    }
-                                },
-                                "required": [
-                                    "id",
-                                    "dayOfWeek",
-                                    "start",
-                                    "end",
-                                    "roomId",
-                                    "roomCode"
-                                ],
-                                "additionalProperties": false
-                            }
-                        }
-                    },
-                    "required": [
-                        "id",
-                        "code",
-                        "reservations",
-                        "courseId",
-                        "courseCode",
-                        "courseCredits",
-                        "professors",
-                        "classSchedules"
-                    ],
-                    "additionalProperties": false
+                    "$ref": "#/components/schemas/PeriodPlanningClass"
                 }
             },
             "createdAt": {
@@ -1598,7 +1588,31 @@ export const componentSchemas = {
             "createdAt",
             "updatedAt"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "SharedPeriodPlanning",
+            "identityFields": [
+                "shareId"
+            ],
+            "relations": {
+                "classes": {
+                    "resource": "classes",
+                    "cardinality": "many"
+                }
+            }
+        }
+    },
+    "SharedPlanningVisibility": {
+        "type": "string",
+        "enum": [
+            "FRIENDS",
+            "PUBLIC"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "SharedPlanningVisibility"
+        }
     },
     "ProfessorEvaluationEligibility": {
         "type": "object",
@@ -1614,7 +1628,11 @@ export const componentSchemas = {
             "eligible",
             "evaluation"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "ProfessorEvaluationEligibility"
+        }
     },
     "ProfessorEvaluation": {
         "type": "object",
@@ -1673,7 +1691,14 @@ export const componentSchemas = {
             "createdAt",
             "updatedAt"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "ProfessorEvaluation",
+            "identityFields": [
+                "id"
+            ]
+        }
     },
     "InvalidProfessorEvaluationProblem": {
         "type": "object",
@@ -1737,7 +1762,11 @@ export const componentSchemas = {
             "detail",
             "fields"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "InvalidProfessorEvaluationProblem"
+        }
     },
     "ProfessorEvaluationBody": {
         "type": "object",
@@ -1769,7 +1798,11 @@ export const componentSchemas = {
             "clarity",
             "difficulty"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "ProfessorEvaluationBody"
+        }
     },
     "PendingProfessorEvaluation": {
         "type": "object",
@@ -1833,7 +1866,11 @@ export const componentSchemas = {
             "course",
             "professor"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "PendingProfessorEvaluation"
+        }
     },
     "StudentCourseAttempt": {
         "type": "object",
@@ -1856,26 +1893,10 @@ export const componentSchemas = {
                 "nullable": true
             },
             "evaluationMode": {
-                "type": "string",
-                "enum": [
-                    "GRADE_AND_ATTENDANCE",
-                    "ATTENDANCE",
-                    "CONCEPT"
-                ]
+                "$ref": "#/components/schemas/CourseEvaluationMode"
             },
             "status": {
-                "type": "string",
-                "enum": [
-                    "ENROLLED",
-                    "DROPPED",
-                    "APPROVED",
-                    "FAILED_BY_GRADE",
-                    "APPROVED_BY_ATTENDANCE",
-                    "APPROVED_BY_PROFICIENCY",
-                    "FAILED_BY_ATTENDANCE",
-                    "SUFFICIENT",
-                    "INSUFFICIENT"
-                ]
+                "$ref": "#/components/schemas/StudentCourseAttemptStatus"
             },
             "grade": {
                 "type": "number",
@@ -1890,105 +1911,13 @@ export const componentSchemas = {
                 "format": "date-time"
             },
             "course": {
-                "type": "object",
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "code": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    },
-                    "credits": {
-                        "type": "integer"
-                    },
-                    "unit": {
-                        "type": "object",
-                        "nullable": true,
-                        "properties": {
-                            "id": {
-                                "type": "integer"
-                            },
-                            "code": {
-                                "type": "string"
-                            }
-                        },
-                        "required": [
-                            "id",
-                            "code"
-                        ]
-                    }
-                },
-                "required": [
-                    "id",
-                    "code",
-                    "name",
-                    "credits",
-                    "unit"
-                ]
+                "$ref": "#/components/schemas/CourseAttemptCourse"
             },
             "studyPeriod": {
-                "type": "object",
-                "nullable": true,
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "year": {
-                        "type": "integer"
-                    },
-                    "yearPeriod": {
-                        "type": "string",
-                        "enum": [
-                            "SUMMER",
-                            "FIRST_SEMESTER",
-                            "WINTER",
-                            "SECOND_SEMESTER"
-                        ]
-                    }
-                },
-                "required": [
-                    "id",
-                    "year",
-                    "yearPeriod"
-                ]
+                "$ref": "#/components/schemas/CourseAttemptStudyPeriod"
             },
             "class": {
-                "type": "object",
-                "nullable": true,
-                "properties": {
-                    "id": {
-                        "type": "integer"
-                    },
-                    "code": {
-                        "type": "string"
-                    },
-                    "professors": {
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "id": {
-                                    "type": "integer"
-                                },
-                                "name": {
-                                    "type": "string"
-                                }
-                            },
-                            "required": [
-                                "id",
-                                "name"
-                            ]
-                        }
-                    }
-                },
-                "required": [
-                    "id",
-                    "code",
-                    "professors"
-                ]
+                "$ref": "#/components/schemas/CourseAttemptClass"
             },
             "_paths": {
                 "type": "object",
@@ -2036,7 +1965,170 @@ export const componentSchemas = {
             "class",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "StudentCourseAttempt",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ],
+            "relations": {
+                "course": {
+                    "resource": "courses",
+                    "cardinality": "one"
+                },
+                "studyPeriod": {
+                    "resource": "studyPeriods",
+                    "cardinality": "one",
+                    "nullable": true
+                },
+                "class": {
+                    "resource": "classes",
+                    "cardinality": "one",
+                    "nullable": true
+                }
+            }
+        }
+    },
+    "CourseEvaluationMode": {
+        "type": "string",
+        "enum": [
+            "GRADE_AND_ATTENDANCE",
+            "ATTENDANCE",
+            "CONCEPT"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "CourseEvaluationMode"
+        }
+    },
+    "StudentCourseAttemptStatus": {
+        "type": "string",
+        "enum": [
+            "ENROLLED",
+            "DROPPED",
+            "APPROVED",
+            "FAILED_BY_GRADE",
+            "APPROVED_BY_ATTENDANCE",
+            "APPROVED_BY_PROFICIENCY",
+            "FAILED_BY_ATTENDANCE",
+            "SUFFICIENT",
+            "INSUFFICIENT"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "StudentCourseAttemptStatus"
+        }
+    },
+    "CourseAttemptCourse": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "integer"
+            },
+            "code": {
+                "type": "string"
+            },
+            "name": {
+                "type": "string"
+            },
+            "credits": {
+                "type": "integer"
+            },
+            "unit": {
+                "type": "object",
+                "nullable": true,
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "code": {
+                        "type": "string"
+                    }
+                },
+                "required": [
+                    "id",
+                    "code"
+                ]
+            }
+        },
+        "required": [
+            "id",
+            "code",
+            "name",
+            "credits",
+            "unit"
+        ],
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "CourseAttemptCourse"
+        }
+    },
+    "CourseAttemptStudyPeriod": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+            "id": {
+                "type": "integer"
+            },
+            "year": {
+                "type": "integer"
+            },
+            "yearPeriod": {
+                "$ref": "#/components/schemas/YearPeriod"
+            }
+        },
+        "required": [
+            "id",
+            "year",
+            "yearPeriod"
+        ],
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "CourseAttemptStudyPeriod"
+        }
+    },
+    "CourseAttemptClass": {
+        "type": "object",
+        "nullable": true,
+        "properties": {
+            "id": {
+                "type": "integer"
+            },
+            "code": {
+                "type": "string"
+            },
+            "professors": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "integer"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "id",
+                        "name"
+                    ]
+                }
+            }
+        },
+        "required": [
+            "id",
+            "code",
+            "professors"
+        ],
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "CourseAttemptClass"
+        }
     },
     "InvalidStudentCourseAttemptProblem": {
         "type": "object",
@@ -2100,7 +2192,11 @@ export const componentSchemas = {
             "detail",
             "fields"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "InvalidStudentCourseAttemptProblem"
+        }
     },
     "CreateStudentCourseAttemptInput": {
         "type": "object",
@@ -2117,26 +2213,10 @@ export const componentSchemas = {
                 "nullable": true
             },
             "evaluationMode": {
-                "type": "string",
-                "enum": [
-                    "GRADE_AND_ATTENDANCE",
-                    "ATTENDANCE",
-                    "CONCEPT"
-                ]
+                "$ref": "#/components/schemas/CourseEvaluationMode"
             },
             "status": {
-                "type": "string",
-                "enum": [
-                    "ENROLLED",
-                    "DROPPED",
-                    "APPROVED",
-                    "FAILED_BY_GRADE",
-                    "APPROVED_BY_ATTENDANCE",
-                    "APPROVED_BY_PROFICIENCY",
-                    "FAILED_BY_ATTENDANCE",
-                    "SUFFICIENT",
-                    "INSUFFICIENT"
-                ]
+                "$ref": "#/components/schemas/StudentCourseAttemptStatus"
             },
             "grade": {
                 "type": "number",
@@ -2149,7 +2229,11 @@ export const componentSchemas = {
             "courseId",
             "status"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "CreateStudentCourseAttemptInput"
+        }
     },
     "UpdateStudentCourseAttemptInput": {
         "type": "object",
@@ -2163,26 +2247,10 @@ export const componentSchemas = {
                 "nullable": true
             },
             "evaluationMode": {
-                "type": "string",
-                "enum": [
-                    "GRADE_AND_ATTENDANCE",
-                    "ATTENDANCE",
-                    "CONCEPT"
-                ]
+                "$ref": "#/components/schemas/CourseEvaluationMode"
             },
             "status": {
-                "type": "string",
-                "enum": [
-                    "ENROLLED",
-                    "DROPPED",
-                    "APPROVED",
-                    "FAILED_BY_GRADE",
-                    "APPROVED_BY_ATTENDANCE",
-                    "APPROVED_BY_PROFICIENCY",
-                    "FAILED_BY_ATTENDANCE",
-                    "SUFFICIENT",
-                    "INSUFFICIENT"
-                ]
+                "$ref": "#/components/schemas/StudentCourseAttemptStatus"
             },
             "grade": {
                 "type": "number",
@@ -2191,7 +2259,11 @@ export const componentSchemas = {
                 "maximum": 10
             }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "UpdateStudentCourseAttemptInput"
+        }
     },
     "StudentHistoryImportSummary": {
         "type": "object",
@@ -2245,7 +2317,11 @@ export const componentSchemas = {
             "skipped",
             "warnings"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "StudentHistoryImportSummary"
+        }
     },
     "InvalidStudentHistoryImportProblem": {
         "type": "object",
@@ -2308,7 +2384,11 @@ export const componentSchemas = {
             "detail",
             "fields"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "InvalidStudentHistoryImportProblem"
+        }
     },
     "StudentHistoryImportBody": {
         "type": "object",
@@ -2348,13 +2428,7 @@ export const componentSchemas = {
                             "maximum": 9999
                         },
                         "yearPeriod": {
-                            "type": "string",
-                            "enum": [
-                                "SUMMER",
-                                "FIRST_SEMESTER",
-                                "WINTER",
-                                "SECOND_SEMESTER"
-                            ]
+                            "$ref": "#/components/schemas/YearPeriod"
                         },
                         "courses": {
                             "type": "array",
@@ -2386,15 +2460,7 @@ export const componentSchemas = {
                                         "minimum": 0
                                     },
                                     "status": {
-                                        "type": "string",
-                                        "enum": [
-                                            "APPROVED",
-                                            "APPROVED_BY_ATTENDANCE",
-                                            "APPROVED_BY_PROFICIENCY",
-                                            "DROPPED",
-                                            "FAILED_BY_ATTENDANCE",
-                                            "SUFFICIENT"
-                                        ]
+                                        "$ref": "#/components/schemas/HistoryCourseStatus"
                                     }
                                 },
                                 "required": [
@@ -2423,7 +2489,26 @@ export const componentSchemas = {
             "student",
             "semesters"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "StudentHistoryImportBody"
+        }
+    },
+    "HistoryCourseStatus": {
+        "type": "string",
+        "enum": [
+            "APPROVED",
+            "APPROVED_BY_ATTENDANCE",
+            "APPROVED_BY_PROFICIENCY",
+            "DROPPED",
+            "FAILED_BY_ATTENDANCE",
+            "SUFFICIENT"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "HistoryCourseStatus"
+        }
     },
     "StudentAbsence": {
         "type": "object",
@@ -2456,13 +2541,7 @@ export const componentSchemas = {
                 "type": "integer"
             },
             "studyPeriodYearPeriod": {
-                "type": "string",
-                "enum": [
-                    "SUMMER",
-                    "FIRST_SEMESTER",
-                    "WINTER",
-                    "SECOND_SEMESTER"
-                ]
+                "$ref": "#/components/schemas/YearPeriod"
             },
             "courseId": {
                 "type": "integer"
@@ -2477,16 +2556,7 @@ export const componentSchemas = {
                 "type": "string"
             },
             "dayOfWeek": {
-                "type": "string",
-                "enum": [
-                    "MONDAY",
-                    "TUESDAY",
-                    "WEDNESDAY",
-                    "THURSDAY",
-                    "FRIDAY",
-                    "SATURDAY",
-                    "SUNDAY"
-                ]
+                "$ref": "#/components/schemas/DayOfWeek"
             },
             "start": {
                 "type": "string"
@@ -2546,7 +2616,17 @@ export const componentSchemas = {
             "end",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "StudentAbsence",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "InvalidStudentAbsenceProblem": {
         "type": "object",
@@ -2610,7 +2690,11 @@ export const componentSchemas = {
             "detail",
             "fields"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "InvalidStudentAbsenceProblem"
+        }
     },
     "CreateStudentAbsenceBody": {
         "type": "object",
@@ -2631,7 +2715,11 @@ export const componentSchemas = {
             "classScheduleId",
             "date"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "CreateStudentAbsenceBody"
+        }
     },
     "StudentPublicProfile": {
         "type": "object",
@@ -2742,12 +2830,7 @@ export const componentSchemas = {
                 "type": "boolean"
             },
             "currentCoursesVisibility": {
-                "type": "string",
-                "enum": [
-                    "PRIVATE",
-                    "FRIENDS",
-                    "PUBLIC"
-                ]
+                "$ref": "#/components/schemas/StudentProfileVisibility"
             }
         },
         "required": [
@@ -2763,7 +2846,17 @@ export const componentSchemas = {
             "enabled",
             "currentCoursesVisibility"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "StudentPublicProfile",
+            "identityFields": [
+                "publicId"
+            ],
+            "transportFields": [
+                "_paths"
+            ]
+        }
     },
     "StudentCurrentCourse": {
         "type": "object",
@@ -2789,16 +2882,7 @@ export const componentSchemas = {
                             "exclusiveMinimum": true
                         },
                         "dayOfWeek": {
-                            "type": "string",
-                            "enum": [
-                                "MONDAY",
-                                "TUESDAY",
-                                "WEDNESDAY",
-                                "THURSDAY",
-                                "FRIDAY",
-                                "SATURDAY",
-                                "SUNDAY"
-                            ]
+                            "$ref": "#/components/schemas/DayOfWeek"
                         },
                         "start": {
                             "type": "string"
@@ -2827,34 +2911,75 @@ export const componentSchemas = {
             "classCode",
             "schedules"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "StudentCurrentCourse"
+        }
+    },
+    "StudentProfileVisibility": {
+        "type": "string",
+        "enum": [
+            "PRIVATE",
+            "FRIENDS",
+            "PUBLIC"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "StudentProfileVisibility"
+        }
     },
     "StudentPeoplePage": {
         "type": "object",
         "properties": {
-            "items": {
+            "data": {
                 "type": "array",
                 "items": {
                     "$ref": "#/components/schemas/StudentPublicPerson"
                 }
             },
-            "page": {
-                "type": "number"
-            },
-            "pageSize": {
-                "type": "number"
+            "quantity": {
+                "type": "integer"
             },
             "total": {
-                "type": "number"
+                "type": "integer"
+            },
+            "_paths": {
+                "type": "object",
+                "properties": {
+                    "firstPage": {
+                        "type": "string"
+                    },
+                    "lastPage": {
+                        "type": "string"
+                    },
+                    "next": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "prev": {
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "required": [
+                    "firstPage",
+                    "lastPage",
+                    "next",
+                    "prev"
+                ]
             }
         },
         "required": [
-            "items",
-            "page",
-            "pageSize",
-            "total"
+            "data",
+            "quantity",
+            "total",
+            "_paths"
         ],
-        "additionalProperties": false
+        "x-pomi-schema": {
+            "kind": "page",
+            "publicName": "StudentPeoplePage"
+        }
     },
     "StudentPublicPerson": {
         "type": "object",
@@ -2973,7 +3098,33 @@ export const componentSchemas = {
             "entryYear",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "StudentPublicPerson",
+            "identityFields": [
+                "publicId"
+            ],
+            "transportFields": [
+                "_paths"
+            ],
+            "relations": {
+                "currentCourses": {
+                    "resource": "courses",
+                    "cardinality": "many"
+                },
+                "program": {
+                    "resource": "programs",
+                    "cardinality": "one",
+                    "nullable": true
+                },
+                "specialization": {
+                    "resource": "specializations",
+                    "cardinality": "one",
+                    "nullable": true
+                }
+            }
+        }
     },
     "StudentFriendship": {
         "type": "object",
@@ -2982,19 +3133,10 @@ export const componentSchemas = {
                 "type": "integer"
             },
             "status": {
-                "type": "string",
-                "enum": [
-                    "PENDING",
-                    "ACCEPTED"
-                ]
+                "$ref": "#/components/schemas/StudentFriendshipStatus"
             },
             "direction": {
-                "type": "string",
-                "enum": [
-                    "INCOMING",
-                    "OUTGOING",
-                    "NONE"
-                ]
+                "$ref": "#/components/schemas/StudentFriendshipDirection"
             },
             "friend": {
                 "$ref": "#/components/schemas/StudentPublicPerson"
@@ -3034,7 +3176,46 @@ export const componentSchemas = {
             "acceptedAt",
             "_paths"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "StudentFriendship",
+            "identityFields": [
+                "id"
+            ],
+            "transportFields": [
+                "_paths"
+            ],
+            "relations": {
+                "friend": {
+                    "resource": "studentSocial",
+                    "cardinality": "one"
+                }
+            }
+        }
+    },
+    "StudentFriendshipStatus": {
+        "type": "string",
+        "enum": [
+            "PENDING",
+            "ACCEPTED"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "StudentFriendshipStatus"
+        }
+    },
+    "StudentFriendshipDirection": {
+        "type": "string",
+        "enum": [
+            "INCOMING",
+            "OUTGOING",
+            "NONE"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "StudentFriendshipDirection"
+        }
     },
     "FeedbackReportAccepted": {
         "type": "object",
@@ -3047,7 +3228,11 @@ export const componentSchemas = {
         "required": [
             "createdAt"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "projection",
+            "publicName": "FeedbackReportAccepted"
+        }
     },
     "InvalidFeedbackReportProblem": {
         "type": "object",
@@ -3111,7 +3296,11 @@ export const componentSchemas = {
             "detail",
             "fields"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "InvalidFeedbackReportProblem"
+        }
     },
     "FeedbackRateLimitProblem": {
         "type": "object",
@@ -3153,18 +3342,17 @@ export const componentSchemas = {
             "detail",
             "retryAfterSeconds"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "FeedbackRateLimitProblem"
+        }
     },
     "CreateFeedbackReportBody": {
         "type": "object",
         "properties": {
             "kind": {
-                "type": "string",
-                "enum": [
-                    "BUG",
-                    "SUGGESTION",
-                    "DATA_ISSUE"
-                ]
+                "$ref": "#/components/schemas/FeedbackKind"
             },
             "target": {
                 "$ref": "#/components/schemas/FeedbackReportTarget"
@@ -3191,7 +3379,23 @@ export const componentSchemas = {
             "title",
             "description"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "CreateFeedbackReportBody"
+        }
+    },
+    "FeedbackKind": {
+        "type": "string",
+        "enum": [
+            "BUG",
+            "SUGGESTION",
+            "DATA_ISSUE"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "FeedbackKind"
+        }
     },
     "FeedbackReportTarget": {
         "oneOf": [
@@ -3220,16 +3424,7 @@ export const componentSchemas = {
                         ]
                     },
                     "featureKey": {
-                        "type": "string",
-                        "enum": [
-                            "home",
-                            "curriculum-planner",
-                            "semester-planner",
-                            "course-situation",
-                            "agenda",
-                            "social",
-                            "academic-data"
-                        ]
+                        "$ref": "#/components/schemas/FeedbackFeatureKey"
                     }
                 },
                 "required": [
@@ -3248,18 +3443,7 @@ export const componentSchemas = {
                         ]
                     },
                     "academicResourceType": {
-                        "type": "string",
-                        "enum": [
-                            "COURSE",
-                            "CATALOG_COURSE",
-                            "CATALOG_PROGRAM",
-                            "CURRICULUM_SUGGESTION",
-                            "CLASS",
-                            "CLASS_SCHEDULE",
-                            "STUDY_PERIOD",
-                            "DAILY_MENU",
-                            "CALENDAR_EVENT"
-                        ]
+                        "$ref": "#/components/schemas/FeedbackAcademicResourceType"
                     },
                     "academicResourceId": {
                         "type": "integer",
@@ -3274,7 +3458,45 @@ export const componentSchemas = {
                 ],
                 "additionalProperties": false
             }
-        ]
+        ],
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "FeedbackReportTarget"
+        }
+    },
+    "FeedbackFeatureKey": {
+        "type": "string",
+        "enum": [
+            "home",
+            "curriculum-planner",
+            "semester-planner",
+            "course-situation",
+            "agenda",
+            "social",
+            "academic-data"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "FeedbackFeatureKey"
+        }
+    },
+    "FeedbackAcademicResourceType": {
+        "type": "string",
+        "enum": [
+            "COURSE",
+            "CATALOG_COURSE",
+            "CATALOG_PROGRAM",
+            "CURRICULUM_SUGGESTION",
+            "CLASS",
+            "CLASS_SCHEDULE",
+            "STUDY_PERIOD",
+            "DAILY_MENU",
+            "CALENDAR_EVENT"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "FeedbackAcademicResourceType"
+        }
     },
     "FeedbackReport": {
         "type": "object",
@@ -3283,12 +3505,7 @@ export const componentSchemas = {
                 "type": "integer"
             },
             "kind": {
-                "type": "string",
-                "enum": [
-                    "BUG",
-                    "SUGGESTION",
-                    "DATA_ISSUE"
-                ]
+                "$ref": "#/components/schemas/FeedbackKind"
             },
             "target": {
                 "$ref": "#/components/schemas/FeedbackReportTarget"
@@ -3304,12 +3521,7 @@ export const componentSchemas = {
                 "nullable": true
             },
             "status": {
-                "type": "string",
-                "enum": [
-                    "OPEN",
-                    "IN_PROGRESS",
-                    "CLOSED"
-                ]
+                "$ref": "#/components/schemas/FeedbackStatus"
             },
             "adminMessage": {
                 "type": "string",
@@ -3341,7 +3553,26 @@ export const componentSchemas = {
             "createdAt",
             "updatedAt"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "FeedbackReport",
+            "identityFields": [
+                "id"
+            ]
+        }
+    },
+    "FeedbackStatus": {
+        "type": "string",
+        "enum": [
+            "OPEN",
+            "IN_PROGRESS",
+            "CLOSED"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "FeedbackStatus"
+        }
     },
     "ExchangeNoticeSubscription": {
         "type": "object",
@@ -3368,7 +3599,11 @@ export const componentSchemas = {
             "enabled",
             "placeIds"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "ExchangeNoticeSubscription"
+        }
     },
     "PatchExchangeNoticeSubscriptionBody": {
         "type": "object",
@@ -3385,7 +3620,11 @@ export const componentSchemas = {
                 }
             }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "PatchExchangeNoticeSubscriptionBody"
+        }
     },
     "Category": {
         "type": "object",
@@ -3402,7 +3641,14 @@ export const componentSchemas = {
             "id",
             "name"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Category",
+            "identityFields": [
+                "id"
+            ]
+        }
     },
     "Tag": {
         "type": "object",
@@ -3428,7 +3674,14 @@ export const componentSchemas = {
             "categoryId",
             "parentTagId"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "Tag",
+            "identityFields": [
+                "id"
+            ]
+        }
     },
     "TagRelatedCourse": {
         "type": "object",
@@ -3455,7 +3708,14 @@ export const componentSchemas = {
             "name",
             "credits"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "TagRelatedCourse",
+            "identityFields": [
+                "id"
+            ]
+        }
     },
     "StudentTagInterest": {
         "type": "object",
@@ -3486,12 +3746,19 @@ export const componentSchemas = {
             "categoryId",
             "parentTagId"
         ],
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "StudentTagInterest",
+            "identityFields": [
+                "id"
+            ]
+        }
     }
 } as const
 
 export const enumValues = {
-    "BotGrantEntity.capability": [
+    "StudentCapability": [
         "STUDENT_PROFILE_READ",
         "STUDENT_PROFILE_WRITE",
         "STUDENT_HISTORY_READ",
@@ -3503,40 +3770,28 @@ export const enumValues = {
         "STUDENT_FEEDBACK_READ",
         "STUDENT_FEEDBACK_WRITE"
     ],
-    "ReplaceBotGrantBody.capabilities[]": [
-        "STUDENT_PROFILE_READ",
-        "STUDENT_PROFILE_WRITE",
-        "STUDENT_HISTORY_READ",
-        "STUDENT_HISTORY_WRITE",
-        "STUDENT_PLANNING_READ",
-        "STUDENT_PLANNING_WRITE",
-        "STUDENT_SOCIAL_READ",
-        "STUDENT_SOCIAL_WRITE",
-        "STUDENT_FEEDBACK_READ",
-        "STUDENT_FEEDBACK_WRITE"
-    ],
-    "PeriodPlanningEntity.studyPeriodYearPeriod": [
+    "YearPeriod": [
         "SUMMER",
         "FIRST_SEMESTER",
         "WINTER",
         "SECOND_SEMESTER"
     ],
-    "PeriodPlanningEntity.visibility": [
+    "PlanningVisibility": [
         "PRIVATE",
         "FRIENDS",
         "PUBLIC"
     ],
-    "PeriodPlanningEntity.guide.mode": [
+    "PlanningGuideMode": [
         "CURRICULUM",
         "PROGRAM",
         "NONE"
     ],
-    "PeriodPlanningEntity.guide.curriculumSource": [
+    "PlanningCurriculumSource": [
         "SAVED",
         "SUGGESTION",
         null
     ],
-    "PeriodPlanningEntity.classes[].classSchedules[].dayOfWeek": [
+    "DayOfWeek": [
         "MONDAY",
         "TUESDAY",
         "WEDNESDAY",
@@ -3545,56 +3800,16 @@ export const enumValues = {
         "SATURDAY",
         "SUNDAY"
     ],
-    "CreatePeriodPlanningInput.guide.mode": [
-        "CURRICULUM",
-        "PROGRAM",
-        "NONE"
-    ],
-    "CreatePeriodPlanningInput.guide.curriculumSource": [
-        "SAVED",
-        "SUGGESTION",
-        null
-    ],
-    "UpdatePeriodPlanningInput.visibility": [
-        "PRIVATE",
+    "SharedPlanningVisibility": [
         "FRIENDS",
         "PUBLIC"
     ],
-    "UpdatePeriodPlanningInput.guide.mode": [
-        "CURRICULUM",
-        "PROGRAM",
-        "NONE"
-    ],
-    "UpdatePeriodPlanningInput.guide.curriculumSource": [
-        "SAVED",
-        "SUGGESTION",
-        null
-    ],
-    "SharedPeriodPlanning.visibility": [
-        "FRIENDS",
-        "PUBLIC"
-    ],
-    "SharedPeriodPlanning.studyPeriodYearPeriod": [
-        "SUMMER",
-        "FIRST_SEMESTER",
-        "WINTER",
-        "SECOND_SEMESTER"
-    ],
-    "SharedPeriodPlanning.classes[].classSchedules[].dayOfWeek": [
-        "MONDAY",
-        "TUESDAY",
-        "WEDNESDAY",
-        "THURSDAY",
-        "FRIDAY",
-        "SATURDAY",
-        "SUNDAY"
-    ],
-    "StudentCourseAttempt.evaluationMode": [
+    "CourseEvaluationMode": [
         "GRADE_AND_ATTENDANCE",
         "ATTENDANCE",
         "CONCEPT"
     ],
-    "StudentCourseAttempt.status": [
+    "StudentCourseAttemptStatus": [
         "ENROLLED",
         "DROPPED",
         "APPROVED",
@@ -3605,51 +3820,7 @@ export const enumValues = {
         "SUFFICIENT",
         "INSUFFICIENT"
     ],
-    "StudentCourseAttempt.studyPeriod.yearPeriod": [
-        "SUMMER",
-        "FIRST_SEMESTER",
-        "WINTER",
-        "SECOND_SEMESTER"
-    ],
-    "CreateStudentCourseAttemptInput.evaluationMode": [
-        "GRADE_AND_ATTENDANCE",
-        "ATTENDANCE",
-        "CONCEPT"
-    ],
-    "CreateStudentCourseAttemptInput.status": [
-        "ENROLLED",
-        "DROPPED",
-        "APPROVED",
-        "FAILED_BY_GRADE",
-        "APPROVED_BY_ATTENDANCE",
-        "APPROVED_BY_PROFICIENCY",
-        "FAILED_BY_ATTENDANCE",
-        "SUFFICIENT",
-        "INSUFFICIENT"
-    ],
-    "UpdateStudentCourseAttemptInput.evaluationMode": [
-        "GRADE_AND_ATTENDANCE",
-        "ATTENDANCE",
-        "CONCEPT"
-    ],
-    "UpdateStudentCourseAttemptInput.status": [
-        "ENROLLED",
-        "DROPPED",
-        "APPROVED",
-        "FAILED_BY_GRADE",
-        "APPROVED_BY_ATTENDANCE",
-        "APPROVED_BY_PROFICIENCY",
-        "FAILED_BY_ATTENDANCE",
-        "SUFFICIENT",
-        "INSUFFICIENT"
-    ],
-    "StudentHistoryImportBody.semesters[].yearPeriod": [
-        "SUMMER",
-        "FIRST_SEMESTER",
-        "WINTER",
-        "SECOND_SEMESTER"
-    ],
-    "StudentHistoryImportBody.semesters[].courses[].status": [
+    "HistoryCourseStatus": [
         "APPROVED",
         "APPROVED_BY_ATTENDANCE",
         "APPROVED_BY_PROFICIENCY",
@@ -3657,50 +3828,26 @@ export const enumValues = {
         "FAILED_BY_ATTENDANCE",
         "SUFFICIENT"
     ],
-    "StudentAbsence.studyPeriodYearPeriod": [
-        "SUMMER",
-        "FIRST_SEMESTER",
-        "WINTER",
-        "SECOND_SEMESTER"
-    ],
-    "StudentAbsence.dayOfWeek": [
-        "MONDAY",
-        "TUESDAY",
-        "WEDNESDAY",
-        "THURSDAY",
-        "FRIDAY",
-        "SATURDAY",
-        "SUNDAY"
-    ],
-    "StudentPublicProfile.currentCoursesVisibility": [
+    "StudentProfileVisibility": [
         "PRIVATE",
         "FRIENDS",
         "PUBLIC"
     ],
-    "StudentCurrentCourse.schedules[].dayOfWeek": [
-        "MONDAY",
-        "TUESDAY",
-        "WEDNESDAY",
-        "THURSDAY",
-        "FRIDAY",
-        "SATURDAY",
-        "SUNDAY"
-    ],
-    "StudentFriendship.status": [
+    "StudentFriendshipStatus": [
         "PENDING",
         "ACCEPTED"
     ],
-    "StudentFriendship.direction": [
+    "StudentFriendshipDirection": [
         "INCOMING",
         "OUTGOING",
         "NONE"
     ],
-    "CreateFeedbackReportBody.kind": [
+    "FeedbackKind": [
         "BUG",
         "SUGGESTION",
         "DATA_ISSUE"
     ],
-    "FeedbackReportTarget.oneOf.featureKey": [
+    "FeedbackFeatureKey": [
         "home",
         "curriculum-planner",
         "semester-planner",
@@ -3709,7 +3856,7 @@ export const enumValues = {
         "social",
         "academic-data"
     ],
-    "FeedbackReportTarget.oneOf.academicResourceType": [
+    "FeedbackAcademicResourceType": [
         "COURSE",
         "CATALOG_COURSE",
         "CATALOG_PROGRAM",
@@ -3720,12 +3867,7 @@ export const enumValues = {
         "DAILY_MENU",
         "CALENDAR_EVENT"
     ],
-    "FeedbackReport.kind": [
-        "BUG",
-        "SUGGESTION",
-        "DATA_ISSUE"
-    ],
-    "FeedbackReport.status": [
+    "FeedbackStatus": [
         "OPEN",
         "IN_PROGRESS",
         "CLOSED"
@@ -3733,27 +3875,19 @@ export const enumValues = {
 } as const
 
 export const queryCapabilities = {
-    "createCategories": {
+    "acceptStudentFriendship": {
         "parameters": [],
         "filter": null
     },
-    "createExchangeNoticeSubscriptionsUnsubscribe": {
-        "parameters": [
-            {
-                "name": "token",
-                "required": true,
-                "description": null,
-                "style": null,
-                "explode": null,
-                "schema": {
-                    "type": "string",
-                    "minLength": 1
-                }
-            }
-        ],
+    "addCourseTag": {
+        "parameters": [],
         "filter": null
     },
-    "createFeedbackReports": {
+    "createCategory": {
+        "parameters": [],
+        "filter": null
+    },
+    "createFeedbackReport": {
         "parameters": [],
         "filter": null
     },
@@ -3765,23 +3899,19 @@ export const queryCapabilities = {
         "parameters": [],
         "filter": null
     },
-    "createStudentCourseHistory": {
-        "parameters": [],
-        "filter": null
-    },
     "createStudentCurricula": {
         "parameters": [],
         "filter": null
     },
-    "createStudentFeedbackReports": {
+    "createStudentFeedbackReport": {
         "parameters": [],
         "filter": null
     },
-    "createStudentFriendships": {
+    "createStudentFriendship": {
         "parameters": [],
         "filter": null
     },
-    "createStudentFriendshipsAccept": {
+    "createStudentHistory": {
         "parameters": [],
         "filter": null
     },
@@ -3797,15 +3927,11 @@ export const queryCapabilities = {
         "parameters": [],
         "filter": null
     },
-    "createTags": {
+    "createTag": {
         "parameters": [],
         "filter": null
     },
-    "deleteCategories": {
-        "parameters": [],
-        "filter": null
-    },
-    "deleteCoursesTags": {
+    "deleteCategory": {
         "parameters": [],
         "filter": null
     },
@@ -3821,7 +3947,7 @@ export const queryCapabilities = {
         "parameters": [],
         "filter": null
     },
-    "deleteStudentFriendships": {
+    "deleteStudentFriendship": {
         "parameters": [],
         "filter": null
     },
@@ -3837,19 +3963,31 @@ export const queryCapabilities = {
         "parameters": [],
         "filter": null
     },
-    "deleteStudentTagInterests": {
+    "deleteStudentTagInterest": {
         "parameters": [],
         "filter": null
     },
-    "deleteTags": {
+    "deleteTag": {
         "parameters": [],
         "filter": null
     },
-    "getCategories": {
+    "getCategory": {
         "parameters": [],
         "filter": null
     },
-    "getSharedPeriodPlannings": {
+    "getCurrentUser": {
+        "parameters": [],
+        "filter": null
+    },
+    "getExchangeNoticeSubscription": {
+        "parameters": [],
+        "filter": null
+    },
+    "getProfessorEvaluation": {
+        "parameters": [],
+        "filter": null
+    },
+    "getPublicSharedPeriodPlanning": {
         "parameters": [],
         "filter": null
     },
@@ -3861,10 +3999,6 @@ export const queryCapabilities = {
         "parameters": [],
         "filter": null
     },
-    "getStudentPeople": {
-        "parameters": [],
-        "filter": null
-    },
     "getStudentPeriodPlan": {
         "parameters": [],
         "filter": null
@@ -3873,63 +4007,334 @@ export const queryCapabilities = {
         "parameters": [],
         "filter": null
     },
+    "getStudentPerson": {
+        "parameters": [],
+        "filter": null
+    },
+    "getStudentPublicProfile": {
+        "parameters": [],
+        "filter": null
+    },
     "getStudents": {
         "parameters": [],
         "filter": null
     },
-    "getStudentSharedPeriodPlannings": {
+    "getStudentSharedPeriodPlanning": {
         "parameters": [],
         "filter": null
     },
-    "getTags": {
+    "getTag": {
         "parameters": [],
         "filter": null
     },
-    "listBots": {
-        "parameters": [],
-        "filter": null
-    },
-    "listCategories": {
-        "parameters": [],
-        "filter": null
-    },
-    "listCoursesTags": {
-        "parameters": [],
-        "filter": null
-    },
-    "listMe": {
-        "parameters": [],
-        "filter": null
-    },
-    "listMeBotGrants": {
-        "parameters": [],
-        "filter": null
-    },
-    "listSharedPeriodPlannings": {
+    "listBotGrants": {
         "parameters": [
             {
                 "name": "page",
                 "required": false,
-                "description": null,
+                "description": "Page number. The first page is 1.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
-                    "default": 1
+                    "description": "Page number. The first page is 1."
                 }
             },
             {
                 "name": "pageSize",
                 "required": false,
-                "description": null,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            }
+        ],
+        "filter": null
+    },
+    "listBots": {
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            }
+        ],
+        "filter": null
+    },
+    "listCategories": {
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            }
+        ],
+        "filter": null
+    },
+    "listCourseTags": {
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            }
+        ],
+        "filter": null
+    },
+    "listPendingProfessorEvaluations": {
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
+            {
+                "name": "filter",
+                "required": true,
+                "description": "Pending evaluation filters. Use filter[year]=2026&filter[yearPeriod]=FIRST_SEMESTER.",
+                "style": "deepObject",
+                "explode": true,
+                "schema": {
+                    "additionalProperties": false,
+                    "properties": {
+                        "year": {
+                            "oneOf": [
+                                {
+                                    "type": "integer"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "type": "integer"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        },
+                        "yearPeriod": {
+                            "oneOf": [
+                                {
+                                    "enum": [
+                                        "FIRST_SEMESTER",
+                                        "SECOND_SEMESTER"
+                                    ],
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "enum": [
+                                                "FIRST_SEMESTER",
+                                                "SECOND_SEMESTER"
+                                            ],
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        }
+                    },
+                    "type": "object"
+                }
+            }
+        ],
+        "filter": {
+            "version": 1,
+            "fields": [
+                {
+                    "path": [
+                        "year"
+                    ],
+                    "schema": {
+                        "type": "integer"
+                    },
+                    "operators": [
+                        "eq"
+                    ]
+                },
+                {
+                    "path": [
+                        "yearPeriod"
+                    ],
+                    "schema": {
+                        "enum": [
+                            "FIRST_SEMESTER",
+                            "SECOND_SEMESTER"
+                        ],
+                        "type": "string"
+                    },
+                    "operators": [
+                        "eq"
+                    ]
+                }
+            ],
+            "constraints": {
+                "maxExpressions": 20,
+                "maxDepth": 3,
+                "maxParameters": 100
+            }
+        }
+    },
+    "listPublicSharedPeriodPlannings": {
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "maximum": 50,
-                    "default": 20
+                    "description": "Number of items per page."
                 }
             },
             {
@@ -4005,6 +4410,40 @@ export const queryCapabilities = {
     "listStudentAbsences": {
         "parameters": [
             {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
+            {
                 "name": "filter",
                 "required": false,
                 "description": "Structured absence filters. Use filter[courseAttemptId]=42.",
@@ -4063,12 +4502,42 @@ export const queryCapabilities = {
             }
         }
     },
-    "listStudentClassesProfessorsEvaluation": {
-        "parameters": [],
-        "filter": null
-    },
     "listStudentCourseAttempts": {
         "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -4241,19 +4710,119 @@ export const queryCapabilities = {
         }
     },
     "listStudentCurricula": {
-        "parameters": [],
-        "filter": null
-    },
-    "listStudentExchangeNoticeSubscription": {
-        "parameters": [],
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            }
+        ],
         "filter": null
     },
     "listStudentFeedbackReports": {
-        "parameters": [],
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            }
+        ],
         "filter": null
     },
     "listStudentFriendships": {
         "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -4371,6 +4940,31 @@ export const queryCapabilities = {
     "listStudentPeople": {
         "parameters": [
             {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 50,
+                    "description": "Number of items per page."
+                }
+            },
+            {
                 "name": "query",
                 "required": false,
                 "description": null,
@@ -4380,138 +4974,86 @@ export const queryCapabilities = {
                     "type": "string",
                     "minLength": 1
                 }
-            },
-            {
-                "name": "page",
-                "required": false,
-                "description": null,
-                "style": null,
-                "explode": null,
-                "schema": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "default": 1
-                }
-            },
-            {
-                "name": "pageSize",
-                "required": false,
-                "description": null,
-                "style": null,
-                "explode": null,
-                "schema": {
-                    "type": "integer",
-                    "minimum": 1,
-                    "maximum": 50,
-                    "default": 20
-                }
             }
         ],
         "filter": null
     },
     "listStudentPeriodPlan": {
-        "parameters": [],
-        "filter": null
-    },
-    "listStudentPeriodPlannings": {
-        "parameters": [],
-        "filter": null
-    },
-    "listStudentProfessorEvaluationsPending": {
         "parameters": [
             {
-                "name": "filter",
-                "required": true,
-                "description": "Pending evaluation filters. Use filter[year]=2026&filter[yearPeriod]=FIRST_SEMESTER.",
-                "style": "deepObject",
-                "explode": true,
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
                 "schema": {
-                    "additionalProperties": false,
-                    "properties": {
-                        "year": {
-                            "oneOf": [
-                                {
-                                    "type": "integer"
-                                },
-                                {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "eq": {
-                                            "type": "integer"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
                         },
-                        "yearPeriod": {
-                            "oneOf": [
-                                {
-                                    "enum": [
-                                        "FIRST_SEMESTER",
-                                        "SECOND_SEMESTER"
-                                    ],
-                                    "type": "string"
-                                },
-                                {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "eq": {
-                                            "enum": [
-                                                "FIRST_SEMESTER",
-                                                "SECOND_SEMESTER"
-                                            ],
-                                            "type": "string"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
                             ]
                         }
-                    },
-                    "type": "object"
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
                 }
             }
         ],
-        "filter": {
-            "version": 1,
-            "fields": [
-                {
-                    "path": [
-                        "year"
-                    ],
-                    "schema": {
-                        "type": "integer"
-                    },
-                    "operators": [
-                        "eq"
-                    ]
-                },
-                {
-                    "path": [
-                        "yearPeriod"
-                    ],
-                    "schema": {
-                        "enum": [
-                            "FIRST_SEMESTER",
-                            "SECOND_SEMESTER"
-                        ],
-                        "type": "string"
-                    },
-                    "operators": [
-                        "eq"
-                    ]
-                }
-            ],
-            "constraints": {
-                "maxExpressions": 20,
-                "maxDepth": 3,
-                "maxParameters": 100
-            }
-        }
+        "filter": null
     },
-    "listStudentPublicProfile": {
-        "parameters": [],
+    "listStudentPeriodPlannings": {
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            }
+        ],
         "filter": null
     },
     "listStudentSharedPeriodPlannings": {
@@ -4519,26 +5061,26 @@ export const queryCapabilities = {
             {
                 "name": "page",
                 "required": false,
-                "description": null,
+                "description": "Page number. The first page is 1.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
-                    "default": 1
+                    "description": "Page number. The first page is 1."
                 }
             },
             {
                 "name": "pageSize",
                 "required": false,
-                "description": null,
+                "description": "Number of items per page.",
                 "style": null,
                 "explode": null,
                 "schema": {
                     "type": "integer",
                     "minimum": 1,
                     "maximum": 50,
-                    "default": 20
+                    "description": "Number of items per page."
                 }
             },
             {
@@ -4605,11 +5147,111 @@ export const queryCapabilities = {
         }
     },
     "listStudentTagInterests": {
-        "parameters": [],
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            }
+        ],
+        "filter": null
+    },
+    "listTagCourses": {
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "default": 20,
+                    "description": "Number of items per page."
+                }
+            }
+        ],
         "filter": null
     },
     "listTags": {
         "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
             {
                 "name": "filter",
                 "required": false,
@@ -4749,46 +5391,39 @@ export const queryCapabilities = {
             }
         }
     },
-    "listTagsCourses": {
+    "removeCourseTag": {
+        "parameters": [],
+        "filter": null
+    },
+    "replaceBotGrant": {
+        "parameters": [],
+        "filter": null
+    },
+    "unsubscribeExchangeNotices": {
         "parameters": [
             {
-                "name": "page",
-                "required": false,
+                "name": "token",
+                "required": true,
                 "description": null,
                 "style": null,
                 "explode": null,
                 "schema": {
-                    "type": "integer",
-                    "minimum": 1
-                }
-            },
-            {
-                "name": "pageSize",
-                "required": false,
-                "description": null,
-                "style": null,
-                "explode": null,
-                "schema": {
-                    "type": "integer",
-                    "minimum": 1
+                    "type": "string",
+                    "minLength": 1
                 }
             }
         ],
         "filter": null
     },
-    "updateCategories": {
+    "updateCategory": {
         "parameters": [],
         "filter": null
     },
-    "updateCoursesTags": {
+    "updateExchangeNoticeSubscription": {
         "parameters": [],
         "filter": null
     },
-    "updateMeBotGrants": {
-        "parameters": [],
-        "filter": null
-    },
-    "updateStudentClassesProfessorsEvaluation": {
+    "updateProfessorEvaluation": {
         "parameters": [],
         "filter": null
     },
@@ -4797,10 +5432,6 @@ export const queryCapabilities = {
         "filter": null
     },
     "updateStudentCurricula": {
-        "parameters": [],
-        "filter": null
-    },
-    "updateStudentExchangeNoticeSubscription": {
         "parameters": [],
         "filter": null
     },
@@ -4820,11 +5451,11 @@ export const queryCapabilities = {
         "parameters": [],
         "filter": null
     },
-    "updateStudentTagInterests": {
+    "updateStudentTagInterest": {
         "parameters": [],
         "filter": null
     },
-    "updateTags": {
+    "updateTag": {
         "parameters": [],
         "filter": null
     }
