@@ -1,9 +1,6 @@
 # POMI SDK
 
-O pacote contém duas camadas:
-
-- as fachadas de domínio manuais, mantidas para compatibilidade;
-- a camada operacional gerada em `src/generated`, derivada dos contratos OpenAPI Data e App.
+O pacote contém o cliente operacional gerado em `src/generated`, derivado dos contratos OpenAPI Data e App.
 
 O gerador fica em `sdk-gen`, separando o carregamento e a validação do contrato da emissão dos artefatos. Ele usa, por padrão:
 
@@ -27,7 +24,7 @@ const sdk = createPomiSdk({
   appApiUrl: 'https://app.example.com',
 })
 
-const courses = await sdk.data.listCourses({
+const courses = await sdk.data.courses.list({
   filter: { credits: { gte: 4 } },
 })
 

@@ -7,7 +7,7 @@ import type {
   StudyPeriod,
 } from '@pomi/planner-domain/semester'
 
-import { pomiApi } from '@/api/client'
+import { pomiSdk } from '@/api/client'
 import { publicStaticDataCache } from '@/lib/publicStaticDataCache'
 
 type ApiClass = Readonly<{
@@ -82,8 +82,8 @@ function refreshInBackground(operation: Promise<unknown>) {
 async function refreshStudyPeriods() {
   studyPeriodsRefreshed = true
   if (!studyPeriodsLoad) {
-    studyPeriodsLoad = pomiApi.semesterPlanning
-      .listStudyPeriods()
+    studyPeriodsLoad = pomiSdk.data.studyPeriods
+      .listAll({})
       .then(async (studyPeriods) => {
         cachedStudyPeriods = studyPeriods
         await publicStaticDataCache.write(studyPeriodsCacheKey, studyPeriods)
@@ -119,8 +119,8 @@ async function loadCachedStudyPeriods() {
 async function refreshCourses() {
   coursesRefreshed = true
   if (!coursesLoad) {
-    coursesLoad = pomiApi.semesterPlanning
-      .listCourses()
+    coursesLoad = pomiSdk.data.courses
+      .listAll({ page: 1, pageSize: 1000 })
       .then(async (courses) => {
         cachedCourses = courses
         await publicStaticDataCache.write(coursesCacheKey, courses)
@@ -157,8 +157,12 @@ async function refreshClasses(studyPeriodId: number) {
   refreshedClassStudyPeriods.add(studyPeriodId)
   let loading = classesLoadByStudyPeriod.get(studyPeriodId)
   if (!loading) {
-    loading = pomiApi.semesterPlanning
-      .listClasses(studyPeriodId)
+    loading = pomiSdk.data.classes
+      .listAll({
+        page: 1,
+        pageSize: 1000,
+        filter: { studyPeriodId },
+      })
       .then(async (classes) => {
         classesByStudyPeriod.set(studyPeriodId, classes)
         await publicStaticDataCache.write(
@@ -206,8 +210,12 @@ async function refreshMeetings(studyPeriodId: number) {
   refreshedMeetingStudyPeriods.add(studyPeriodId)
   let loading = meetingsLoadByStudyPeriod.get(studyPeriodId)
   if (!loading) {
-    loading = pomiApi.semesterPlanning
-      .listMeetings(studyPeriodId)
+    loading = pomiSdk.data.classSchedules
+      .listAll({
+        page: 1,
+        pageSize: 1000,
+        filter: { studyPeriod: { id: studyPeriodId } },
+      })
       .then(async (meetings) => {
         meetingsByStudyPeriod.set(studyPeriodId, meetings)
         await publicStaticDataCache.write(
@@ -254,8 +262,8 @@ async function loadCachedMeetings(studyPeriodId: number) {
 async function refreshProfessorEvaluationSummaries() {
   professorEvaluationSummariesRefreshed = true
   if (!professorEvaluationSummariesLoad) {
-    professorEvaluationSummariesLoad = pomiApi.semesterPlanning
-      .listProfessorEvaluationSummaries()
+    professorEvaluationSummariesLoad = pomiSdk.data.evaluationSummaries
+      .listByProfessorAll({ page: 1, pageSize: 100 })
       .then(async (summaries) => {
         cachedProfessorEvaluationSummaries = summaries
         await publicStaticDataCache.write(
@@ -356,10 +364,11 @@ export function listSemesterPlannings(
   studentId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiApi.semesterPlanning.listSemesterPlannings(
+  return pomiSdk.app.periodPlannings.listAll(
     studentId,
-    getAccessToken,
-  )
+    {},
+    { getAccessToken },
+  ) as Promise<ReadonlyArray<PersistedSemesterPlanning>>
 }
 
 export function getSemesterPlanning(
@@ -367,11 +376,11 @@ export function getSemesterPlanning(
   planId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiApi.semesterPlanning.getSemesterPlanning(
+  return pomiSdk.app.periodPlannings.get(
     studentId,
     planId,
-    getAccessToken,
-  )
+    { getAccessToken },
+  ) as Promise<PersistedSemesterPlanning>
 }
 
 export function createSemesterPlanning(
@@ -385,11 +394,35 @@ export function createSemesterPlanning(
   }>,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiApi.semesterPlanning.createSemesterPlanning(
+  return pomiSdk.app.periodPlannings.create(
     studentId,
-    document,
-    getAccessToken,
-  )
+    {
+      name: document.name,
+      studyPeriodId: document.studyPeriodId,
+      curriculumId: document.curriculumId,
+      classes: [...document.classIds],
+      guide: {
+        mode: document.guide.mode.toUpperCase() as
+          | 'CURRICULUM'
+          | 'PROGRAM'
+          | 'NONE',
+        curriculumSource: document.guide.curriculum.source
+          ? (document.guide.curriculum.source.toUpperCase() as
+              | 'SAVED'
+              | 'SUGGESTION')
+          : null,
+        curriculumId: document.guide.curriculum.curriculumId,
+        suggestionId: document.guide.curriculum.suggestionId,
+        suggestionCatalogProgramId:
+          document.guide.curriculum.suggestionCatalogProgramId,
+        catalogProgramId: document.guide.program.catalogProgramId,
+        specializationId: document.guide.program.specializationId,
+        languageId: document.guide.program.languageId,
+        manualCourseIds: [...new Set(document.guide.manualCourseIds)],
+      },
+    },
+    { getAccessToken },
+  ) as Promise<PersistedSemesterPlanning>
 }
 
 export function patchSemesterPlanning(
@@ -403,12 +436,35 @@ export function patchSemesterPlanning(
   }>,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiApi.semesterPlanning.patchSemesterPlanning(
+  return pomiSdk.app.periodPlannings.update(
     studentId,
     planId,
-    document,
-    getAccessToken,
-  )
+    {
+      name: document.name,
+      curriculumId: document.curriculumId,
+      classes: { set: [...document.classIds] },
+      guide: {
+        mode: document.guide.mode.toUpperCase() as
+          | 'CURRICULUM'
+          | 'PROGRAM'
+          | 'NONE',
+        curriculumSource: document.guide.curriculum.source
+          ? (document.guide.curriculum.source.toUpperCase() as
+              | 'SAVED'
+              | 'SUGGESTION')
+          : null,
+        curriculumId: document.guide.curriculum.curriculumId,
+        suggestionId: document.guide.curriculum.suggestionId,
+        suggestionCatalogProgramId:
+          document.guide.curriculum.suggestionCatalogProgramId,
+        catalogProgramId: document.guide.program.catalogProgramId,
+        specializationId: document.guide.program.specializationId,
+        languageId: document.guide.program.languageId,
+        manualCourseIds: [...new Set(document.guide.manualCourseIds)],
+      },
+    },
+    { getAccessToken },
+  ) as Promise<PersistedSemesterPlanning>
 }
 
 export function updateSemesterPlanningVisibility(
@@ -417,12 +473,12 @@ export function updateSemesterPlanningVisibility(
   visibility: SemesterPlanningVisibility,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiApi.semesterPlanning.updateSemesterPlanningVisibility(
+  return pomiSdk.app.periodPlannings.update(
     studentId,
     planId,
-    visibility,
-    getAccessToken,
-  )
+    { visibility },
+    { getAccessToken },
+  ) as Promise<PersistedSemesterPlanning>
 }
 
 export function deleteSemesterPlanning(
@@ -430,9 +486,9 @@ export function deleteSemesterPlanning(
   planId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiApi.semesterPlanning.deleteSemesterPlanning(
+  return pomiSdk.app.periodPlannings.delete(
     studentId,
     planId,
-    getAccessToken,
+    { getAccessToken },
   )
 }

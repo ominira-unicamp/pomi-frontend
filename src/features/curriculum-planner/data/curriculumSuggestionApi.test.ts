@@ -8,8 +8,8 @@ describe('loadCurriculumSuggestions', () => {
 
   it('loads public suggestions for one catalog program', async () => {
     const fetchMock = vi.fn().mockResolvedValue(
-      Response.json([
-        {
+      Response.json({
+        data: [{
           id: 7,
           catalogProgramId: 3,
           code: 'GERAL',
@@ -25,8 +25,9 @@ describe('loadCurriculumSuggestions', () => {
               ],
             },
           ],
-        },
-      ]),
+        }],
+        _paths: { next: null },
+      }),
     )
     vi.stubGlobal('fetch', fetchMock)
 

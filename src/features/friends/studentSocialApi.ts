@@ -1,16 +1,29 @@
-import { pomiApi } from '@/api/client'
-
-export type {
-  Friendship,
-  PublicPerson,
-  PublicProfile,
-  PublicProfileUpdate,
-} from '@ominira/pomi-sdk/student-social'
-
 import type {
-  PublicProfile,
-  PublicProfileUpdate,
-} from '@ominira/pomi-sdk/student-social'
+  StudentFriendship,
+  StudentPublicPerson,
+  StudentPublicProfile,
+  updateStudentPublicProfileInput,
+} from '@ominira/pomi-sdk/generated/app'
+import { pomiSdk } from '@/api/client'
+
+type WithoutPaths<T> = T extends ReadonlyArray<infer Item>
+  ? ReadonlyArray<WithoutPaths<Item>>
+  : T extends object
+    ? {
+        readonly [Key in keyof T as Key extends '_paths'
+          ? never
+          : Key]: WithoutPaths<T[Key]>
+      }
+    : T
+
+export type PublicPerson = WithoutPaths<StudentPublicPerson>
+export type PublicProfile = WithoutPaths<StudentPublicProfile>
+export type Friendship = WithoutPaths<StudentFriendship>
+export type PublicProfileUpdate = Readonly<
+  updateStudentPublicProfileInput['body']
+>
+
+type GetAccessToken = () => Promise<string>
 
 export function publicProfileUpdateInput(
   profile: PublicProfile,
@@ -34,13 +47,57 @@ export function hasPublicProfileChanges(
   )
 }
 
-export const {
-  getPublicProfile,
-  updatePublicProfile,
-  searchPeople,
-  getPerson,
-  listFriendships,
-  requestFriendship,
-  acceptFriendship,
-  removeFriendship,
-} = pomiApi.studentSocial
+export const getPublicProfile = (
+  studentId: number,
+  getAccessToken: GetAccessToken,
+) => pomiSdk.app.studentSocial.getProfile(studentId, { getAccessToken })
+export const updatePublicProfile = (
+  studentId: number,
+  body: Partial<PublicProfileUpdate>,
+  getAccessToken: GetAccessToken,
+) => pomiSdk.app.studentSocial.updateProfile(studentId, body, { getAccessToken })
+export const searchPeople = (
+  studentId: number,
+  query: string | undefined,
+  getAccessToken: GetAccessToken,
+) =>
+  pomiSdk.app.studentPeople
+    .list(
+      studentId,
+      { page: 1, pageSize: 20, query: query?.trim() || undefined },
+      { getAccessToken },
+    )
+    .then((page) => ({ items: page.data, total: page.total }))
+export const getPerson = (
+  studentId: number,
+  publicId: string,
+  getAccessToken: GetAccessToken,
+) => pomiSdk.app.studentSocial.getPerson(studentId, publicId, { getAccessToken })
+export const listFriendships = (
+  studentId: number,
+  getAccessToken: GetAccessToken,
+) => pomiSdk.app.studentSocial.listAll(studentId, {}, { getAccessToken })
+export const requestFriendship = (
+  studentId: number,
+  targetPublicId: string,
+  getAccessToken: GetAccessToken,
+) =>
+  pomiSdk.app.studentSocial.createFriendship(
+    studentId,
+    { targetPublicId },
+    { getAccessToken },
+  )
+export const acceptFriendship = (
+  studentId: number,
+  id: number,
+  getAccessToken: GetAccessToken,
+) => pomiSdk.app.studentSocial.acceptFriendship(studentId, id, { getAccessToken })
+export const removeFriendship = async (
+  studentId: number,
+  id: number,
+  getAccessToken: GetAccessToken,
+) => {
+  await pomiSdk.app.studentSocial.removeFriendship(studentId, id, {
+    getAccessToken,
+  })
+}

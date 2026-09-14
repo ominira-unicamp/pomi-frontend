@@ -16,14 +16,53 @@ import type {
 } from '@pomi/planner-domain/curriculum'
 
 import type {
-  CurriculumApiBlockSet as ApiBlockSet,
-  CurriculumApiCatalogProgram as ApiCatalogProgram,
-  CurriculumApiCourse as ApiCourse,
-  CurriculumApiCourseRequirement as ApiCourseRequirement,
-} from '@ominira/pomi-sdk/curriculum-planner'
+  CourseBlockSet as BlockSet,
+  CatalogProgram,
+  CatalogProgramLanguage,
+  CatalogProgramModality,
+  Course,
+  CourseRequirement as GeneratedCourseRequirement,
+} from '@ominira/pomi-sdk/generated/data'
 import { ApiError } from '@/api/errors'
 import { pomiSdk } from '@/api/client'
 import { publicStaticDataCache } from '@/lib/publicStaticDataCache'
+
+type ApiCourseRequirement = Pick<
+  GeneratedCourseRequirement,
+  'type' | 'courseId' | 'prefix'
+>
+type ApiBlockSet = {
+  mandatory: ReadonlyArray<ApiCourseRequirement>
+  electives: ReadonlyArray<{
+    credits: BlockSet['electives'][number]['credits']
+    courses: ReadonlyArray<ApiCourseRequirement>
+  }>
+}
+type ApiCatalogProgram = Pick<
+  CatalogProgram,
+  | 'id'
+  | 'title'
+  | 'catalogId'
+  | 'catalogYear'
+  | 'programId'
+  | 'programCode'
+  | 'programName'
+> & {
+  base: ApiBlockSet
+  modalities: ReadonlyArray<
+    Pick<CatalogProgramModality, 'specializationId' | 'code' | 'name'> & {
+      blocks: ApiBlockSet
+    }
+  >
+  languages: ReadonlyArray<
+    Pick<CatalogProgramLanguage, 'languageId' | 'name'> & {
+      blocks: ApiBlockSet
+    }
+  >
+}
+type ApiCourse = Pick<Course, 'id' | 'code' | 'name' | 'credits'> & {
+  prefix?: Course['prefix']
+}
 
 const ok = <T>(value: T): PlannerResult<T> => ({ ok: true, value })
 const unavailable = <T = never>(): PlannerResult<T> => ({

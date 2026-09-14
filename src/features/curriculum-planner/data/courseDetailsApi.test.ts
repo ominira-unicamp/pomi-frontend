@@ -39,7 +39,9 @@ describe('courseDetailsApi', () => {
       const url = new URL(input)
       expect(url.pathname).toBe('/catalog-courses')
       expect(url.searchParams.get('filter[courseId]')).toBe('10')
-      return Promise.resolve(Response.json({ data: [details] }))
+      return Promise.resolve(
+        Response.json({ data: [details], _paths: { next: null } }),
+      )
     })
     vi.stubGlobal('fetch', fetchMock)
 
@@ -50,7 +52,9 @@ describe('courseDetailsApi', () => {
   it('returns null when the course is absent from the catalog', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(() => Promise.resolve(Response.json({ data: [] }))),
+      vi.fn(() =>
+        Promise.resolve(Response.json({ data: [], _paths: { next: null } })),
+      ),
     )
 
     await expect(getCatalogCourseDetails(10, 2026)).resolves.toBeNull()

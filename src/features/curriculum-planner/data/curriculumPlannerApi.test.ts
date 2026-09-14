@@ -10,8 +10,8 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
       const url = new URL(input)
       if (url.pathname === '/catalog-program') {
         return Promise.resolve(
-          Response.json([
-            {
+          Response.json({
+            data: [{
               id: 1,
               title: 'Programa',
               catalogId: 2,
@@ -35,8 +35,9 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
               },
               modalities: [],
               languages: [],
-            },
-          ]),
+            }],
+            _paths: { next: null },
+          }),
         )
       }
       if (url.pathname === '/courses' && url.searchParams.get('page') === '2') {
@@ -51,6 +52,8 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
                 prefix: 'EF',
               },
             ],
+            quantity: 1,
+            total: 1,
             _paths: { next: null },
           }),
         )
@@ -68,6 +71,8 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
               },
               { id: 8, code: 'CD100', name: 'Dados', credits: 4, prefix: 'CD' },
             ],
+            quantity: 2,
+            total: 3,
             _paths: { next: '/courses?page=2&pageSize=100' },
           }),
         )

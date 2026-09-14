@@ -5,11 +5,12 @@ import type {
   PrerequisiteItem,
 } from '@pomi/planner-domain/curriculum'
 
-import type {
-  CurriculumApiCatalogCourse,
-  CurriculumApiPrerequisiteItem,
-} from '@ominira/pomi-sdk/curriculum-prerequisites'
+import type { CatalogCourse } from '@ominira/pomi-sdk/generated/data'
 import { pomiSdk } from '@/api/client'
+
+type CurriculumApiCatalogCourse = CatalogCourse
+type CurriculumApiPrerequisiteItem =
+  CatalogCourse['prerequisites']['any'][number]['all'][number]
 
 export type CurrentYearPrerequisites = Readonly<{
   catalogId: number

@@ -20,7 +20,12 @@ describe('shared period planning API', () => {
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(
         new Response(
-          JSON.stringify({ items: [], page: 1, pageSize: 20, total: 0 }),
+          JSON.stringify({
+            data: [],
+            quantity: 0,
+            total: 0,
+            _paths: { next: null },
+          }),
           { status: 200 },
         ),
       )

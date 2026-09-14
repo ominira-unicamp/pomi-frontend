@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { pomiApi } from './client'
+import { pomiSdk } from './client'
 
 describe('API SDK adapter', () => {
   afterEach(() => {
@@ -13,7 +13,7 @@ describe('API SDK adapter', () => {
     vi.stubGlobal('fetch', fetchMock)
     const getAccessToken = vi.fn().mockResolvedValue('access-token')
 
-    await pomiApi.student.getCurrentStudent(getAccessToken)
+    await pomiSdk.app.currentUser.get({ getAccessToken })
 
     expect(getAccessToken).toHaveBeenCalledOnce()
     const [, init] = fetchMock.mock.calls[0]
@@ -34,7 +34,7 @@ describe('API SDK adapter', () => {
     )
     vi.stubGlobal('fetch', fetchMock)
 
-    await pomiApi.courseCatalog.listCourses({ page: 1 })
+    await pomiSdk.data.courses.list({ page: 1, pageSize: 20 })
 
     const [, init] = fetchMock.mock.calls[0]
     expect(new Headers(init?.headers).has('Authorization')).toBe(false)

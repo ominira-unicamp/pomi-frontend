@@ -1,12 +1,17 @@
-import type { CreateStudentAbsenceInput } from '@ominira/pomi-sdk/student-absences'
-import { pomiApi } from '@/api/client'
-
-export type {
-  CreateStudentAbsenceInput,
+import type {
+  DayOfWeek,
   StudentAbsence,
-  StudentAbsenceDayOfWeek,
-  StudyPeriodYearPeriod,
-} from '@ominira/pomi-sdk/student-absences'
+  YearPeriod,
+  createStudentAbsencesInput,
+} from '@ominira/pomi-sdk/generated/app'
+import { pomiSdk } from '@/api/client'
+
+export type StudentAbsenceDayOfWeek = DayOfWeek
+export type StudyPeriodYearPeriod = YearPeriod
+export type CreateStudentAbsenceInput = Readonly<
+  createStudentAbsencesInput['body']
+>
+export type { StudentAbsence }
 
 type GetAccessToken = () => Promise<string>
 
@@ -14,8 +19,9 @@ export function listStudentAbsences(
   studentId: number,
   getAccessToken: GetAccessToken,
 ) {
-  return pomiApi.studentAbsences.listStudentAbsences(
-    { studentId },
+  return pomiSdk.app.studentAbsences.listAll(
+    studentId,
+    {},
     { getAccessToken },
   )
 }
@@ -25,10 +31,7 @@ export function createStudentAbsence(
   input: CreateStudentAbsenceInput,
   getAccessToken: GetAccessToken,
 ) {
-  return pomiApi.studentAbsences.createStudentAbsence(
-    { studentId, input },
-    { getAccessToken },
-  )
+  return pomiSdk.app.studentAbsences.create(studentId, input, { getAccessToken })
 }
 
 export function deleteStudentAbsence(
@@ -36,8 +39,7 @@ export function deleteStudentAbsence(
   absenceId: number,
   getAccessToken: GetAccessToken,
 ) {
-  return pomiApi.studentAbsences.deleteStudentAbsence(
-    { studentId, absenceId },
-    { getAccessToken },
-  )
+  return pomiSdk.app.studentAbsences.delete(studentId, absenceId, {
+    getAccessToken,
+  })
 }

@@ -17,7 +17,12 @@ describe('curriculumPrerequisiteApi', () => {
     const fetchMock = vi.fn((input: string) => {
       const url = new URL(input)
       if (url.pathname === '/catalogs')
-        return Promise.resolve(Response.json([{ id: 26, year: 2026 }]))
+        return Promise.resolve(
+          Response.json({
+            data: [{ id: 26, year: 2026 }],
+            _paths: { next: null },
+          }),
+        )
       if (
         url.pathname === '/catalog-courses' &&
         url.searchParams.get('page') === '1'
@@ -42,6 +47,8 @@ describe('curriculumPrerequisiteApi', () => {
                 },
               },
             ],
+            quantity: 1,
+            total: 2,
             _paths: {
               next: '/catalog-courses?catalogId=26&page=2&pageSize=1000',
             },
@@ -71,6 +78,8 @@ describe('curriculumPrerequisiteApi', () => {
                 },
               },
             ],
+            quantity: 1,
+            total: 2,
             _paths: { next: null },
           }),
         )
@@ -94,7 +103,9 @@ describe('curriculumPrerequisiteApi', () => {
   it('does not fall back when the current catalog is unavailable', async () => {
     vi.stubGlobal(
       'fetch',
-      vi.fn(() => Promise.resolve(Response.json([]))),
+      vi.fn(() =>
+        Promise.resolve(Response.json({ data: [], _paths: { next: null } })),
+      ),
     )
 
     await expect(
