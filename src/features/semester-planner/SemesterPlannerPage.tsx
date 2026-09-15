@@ -6,14 +6,10 @@ import {
   createInMemorySemesterPlanner,
   scheduleDays as days,
   emptyGuide,
-  scheduleEndHour as endHour,
-  scheduleRowCount as gridRowCount,
   guideFromApi,
-  scheduleMinutes as minutes,
   numericId,
   programGuideBlocks,
   selectorLabel,
-  scheduleStartHour as startHour,
 } from '@pomi/planner-domain/semester'
 import type {
   GuideChanges,
@@ -29,8 +25,6 @@ import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -45,6 +39,8 @@ import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { useSemesterPlannerQueries } from '@/features/semester-planner/hooks/useSemesterPlannerQueries'
 import { ClassesGuidePanel } from '@/features/semester-planner/components/ClassesGuidePanel'
 import { SemesterPlanningHeader } from '@/features/semester-planner/components/SemesterPlanningHeader'
+import { SemesterScheduleGrid } from '@/features/semester-planner/components/SemesterScheduleGrid'
+import { PlanningVisibilityDialog } from '@/features/semester-planner/components/PlanningVisibilityDialog'
 import { semesterDraftBootstrapKey } from '@/features/planning-shared/data/planningDraftBootstrap'
 import { saveDraftHandoff } from '@/features/planning-shared/data/planningDraftHandoff'
 import { SaveDraftDialog } from '@/features/planning-shared/components/SaveDraftDialog'
@@ -55,29 +51,6 @@ import { useScheduleGridSelection } from '@/features/semester-planner/hooks/useS
 import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
 
 type GuideTab = 'disciplines' | 'classes'
-
-const visibilityOptions: ReadonlyArray<{
-  value: SemesterPlanningVisibility
-  label: string
-  description: string
-}> = [
-  {
-    value: 'PRIVATE',
-    label: 'Privado',
-    description: 'Somente você pode visualizar este planejamento.',
-  },
-  {
-    value: 'FRIENDS',
-    label: 'Amigos',
-    description: 'Apenas seus amigos podem visualizar este planejamento.',
-  },
-  {
-    value: 'PUBLIC',
-    label: 'Público',
-    description:
-      'Qualquer pessoa com o link pode visualizar este planejamento.',
-  },
-]
 
 function courseColor() {
   return 'border-strong-border bg-background text-foreground'
@@ -1130,167 +1103,29 @@ export function SemesterPlannerPage({
         </Alert>
       )}
       <div className="grid min-h-0 flex-1 gap-5 xl:grid-cols-[minmax(0,1fr)_28rem]">
-        <section className="h-[32rem] overflow-auto rounded-lg border-2 border-strong-border bg-card lg:h-full lg:overflow-hidden">
-          <div className="flex h-full min-w-[46rem] flex-col">
-            <div className="grid shrink-0 grid-cols-[3.5rem_repeat(6,minmax(6.5rem,1fr))]">
-              <div className="sticky left-0 z-20 border-b border-strong-border bg-card" />
-              {days.map(([, label]) => (
-                <div
-                  key={label}
-                  className="border-b border-l border-strong-border py-1 text-center text-sm font-extrabold"
-                >
-                  {label}
-                </div>
-              ))}
-            </div>
-            <div className="flex min-h-0 flex-1 flex-col">
-              <div className="relative grid min-h-0 flex-1 grid-cols-[3.5rem_repeat(6,minmax(6.5rem,1fr))]">
-                <div
-                  className="relative sticky left-0 z-10 grid bg-card"
-                  style={{
-                    gridTemplateRows: `repeat(${endHour - startHour}, minmax(0, 1fr))`,
-                  }}
-                >
-                  {Array.from({ length: endHour - startHour }, (_, index) => (
-                    <div
-                      key={index}
-                      className="border-b border-strong-border/40 pr-2 pt-1 text-right text-xs text-muted-foreground"
-                    >
-                      {String(startHour + index).padStart(2, '0')}:00
-                    </div>
-                  ))}
-                </div>
-                {days.map(([day]) => (
-                  <div
-                    key={day}
-                    className="grid border-l border-strong-border/50"
-                    style={{
-                      gridTemplateRows: `repeat(${endHour - startHour}, minmax(0, 1fr))`,
-                    }}
-                  >
-                    {Array.from({ length: endHour - startHour }, (_, index) => (
-                      <div
-                        key={index}
-                        className="border-b border-strong-border/30"
-                      />
-                    ))}
-                  </div>
-                ))}
-                {guideTab === 'classes' && (
-                  <div
-                    ref={gridSelectionRef}
-                    className={`absolute inset-y-0 left-[3.5rem] right-0 z-[1] touch-none select-none ${isDraggingGridSelection ? 'cursor-crosshair' : ''}`}
-                    onPointerDown={handleGridPointerDown}
-                    onPointerMove={handleGridPointerMove}
-                    onPointerUp={finishGridSelection}
-                    onPointerCancel={cancelGridSelection}
-                  >
-                    {activeGridSelection &&
-                      highlightedDayIndexes.map((dayIndex) => (
-                        <div
-                          key={dayIndex}
-                          className="pointer-events-none absolute rounded border border-primary/35 bg-primary/5"
-                          style={{
-                            left: `${(dayIndex / days.length) * 100}%`,
-                            width: `${(1 / days.length) * 100}%`,
-                            top: `${(activeGridSelection.startRow / gridRowCount) * 100}%`,
-                            height: `${((activeGridSelection.endRow - activeGridSelection.startRow) / gridRowCount) * 100}%`,
-                          }}
-                        />
-                      ))}
-                  </div>
-                )}
-                {snapshot.selectedClasses.flatMap((classItem) =>
-                  query.data.meetings
-                    .filter((meeting) => meeting.classId === classItem.id)
-                    .map((meeting) => {
-                      const dayIndex = days.findIndex(
-                        ([day]) => day === meeting.dayOfWeek,
-                      )
-                      const top =
-                        ((minutes(meeting.start) - startHour * 60) /
-                          ((endHour - startHour) * 60)) *
-                        100
-                      const height =
-                        ((minutes(meeting.end) - minutes(meeting.start)) /
-                          ((endHour - startHour) * 60)) *
-                        100
-                      const course = courseById.get(classItem.courseId)
-                      return (
-                        <button
-                          key={meeting.id}
-                          className={`absolute z-10 overflow-hidden rounded border-2 border-primary bg-primary/10 p-1 text-left text-[11px] font-bold shadow-sm ${selectedClassIdsWithConflict.has(classItem.id) ? 'ring-2 ring-destructive' : ''}`}
-                          style={{
-                            left: `calc(3.5rem + ${dayIndex} * (100% - 3.5rem) / 6 + 3px)`,
-                            width: 'calc((100% - 3.5rem) / 6 - 6px)',
-                            top: `${top}%`,
-                            height: `${height}%`,
-                          }}
-                          title={`${course?.name ?? classItem.courseCode} — Turma ${classItem.code}`}
-                          onClick={() =>
-                            dispatch({
-                              type: 'removeClass',
-                              classId: classItem.id,
-                            })
-                          }
-                        >
-                          <span className="block truncate">
-                            {classItem.courseCode} · {classItem.code}
-                          </span>
-                          <span className="block truncate font-medium">
-                            {meeting.roomCode}
-                          </span>
-                        </button>
-                      )
-                    }),
-                )}
-                {previewClassId &&
-                  classById.get(previewClassId) &&
-                  query.data.meetings
-                    .filter((meeting) => meeting.classId === previewClassId)
-                    .map((meeting) => {
-                      const classItem = classById.get(previewClassId)!
-                      const dayIndex = days.findIndex(
-                        ([day]) => day === meeting.dayOfWeek,
-                      )
-                      const top =
-                        ((minutes(meeting.start) - startHour * 60) /
-                          ((endHour - startHour) * 60)) *
-                        100
-                      const height =
-                        ((minutes(meeting.end) - minutes(meeting.start)) /
-                          ((endHour - startHour) * 60)) *
-                        100
-                      return (
-                        <div
-                          key={`preview-${meeting.id}`}
-                          className="pointer-events-none absolute z-20 overflow-hidden rounded border-2 border-dashed border-primary bg-primary/10 p-1 text-[11px] font-bold opacity-45"
-                          style={{
-                            left: `calc(3.5rem + ${dayIndex} * (100% - 3.5rem) / 6 + 3px)`,
-                            width: 'calc((100% - 3.5rem) / 6 - 6px)',
-                            top: `${top}%`,
-                            height: `${height}%`,
-                          }}
-                        >
-                          {classItem.courseCode} · {classItem.code}
-                        </div>
-                      )
-                    })}
-              </div>
-              <div className="grid shrink-0 grid-cols-[3.5rem_repeat(6,minmax(6.5rem,1fr))]">
-                <div className="border-b border-strong-border/40 pr-2 text-right text-xs text-muted-foreground">
-                  {String(endHour).padStart(2, '0')}:00
-                </div>
-                {days.map(([day]) => (
-                  <div
-                    key={day}
-                    className="border-b border-l border-strong-border/30"
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
+        <SemesterScheduleGrid
+          selectedClasses={snapshot.selectedClasses}
+          meetings={query.data.meetings}
+          coursesById={courseById}
+          conflictingClassIds={selectedClassIdsWithConflict}
+          previewClass={
+            previewClassId ? classById.get(previewClassId) : undefined
+          }
+          selection={{
+            ref: gridSelectionRef,
+            activeSelection: activeGridSelection,
+            highlightedDayIndexes,
+            isDragging: isDraggingGridSelection,
+            onPointerDown: handleGridPointerDown,
+            onPointerMove: handleGridPointerMove,
+            onPointerUp: finishGridSelection,
+            onPointerCancel: cancelGridSelection,
+          }}
+          isClassSelectionEnabled={guideTab === 'classes'}
+          onSelectedClassClick={(classId) =>
+            void dispatch({ type: 'removeClass', classId })
+          }
+        />
         <aside className="flex min-h-0 flex-col rounded-lg border-2 border-strong-border bg-card lg:h-full">
           <div className="grid grid-cols-2 border-b-2 border-strong-border p-2">
             <Button
@@ -1751,55 +1586,14 @@ export function SemesterPlannerPage({
         onOpenChange={setSaveDraftDialogOpen}
         onLogin={saveDraft}
       />
-      <Dialog
+      <PlanningVisibilityDialog
         open={visibilityDialogOpen}
+        value={visibilityDraft}
+        isSaving={isSaving}
         onOpenChange={setVisibilityDialogOpen}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Configurar publicidade</DialogTitle>
-            <DialogDescription>
-              Escolha quem poderá visualizar este planejamento de semestre.
-            </DialogDescription>
-          </DialogHeader>
-          <div
-            className="grid gap-2"
-            role="radiogroup"
-            aria-label="Publicidade"
-          >
-            {visibilityOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                role="radio"
-                aria-checked={visibilityDraft === option.value}
-                className={`pomi-focus rounded-md border-2 p-3 text-left transition-colors ${
-                  visibilityDraft === option.value
-                    ? 'border-primary bg-primary/10'
-                    : 'border-border hover:bg-muted'
-                }`}
-                onClick={() => setVisibilityDraft(option.value)}
-              >
-                <span className="block font-black">{option.label}</span>
-                <span className="mt-1 block text-sm text-muted-foreground">
-                  {option.description}
-                </span>
-              </button>
-            ))}
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setVisibilityDialogOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button disabled={isSaving} onClick={() => void saveVisibility()}>
-              Salvar publicidade
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        onValueChange={setVisibilityDraft}
+        onSave={() => void saveVisibility()}
+      />
     </PageContainer>
   )
 }
