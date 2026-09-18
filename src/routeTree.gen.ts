@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TaxonomiaRouteImport } from './routes/taxonomia'
 import { Route as SobreRouteImport } from './routes/sobre'
 import { Route as SituacaoDoCursoRouteImport } from './routes/situacao-do-curso'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
 import { Route as PlanejamentosDeCurriculoRouteImport } from './routes/planejamentos-de-curriculo'
 import { Route as PessoasRouteImport } from './routes/pessoas'
 import { Route as PerfilRouteImport } from './routes/perfil'
@@ -50,6 +51,11 @@ const SobreRoute = SobreRouteImport.update({
 const SituacaoDoCursoRoute = SituacaoDoCursoRouteImport.update({
   id: '/situacao-do-curso',
   path: '/situacao-do-curso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlanejamentosDeCurriculoRoute =
@@ -192,6 +198,7 @@ export interface FileRoutesByFullPath {
   '/perfil': typeof PerfilRouteWithChildren
   '/pessoas': typeof PessoasRoute
   '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoRouteWithChildren
+  '/privacidade': typeof PrivacidadeRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/taxonomia': typeof TaxonomiaRoute
@@ -217,6 +224,7 @@ export interface FileRoutesByTo {
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
   '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
   '/pessoas': typeof PessoasRoute
+  '/privacidade': typeof PrivacidadeRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/taxonomia': typeof TaxonomiaRoute
@@ -247,6 +255,7 @@ export interface FileRoutesById {
   '/perfil': typeof PerfilRouteWithChildren
   '/pessoas': typeof PessoasRoute
   '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoRouteWithChildren
+  '/privacidade': typeof PrivacidadeRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/taxonomia': typeof TaxonomiaRoute
@@ -278,6 +287,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/pessoas'
     | '/planejamentos-de-curriculo'
+    | '/privacidade'
     | '/situacao-do-curso'
     | '/sobre'
     | '/taxonomia'
@@ -303,6 +313,7 @@ export interface FileRouteTypes {
     | '/editais-de-intercambio'
     | '/minhas-solicitacoes'
     | '/pessoas'
+    | '/privacidade'
     | '/situacao-do-curso'
     | '/sobre'
     | '/taxonomia'
@@ -332,6 +343,7 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/pessoas'
     | '/planejamentos-de-curriculo'
+    | '/privacidade'
     | '/situacao-do-curso'
     | '/sobre'
     | '/taxonomia'
@@ -362,6 +374,7 @@ export interface RootRouteChildren {
   PerfilRoute: typeof PerfilRouteWithChildren
   PessoasRoute: typeof PessoasRoute
   PlanejamentosDeCurriculoRoute: typeof PlanejamentosDeCurriculoRouteWithChildren
+  PrivacidadeRoute: typeof PrivacidadeRoute
   SituacaoDoCursoRoute: typeof SituacaoDoCursoRoute
   SobreRoute: typeof SobreRoute
   TaxonomiaRoute: typeof TaxonomiaRoute
@@ -394,6 +407,13 @@ declare module '@tanstack/react-router' {
       path: '/situacao-do-curso'
       fullPath: '/situacao-do-curso'
       preLoaderRoute: typeof SituacaoDoCursoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/planejamentos-de-curriculo': {
@@ -636,6 +656,7 @@ const rootRouteChildren: RootRouteChildren = {
   PerfilRoute: PerfilRouteWithChildren,
   PessoasRoute: PessoasRoute,
   PlanejamentosDeCurriculoRoute: PlanejamentosDeCurriculoRouteWithChildren,
+  PrivacidadeRoute: PrivacidadeRoute,
   SituacaoDoCursoRoute: SituacaoDoCursoRoute,
   SobreRoute: SobreRoute,
   TaxonomiaRoute: TaxonomiaRoute,

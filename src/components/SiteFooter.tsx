@@ -17,6 +17,12 @@ export function SiteFooter() {
         >
           Sobre nós
         </Link>
+        <Link
+          to="/privacidade"
+          className="pomi-focus inline-flex rounded-sm text-sm font-bold underline underline-offset-4"
+        >
+          Privacidade
+        </Link>
       </div>
       <p className="m-0 max-w-[29.375rem] rounded-[1.25rem_0.3125rem_1.25rem_0.3125rem] border border-sidebar-border px-[1.125rem] py-[0.8125rem] text-[0.78rem] leading-[1.45]">
         Projeto independente. Não possuímos vínculo, representação ou relação
