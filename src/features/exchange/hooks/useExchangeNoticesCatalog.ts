@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import type { ExchangeNoticeFilters } from '@/features/exchange/data/exchangeNotices'
 import {
@@ -7,6 +7,7 @@ import {
   listExchangePlaces,
 } from '@/features/exchange/data/exchangeApi'
 import {
+  buildExchangeNoticeQuery,
   defaultExchangeNoticeFilters,
   processExchangeNotices,
 } from '@/features/exchange/data/exchangeNotices'
@@ -16,10 +17,25 @@ const pageSize = 20
 
 export function useExchangeNoticesCatalog() {
   const [filters, setFilters] = useState(defaultExchangeNoticeFilters)
+  const [debouncedSearch, setDebouncedSearch] = useState(filters.search)
   const [page, setPage] = useState(1)
+  useEffect(() => {
+    const timeout = window.setTimeout(
+      () => setDebouncedSearch(filters.search),
+      300,
+    )
+    return () => window.clearTimeout(timeout)
+  }, [filters.search])
+  const noticeQuery = buildExchangeNoticeQuery(filters, debouncedSearch)
   const noticesQuery = useQuery({
+    queryKey: publicQueryKeys.exchangeNotices(noticeQuery),
+    queryFn: () => listExchangeNotices(noticeQuery),
+    retry: false,
+  })
+  const noticeOptionsQuery = useQuery({
     queryKey: publicQueryKeys.exchangeNotices(),
-    queryFn: listExchangeNotices,
+    queryFn: () => listExchangeNotices(),
+    staleTime: 5 * 60_000,
     retry: false,
   })
   const placesQuery = useQuery({
@@ -32,10 +48,16 @@ export function useExchangeNoticesCatalog() {
   const places = placesQuery.data ?? []
   const issuers = useMemo(
     () =>
-      [...new Set(notices.map((notice) => notice.issuer).filter(Boolean))]
+      [
+        ...new Set(
+          (noticeOptionsQuery.data ?? [])
+            .map((notice) => notice.issuer)
+            .filter(Boolean),
+        ),
+      ]
         .filter((issuer): issuer is string => typeof issuer === 'string')
         .sort((left, right) => left.localeCompare(right, 'pt-BR')),
-    [notices],
+    [noticeOptionsQuery.data],
   )
   const processed = useMemo(
     () => processExchangeNotices(notices, filters),

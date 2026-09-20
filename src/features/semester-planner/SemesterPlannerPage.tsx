@@ -1,6 +1,7 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
+import { LayoutGrid, Table2 } from 'lucide-react'
 import {
   buildGuideClassContext,
   createInMemorySemesterPlanner,
@@ -37,10 +38,19 @@ import {
 import { createApiSemesterPlanner } from '@/features/semester-planner/data/apiSemesterPlanner'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { useSemesterPlannerQueries } from '@/features/semester-planner/hooks/useSemesterPlannerQueries'
+import { isApprovedStudentCourseAttempt } from '@/features/student/data/studentApi'
 import { ClassesGuidePanel } from '@/features/semester-planner/components/ClassesGuidePanel'
 import { SemesterPlanningHeader } from '@/features/semester-planner/components/SemesterPlanningHeader'
 import { SemesterScheduleGrid } from '@/features/semester-planner/components/SemesterScheduleGrid'
 import { PlanningVisibilityDialog } from '@/features/semester-planner/components/PlanningVisibilityDialog'
+import { SelectedClassDialog } from '@/features/semester-planner/components/SelectedClassDialog'
+import { ClassesFilterToolbar } from '@/features/semester-planner/components/ClassesFilterToolbar'
+import { PlannerSelectionTray } from '@/features/semester-planner/components/PlannerSelectionTray'
+import {
+  buildCourseClassAvailability,
+  buildDetailedScheduleConflicts,
+  buildSemesterPlannerSummary,
+} from '@/features/semester-planner/model/semesterPlannerView'
 import { semesterDraftBootstrapKey } from '@/features/planning-shared/data/planningDraftBootstrap'
 import { saveDraftHandoff } from '@/features/planning-shared/data/planningDraftHandoff'
 import { SaveDraftDialog } from '@/features/planning-shared/components/SaveDraftDialog'
@@ -48,9 +58,15 @@ import { mostRecentStudyPeriodsFirst } from '@/features/student/data/studyPeriod
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import { useScheduleGridSelection } from '@/features/semester-planner/hooks/useScheduleGridSelection'
+import {
+  filterClassesGuide,
+  useClassesGuideFilters,
+} from '@/features/semester-planner/hooks/useClassesGuideFilters'
 import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
+import { CatalogProgramCourseDialog } from '@/features/catalog-program/CatalogProgramCourseDialog'
 
 type GuideTab = 'disciplines' | 'classes'
+type DisciplineView = 'cards' | 'table'
 
 function courseColor() {
   return 'border-strong-border bg-background text-foreground'
@@ -85,6 +101,12 @@ export function SemesterPlannerPage({
     useState<SemesterPlanningVisibility>('PRIVATE')
   const [visibilityDialogOpen, setVisibilityDialogOpen] = useState(false)
   const [previewClassId, setPreviewClassId] = useState<number>()
+  const [selectedClassDetailsId, setSelectedClassDetailsId] = useState<number>()
+  const [selectedCourseDetailsId, setSelectedCourseDetailsId] =
+    useState<number>()
+  const [mobileView, setMobileView] = useState<
+    'builder' | 'schedule' | 'selection'
+  >('builder')
   const [isSaving, setIsSaving] = useState(false)
   const [saveDraftDialogOpen, setSaveDraftDialogOpen] = useState(false)
   const [guideMode, setGuideMode] = useState<GuideMode>('none')
@@ -98,6 +120,7 @@ export function SemesterPlannerPage({
     'curriculum' | 'program'
   >('curriculum')
   const [guideTab, setGuideTab] = useState<GuideTab>('disciplines')
+  const [disciplineView, setDisciplineView] = useState<DisciplineView>('cards')
   const [manualCourseIds, setManualCourseIds] = useState<ReadonlyArray<number>>(
     [],
   )
@@ -106,12 +129,7 @@ export function SemesterPlannerPage({
   const [openedCourseId, setOpenedCourseId] = useState<number>()
   const [addingClass, setAddingClass] = useState(false)
   const [classPickerCourseId, setClassPickerCourseId] = useState('')
-  const [classFilterCourseId, setClassFilterCourseId] = useState('')
-  const [classFilterStart, setClassFilterStart] = useState('')
-  const [classFilterEnd, setClassFilterEnd] = useState('')
-  const [classFilterDays, setClassFilterDays] = useState<ReadonlyArray<string>>(
-    [],
-  )
+  const { filters, updateFilters } = useClassesGuideFilters()
   const {
     ref: gridSelectionRef,
     activeSelection: activeGridSelection,
@@ -123,19 +141,18 @@ export function SemesterPlannerPage({
     onPointerCancel: cancelGridSelection,
   } = useScheduleGridSelection({
     enabled: guideTab === 'classes',
-    filterDays: classFilterDays,
-    filterStart: classFilterStart,
-    filterEnd: classFilterEnd,
+    filterDays: filters.days,
+    filterStart: filters.start,
+    filterEnd: filters.end,
     onFilterChange: ({ days: nextDays, start, end }) => {
-      setClassFilterDays(nextDays)
-      setClassFilterStart(start)
-      setClassFilterEnd(end)
+      updateFilters({ days: nextDays, start, end, timePeriods: [] })
     },
   })
   const [anonymousCatalogId, setAnonymousCatalogId] = useState('')
   const [anonymousCatalogProgramId, setAnonymousCatalogProgramId] = useState('')
   const [anonymousSuggestionId, setAnonymousSuggestionId] = useState('')
   const [programCatalogId, setProgramCatalogId] = useState('')
+  const [programCatalogTouched, setProgramCatalogTouched] = useState(false)
   const [programCatalogProgramId, setProgramCatalogProgramId] = useState('')
   const [programSpecializationId, setProgramSpecializationId] = useState('')
   const [programLanguageId, setProgramLanguageId] = useState('')
@@ -160,6 +177,7 @@ export function SemesterPlannerPage({
     studentProfileQuery,
     query,
     plansQuery,
+    courseAttemptsQuery,
     professorEvaluationSummariesQuery,
     curriculaQuery,
     curriculumQuery,
@@ -184,6 +202,15 @@ export function SemesterPlannerPage({
         ]),
       ),
     [professorEvaluationSummariesQuery.data],
+  )
+  const completedCourseIds = useMemo(
+    () =>
+      new Set(
+        (courseAttemptsQuery.data ?? [])
+          .filter(isApprovedStudentCourseAttempt)
+          .map((attempt) => attempt.courseId),
+      ),
+    [courseAttemptsQuery.data],
   )
 
   useEffect(() => {
@@ -273,7 +300,7 @@ export function SemesterPlannerPage({
       setAnonymousCatalogId(String(catalogProgram.catalog.id))
       setAnonymousCatalogProgramId(String(catalogProgram.id))
     }
-    if (!programCatalogProgramId) {
+    if (!programCatalogTouched && !programCatalogProgramId) {
       setProgramCatalogId(String(catalogProgram.catalog.id))
       setProgramCatalogProgramId(String(catalogProgram.id))
       setProgramSpecializationId(
@@ -284,6 +311,7 @@ export function SemesterPlannerPage({
   }, [
     anonymousCatalogPrograms,
     anonymousCatalogProgramId,
+    programCatalogTouched,
     programCatalogProgramId,
     studentProfileQuery.data,
   ])
@@ -499,6 +527,7 @@ export function SemesterPlannerPage({
         ? String(nextGuide.curriculum.suggestionId)
         : '',
     )
+    setProgramCatalogTouched(false)
     setProgramCatalogProgramId(
       nextGuide.program.catalogProgramId
         ? String(nextGuide.program.catalogProgramId)
@@ -639,6 +668,28 @@ export function SemesterPlannerPage({
     }
   }
   const classById = new Map(query.data.classes.map((item) => [item.id, item]))
+  const plannerSummary = buildSemesterPlannerSummary({
+    selectedClasses: snapshot.selectedClasses,
+    coursesById: courseById,
+    meetings: query.data.meetings,
+    conflicts: snapshot.conflicts,
+  })
+  const detailedConflicts = buildDetailedScheduleConflicts({
+    conflicts: snapshot.conflicts,
+    classesById: classById,
+    meetings: query.data.meetings,
+  })
+  const selectedClassDetails = selectedClassDetailsId
+    ? classById.get(selectedClassDetailsId)
+    : undefined
+  const selectedCourseDetails = selectedCourseDetailsId
+    ? courseById.get(selectedCourseDetailsId)
+    : undefined
+  const courseDetailsCatalogYear =
+    query.data.studyPeriods.find((period) => period.id === studyPeriodId)
+      ?.year ??
+    mostRecentStudyPeriodsFirst(query.data.studyPeriods).at(0)?.year ??
+    new Date().getFullYear()
   const curriculumPeriodPositions = new Map(
     curriculumQuery.data?.periods.map((period) => [
       String(period.id),
@@ -689,6 +740,72 @@ export function SemesterPlannerPage({
     manualCourseIds,
     courseById,
   )
+  const filteredGuideClasses = filterClassesGuide({
+    filters,
+    courses: query.data.courses,
+    classes: query.data.classes,
+    meetings: query.data.meetings,
+    selectedClassIds: selectedIds,
+    completedCourseIds,
+    guideClassContext,
+  })
+  const disciplineGuideClasses = filterClassesGuide({
+    filters: { ...filters, courseId: '' },
+    courses: query.data.courses,
+    classes: query.data.classes,
+    meetings: query.data.meetings,
+    selectedClassIds: selectedIds,
+    completedCourseIds,
+    guideClassContext,
+  })
+  const courseClassAvailability = buildCourseClassAvailability({
+    classes: query.data.classes,
+    matchingClasses: disciplineGuideClasses,
+  })
+  const matchingCourseIds = new Set(
+    disciplineGuideClasses.map((classItem) => classItem.courseId),
+  )
+  const selectedCourseIds = new Set(
+    query.data.classes
+      .filter((classItem) => selectedIds.has(classItem.id))
+      .map((classItem) => classItem.courseId),
+  )
+  const normalizedDisciplineSearch = filters.search
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('pt-BR')
+  const disciplineMatchesFilters = (course: SemesterCourse) => {
+    if (matchingCourseIds.has(course.id)) return true
+    if (filters.withoutCompleted && completedCourseIds.has(course.id))
+      return false
+    if (filters.withoutIncluded && selectedCourseIds.has(course.id))
+      return false
+    if (
+      normalizedDisciplineSearch &&
+      !`${course.code} ${course.name}`
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLocaleLowerCase('pt-BR')
+        .includes(normalizedDisciplineSearch)
+    )
+      return false
+    const totalClasses = courseClassAvailability.get(course.id)?.total ?? 0
+    if (totalClasses === 0) return !filters.withoutUnavailable
+    return hasRestrictiveGuideFilters
+  }
+  const disciplineResultCount = [...matchingCourseIds].filter(
+    (courseId) => !scheduledCourseIds.has(courseId),
+  ).length
+  const hasRestrictiveGuideFilters = Boolean(
+    filters.search ||
+    filters.start ||
+    filters.end ||
+    filters.timePeriods.length ||
+    filters.days.length ||
+    filters.withoutConflict ||
+    filters.withoutCompleted ||
+    filters.withoutIncluded,
+  )
   const manualCourseIdSet = new Set(manualCourseIds)
   function coursesForElectiveRequirement(
     requirement: (typeof selectedProgramBlocks)[number]['blocks']['electives'][number],
@@ -712,7 +829,8 @@ export function SemesterPlannerPage({
         const course = courseById.get(courseId)
         return course &&
           !scheduledCourseIds.has(course.id) &&
-          !manualCourseIdSet.has(course.id)
+          !manualCourseIdSet.has(course.id) &&
+          disciplineMatchesFilters(course)
           ? [course]
           : []
       })
@@ -720,15 +838,18 @@ export function SemesterPlannerPage({
   }
   const visibleManualCourses = manualCourseIds.flatMap((courseId) => {
     const course = courseById.get(courseId)
-    return course && !scheduledCourseIds.has(course.id)
+    return course &&
+      !scheduledCourseIds.has(course.id) &&
+      disciplineMatchesFilters(course)
       ? [{ course, semester: 0 }]
       : []
   })
-  const guideClassContextKey = `${[...guideClassContext.courseIds].sort((a, b) => a - b).join(',')}|${guideClassContext.prefixes.join(',')}|${guideClassContext.courseCodes?.join(',') ?? ''}`
   const visibleDisciplineGroups = guideCourses
     .filter(
       ({ course }) =>
-        !scheduledCourseIds.has(course.id) && !manualCourseIdSet.has(course.id),
+        !scheduledCourseIds.has(course.id) &&
+        !manualCourseIdSet.has(course.id) &&
+        disciplineMatchesFilters(course),
     )
     .reduce<Array<{ semester: number; courses: typeof guideCourses }>>(
       (groups, item) => {
@@ -908,14 +1029,27 @@ export function SemesterPlannerPage({
           options={anonymousCatalogs}
           placeholder="Escolha o catálogo"
           onValueChange={(value) => {
+            setProgramCatalogTouched(true)
             setProgramCatalogId(value)
+            const currentProgram = selectedProgramCatalog?.program
+            const nextCatalogProgram = currentProgram
+              ? anonymousCatalogPrograms.find(
+                  (item) =>
+                    item.catalog.id === value &&
+                    (item.program.id === currentProgram.id ||
+                      item.program.code === currentProgram.code),
+                )
+              : undefined
+            const nextProgramId =
+              nextCatalogProgram?.id ?? programCatalogProgramId
+            setProgramCatalogProgramId(nextProgramId)
             updateGuide(
               guideWith({
                 mode: 'program',
                 program: {
-                  catalogProgramId: null,
-                  specializationId: null,
-                  languageId: null,
+                  catalogProgramId: nextCatalogProgram
+                    ? numericId(nextCatalogProgram.id)
+                    : document.guide.program.catalogProgramId,
                 },
               }),
             )
@@ -938,6 +1072,7 @@ export function SemesterPlannerPage({
               : 'Escolha um catálogo primeiro'
           }
           onValueChange={(value) => {
+            setProgramCatalogTouched(true)
             setProgramCatalogProgramId(value)
             setProgramSpecializationId('')
             setProgramLanguageId('')
@@ -1028,24 +1163,152 @@ export function SemesterPlannerPage({
         : programGuideConfiguration}
     </section>
   )
+  const classAvailabilityStatus = (courseId: number) => {
+    const availability = courseClassAvailability.get(courseId) ?? {
+      matching: 0,
+      total: 0,
+    }
+    if (availability.total === 0) return 'Sem turmas no semestre'
+    if (hasRestrictiveGuideFilters && availability.matching === 0)
+      return 'Nenhuma turma atende aos filtros'
+    return undefined
+  }
+  const showCourseClasses = (courseId: number) => {
+    updateFilters({ courseId: String(courseId) })
+    setGuideTab('classes')
+  }
+  const showCourseDetails = (courseId: number) => {
+    setSelectedCourseDetailsId(courseId)
+  }
+  const renderDisciplineCollection = (
+    courses: ReadonlyArray<SemesterCourse>,
+  ) => {
+    if (!courses.length) return null
+
+    if (disciplineView === 'cards') {
+      return (
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(10rem,1fr))] gap-2">
+          {courses.map((course) => (
+            <div
+              key={course.id}
+              className={`rounded border-2 px-2 py-2 text-xs ${courseColor()}`}
+            >
+              <button
+                type="button"
+                className="pomi-focus block rounded-sm font-black text-primary hover:text-primary/80"
+                onClick={() => showCourseDetails(course.id)}
+              >
+                {course.code}
+              </button>
+              <button
+                type="button"
+                className="block w-full text-left"
+                onClick={() => showCourseClasses(course.id)}
+              >
+                <span className="block truncate text-muted-foreground">
+                  {course.name}
+                </span>
+                <span className="block text-muted-foreground">
+                  {course.credits} créditos
+                </span>
+                {classAvailabilityStatus(course.id) && (
+                  <span className="block font-semibold text-muted-foreground">
+                    {classAvailabilityStatus(course.id)}
+                  </span>
+                )}
+              </button>
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    return (
+      <div className="-mx-3 w-[calc(100%+1.5rem)] overflow-hidden border-y border-border">
+        <table className="w-full table-fixed border-collapse text-left text-xs">
+          <colgroup>
+            <col className="w-16" />
+            <col />
+            <col className="w-14" />
+            <col className="w-20" />
+          </colgroup>
+          <thead className="bg-muted/60 text-muted-foreground">
+            <tr>
+              <th className="px-2 py-1.5 font-bold">Código</th>
+              <th className="px-2 py-1.5 font-bold">Disciplina</th>
+              <th className="px-2 py-1.5 font-bold">Créditos</th>
+              <th className="px-2 py-1.5 text-right font-bold">Ação</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {courses.map((course) => (
+              <tr key={course.id} className="hover:bg-muted/40">
+                <td className="px-2 py-2 font-black whitespace-nowrap">
+                  <button
+                    type="button"
+                    className="pomi-focus rounded-sm text-primary hover:text-primary/80"
+                    onClick={() => showCourseDetails(course.id)}
+                  >
+                    {course.code}
+                  </button>
+                </td>
+                <td className="min-w-0 px-2 py-2 text-muted-foreground">
+                  <span className="block truncate" title={course.name}>
+                    {course.name}
+                  </span>
+                  {classAvailabilityStatus(course.id) && (
+                    <span className="block truncate font-semibold">
+                      {classAvailabilityStatus(course.id)}
+                    </span>
+                  )}
+                </td>
+                <td className="px-2 py-2 whitespace-nowrap">
+                  {course.credits}
+                </td>
+                <td className="px-2 py-1 text-right">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => showCourseClasses(course.id)}
+                  >
+                    Turmas
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
   const renderManualDiscipline = (course: SemesterCourse) => (
     <div
       key={`manual-${course.id}`}
       className="flex items-center rounded border-2 border-strong-border"
     >
+      <div className={`rounded-l px-2 py-1 text-xs ${courseColor()}`}>
+        <button
+          type="button"
+          className="pomi-focus block rounded-sm font-black text-primary hover:text-primary/80"
+          onClick={() => showCourseDetails(course.id)}
+        >
+          {course.code}
+        </button>
+        <button
+          type="button"
+          className="block text-left font-semibold text-muted-foreground"
+          title={`${course.name} · ${course.credits} créditos`}
+          onClick={() => showCourseClasses(course.id)}
+        >
+          <span className="block">Ver turmas</span>
+          {classAvailabilityStatus(course.id) && (
+            <span className="block">{classAvailabilityStatus(course.id)}</span>
+          )}
+        </button>
+      </div>
       <button
         type="button"
-        className={`rounded-l px-2 py-1 text-xs font-black ${courseColor()}`}
-        onClick={() => {
-          setClassFilterCourseId(String(course.id))
-          setGuideTab('classes')
-        }}
-      >
-        {course.code} ({String(course.credits).padStart(2, '0')})
-      </button>
-      <button
-        type="button"
-        className="border-l-2 border-strong-border px-2 py-1 text-xs font-black text-destructive"
+        className="self-stretch border-l-2 border-strong-border px-2 py-1 text-xs font-black text-destructive hover:bg-destructive/10"
         aria-label={`Remover ${course.code} das disciplinas manuais`}
         onClick={() => {
           const nextManualCourseIds = document.guide.manualCourseIds.filter(
@@ -1054,16 +1317,110 @@ export function SemesterPlannerPage({
           updateGuide(guideWith({ manualCourseIds: nextManualCourseIds }))
         }}
       >
-        ×
+        Remover
       </button>
     </div>
   )
+  const renderManualDisciplineCollection = (
+    courses: ReadonlyArray<SemesterCourse>,
+  ) => {
+    if (disciplineView === 'cards') {
+      return (
+        <div className="flex flex-wrap gap-2">
+          {courses.map(renderManualDiscipline)}
+        </div>
+      )
+    }
+
+    return (
+      <div className="-mx-3 w-[calc(100%+1.5rem)] overflow-hidden border-y border-border">
+        <table className="w-full table-fixed border-collapse text-left text-xs">
+          <colgroup>
+            <col className="w-16" />
+            <col />
+            <col className="w-14" />
+            <col className="w-28" />
+          </colgroup>
+          <thead className="bg-muted/60 text-muted-foreground">
+            <tr>
+              <th className="px-2 py-1.5 font-bold">Código</th>
+              <th className="px-2 py-1.5 font-bold">Disciplina</th>
+              <th className="px-2 py-1.5 font-bold">Créditos</th>
+              <th className="px-2 py-1.5 text-right font-bold">Ações</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {courses.map((course) => (
+              <tr key={course.id} className="hover:bg-muted/40">
+                <td className="px-2 py-2 font-black whitespace-nowrap">
+                  <button
+                    type="button"
+                    className="pomi-focus rounded-sm text-primary hover:text-primary/80"
+                    onClick={() => showCourseDetails(course.id)}
+                  >
+                    {course.code}
+                  </button>
+                </td>
+                <td className="min-w-0 px-2 py-2 text-muted-foreground">
+                  <span className="block truncate" title={course.name}>
+                    {course.name}
+                  </span>
+                  {classAvailabilityStatus(course.id) && (
+                    <span className="block truncate font-semibold">
+                      {classAvailabilityStatus(course.id)}
+                    </span>
+                  )}
+                </td>
+                <td className="px-2 py-2 whitespace-nowrap">
+                  {course.credits}
+                </td>
+                <td className="px-1 py-1 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      className="h-7 px-1.5"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => showCourseClasses(course.id)}
+                    >
+                      Turmas
+                    </Button>
+                    <Button
+                      className="h-7 px-1.5 text-destructive"
+                      size="sm"
+                      variant="ghost"
+                      aria-label={`Remover ${course.code} das disciplinas manuais`}
+                      onClick={() => {
+                        updateGuide(
+                          guideWith({
+                            manualCourseIds:
+                              document.guide.manualCourseIds.filter(
+                                (courseId) => courseId !== course.id,
+                              ),
+                          }),
+                        )
+                      }}
+                    >
+                      Remover
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  function showCourseAlternatives(courseId: number) {
+    updateFilters({ courseId: String(courseId) })
+    setGuideTab('classes')
+    setMobileView('builder')
+    setSelectedClassDetailsId(undefined)
+  }
 
   return (
-    <PageContainer
-      size="wide"
-      className="flex min-h-0 flex-col py-5 lg:h-[calc(100svh-4.5rem)] lg:overflow-hidden"
-    >
+    <PageContainer size="wide" className="pt-5 pb-8">
       <SemesterPlanningHeader
         name={document.name}
         planningId={planningId}
@@ -1093,493 +1450,573 @@ export function SemesterPlannerPage({
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      {snapshot.conflicts.length > 0 && (
-        <Alert className="mb-5 border-chart-4">
-          <AlertTitle>Há conflitos de horário</AlertTitle>
-          <AlertDescription>
-            As turmas conflitantes continuam visíveis na grade para que você
-            possa decidir qual manter.
-          </AlertDescription>
-        </Alert>
-      )}
-      <div className="grid min-h-0 flex-1 gap-5 xl:grid-cols-[minmax(0,1fr)_28rem]">
-        <SemesterScheduleGrid
+      <div className="xl:flex xl:h-[calc(100svh-4.5rem)] xl:min-h-0 xl:flex-col xl:pb-5">
+        <div
+          className={mobileView === 'selection' ? 'hidden xl:block' : undefined}
+        >
+          <ClassesFilterToolbar
+            mode={guideTab}
+            filters={filters}
+            courses={query.data.courses}
+            guideClassContext={guideClassContext}
+            onChange={updateFilters}
+          />
+        </div>
+        <div className="mb-3 grid grid-cols-3 rounded-md border-2 border-strong-border p-1 xl:hidden">
+          <Button
+            size="sm"
+            variant={mobileView === 'builder' ? 'default' : 'ghost'}
+            onClick={() => setMobileView('builder')}
+          >
+            Montar
+          </Button>
+          <Button
+            size="sm"
+            variant={mobileView === 'schedule' ? 'default' : 'ghost'}
+            onClick={() => setMobileView('schedule')}
+          >
+            Horário
+          </Button>
+          <Button
+            size="sm"
+            variant={mobileView === 'selection' ? 'default' : 'ghost'}
+            onClick={() => setMobileView('selection')}
+          >
+            Minhas ({snapshot.selectedClasses.length})
+          </Button>
+        </div>
+        <div
+          className={`${mobileView === 'selection' ? 'hidden xl:grid' : 'grid'} min-h-0 flex-1 gap-5 xl:grid-cols-[minmax(0,1fr)_28rem]`}
+        >
+          <div
+            className={`${mobileView === 'schedule' ? 'block' : 'hidden'} min-h-0 xl:block`}
+          >
+            <SemesterScheduleGrid
+              selectedClasses={snapshot.selectedClasses}
+              meetings={query.data.meetings}
+              coursesById={courseById}
+              conflictingClassIds={selectedClassIdsWithConflict}
+              previewClass={
+                previewClassId ? classById.get(previewClassId) : undefined
+              }
+              selection={{
+                ref: gridSelectionRef,
+                activeSelection: activeGridSelection,
+                highlightedDayIndexes,
+                isDragging: isDraggingGridSelection,
+                onPointerDown: handleGridPointerDown,
+                onPointerMove: handleGridPointerMove,
+                onPointerUp: finishGridSelection,
+                onPointerCancel: cancelGridSelection,
+              }}
+              isClassSelectionEnabled={guideTab === 'classes'}
+              onSelectedClassClick={setSelectedClassDetailsId}
+            />
+            {!snapshot.selectedClasses.length && (
+              <p className="mt-3 text-center text-sm font-semibold text-muted-foreground">
+                Encontre uma turma em Montar para começar seu horário.
+              </p>
+            )}
+          </div>
+          <aside
+            className={`${mobileView === 'builder' ? 'flex' : 'hidden'} min-h-0 flex-col rounded-lg border-2 border-strong-border bg-card lg:h-full xl:flex`}
+          >
+            <div className="flex items-center gap-2 border-b-2 border-strong-border p-2">
+              <div className="grid min-w-0 flex-1 grid-cols-2">
+                <Button
+                  size="sm"
+                  variant={guideTab === 'disciplines' ? 'default' : 'ghost'}
+                  onClick={() => setGuideTab('disciplines')}
+                >
+                  Disciplinas
+                </Button>
+                <Button
+                  size="sm"
+                  variant={guideTab === 'classes' ? 'default' : 'ghost'}
+                  onClick={() => setGuideTab('classes')}
+                >
+                  Turmas
+                </Button>
+              </div>
+              {guideTab === 'disciplines' && (
+                <div
+                  className="flex shrink-0 rounded border border-strong-border p-0.5"
+                  role="group"
+                  aria-label="Visualização das disciplinas"
+                >
+                  <Button
+                    className="size-7 p-0"
+                    size="icon"
+                    variant={disciplineView === 'cards' ? 'default' : 'ghost'}
+                    aria-label="Visualizar disciplinas em cards"
+                    aria-pressed={disciplineView === 'cards'}
+                    title="Cards"
+                    onClick={() => setDisciplineView('cards')}
+                  >
+                    <LayoutGrid className="size-4" aria-hidden="true" />
+                  </Button>
+                  <Button
+                    className="size-7 p-0"
+                    size="icon"
+                    variant={disciplineView === 'table' ? 'default' : 'ghost'}
+                    aria-label="Visualizar disciplinas em tabela"
+                    aria-pressed={disciplineView === 'table'}
+                    title="Tabela"
+                    onClick={() => setDisciplineView('table')}
+                  >
+                    <Table2 className="size-4" aria-hidden="true" />
+                  </Button>
+                </div>
+              )}
+            </div>
+            {guideTab === 'classes' && filters.courseId && (
+              <div className="flex items-center gap-3 border-b border-border px-3 py-2">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-extrabold">
+                    Turmas de{' '}
+                    {courseById.get(Number(filters.courseId))?.code ??
+                      filters.courseId}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {courseById.get(Number(filters.courseId))?.name}
+                  </p>
+                </div>
+                <Button
+                  className="size-8 p-0"
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Mostrar turmas de todas as disciplinas"
+                  onClick={() => updateFilters({ courseId: '' })}
+                >
+                  ×
+                </Button>
+              </div>
+            )}
+            <Dialog
+              open={guideConfigurationOpen}
+              onOpenChange={setGuideConfigurationOpen}
+            >
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Configurar guia</DialogTitle>
+                </DialogHeader>
+                <div className="mb-4 grid grid-cols-2 rounded-md border-2 border-strong-border p-0.5">
+                  <Button
+                    size="sm"
+                    variant={
+                      configurationMode === 'curriculum' ? 'default' : 'ghost'
+                    }
+                    onClick={() => setConfigurationMode('curriculum')}
+                  >
+                    Currículo
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={
+                      configurationMode === 'program' ? 'default' : 'ghost'
+                    }
+                    onClick={() => setConfigurationMode('program')}
+                  >
+                    Programa
+                  </Button>
+                </div>
+                {configurationMode === 'curriculum'
+                  ? curriculumGuideConfiguration
+                  : programGuideConfiguration}
+              </DialogContent>
+            </Dialog>
+            <Dialog
+              open={manualCourseDialogOpen}
+              onOpenChange={setManualCourseDialogOpen}
+            >
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Adicionar disciplina ao guia</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <AutocompleteSelect
+                    ariaLabel="Disciplina manual"
+                    value={manualCourseId}
+                    options={[...courseById.values()]
+                      .sort((left, right) =>
+                        left.code.localeCompare(right.code),
+                      )
+                      .map((course) => ({
+                        value: String(course.id),
+                        label: `${course.code} — ${course.name} (${course.credits} créditos)`,
+                      }))}
+                    placeholder="Escolha uma disciplina"
+                    onValueChange={setManualCourseId}
+                  />
+                  <Button
+                    className="w-full"
+                    disabled={
+                      !manualCourseId ||
+                      manualCourseIds.includes(Number(manualCourseId))
+                    }
+                    onClick={() => {
+                      const courseId = Number(manualCourseId)
+                      if (!Number.isInteger(courseId)) return
+                      updateGuide(
+                        guideWith({
+                          manualCourseIds:
+                            document.guide.manualCourseIds.includes(courseId)
+                              ? document.guide.manualCourseIds
+                              : [...document.guide.manualCourseIds, courseId],
+                        }),
+                      )
+                      setManualCourseId('')
+                      setManualCourseDialogOpen(false)
+                    }}
+                  >
+                    Adicionar ao guia
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
+              {guideTab === 'classes' ? (
+                <ClassesGuidePanel
+                  courses={query.data.courses}
+                  classes={filteredGuideClasses}
+                  allClasses={query.data.classes}
+                  meetings={query.data.meetings}
+                  selectedClassIds={new Set(document.classIds)}
+                  professorEvaluationSummaries={professorEvaluationSummaries}
+                  onDispatch={(command) => void dispatch(command)}
+                  onPreview={setPreviewClassId}
+                  onSelectedClassClick={setSelectedClassDetailsId}
+                />
+              ) : openedCourseId || addingClass ? (
+                (() => {
+                  const selectedCourseId = openedCourseId ?? 0
+                  const course = courseById.get(selectedCourseId)
+                  const classes = query.data.classes.filter(
+                    (classItem) => classItem.courseId === selectedCourseId,
+                  )
+                  return (
+                    <section className="space-y-3">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setOpenedCourseId(undefined)
+                          setPreviewClassId(undefined)
+                          setAddingClass(false)
+                        }}
+                      >
+                        ← Voltar ao guia
+                      </Button>
+                      {addingClass && (
+                        <AutocompleteSelect
+                          ariaLabel="Disciplina da turma"
+                          value={classPickerCourseId}
+                          options={[...courseById.values()].map((item) => ({
+                            value: String(item.id),
+                            label: `${item.code} — ${item.name} (${item.credits} créditos)`,
+                          }))}
+                          placeholder="Escolha a disciplina"
+                          onValueChange={(value) => {
+                            setClassPickerCourseId(value)
+                            setOpenedCourseId(value ? Number(value) : undefined)
+                          }}
+                        />
+                      )}
+                      {!course && (
+                        <p className="text-sm text-muted-foreground">
+                          Escolha uma disciplina para ver as turmas disponíveis.
+                        </p>
+                      )}
+                      {course && (
+                        <>
+                          <div>
+                            <h3 className="font-extrabold">{course.code}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {course.name} · {course.credits} créditos
+                            </p>
+                          </div>
+                          {classes.map((classItem) => {
+                            const meetings = query.data.meetings.filter(
+                              (meeting) => meeting.classId === classItem.id,
+                            )
+                            const selected = selectedIds.has(classItem.id)
+                            const selectedClass = document.classIds.find(
+                              (classId) =>
+                                classById.get(classId)?.courseId === course.id,
+                            )
+                            return (
+                              <article
+                                key={classItem.id}
+                                className="space-y-2 border-b border-border py-3 last:border-b-0"
+                                onMouseEnter={() =>
+                                  setPreviewClassId(classItem.id)
+                                }
+                                onMouseLeave={() =>
+                                  setPreviewClassId(undefined)
+                                }
+                                onFocus={() => setPreviewClassId(classItem.id)}
+                                onBlur={() => setPreviewClassId(undefined)}
+                              >
+                                <div className="flex items-start justify-between gap-2">
+                                  <div>
+                                    <h4 className="text-sm font-extrabold">
+                                      Turma {classItem.code}
+                                    </h4>
+                                    <p className="text-xs text-muted-foreground">
+                                      {classItem.professors
+                                        .map((professor) => professor.name)
+                                        .join(', ') ||
+                                        'Professor não informado'}
+                                    </p>
+                                  </div>
+                                  {selected ? (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() =>
+                                        dispatch({
+                                          type: 'removeClass',
+                                          classId: classItem.id,
+                                        })
+                                      }
+                                    >
+                                      Remover
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() =>
+                                        dispatch({
+                                          type: selectedClass
+                                            ? 'replaceClass'
+                                            : 'addClass',
+                                          classId: classItem.id,
+                                        })
+                                      }
+                                    >
+                                      {selectedClass ? 'Trocar' : 'Adicionar'}
+                                    </Button>
+                                  )}
+                                </div>
+                                <ul className="space-y-1 text-xs text-muted-foreground">
+                                  {meetings.map((meeting) => (
+                                    <li key={meeting.id}>
+                                      {
+                                        days.find(
+                                          ([day]) => day === meeting.dayOfWeek,
+                                        )?.[1]
+                                      }{' '}
+                                      {meeting.start}–{meeting.end} ·{' '}
+                                      {meeting.roomCode}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </article>
+                            )
+                          })}
+                          {!classes.length && (
+                            <p className="text-sm text-muted-foreground">
+                              Sem turmas disponíveis neste período.
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </section>
+                  )
+                })()
+              ) : guideMode === 'curriculum' ? (
+                <>
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    onClick={() => setManualCourseDialogOpen(true)}
+                  >
+                    + Adicionar disciplina ao guia
+                  </Button>
+                  {visibleManualCourses.length > 0 && (
+                    <section>
+                      <h3 className="mb-2 text-xs font-black tracking-[0.12em] text-muted-foreground uppercase">
+                        Adicionadas manualmente
+                      </h3>
+                      {renderManualDisciplineCollection(
+                        visibleManualCourses.map(({ course }) => course),
+                      )}
+                    </section>
+                  )}
+                  {visibleDisciplineGroups.map((group) => (
+                    <section key={group.semester}>
+                      <h3 className="mb-2 text-xs font-black tracking-[0.12em] text-muted-foreground uppercase">
+                        {group.semester > 0
+                          ? `${group.semester}º semestre`
+                          : 'Adicionadas manualmente'}
+                      </h3>
+                      {renderDisciplineCollection(
+                        group.courses.map(({ course }) => course),
+                      )}
+                    </section>
+                  ))}
+                  {!visibleDisciplineGroups.length &&
+                    !visibleManualCourses.length &&
+                    (curriculumGuideConfigured ? (
+                      <p className="p-3 text-sm text-muted-foreground">
+                        {hasRestrictiveGuideFilters
+                          ? 'Nenhuma disciplina atende aos filtros aplicados.'
+                          : 'Todas as disciplinas do currículo já estão planejadas.'}
+                      </p>
+                    ) : (
+                      guideSetup
+                    ))}
+                </>
+              ) : guideMode === 'program' ? (
+                <>
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    onClick={() => setManualCourseDialogOpen(true)}
+                  >
+                    + Adicionar disciplina ao guia
+                  </Button>
+                  {visibleManualCourses.length > 0 && (
+                    <section>
+                      <h3 className="mb-2 text-xs font-black tracking-[0.12em] text-muted-foreground uppercase">
+                        Adicionadas manualmente
+                      </h3>
+                      {renderManualDisciplineCollection(
+                        visibleManualCourses.map(({ course }) => course),
+                      )}
+                    </section>
+                  )}
+                  {selectedProgramBlocks.map((group) => (
+                    <section key={group.title} className="space-y-2">
+                      <h3 className="text-xs font-black tracking-[0.12em] text-muted-foreground uppercase">
+                        {group.title}
+                      </h3>
+                      {renderDisciplineCollection(
+                        group.blocks.mandatory.flatMap((requirement) => {
+                          const course =
+                            requirement.selector.type === 'specificCourse'
+                              ? courseById.get(
+                                  Number(requirement.selector.courseId),
+                                )
+                              : undefined
+                          if (course && manualCourseIdSet.has(course.id))
+                            return []
+                          if (course) {
+                            if (
+                              scheduledCourseIds.has(course.id) ||
+                              manualCourseIdSet.has(course.id) ||
+                              !disciplineMatchesFilters(course)
+                            )
+                              return []
+                            return [course]
+                          }
+                          return []
+                        }),
+                      )}
+                      {group.blocks.mandatory.map((requirement, index) =>
+                        requirement.selector.type !== 'specificCourse' ||
+                        !courseById.has(
+                          Number(requirement.selector.courseId),
+                        ) ? (
+                          <span
+                            key={`${group.title}-mandatory-${index}`}
+                            className="inline-block rounded border-2 border-muted-foreground/50 px-2 py-1 text-xs font-bold text-muted-foreground"
+                          >
+                            {selectorLabel(requirement.selector)}
+                          </span>
+                        ) : null,
+                      )}
+                      {group.blocks.electives.map((requirement, index) => {
+                        const courses =
+                          coursesForElectiveRequirement(requirement)
+                        const broadSelectors =
+                          requirement.eligibleCourses.filter(
+                            (selector) => selector.type !== 'specificCourse',
+                          )
+                        return (
+                          <section
+                            key={`${group.title}-elective-${index}`}
+                            className="space-y-2 border-t border-border pt-2"
+                          >
+                            <h4 className="text-xs font-black tracking-wide text-muted-foreground uppercase">
+                              Eletiva: {requirement.requiredCredits} créditos
+                              {broadSelectors.length
+                                ? ` · ${broadSelectors.map((selector) => selectorLabel(selector)).join(', ')}`
+                                : ''}
+                            </h4>
+                            {courses.length > 0 &&
+                              renderDisciplineCollection(courses)}
+                          </section>
+                        )
+                      })}
+                    </section>
+                  ))}
+                  {!selectedProgramBlocks.length &&
+                    !visibleManualCourses.length &&
+                    (programGuideConfigured ? (
+                      <p className="p-3 text-sm text-muted-foreground">
+                        Nenhum bloco disponível para este programa.
+                      </p>
+                    ) : (
+                      guideSetup
+                    ))}
+                  {selectedProgramBlocks.length > 0 &&
+                    disciplineResultCount === 0 &&
+                    filters.withoutUnavailable &&
+                    hasRestrictiveGuideFilters && (
+                      <p className="p-3 text-sm text-muted-foreground">
+                        Nenhuma disciplina atende aos filtros aplicados.
+                      </p>
+                    )}
+                </>
+              ) : (
+                <>
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    onClick={() => setManualCourseDialogOpen(true)}
+                  >
+                    + Adicionar disciplina ao guia
+                  </Button>
+                  {visibleManualCourses.length > 0 ? (
+                    <section>
+                      <h3 className="mb-2 text-xs font-black tracking-[0.12em] text-muted-foreground uppercase">
+                        Adicionadas manualmente
+                      </h3>
+                      {renderManualDisciplineCollection(
+                        visibleManualCourses.map(({ course }) => course),
+                      )}
+                    </section>
+                  ) : (
+                    <p className="p-3 text-sm text-muted-foreground">
+                      Adicione uma disciplina manualmente para encontrar suas
+                      turmas.
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+          </aside>
+        </div>
+      </div>
+      <div className={mobileView === 'selection' ? 'block' : 'hidden xl:block'}>
+        <PlannerSelectionTray
+          summary={plannerSummary}
+          conflicts={detailedConflicts}
           selectedClasses={snapshot.selectedClasses}
-          meetings={query.data.meetings}
           coursesById={courseById}
-          conflictingClassIds={selectedClassIdsWithConflict}
-          previewClass={
-            previewClassId ? classById.get(previewClassId) : undefined
-          }
-          selection={{
-            ref: gridSelectionRef,
-            activeSelection: activeGridSelection,
-            highlightedDayIndexes,
-            isDragging: isDraggingGridSelection,
-            onPointerDown: handleGridPointerDown,
-            onPointerMove: handleGridPointerMove,
-            onPointerUp: finishGridSelection,
-            onPointerCancel: cancelGridSelection,
+          meetings={query.data.meetings}
+          onOpen={setSelectedClassDetailsId}
+          onShowAlternatives={showCourseAlternatives}
+          onShowInSchedule={(classId) => {
+            setPreviewClassId(classId)
+            setMobileView('schedule')
           }}
-          isClassSelectionEnabled={guideTab === 'classes'}
-          onSelectedClassClick={(classId) =>
+          onRemove={(classId) =>
             void dispatch({ type: 'removeClass', classId })
           }
         />
-        <aside className="flex min-h-0 flex-col rounded-lg border-2 border-strong-border bg-card lg:h-full">
-          <div className="grid grid-cols-2 border-b-2 border-strong-border p-2">
-            <Button
-              size="sm"
-              variant={guideTab === 'disciplines' ? 'default' : 'ghost'}
-              onClick={() => setGuideTab('disciplines')}
-            >
-              Disciplinas
-            </Button>
-            <Button
-              size="sm"
-              variant={guideTab === 'classes' ? 'default' : 'ghost'}
-              onClick={() => setGuideTab('classes')}
-            >
-              Turmas
-            </Button>
-          </div>
-          <Dialog
-            open={guideConfigurationOpen}
-            onOpenChange={setGuideConfigurationOpen}
-          >
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Configurar guia</DialogTitle>
-              </DialogHeader>
-              <div className="mb-4 grid grid-cols-2 rounded-md border-2 border-strong-border p-0.5">
-                <Button
-                  size="sm"
-                  variant={
-                    configurationMode === 'curriculum' ? 'default' : 'ghost'
-                  }
-                  onClick={() => setConfigurationMode('curriculum')}
-                >
-                  Currículo
-                </Button>
-                <Button
-                  size="sm"
-                  variant={
-                    configurationMode === 'program' ? 'default' : 'ghost'
-                  }
-                  onClick={() => setConfigurationMode('program')}
-                >
-                  Programa
-                </Button>
-              </div>
-              {configurationMode === 'curriculum'
-                ? curriculumGuideConfiguration
-                : programGuideConfiguration}
-            </DialogContent>
-          </Dialog>
-          <Dialog
-            open={manualCourseDialogOpen}
-            onOpenChange={setManualCourseDialogOpen}
-          >
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Adicionar disciplina</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-3">
-                <AutocompleteSelect
-                  ariaLabel="Disciplina manual"
-                  value={manualCourseId}
-                  options={[...courseById.values()]
-                    .sort((left, right) => left.code.localeCompare(right.code))
-                    .map((course) => ({
-                      value: String(course.id),
-                      label: `${course.code} — ${course.name} (${course.credits} créditos)`,
-                    }))}
-                  placeholder="Escolha uma disciplina"
-                  onValueChange={setManualCourseId}
-                />
-                <Button
-                  className="w-full"
-                  disabled={
-                    !manualCourseId ||
-                    manualCourseIds.includes(Number(manualCourseId))
-                  }
-                  onClick={() => {
-                    const courseId = Number(manualCourseId)
-                    if (!Number.isInteger(courseId)) return
-                    updateGuide(
-                      guideWith({
-                        manualCourseIds:
-                          document.guide.manualCourseIds.includes(courseId)
-                            ? document.guide.manualCourseIds
-                            : [...document.guide.manualCourseIds, courseId],
-                      }),
-                    )
-                    setManualCourseId('')
-                    setManualCourseDialogOpen(false)
-                  }}
-                >
-                  Adicionar disciplina
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
-          <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-3">
-            {guideTab === 'classes' ? (
-              <ClassesGuidePanel
-                courses={query.data.courses}
-                classes={query.data.classes}
-                meetings={query.data.meetings}
-                selectedClassIds={new Set(document.classIds)}
-                classFilterCourseId={classFilterCourseId}
-                classFilterStart={classFilterStart}
-                classFilterEnd={classFilterEnd}
-                classFilterDays={classFilterDays}
-                guideClassContext={guideClassContext}
-                guideClassContextKey={guideClassContextKey}
-                professorEvaluationSummaries={professorEvaluationSummaries}
-                onCourseFilterChange={setClassFilterCourseId}
-                onStartChange={setClassFilterStart}
-                onEndChange={setClassFilterEnd}
-                onDaysChange={(day) =>
-                  setClassFilterDays((current) =>
-                    current.includes(day)
-                      ? current.filter((item) => item !== day)
-                      : [...current, day],
-                  )
-                }
-                onDispatch={(command) => void dispatch(command)}
-                onPreview={setPreviewClassId}
-              />
-            ) : openedCourseId || addingClass ? (
-              (() => {
-                const selectedCourseId = openedCourseId ?? 0
-                const course = courseById.get(selectedCourseId)
-                const classes = query.data.classes.filter(
-                  (classItem) => classItem.courseId === selectedCourseId,
-                )
-                return (
-                  <section className="space-y-3">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => {
-                        setOpenedCourseId(undefined)
-                        setPreviewClassId(undefined)
-                        setAddingClass(false)
-                      }}
-                    >
-                      ← Voltar ao guia
-                    </Button>
-                    {addingClass && (
-                      <AutocompleteSelect
-                        ariaLabel="Disciplina da turma"
-                        value={classPickerCourseId}
-                        options={[...courseById.values()].map((item) => ({
-                          value: String(item.id),
-                          label: `${item.code} — ${item.name} (${item.credits} créditos)`,
-                        }))}
-                        placeholder="Escolha a disciplina"
-                        onValueChange={(value) => {
-                          setClassPickerCourseId(value)
-                          setOpenedCourseId(value ? Number(value) : undefined)
-                        }}
-                      />
-                    )}
-                    {!course && (
-                      <p className="text-sm text-muted-foreground">
-                        Escolha uma disciplina para ver as turmas disponíveis.
-                      </p>
-                    )}
-                    {course && (
-                      <>
-                        <div>
-                          <h3 className="font-extrabold">{course.code}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {course.name} · {course.credits} créditos
-                          </p>
-                        </div>
-                        {classes.map((classItem) => {
-                          const meetings = query.data.meetings.filter(
-                            (meeting) => meeting.classId === classItem.id,
-                          )
-                          const selected = selectedIds.has(classItem.id)
-                          const selectedClass = document.classIds.find(
-                            (classId) =>
-                              classById.get(classId)?.courseId === course.id,
-                          )
-                          return (
-                            <article
-                              key={classItem.id}
-                              className="space-y-2 rounded-md border-2 border-strong-border p-3"
-                              onMouseEnter={() =>
-                                setPreviewClassId(classItem.id)
-                              }
-                              onMouseLeave={() => setPreviewClassId(undefined)}
-                              onFocus={() => setPreviewClassId(classItem.id)}
-                              onBlur={() => setPreviewClassId(undefined)}
-                            >
-                              <div className="flex items-start justify-between gap-2">
-                                <div>
-                                  <h4 className="text-sm font-extrabold">
-                                    Turma {classItem.code}
-                                  </h4>
-                                  <p className="text-xs text-muted-foreground">
-                                    {classItem.professors
-                                      .map((professor) => professor.name)
-                                      .join(', ') || 'Professor não informado'}
-                                  </p>
-                                </div>
-                                {selected ? (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() =>
-                                      dispatch({
-                                        type: 'removeClass',
-                                        classId: classItem.id,
-                                      })
-                                    }
-                                  >
-                                    Remover
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    size="sm"
-                                    variant="outline"
-                                    onClick={() =>
-                                      dispatch({
-                                        type: selectedClass
-                                          ? 'replaceClass'
-                                          : 'addClass',
-                                        classId: classItem.id,
-                                      })
-                                    }
-                                  >
-                                    {selectedClass ? 'Trocar' : 'Adicionar'}
-                                  </Button>
-                                )}
-                              </div>
-                              <ul className="space-y-1 text-xs text-muted-foreground">
-                                {meetings.map((meeting) => (
-                                  <li key={meeting.id}>
-                                    {
-                                      days.find(
-                                        ([day]) => day === meeting.dayOfWeek,
-                                      )?.[1]
-                                    }{' '}
-                                    {meeting.start}–{meeting.end} ·{' '}
-                                    {meeting.roomCode}
-                                  </li>
-                                ))}
-                              </ul>
-                            </article>
-                          )
-                        })}
-                        {!classes.length && (
-                          <p className="text-sm text-muted-foreground">
-                            Sem turmas disponíveis neste período.
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </section>
-                )
-              })()
-            ) : guideMode === 'curriculum' ? (
-              <>
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={() => setManualCourseDialogOpen(true)}
-                >
-                  + Adicionar disciplina
-                </Button>
-                {visibleDisciplineGroups.map((group) => (
-                  <section key={group.semester}>
-                    <h3 className="mb-2 text-xs font-black tracking-[0.12em] text-muted-foreground uppercase">
-                      {group.semester > 0
-                        ? `${group.semester}º semestre`
-                        : 'Adicionadas manualmente'}
-                    </h3>
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(5.25rem,1fr))] gap-2">
-                      {group.courses.map(({ course }) => (
-                        <button
-                          key={course.id}
-                          className={`rounded border-2 px-2 py-1 text-xs font-black ${courseColor()}`}
-                          onClick={() => {
-                            setClassFilterCourseId(String(course.id))
-                            setGuideTab('classes')
-                          }}
-                        >
-                          {course.code} (
-                          {String(course.credits).padStart(2, '0')})
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-                {!visibleDisciplineGroups.length &&
-                  (curriculumGuideConfigured ? (
-                    <p className="p-3 text-sm text-muted-foreground">
-                      Todas as disciplinas do currículo já estão planejadas.
-                    </p>
-                  ) : (
-                    guideSetup
-                  ))}
-                {visibleManualCourses.length > 0 && (
-                  <section>
-                    <h3 className="mb-2 text-xs font-black tracking-[0.12em] text-muted-foreground uppercase">
-                      Adicionadas manualmente
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {visibleManualCourses.map(({ course }) =>
-                        renderManualDiscipline(course),
-                      )}
-                    </div>
-                  </section>
-                )}
-              </>
-            ) : guideMode === 'program' ? (
-              <>
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={() => setManualCourseDialogOpen(true)}
-                >
-                  + Adicionar disciplina
-                </Button>
-                {selectedProgramBlocks.map((group) => (
-                  <section key={group.title} className="space-y-2">
-                    <h3 className="text-xs font-black tracking-[0.12em] text-muted-foreground uppercase">
-                      {group.title}
-                    </h3>
-                    <div className="grid grid-cols-[repeat(auto-fill,minmax(5.25rem,1fr))] gap-2">
-                      {group.blocks.mandatory.map((requirement, index) => {
-                        const course =
-                          requirement.selector.type === 'specificCourse'
-                            ? courseById.get(
-                                Number(requirement.selector.courseId),
-                              )
-                            : undefined
-                        if (course && manualCourseIdSet.has(course.id))
-                          return null
-                        if (
-                          course &&
-                          !scheduledCourseIds.has(course.id) &&
-                          !manualCourseIdSet.has(course.id)
-                        )
-                          return (
-                            <button
-                              key={`${group.title}-mandatory-${index}`}
-                              className={`w-full rounded border-2 px-2 py-1 text-center text-xs font-black ${courseColor()}`}
-                              onClick={() => {
-                                setClassFilterCourseId(String(course.id))
-                                setGuideTab('classes')
-                              }}
-                            >
-                              {course.code} (
-                              {String(course.credits).padStart(2, '0')})
-                            </button>
-                          )
-                        return (
-                          <span
-                            key={`${group.title}-mandatory-${index}`}
-                            className="rounded border-2 border-muted-foreground/50 px-2 py-1 text-xs font-bold text-muted-foreground"
-                          >
-                            {selectorLabel(requirement.selector, course?.code)}
-                          </span>
-                        )
-                      })}
-                    </div>
-                    {group.blocks.electives.map((requirement, index) => {
-                      const courses = coursesForElectiveRequirement(requirement)
-                      const broadSelectors = requirement.eligibleCourses.filter(
-                        (selector) => selector.type !== 'specificCourse',
-                      )
-                      return (
-                        <div
-                          key={`${group.title}-elective-${index}`}
-                          className="space-y-2 rounded-md border border-strong-border bg-muted/40 p-2"
-                        >
-                          <p className="text-xs font-semibold">
-                            Eletiva: {requirement.requiredCredits} créditos
-                            {broadSelectors.length
-                              ? ` · ${broadSelectors.map((selector) => selectorLabel(selector)).join(', ')}`
-                              : ''}
-                          </p>
-                          {courses.length > 0 && (
-                            <div className="grid grid-cols-[repeat(auto-fill,minmax(5.25rem,1fr))] gap-2">
-                              {courses.map((course) => (
-                                <button
-                                  key={course.id}
-                                  className={`w-full rounded border-2 px-2 py-1 text-center text-xs font-black ${courseColor()}`}
-                                  onClick={() => {
-                                    setClassFilterCourseId(String(course.id))
-                                    setGuideTab('classes')
-                                  }}
-                                >
-                                  {course.code} (
-                                  {String(course.credits).padStart(2, '0')})
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </section>
-                ))}
-                {!selectedProgramBlocks.length &&
-                  (programGuideConfigured ? (
-                    <p className="p-3 text-sm text-muted-foreground">
-                      Nenhum bloco disponível para este programa.
-                    </p>
-                  ) : (
-                    guideSetup
-                  ))}
-                {visibleManualCourses.length > 0 && (
-                  <section>
-                    <h3 className="mb-2 text-xs font-black tracking-[0.12em] text-muted-foreground uppercase">
-                      Adicionadas manualmente
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {visibleManualCourses.map(({ course }) =>
-                        renderManualDiscipline(course),
-                      )}
-                    </div>
-                  </section>
-                )}
-              </>
-            ) : (
-              <>
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={() => setManualCourseDialogOpen(true)}
-                >
-                  + Adicionar disciplina
-                </Button>
-                {visibleManualCourses.length > 0 ? (
-                  <section>
-                    <h3 className="mb-2 text-xs font-black tracking-[0.12em] text-muted-foreground uppercase">
-                      Adicionadas manualmente
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {visibleManualCourses.map(({ course }) =>
-                        renderManualDiscipline(course),
-                      )}
-                    </div>
-                  </section>
-                ) : (
-                  <p className="p-3 text-sm text-muted-foreground">
-                    Adicione uma disciplina manualmente para encontrar suas
-                    turmas.
-                  </p>
-                )}
-              </>
-            )}
-          </div>
-        </aside>
       </div>
       <SaveDraftDialog
         open={saveDraftDialogOpen}
@@ -1593,6 +2030,37 @@ export function SemesterPlannerPage({
         onOpenChange={setVisibilityDialogOpen}
         onValueChange={setVisibilityDraft}
         onSave={() => void saveVisibility()}
+      />
+      <SelectedClassDialog
+        classItem={selectedClassDetails}
+        course={
+          selectedClassDetails
+            ? courseById.get(selectedClassDetails.courseId)
+            : undefined
+        }
+        meetings={
+          selectedClassDetails
+            ? query.data.meetings.filter(
+                (meeting) => meeting.classId === selectedClassDetails.id,
+              )
+            : []
+        }
+        professorEvaluationSummaries={professorEvaluationSummaries}
+        onOpenChange={(open) => {
+          if (!open) setSelectedClassDetailsId(undefined)
+        }}
+        onShowAlternatives={showCourseAlternatives}
+        onRemove={(classId) => {
+          setSelectedClassDetailsId(undefined)
+          void dispatch({ type: 'removeClass', classId })
+        }}
+      />
+      <CatalogProgramCourseDialog
+        course={selectedCourseDetails}
+        catalogYear={courseDetailsCatalogYear}
+        onOpenChange={(open) => {
+          if (!open) setSelectedCourseDetailsId(undefined)
+        }}
       />
     </PageContainer>
   )

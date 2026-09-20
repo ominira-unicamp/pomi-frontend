@@ -8,6 +8,7 @@ import {
 } from '@/features/curriculum-planner/data/curriculumPersistenceApi'
 import { loadCurriculumSuggestions } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
 import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { listStudentCourseAttempts } from '@/features/student/data/studentApi'
 import {
   getSemesterPlanning,
   listSemesterPlannings,
@@ -46,6 +47,12 @@ export function useSemesterPlannerQueries({
   const plansQuery = useQuery({
     queryKey: privateQueryKeys.semesterPlannings(sessionSubject, studentId),
     queryFn: () => listSemesterPlannings(studentId!, getAccessToken),
+    enabled: Boolean(studentId),
+    retry: false,
+  })
+  const courseAttemptsQuery = useQuery({
+    queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
+    queryFn: () => listStudentCourseAttempts(studentId!, getAccessToken),
     enabled: Boolean(studentId),
     retry: false,
   })
@@ -113,6 +120,7 @@ export function useSemesterPlannerQueries({
     studentProfileQuery,
     query,
     plansQuery,
+    courseAttemptsQuery,
     planQuery,
     professorEvaluationSummariesQuery,
     curriculaQuery,

@@ -6746,6 +6746,93 @@ export const queryCapabilities = {
                 "schema": {
                     "additionalProperties": false,
                     "properties": {
+                        "number": {
+                            "oneOf": [
+                                {
+                                    "minLength": 1,
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "minLength": 1,
+                                            "type": "string"
+                                        },
+                                        "ne": {
+                                            "minLength": 1,
+                                            "type": "string"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "minLength": 1,
+                                                "type": "string"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        },
+                        "issuer": {
+                            "oneOf": [
+                                {
+                                    "minLength": 1,
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "minLength": 1,
+                                            "type": "string"
+                                        },
+                                        "ne": {
+                                            "minLength": 1,
+                                            "type": "string"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "minLength": 1,
+                                                "type": "string"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        },
+                        "title": {
+                            "oneOf": [
+                                {
+                                    "minLength": 1,
+                                    "type": "string"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "minLength": 1,
+                                            "type": "string"
+                                        },
+                                        "ne": {
+                                            "minLength": 1,
+                                            "type": "string"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "minLength": 1,
+                                                "type": "string"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        },
                         "placeId": {
                             "oneOf": [
                                 {
@@ -6756,6 +6843,10 @@ export const queryCapabilities = {
                                     "additionalProperties": false,
                                     "properties": {
                                         "eq": {
+                                            "minimum": 1,
+                                            "type": "integer"
+                                        },
+                                        "ne": {
                                             "minimum": 1,
                                             "type": "integer"
                                         },
@@ -6798,13 +6889,36 @@ export const queryCapabilities = {
                                 {
                                     "additionalProperties": false,
                                     "properties": {
+                                        "eq": {
+                                            "format": "date",
+                                            "type": "string"
+                                        },
+                                        "ne": {
+                                            "format": "date",
+                                            "type": "string"
+                                        },
+                                        "gt": {
+                                            "format": "date",
+                                            "type": "string"
+                                        },
                                         "gte": {
+                                            "format": "date",
+                                            "type": "string"
+                                        },
+                                        "lt": {
                                             "format": "date",
                                             "type": "string"
                                         },
                                         "lte": {
                                             "format": "date",
                                             "type": "string"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "format": "date",
+                                                "type": "string"
+                                            },
+                                            "type": "array"
                                         }
                                     },
                                     "type": "object"
@@ -6820,13 +6934,36 @@ export const queryCapabilities = {
                                 {
                                     "additionalProperties": false,
                                     "properties": {
+                                        "eq": {
+                                            "format": "date",
+                                            "type": "string"
+                                        },
+                                        "ne": {
+                                            "format": "date",
+                                            "type": "string"
+                                        },
+                                        "gt": {
+                                            "format": "date",
+                                            "type": "string"
+                                        },
                                         "gte": {
+                                            "format": "date",
+                                            "type": "string"
+                                        },
+                                        "lt": {
                                             "format": "date",
                                             "type": "string"
                                         },
                                         "lte": {
                                             "format": "date",
                                             "type": "string"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "format": "date",
+                                                "type": "string"
+                                            },
+                                            "type": "array"
                                         }
                                     },
                                     "type": "object"
@@ -6836,11 +6973,64 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "q",
+                "required": false,
+                "description": null,
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "string",
+                    "minLength": 1
+                }
             }
         ],
         "filter": {
             "version": 1,
             "fields": [
+                {
+                    "path": [
+                        "number"
+                    ],
+                    "schema": {
+                        "minLength": 1,
+                        "type": "string"
+                    },
+                    "operators": [
+                        "eq",
+                        "ne",
+                        "in"
+                    ]
+                },
+                {
+                    "path": [
+                        "issuer"
+                    ],
+                    "schema": {
+                        "minLength": 1,
+                        "type": "string"
+                    },
+                    "operators": [
+                        "eq",
+                        "ne",
+                        "in"
+                    ]
+                },
+                {
+                    "path": [
+                        "title"
+                    ],
+                    "schema": {
+                        "minLength": 1,
+                        "type": "string"
+                    },
+                    "operators": [
+                        "eq",
+                        "ne",
+                        "in"
+                    ]
+                },
                 {
                     "path": [
                         "placeId"
@@ -6851,6 +7041,7 @@ export const queryCapabilities = {
                     },
                     "operators": [
                         "eq",
+                        "ne",
                         "in"
                     ]
                 },
@@ -6875,8 +7066,13 @@ export const queryCapabilities = {
                         "type": "string"
                     },
                     "operators": [
+                        "eq",
+                        "ne",
+                        "gt",
                         "gte",
-                        "lte"
+                        "lt",
+                        "lte",
+                        "in"
                     ]
                 },
                 {
@@ -6888,8 +7084,13 @@ export const queryCapabilities = {
                         "type": "string"
                     },
                     "operators": [
+                        "eq",
+                        "ne",
+                        "gt",
                         "gte",
-                        "lte"
+                        "lt",
+                        "lte",
+                        "in"
                     ]
                 }
             ],

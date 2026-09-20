@@ -30,19 +30,10 @@ function renderPanel(
     <ClassesGuidePanel
       courses={[{ id: 1, code: 'MC102', name: 'Algoritmos', credits: 6 }]}
       classes={[classItem]}
+      allClasses={[classItem]}
       meetings={[]}
       selectedClassIds={new Set()}
-      classFilterCourseId=""
-      classFilterStart=""
-      classFilterEnd=""
-      classFilterDays={[]}
-      guideClassContext={{ courseIds: new Set([1]), prefixes: [] }}
-      guideClassContextKey=""
       professorEvaluationSummaries={professorEvaluationSummaries}
-      onCourseFilterChange={vi.fn()}
-      onStartChange={vi.fn()}
-      onEndChange={vi.fn()}
-      onDaysChange={vi.fn()}
       onDispatch={vi.fn()}
       onPreview={vi.fn()}
     />,
@@ -54,10 +45,9 @@ describe('ClassesGuidePanel', () => {
     renderPanel()
 
     expect(screen.getByText('Ana Silva')).toBeTruthy()
+    expect(screen.getByText('8 avaliações · Voltaria 4.5')).toBeTruthy()
     expect(
-      screen.getByText(
-        '8 avaliações · Voltaria 4.5 · Justiça 4.2 · Clareza 4.6 · Dificuldade 3.1',
-      ),
+      screen.getByText('Justiça 4.2 · Clareza 4.6 · Dificuldade 3.1'),
     ).toBeTruthy()
   })
 
@@ -69,7 +59,7 @@ describe('ClassesGuidePanel', () => {
     expect(screen.getByRole('button', { name: 'Adicionar' })).toBeTruthy()
   })
 
-  it('lists only guide-eligible disciplines in the discipline filter', () => {
+  it('renders only the classes received from the filter toolbar', () => {
     render(
       <ClassesGuidePanel
         courses={[
@@ -77,33 +67,51 @@ describe('ClassesGuidePanel', () => {
           { id: 2, code: 'MA111', name: 'Cálculo', credits: 6 },
         ]}
         classes={[classItem]}
+        allClasses={[classItem]}
         meetings={[]}
         selectedClassIds={new Set()}
-        classFilterCourseId=""
-        classFilterStart=""
-        classFilterEnd=""
-        classFilterDays={[]}
-        guideClassContext={{ courseIds: new Set([1]), prefixes: [] }}
-        guideClassContextKey="eligible-course-1"
         professorEvaluationSummaries={new Map()}
-        onCourseFilterChange={vi.fn()}
-        onStartChange={vi.fn()}
-        onEndChange={vi.fn()}
-        onDaysChange={vi.fn()}
         onDispatch={vi.fn()}
         onPreview={vi.fn()}
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Filtros' }))
-    fireEvent.click(screen.getByRole('button', { name: /^Disciplina/ }))
-    fireEvent.focus(
-      screen.getByRole('combobox', {
-        name: 'Filtrar turmas por disciplina',
-      }),
+    expect(screen.getByText(/MC102 · Turma/)).toBeTruthy()
+    expect(screen.queryByText(/MA111 · Turma/)).toBeNull()
+    expect(screen.queryByText(/Página 1 de 1/)).toBeNull()
+  })
+
+  it('groups rooms from meetings with the same day and time', () => {
+    render(
+      <ClassesGuidePanel
+        courses={[{ id: 1, code: 'MC102', name: 'Algoritmos', credits: 6 }]}
+        classes={[classItem]}
+        allClasses={[classItem]}
+        meetings={[
+          {
+            id: 1,
+            classId: 10,
+            dayOfWeek: 'MONDAY',
+            start: '10:00',
+            end: '12:00',
+            roomCode: 'PB01',
+          },
+          {
+            id: 2,
+            classId: 10,
+            dayOfWeek: 'MONDAY',
+            start: '10:00',
+            end: '12:00',
+            roomCode: 'PB02',
+          },
+        ]}
+        selectedClassIds={new Set()}
+        professorEvaluationSummaries={new Map()}
+        onDispatch={vi.fn()}
+        onPreview={vi.fn()}
+      />,
     )
 
-    expect(screen.getByText('MC102 — Algoritmos')).toBeTruthy()
-    expect(screen.queryByText('MA111 — Cálculo')).toBeNull()
+    expect(screen.getByText('Seg 10:00–12:00 · PB01, PB02')).toBeTruthy()
   })
 })

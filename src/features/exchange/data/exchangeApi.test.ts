@@ -21,12 +21,26 @@ describe('exchange API', () => {
     )
     vi.stubGlobal('fetch', fetchMock)
 
-    await listExchangeNotices()
+    await listExchangeNotices({
+      q: 'africa',
+      filter: {
+        issuer: { in: ['DERI'] },
+        registrationEnd: { gte: '2026-09-19' },
+      },
+    })
 
     expect(fetchMock).toHaveBeenCalledOnce()
     expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe(
       '/exchange-notices',
     )
+    expect(new URL(fetchMock.mock.calls[0][0]).searchParams.get('q')).toBe(
+      'africa',
+    )
+    expect(
+      new URL(fetchMock.mock.calls[0][0]).searchParams.get(
+        'filter[registrationEnd][gte]',
+      ),
+    ).toBe('2026-09-19')
     expect(
       new Headers(fetchMock.mock.calls[0][1]?.headers).has('Authorization'),
     ).toBe(false)

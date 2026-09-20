@@ -50,6 +50,7 @@ export function SemesterScheduleGrid({
       meeting,
     ])
   }
+  const activeSelection = selection.activeSelection
 
   return (
     <section className="h-[32rem] overflow-auto rounded-lg border-2 border-strong-border bg-card lg:h-full lg:overflow-hidden">
@@ -107,7 +108,7 @@ export function SemesterScheduleGrid({
                 onPointerUp={selection.onPointerUp}
                 onPointerCancel={selection.onPointerCancel}
               >
-                {selection.activeSelection &&
+                {activeSelection &&
                   selection.highlightedDayIndexes.map((dayIndex) => (
                     <div
                       key={dayIndex}
@@ -115,8 +116,8 @@ export function SemesterScheduleGrid({
                       style={{
                         left: `${(dayIndex / days.length) * 100}%`,
                         width: `${(1 / days.length) * 100}%`,
-                        top: `${(selection.activeSelection.startRow / gridRowCount) * 100}%`,
-                        height: `${((selection.activeSelection.endRow - selection.activeSelection.startRow) / gridRowCount) * 100}%`,
+                        top: `${(activeSelection.startRow / gridRowCount) * 100}%`,
+                        height: `${((activeSelection.endRow - activeSelection.startRow) / gridRowCount) * 100}%`,
                       }}
                     />
                   ))}

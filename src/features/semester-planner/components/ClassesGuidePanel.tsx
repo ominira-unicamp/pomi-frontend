@@ -1,324 +1,87 @@
 import { useEffect, useState } from 'react'
-
-import {
-  scheduleDays as days,
-  scheduleEndHour as endHour,
-  matchesGuideClass,
-  matchesGuideCourse,
-  scheduleMinutes as minutes,
-  scheduleStartHour as startHour,
-} from '@pomi/planner-domain/semester'
+import { scheduleDays as days } from '@pomi/planner-domain/semester'
 import type {
   ClassMeeting,
-  GuideClassContext,
   SemesterClass,
   SemesterCourse,
   SemesterPlannerCommand,
 } from '@pomi/planner-domain/semester'
+
 import type { ProfessorEvaluationSummary } from '@/features/semester-planner/data/semesterPlanningApi'
-import { AutocompleteSelect } from '@/components/AutocompleteSelect'
+import { classConflictsWithSelection } from '@/features/semester-planner/model/semesterPlannerView'
 import { Button } from '@/components/ui/button'
-import {
-  AppliedFilters,
-  FilterPropertyList,
-  FilterViewHeader,
-  FiltersButton,
-} from '@/components/patterns/AppliedFilters'
-import { ResponsiveFilterSurface } from '@/components/patterns/ResponsiveFilterSurface'
 
 export function ClassesGuidePanel({
   courses,
   classes,
+  allClasses,
   meetings,
   selectedClassIds,
-  classFilterCourseId,
-  classFilterStart,
-  classFilterEnd,
-  classFilterDays,
-  onCourseFilterChange,
-  onStartChange,
-  onEndChange,
-  onDaysChange,
-  guideClassContext,
-  guideClassContextKey,
   professorEvaluationSummaries,
   onDispatch,
   onPreview,
+  onSelectedClassClick,
 }: {
   courses: ReadonlyArray<SemesterCourse>
   classes: ReadonlyArray<SemesterClass>
+  allClasses: ReadonlyArray<SemesterClass>
   meetings: ReadonlyArray<ClassMeeting>
   selectedClassIds: ReadonlySet<number>
-  classFilterCourseId: string
-  classFilterStart: string
-  classFilterEnd: string
-  classFilterDays: ReadonlyArray<string>
-  onCourseFilterChange: (value: string) => void
-  onStartChange: (value: string) => void
-  onEndChange: (value: string) => void
-  onDaysChange: (day: string) => void
-  guideClassContext: GuideClassContext
-  guideClassContextKey: string
   professorEvaluationSummaries: ReadonlyMap<number, ProfessorEvaluationSummary>
   onDispatch: (command: SemesterPlannerCommand) => void
   onPreview: (classId: number | undefined) => void
+  onSelectedClassClick?: (classId: number) => void
 }) {
-  const [filterView, setFilterView] = useState<
-    'results' | 'filters' | 'discipline' | 'time' | 'days'
-  >('results')
   const [page, setPage] = useState(1)
   const courseById = new Map(courses.map((course) => [course.id, course]))
-  const filterStart = classFilterStart ? minutes(classFilterStart) : undefined
-  const filterEnd = classFilterEnd ? minutes(classFilterEnd) : undefined
-  const guideEligibleClasses = classes.filter((classItem) =>
-    matchesGuideClass(classItem, guideClassContext),
-  )
-  const filteredClasses = guideEligibleClasses.filter((classItem) => {
-    if (
-      classFilterCourseId &&
-      classItem.courseId !== Number(classFilterCourseId)
-    )
-      return false
-    const classMeetings = meetings.filter(
-      (meeting) => meeting.classId === classItem.id,
-    )
-    if (
-      classFilterDays.length > 0 &&
-      !classMeetings.some((meeting) =>
-        classFilterDays.includes(meeting.dayOfWeek),
-      )
-    )
-      return false
-    if (filterStart !== undefined || filterEnd !== undefined) {
-      const start = filterStart ?? 0
-      const end = filterEnd ?? 24 * 60
-      if (
-        !classMeetings.some(
-          (meeting) =>
-            minutes(meeting.start) < end && minutes(meeting.end) > start,
-        )
-      )
-        return false
-    }
-    return true
-  })
-  const courseOptions = courses
-    .filter((course) => matchesGuideCourse(course, guideClassContext))
-    .map((course) => ({
-      value: String(course.id),
-      label: `${course.code} — ${course.name}`,
-    }))
-  const hourOptions = Array.from(
-    { length: endHour - startHour + 1 },
-    (_, index) => `${String(startHour + index).padStart(2, '0')}:00`,
+  const selectedClasses = allClasses.filter((classItem) =>
+    selectedClassIds.has(classItem.id),
   )
   const pageSize = 20
-  const pageCount = Math.max(1, Math.ceil(filteredClasses.length / pageSize))
-  const visibleClasses = filteredClasses.slice(
-    (page - 1) * pageSize,
-    page * pageSize,
-  )
+  const pageCount = Math.max(1, Math.ceil(classes.length / pageSize))
+  const visibleClasses = classes.slice((page - 1) * pageSize, page * pageSize)
 
-  useEffect(() => {
-    setPage(1)
-  }, [
-    guideClassContextKey,
-    classFilterCourseId,
-    classFilterStart,
-    classFilterEnd,
-    classFilterDays,
-  ])
-
-  const appliedFilters = [
-    ...(classFilterCourseId
-      ? [
-          {
-            key: 'discipline' as const,
-            label: 'Disciplina',
-            summary:
-              courseById.get(Number(classFilterCourseId))?.code ??
-              classFilterCourseId,
-          },
-        ]
-      : []),
-    ...(classFilterStart || classFilterEnd
-      ? [
-          {
-            key: 'time' as const,
-            label: 'Horário',
-            summary: `${classFilterStart || '00:00'}–${classFilterEnd || '24:00'}`,
-          },
-        ]
-      : []),
-    ...(classFilterDays.length
-      ? [
-          {
-            key: 'days' as const,
-            label: 'Dias',
-            summary: classFilterDays
-              .map((value) => days.find(([day]) => day === value)?.[1] ?? value)
-              .join(', '),
-          },
-        ]
-      : []),
-  ]
-
-  function clearFilter(key: 'discipline' | 'time' | 'days') {
-    if (key === 'discipline') onCourseFilterChange('')
-    if (key === 'time') {
-      onStartChange('')
-      onEndChange('')
-    }
-    if (key === 'days') classFilterDays.forEach((day) => onDaysChange(day))
-    if (filterView === key) setFilterView('filters')
-  }
-  const filterContent = (
-    <>
-      <FilterViewHeader
-        title={
-          filterView === 'filters' || filterView === 'results'
-            ? 'Filtros de turmas'
-            : `Editar ${filterView === 'discipline' ? 'disciplina' : filterView === 'time' ? 'horário' : 'dias'}`
-        }
-        onBack={() =>
-          setFilterView(filterView === 'filters' ? 'results' : 'filters')
-        }
-        onClose={() => setFilterView('results')}
-        closeClassName="sm:hidden"
-      />
-      {filterView === 'filters' || filterView === 'results' ? (
-        <div className="mt-3">
-          <FilterPropertyList
-            items={(['discipline', 'time', 'days'] as const).map((key) => ({
-              key,
-              label:
-                key === 'discipline'
-                  ? 'Disciplina'
-                  : key === 'time'
-                    ? 'Horário'
-                    : 'Dias',
-              summary: appliedFilters.find((item) => item.key === key)?.summary,
-            }))}
-            onSelect={setFilterView}
-          />
-        </div>
-      ) : filterView === 'discipline' ? (
-        <div className="mt-3">
-          <AutocompleteSelect
-            ariaLabel="Filtrar turmas por disciplina"
-            value={classFilterCourseId}
-            emptyLabel="Todas as disciplinas"
-            options={courseOptions}
-            placeholder="Disciplina"
-            onValueChange={onCourseFilterChange}
-          />
-        </div>
-      ) : filterView === 'time' ? (
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <label className="text-xs font-bold">
-            A partir de
-            <select
-              value={classFilterStart}
-              onChange={(event) => onStartChange(event.target.value)}
-              className="mt-1 h-9 w-full rounded-md border-2 border-input bg-background px-2 text-sm"
-            >
-              <option value="">Qualquer</option>
-              {hourOptions.map((hour) => (
-                <option key={hour} value={hour}>
-                  {hour}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="text-xs font-bold">
-            Até
-            <select
-              value={classFilterEnd}
-              onChange={(event) => onEndChange(event.target.value)}
-              className="mt-1 h-9 w-full rounded-md border-2 border-input bg-background px-2 text-sm"
-            >
-              <option value="">Qualquer</option>
-              {hourOptions.map((hour) => (
-                <option key={hour} value={hour}>
-                  {hour}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
-      ) : (
-        <div className="mt-3 flex flex-wrap gap-1">
-          {days.map(([day, label]) => (
-            <button
-              key={day}
-              type="button"
-              className={`min-h-10 rounded border px-3 py-1 text-xs font-bold ${classFilterDays.includes(day) ? 'border-primary bg-primary text-primary-foreground' : 'border-strong-border'}`}
-              onClick={() => onDaysChange(day)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      )}
-    </>
-  )
+  useEffect(() => setPage(1), [classes])
 
   return (
-    <section className="space-y-3">
-      <div className="space-y-3">
-        <div className="flex flex-wrap gap-2">
-          <ResponsiveFilterSurface
-            open={filterView !== 'results'}
-            onOpenChange={(open) => setFilterView(open ? 'filters' : 'results')}
-            title={
-              appliedFilters.length === 0
-                ? 'Nenhum filtro'
-                : `${appliedFilters.length} ${appliedFilters.length === 1 ? 'filtro' : 'filtros'}`
-            }
-            trigger={<FiltersButton count={appliedFilters.length} />}
-          >
-            {filterContent}
-          </ResponsiveFilterSurface>
-          <AppliedFilters
-            items={appliedFilters}
-            onEdit={setFilterView}
-            onRemove={clearFilter}
-            onClear={() => {
-              appliedFilters.forEach(({ key }) => clearFilter(key))
-            }}
-          />
-        </div>
-      </div>
-      <p className="text-xs font-semibold text-muted-foreground">
-        {filteredClasses.length} turma{filteredClasses.length === 1 ? '' : 's'}{' '}
-        encontrada{filteredClasses.length === 1 ? '' : 's'}
-      </p>
+    <section className="-mx-3 divide-y divide-border">
       {visibleClasses.map((classItem) => {
         const course = courseById.get(classItem.courseId)
         const classMeetings = meetings.filter(
           (meeting) => meeting.classId === classItem.id,
         )
+        const meetingGroups = groupMeetings(classMeetings)
         const selected = selectedClassIds.has(classItem.id)
-        const currentClass = classes.find(
+        const currentClass = allClasses.find(
           (item) =>
             item.courseId === classItem.courseId &&
             selectedClassIds.has(item.id),
         )
+        const hasConflict = classConflictsWithSelection({
+          classItem,
+          selectedClasses,
+          meetings,
+        })
         return (
           <article
             key={classItem.id}
-            className="space-y-2 rounded-md border-2 border-strong-border p-3"
+            className={`space-y-2 px-3 py-3 hover:bg-muted/40 ${hasConflict ? 'border-l-4 border-chart-4 bg-chart-4/5' : selected ? 'border-l-4 border-primary bg-primary/5' : ''}`}
             onMouseEnter={() => onPreview(classItem.id)}
             onMouseLeave={() => onPreview(undefined)}
             onFocus={() => onPreview(classItem.id)}
             onBlur={() => onPreview(undefined)}
           >
             <div className="flex items-start justify-between gap-2">
-              <div>
+              <div className="min-w-0">
                 <h3 className="text-sm font-extrabold">
                   {course?.code ?? classItem.courseCode} · Turma{' '}
                   {classItem.code}
                 </h3>
+                {course && (
+                  <p className="line-clamp-2 text-xs text-muted-foreground">
+                    {course.name} · {course.credits} créditos
+                  </p>
+                )}
                 {classItem.professors.length ? (
                   <div className="mt-1 space-y-2">
                     {classItem.professors.map((professor) => {
@@ -331,13 +94,17 @@ export function ClassesGuidePanel({
                             {professor.name}
                           </p>
                           {summary && (
-                            <p className="mt-1 text-foreground">
-                              {summary.responseCount} avaliações · Voltaria{' '}
-                              {summary.wouldTakeAgain.toFixed(1)} · Justiça{' '}
-                              {summary.fairness.toFixed(1)} · Clareza{' '}
-                              {summary.clarity.toFixed(1)} · Dificuldade{' '}
-                              {summary.difficulty.toFixed(1)}
-                            </p>
+                            <details className="mt-1 text-foreground">
+                              <summary className="cursor-pointer">
+                                {summary.responseCount} avaliações · Voltaria{' '}
+                                {summary.wouldTakeAgain.toFixed(1)}
+                              </summary>
+                              <p className="mt-1 text-muted-foreground">
+                                Justiça {summary.fairness.toFixed(1)} · Clareza{' '}
+                                {summary.clarity.toFixed(1)} · Dificuldade{' '}
+                                {summary.difficulty.toFixed(1)}
+                              </p>
+                            </details>
                           )}
                         </div>
                       )
@@ -351,39 +118,52 @@ export function ClassesGuidePanel({
               </div>
               <Button
                 size="sm"
-                variant={selected ? 'ghost' : 'outline'}
-                onClick={() =>
+                variant={
+                  selected ? 'ghost' : currentClass ? 'outline' : 'default'
+                }
+                onClick={() => {
+                  if (selected) {
+                    onSelectedClassClick?.(classItem.id)
+                    return
+                  }
                   onDispatch({
-                    type: selected
-                      ? 'removeClass'
-                      : currentClass
-                        ? 'replaceClass'
-                        : 'addClass',
+                    type: currentClass ? 'replaceClass' : 'addClass',
                     classId: classItem.id,
                   })
-                }
+                }}
               >
-                {selected ? 'Remover' : currentClass ? 'Trocar' : 'Adicionar'}
+                {selected
+                  ? 'Selecionada'
+                  : currentClass
+                    ? 'Trocar turma'
+                    : 'Adicionar'}
               </Button>
             </div>
-            <ul className="space-y-1 text-xs text-muted-foreground">
-              {classMeetings.map((meeting) => (
-                <li key={meeting.id}>
-                  {days.find(([day]) => day === meeting.dayOfWeek)?.[1]}{' '}
-                  {meeting.start}–{meeting.end} · {meeting.roomCode}
+            {hasConflict && !selected && (
+              <p className="text-xs font-bold text-chart-4">
+                Conflita com uma turma selecionada
+              </p>
+            )}
+            <ul className="space-y-0.5 text-xs text-muted-foreground">
+              {meetingGroups.map((meeting) => (
+                <li key={meeting.key}>
+                  {meeting.dayLabel} {meeting.start}–{meeting.end}
+                  {meeting.rooms.length > 0
+                    ? ` · ${meeting.rooms.join(', ')}`
+                    : ''}
                 </li>
               ))}
             </ul>
           </article>
         )
       })}
-      {!filteredClasses.length && (
+      {!classes.length && (
         <p className="p-3 text-sm text-muted-foreground">
           Nenhuma turma atende aos filtros atuais.
         </p>
       )}
-      {filteredClasses.length > 0 && (
-        <div className="flex items-center justify-between gap-3 border-t border-strong-border pt-3">
+      {pageCount > 1 && (
+        <div className="flex items-center justify-between gap-3 px-3 pt-3">
           <Button
             size="sm"
             variant="outline"
@@ -409,4 +189,36 @@ export function ClassesGuidePanel({
       )}
     </section>
   )
+}
+
+function groupMeetings(meetings: ReadonlyArray<ClassMeeting>) {
+  const groups = new Map<
+    string,
+    {
+      key: string
+      dayLabel: string
+      start: string
+      end: string
+      rooms: Array<string>
+    }
+  >()
+  for (const meeting of meetings) {
+    const key = `${meeting.dayOfWeek}-${meeting.start}-${meeting.end}`
+    const existing = groups.get(key)
+    if (existing) {
+      if (meeting.roomCode && !existing.rooms.includes(meeting.roomCode))
+        existing.rooms.push(meeting.roomCode)
+      continue
+    }
+    groups.set(key, {
+      key,
+      dayLabel:
+        days.find(([day]) => day === meeting.dayOfWeek)?.[1] ??
+        meeting.dayOfWeek,
+      start: meeting.start,
+      end: meeting.end,
+      rooms: meeting.roomCode ? [meeting.roomCode] : [],
+    })
+  }
+  return [...groups.values()]
 }

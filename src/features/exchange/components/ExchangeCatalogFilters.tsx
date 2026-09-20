@@ -3,7 +3,7 @@ import { useState } from 'react'
 
 import type { ExchangePlace } from '@/features/exchange/data/exchangeApi'
 import type { ExchangeNoticeFilters } from '@/features/exchange/data/exchangeNotices'
-import { SearchableMultiSelect } from '@/components/patterns/SearchableMultiSelect'
+import { StandardFilterEditor, useFilterController } from '@/components/filters'
 import {
   AppliedFilters,
   FilterPropertyList,
@@ -20,27 +20,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  defaultExchangeNoticeFilters,
-  localDateKey,
-} from '@/features/exchange/data/exchangeNotices'
+import { localDateKey } from '@/features/exchange/data/exchangeNotices'
+import { exchangeNoticeFilterDefinitions } from '@/features/exchange/filters/exchangeNoticeFilterDefinitions'
 
 type ActiveFilter =
   | 'issuers'
   | 'placeIds'
-  | 'registrationStartAfter'
-  | 'registrationStartBefore'
-  | 'registrationEndAfter'
-  | 'registrationEndBefore'
-
-const filterOptions: ReadonlyArray<{ key: ActiveFilter; label: string }> = [
-  { key: 'issuers', label: 'Órgãos emissores' },
-  { key: 'placeIds', label: 'Locais' },
-  { key: 'registrationStartAfter', label: 'Início a partir de' },
-  { key: 'registrationStartBefore', label: 'Início até' },
-  { key: 'registrationEndAfter', label: 'Fim a partir de' },
-  { key: 'registrationEndBefore', label: 'Fim até' },
-]
+  | 'registrationStart'
+  | 'registrationEnd'
 
 export function ExchangeCatalogFilters({
   filters,
@@ -60,39 +47,23 @@ export function ExchangeCatalogFilters({
     key: TKey,
     value: ExchangeNoticeFilters[TKey],
   ) => onChange({ ...filters, [key]: value })
+  const definitions = exchangeNoticeFilterDefinitions({ issuers, places })
+  const controller = useFilterController({
+    state: filters,
+    definitions,
+    onChange,
+  })
   const removeFilter = (key: ActiveFilter) => {
-    update(key, defaultExchangeNoticeFilters[key])
+    controller.clear(key)
     if (filterView === key) setFilterView('filters')
   }
-  const activeFilters = filterOptions
-    .map(({ key }) => key)
-    .filter((key) =>
-      Array.isArray(filters[key])
-        ? filters[key].length > 0
-        : Boolean(filters[key]),
-    )
-  const appliedFilters = activeFilters.map((key) => ({
-    key,
-    label: filterOptions.find((option) => option.key === key)!.label,
-    summary:
-      key === 'issuers'
-        ? summarizeValues(filters.issuers)
-        : key === 'placeIds'
-          ? summarizeValues(
-              filters.placeIds.map(
-                (id) =>
-                  places.find((place) => place.id === id)?.name ?? String(id),
-              ),
-            )
-          : formatDate(filters[key]),
-  }))
   const filterContent = (
     <>
       <FilterViewHeader
         title={
           filterView === 'filters'
             ? 'Filtros'
-            : `Editar ${filterOptions.find(({ key }) => key === filterView)?.label}`
+            : `Editar ${controller.definition(filterView)?.label}`
         }
         onBack={() =>
           setFilterView(filterView === 'filters' ? 'results' : 'filters')
@@ -103,44 +74,22 @@ export function ExchangeCatalogFilters({
       <div className="mt-4">
         {filterView === 'filters' || filterView === 'results' ? (
           <FilterPropertyList
-            items={filterOptions.map(({ key, label }) => ({
-              key,
+            items={controller.definitions.map(({ key, label }) => ({
+              key: key as ActiveFilter,
               label,
-              summary: appliedFilters.find((item) => item.key === key)?.summary,
+              summary: controller.activeItems.find((item) => item.key === key)
+                ?.summary,
             }))}
             onSelect={setFilterView}
           />
-        ) : filterView === 'issuers' ? (
-          <SearchableMultiSelect
-            inline
-            label="Órgãos emissores"
-            options={issuers.map((issuer) => ({
-              value: issuer,
-              label: issuer,
-            }))}
-            selected={filters.issuers}
-            onChange={(values) => update('issuers', values)}
-          />
-        ) : filterView === 'placeIds' ? (
-          <SearchableMultiSelect
-            inline
-            label="Locais"
-            options={places.map((place) => ({
-              value: place.id,
-              label: place.name,
-            }))}
-            selected={filters.placeIds}
-            onChange={(values) => update('placeIds', values)}
-          />
         ) : (
-          <Input
-            aria-label={
-              filterOptions.find(({ key }) => key === filterView)?.label
-            }
-            type="date"
-            value={filters[filterView]}
-            onChange={(event) => update(filterView, event.target.value)}
-          />
+          controller.definition(filterView) && (
+            <StandardFilterEditor
+              definition={controller.definition(filterView)!}
+              state={filters}
+              onChange={onChange}
+            />
+          )
         )}
       </div>
     </>
@@ -163,11 +112,11 @@ export function ExchangeCatalogFilters({
           open={filterView !== 'results'}
           onOpenChange={(open) => setFilterView(open ? 'filters' : 'results')}
           title={
-            activeFilters.length === 0
+            controller.activeCount === 0
               ? 'Nenhum filtro'
-              : `${activeFilters.length} ${activeFilters.length === 1 ? 'filtro' : 'filtros'}`
+              : `${controller.activeCount} ${controller.activeCount === 1 ? 'filtro' : 'filtros'}`
           }
-          trigger={<FiltersButton count={activeFilters.length} />}
+          trigger={<FiltersButton count={controller.activeCount} />}
         >
           {filterContent}
         </ResponsiveFilterSurface>
@@ -214,22 +163,12 @@ export function ExchangeCatalogFilters({
       </div>
 
       <AppliedFilters
-        items={appliedFilters}
-        onEdit={setFilterView}
-        onRemove={removeFilter}
-        onClear={() => onChange(defaultExchangeNoticeFilters)}
+        items={controller.activeItems}
+        onEdit={(key) => setFilterView(key as ActiveFilter)}
+        onRemove={(key) => removeFilter(key as ActiveFilter)}
+        onClear={controller.clearAll}
         onAdd={() => setFilterView('filters')}
       />
     </div>
   )
-}
-
-function summarizeValues(values: ReadonlyArray<string>) {
-  if (values.length <= 2) return values.join(', ')
-  return `${values.slice(0, 2).join(', ')}, +${values.length - 2}`
-}
-
-function formatDate(value: string) {
-  const [year, month, day] = value.split('-')
-  return `${day}/${month}/${year}`
 }

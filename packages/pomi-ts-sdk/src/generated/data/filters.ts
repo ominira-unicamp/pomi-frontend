@@ -1054,6 +1054,48 @@ export const filterCapabilities = {
         "fields": [
             {
                 "path": [
+                    "number"
+                ],
+                "schema": {
+                    "minLength": 1,
+                    "type": "string"
+                },
+                "operators": [
+                    "eq",
+                    "ne",
+                    "in"
+                ]
+            },
+            {
+                "path": [
+                    "issuer"
+                ],
+                "schema": {
+                    "minLength": 1,
+                    "type": "string"
+                },
+                "operators": [
+                    "eq",
+                    "ne",
+                    "in"
+                ]
+            },
+            {
+                "path": [
+                    "title"
+                ],
+                "schema": {
+                    "minLength": 1,
+                    "type": "string"
+                },
+                "operators": [
+                    "eq",
+                    "ne",
+                    "in"
+                ]
+            },
+            {
+                "path": [
                     "placeId"
                 ],
                 "schema": {
@@ -1062,6 +1104,7 @@ export const filterCapabilities = {
                 },
                 "operators": [
                     "eq",
+                    "ne",
                     "in"
                 ]
             },
@@ -1086,8 +1129,13 @@ export const filterCapabilities = {
                     "type": "string"
                 },
                 "operators": [
+                    "eq",
+                    "ne",
+                    "gt",
                     "gte",
-                    "lte"
+                    "lt",
+                    "lte",
+                    "in"
                 ]
             },
             {
@@ -1099,8 +1147,13 @@ export const filterCapabilities = {
                     "type": "string"
                 },
                 "operators": [
+                    "eq",
+                    "ne",
+                    "gt",
                     "gte",
-                    "lte"
+                    "lt",
+                    "lte",
+                    "in"
                 ]
             }
         ],

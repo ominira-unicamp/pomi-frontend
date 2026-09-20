@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import type { ExchangeNotice } from '@/features/exchange/data/exchangeApi'
 import {
+  buildExchangeNoticeQuery,
   defaultExchangeNoticeFilters,
   localDateKey,
   processExchangeNotices,
@@ -29,41 +30,30 @@ function notice(
 }
 
 describe('exchange notice processing', () => {
-  it('searches title, number and place without accents or case differences', () => {
-    const notices = [
-      notice(1, { title: 'Intercâmbio na África' }),
-      notice(2, { title: 'Programa europeu' }),
-    ]
-
+  it('serializes the dedicated remote search', () => {
     expect(
-      processExchangeNotices(notices, {
+      buildExchangeNoticeQuery({
         ...defaultExchangeNoticeFilters,
         search: 'AFRICA',
-      }).map(({ id }) => id),
-    ).toEqual([1])
+      }),
+    ).toEqual({ q: 'AFRICA' })
   })
 
   it('combines issuer, place and registration date filters', () => {
-    const notices = [
-      notice(1, {
-        registrationStart: '2026-09-01',
-        registrationEnd: '2026-09-20',
-      }),
-      notice(2, {
-        issuer: 'Outra unidade',
-        registrationStart: '2026-09-05',
-        registrationEnd: '2026-09-25',
-      }),
-    ]
-
     expect(
-      processExchangeNotices(notices, {
+      buildExchangeNoticeQuery({
         ...defaultExchangeNoticeFilters,
         issuers: ['DERI'],
         placeIds: [1],
         registrationEndAfter: '2026-09-10',
-      }).map(({ id }) => id),
-    ).toEqual([1])
+      }),
+    ).toEqual({
+      filter: {
+        issuer: { in: ['DERI'] },
+        placeId: { in: [1] },
+        registrationEnd: { gte: '2026-09-10' },
+      },
+    })
   })
 
   it('keeps missing dates last in both sorting directions', () => {

@@ -1,4 +1,7 @@
-import type { ExchangeNotice } from '@/features/exchange/data/exchangeApi'
+import type {
+  ExchangeNotice,
+  ExchangeNoticeQuery,
+} from '@/features/exchange/data/exchangeApi'
 
 export type ExchangeNoticeFilters = Readonly<{
   search: string
@@ -24,54 +27,51 @@ export const defaultExchangeNoticeFilters: ExchangeNoticeFilters = {
   sortDirection: 'desc',
 }
 
-export function normalizeExchangeSearch(value: string) {
-  return value
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .toLocaleLowerCase('pt-BR')
-}
-
-function withinRange(value: string | null, after: string, before: string) {
-  if (!after && !before) return true
-  if (!value) return false
-  return (!after || value >= after) && (!before || value <= before)
+export function buildExchangeNoticeQuery(
+  filters: ExchangeNoticeFilters,
+  search = filters.search,
+): ExchangeNoticeQuery {
+  const filter = {
+    ...(filters.issuers.length ? { issuer: { in: [...filters.issuers] } } : {}),
+    ...(filters.placeIds.length
+      ? { placeId: { in: [...filters.placeIds] } }
+      : {}),
+    ...(filters.registrationStartAfter || filters.registrationStartBefore
+      ? {
+          registrationStart: {
+            ...(filters.registrationStartAfter
+              ? { gte: filters.registrationStartAfter }
+              : {}),
+            ...(filters.registrationStartBefore
+              ? { lte: filters.registrationStartBefore }
+              : {}),
+          },
+        }
+      : {}),
+    ...(filters.registrationEndAfter || filters.registrationEndBefore
+      ? {
+          registrationEnd: {
+            ...(filters.registrationEndAfter
+              ? { gte: filters.registrationEndAfter }
+              : {}),
+            ...(filters.registrationEndBefore
+              ? { lte: filters.registrationEndBefore }
+              : {}),
+          },
+        }
+      : {}),
+  }
+  return {
+    ...(search.trim() ? { q: search.trim() } : {}),
+    ...(Object.keys(filter).length ? { filter } : {}),
+  }
 }
 
 export function processExchangeNotices(
   notices: ReadonlyArray<ExchangeNotice>,
   filters: ExchangeNoticeFilters,
 ) {
-  const search = normalizeExchangeSearch(filters.search.trim())
-  const filtered = notices.filter((notice) => {
-    const matchesSearch = [notice.title, notice.number, notice.place?.name]
-      .filter((value): value is string => Boolean(value))
-      .some((value) => normalizeExchangeSearch(value).includes(search))
-    if (search && !matchesSearch) return false
-    if (
-      filters.issuers.length > 0 &&
-      (!notice.issuer || !filters.issuers.includes(notice.issuer))
-    )
-      return false
-    if (
-      filters.placeIds.length > 0 &&
-      (!notice.place || !filters.placeIds.includes(notice.place.id))
-    )
-      return false
-    return (
-      withinRange(
-        notice.registrationStart,
-        filters.registrationStartAfter,
-        filters.registrationStartBefore,
-      ) &&
-      withinRange(
-        notice.registrationEnd,
-        filters.registrationEndAfter,
-        filters.registrationEndBefore,
-      )
-    )
-  })
-
-  return [...filtered].sort((left, right) => {
+  return [...notices].sort((left, right) => {
     const leftDate = left[filters.sortField]
     const rightDate = right[filters.sortField]
     if (!leftDate && !rightDate) return right.id - left.id

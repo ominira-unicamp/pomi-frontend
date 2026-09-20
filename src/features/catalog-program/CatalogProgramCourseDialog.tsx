@@ -3,7 +3,6 @@ import { Link } from '@tanstack/react-router'
 import { ExternalLink, MessageSquareWarning } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import type { Course } from '@pomi/planner-domain/curriculum'
 import {
   Dialog,
   DialogContent,
@@ -44,7 +43,12 @@ export function CatalogProgramCourseDialog({
   catalogYear,
   onOpenChange,
 }: {
-  course?: Course
+  course?: Readonly<{
+    id: string | number
+    code: string
+    name: string
+    credits: number
+  }>
   catalogYear: number
   onOpenChange: (open: boolean) => void
 }) {

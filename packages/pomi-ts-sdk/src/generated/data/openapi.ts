@@ -3741,8 +3741,24 @@ export interface operations {
                 pageSize?: number | "all";
 
                 filter?: {
+                    number?: string | {
+                        eq?: string;
+                        ne?: string;
+                        in?: string[];
+                    };
+                    issuer?: string | {
+                        eq?: string;
+                        ne?: string;
+                        in?: string[];
+                    };
+                    title?: string | {
+                        eq?: string;
+                        ne?: string;
+                        in?: string[];
+                    };
                     placeId?: number | {
                         eq?: number;
+                        ne?: number;
                         in?: number[];
                     };
                     placeName?: string | {
@@ -3750,17 +3766,36 @@ export interface operations {
                     };
                     registrationStart?: string | {
 
+                        eq?: string;
+
+                        ne?: string;
+
+                        gt?: string;
+
                         gte?: string;
 
+                        lt?: string;
+
                         lte?: string;
+                        in?: string[];
                     };
                     registrationEnd?: string | {
 
+                        eq?: string;
+
+                        ne?: string;
+
+                        gt?: string;
+
                         gte?: string;
 
+                        lt?: string;
+
                         lte?: string;
+                        in?: string[];
                     };
                 };
+                q?: string;
             };
             header?: never;
             path?: never;

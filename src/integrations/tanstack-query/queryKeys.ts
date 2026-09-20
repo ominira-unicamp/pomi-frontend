@@ -19,7 +19,8 @@ export const publicQueryKeys = {
   courseSituationStaticData: () =>
     ['public', 'course-situation', 'static-data'] as const,
   exchangePlaces: () => ['public', 'exchange', 'places'] as const,
-  exchangeNotices: () => ['public', 'exchange', 'notices'] as const,
+  exchangeNotices: (query: unknown = {}) =>
+    ['public', 'exchange', 'notices', query] as const,
   curriculumSuggestions: (catalogProgramId: string | number) =>
     ['public', 'curriculum-suggestions', catalogProgramId] as const,
   courseDetails: (courseId: string, catalogYear: number) =>

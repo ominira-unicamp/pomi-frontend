@@ -2,6 +2,7 @@ import type {
   ExchangeNoticeFile,
   ExchangePlaceListItem,
   ExchangeNotice as GeneratedExchangeNotice,
+  listExchangeNoticesInput,
 } from '@ominira/pomi-sdk/generated/data'
 import type {
   ExchangeNoticeSubscription,
@@ -9,15 +10,16 @@ import type {
 } from '@ominira/pomi-sdk/generated/app'
 import { pomiSdk } from '@/api/client'
 
-type WithoutPaths<T> = T extends ReadonlyArray<infer Item>
-  ? ReadonlyArray<WithoutPaths<Item>>
-  : T extends object
-    ? {
-        readonly [Key in keyof T as Key extends '_paths'
-          ? never
-          : Key]: WithoutPaths<T[Key]>
-      }
-    : T
+type WithoutPaths<T> =
+  T extends ReadonlyArray<infer Item>
+    ? ReadonlyArray<WithoutPaths<Item>>
+    : T extends object
+      ? {
+          readonly [Key in keyof T as Key extends '_paths'
+            ? never
+            : Key]: WithoutPaths<T[Key]>
+        }
+      : T
 
 export type ExchangeNotice = WithoutPaths<GeneratedExchangeNotice>
 export type ExchangePlace = WithoutPaths<ExchangePlaceListItem>
@@ -30,15 +32,15 @@ export type ExchangeNoticeSubscriptionPatch = Readonly<
 
 type GetAccessToken = () => Promise<string>
 
-export const listExchangeNotices = () =>
-  pomiSdk.data.exchangeNotices.listAll({})
-export const listExchangePlaces = () =>
-  pomiSdk.data.exchangePlaces.listAll({})
+export type ExchangeNoticeQuery = Readonly<listExchangeNoticesInput>
+
+export const listExchangeNotices = (query: ExchangeNoticeQuery = {}) =>
+  pomiSdk.data.exchangeNotices.listAll(query)
+export const listExchangePlaces = () => pomiSdk.data.exchangePlaces.listAll({})
 export const getExchangeNoticeSubscription = (
   studentId: number,
   getAccessToken: GetAccessToken,
-) =>
-  pomiSdk.app.exchangeNoticeSubscriptions.get(studentId, { getAccessToken })
+) => pomiSdk.app.exchangeNoticeSubscriptions.get(studentId, { getAccessToken })
 export const patchExchangeNoticeSubscription = (
   studentId: number,
   patch: ExchangeNoticeSubscriptionPatch,
