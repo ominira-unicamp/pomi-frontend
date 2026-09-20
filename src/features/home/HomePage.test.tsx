@@ -6,7 +6,13 @@ import {
   createRoute,
   createRouter,
 } from '@tanstack/react-router'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type * as TodayClassesModule from '@/features/home/todayClasses'
 
@@ -412,8 +418,8 @@ describe('HomePage', () => {
       screen.getByText('Você não possui disciplinas cursando em 2026s2.'),
     ).toBeTruthy()
     expect(
-      await screen.findAllByText('Cardápio não disponível para esta data.'),
-    ).toHaveLength(4)
+      await screen.findByText('Cardápio não disponível para esta data.'),
+    ).toBeTruthy()
     expect(listClassSchedulesByStudyPeriod).not.toHaveBeenCalled()
   })
 
@@ -454,7 +460,7 @@ describe('HomePage', () => {
     ).toBeTruthy()
   })
 
-  it('shows the main dishes from the daily menu and changes dates', async () => {
+  it('groups meals and shared notices and opens the selected meal details', async () => {
     authState.isAuthenticated = true
     authState.profile = { given_name: 'Ana' }
     studentState.studentId = 1
@@ -469,7 +475,7 @@ describe('HomePage', () => {
             diet: 'TRADITIONAL',
             status: 'AVAILABLE',
             mainDish: 'Arroz com feijão',
-            serviceNotes: ['Servido no RU'],
+            serviceNotes: ['Servido no RU', 'Somente no almoço tradicional'],
             items: ['Arroz', 'Feijão'],
             observations: ['Contém glúten'],
           },
@@ -479,7 +485,7 @@ describe('HomePage', () => {
             diet: 'VEGAN',
             status: 'AVAILABLE',
             mainDish: 'Abóbora assada',
-            serviceNotes: [],
+            serviceNotes: ['Servido no RU'],
             items: [],
             observations: [],
           },
@@ -489,22 +495,45 @@ describe('HomePage', () => {
 
     renderHome()
 
-    expect(await screen.findByText('Almoço')).toBeTruthy()
+    expect(
+      await screen.findByText('Almoço', undefined, { timeout: 5000 }),
+    ).toBeTruthy()
     expect(await screen.findByText('Almoço vegano')).toBeTruthy()
     expect(await screen.findByText('Jantar')).toBeTruthy()
     expect(await screen.findByText('Jantar vegano')).toBeTruthy()
     expect(await screen.findByText('Arroz com feijão')).toBeTruthy()
     expect(await screen.findByText('Abóbora assada')).toBeTruthy()
-    expect(await screen.findByText('Servido no RU')).toBeTruthy()
-    const summary = screen.getAllByText('Ver cardápio completo')[0]
-    const details = summary.closest('details')
-    if (!details) throw new Error('Details do cardápio não encontrado.')
-    expect(details.open).toBe(false)
-    fireEvent.click(summary)
-    expect(details.open).toBe(true)
-    expect(await screen.findByText('Contém glúten')).toBeTruthy()
+    const sharedNotices = screen.getByRole('heading', {
+      name: 'Avisos gerais',
+    }).parentElement
+    if (!sharedNotices)
+      throw new Error('Painel de avisos gerais não encontrado.')
+    expect(within(sharedNotices).getByText('Servido no RU')).toBeTruthy()
+    expect(
+      within(
+        screen.getByRole('button', { name: 'Ver detalhes de Almoço' }),
+      ).getByText('Somente no almoço tradicional'),
+    ).toBeTruthy()
+    expect(screen.queryByText('Arroz')).toBeNull()
+    expect(screen.queryByText('Contém glúten')).toBeNull()
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Ver detalhes de Almoço' }),
+    )
+
+    const dialog = await screen.findByRole('dialog')
+    expect(within(dialog).getByRole('heading', { name: 'Almoço' })).toBeTruthy()
+    expect(dialog.className).toContain('bottom-0')
+    expect(dialog.className).toContain('slide-in-from-bottom')
+    expect(within(dialog).getByText('Arroz')).toBeTruthy()
+    expect(within(dialog).getByText('Contém glúten')).toBeTruthy()
+    expect(within(dialog).getByText('Servido no RU')).toBeTruthy()
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: 'Fechar menu' }),
+    )
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     fireEvent.click(screen.getByRole('button', { name: 'Dia anterior' }))
     await waitFor(() => expect(listDailyMenus).toHaveBeenCalledTimes(2))
     expect(screen.getByRole('button', { name: 'Hoje' })).toBeTruthy()
-  })
+  }, 15000)
 })

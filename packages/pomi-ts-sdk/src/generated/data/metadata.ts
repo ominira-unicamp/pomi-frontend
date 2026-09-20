@@ -3688,6 +3688,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "startDate:asc,endDate:asc"
+                }
             }
         ],
         "filter": {
@@ -3737,6 +3749,15 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "startDate",
+                "endDate",
+                "description"
+            ],
+            "default": "startDate:asc,endDate:asc"
         }
     },
     "listCalendarTags": {
@@ -3827,6 +3848,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "name:asc"
+                }
             }
         ],
         "filter": {
@@ -3862,6 +3895,13 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "name"
+            ],
+            "default": "name:asc"
         }
     },
     "listCatalogCourses": {
@@ -4391,6 +4431,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "id:asc"
+                }
             }
         ],
         "filter": {
@@ -4450,6 +4502,17 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "id",
+                "catalogYear",
+                "programCode",
+                "programName",
+                "title"
+            ],
+            "default": "id:asc"
         }
     },
     "listCatalogs": {
@@ -4522,6 +4585,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "year:desc"
+                }
             }
         ],
         "filter": {
@@ -4545,6 +4620,13 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "year"
+            ],
+            "default": "year:desc"
         }
     },
     "listClasses": {
@@ -4809,6 +4891,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "id:asc"
+                }
             }
         ],
         "filter": {
@@ -4946,6 +5040,16 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "id",
+                "classCode",
+                "courseCode",
+                "studyPeriodYear"
+            ],
+            "default": "id:asc"
         }
     },
     "listClassSchedules": {
@@ -5305,6 +5409,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "id:asc"
+                }
             }
         ],
         "filter": {
@@ -5473,6 +5589,20 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "id",
+                "dayOfWeek",
+                "start",
+                "end",
+                "roomCode",
+                "classCode",
+                "courseCode",
+                "studyPeriodYear"
+            ],
+            "default": "id:asc"
         }
     },
     "listCoauthors": {
@@ -5533,6 +5663,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "name:asc"
+                }
             }
         ],
         "filter": {
@@ -5556,6 +5698,13 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "name"
+            ],
+            "default": "name:asc"
         }
     },
     "listCoordinators": {
@@ -5624,6 +5773,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "name:asc"
+                }
             }
         ],
         "filter": {
@@ -5647,6 +5808,13 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "name"
+            ],
+            "default": "name:asc"
         }
     },
     "listCourseEvaluationSummaries": {
@@ -6034,6 +6202,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "code:asc"
+                }
             }
         ],
         "filter": {
@@ -6130,6 +6310,16 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "code",
+                "name",
+                "credits",
+                "unitCode"
+            ],
+            "default": "code:asc"
         }
     },
     "listCurriculumSuggestions": {
@@ -6396,6 +6586,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "catalogYear:desc,programCode:desc,code:asc"
+                }
             }
         ],
         "filter": {
@@ -6516,6 +6718,18 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "catalogYear",
+                "programCode",
+                "programName",
+                "code",
+                "name",
+                "type"
+            ],
+            "default": "catalogYear:desc,programCode:desc,code:asc"
         }
     },
     "listDailyMenus": {
@@ -6592,6 +6806,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "date:asc"
+                }
             }
         ],
         "filter": {
@@ -6617,6 +6843,15 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "date",
+                "createdAt",
+                "updatedAt"
+            ],
+            "default": "date:asc"
         }
     },
     "listDepartments": {
@@ -6710,6 +6945,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "name:asc"
+                }
             }
         ],
         "filter": {
@@ -6746,6 +6993,13 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "name"
+            ],
+            "default": "name:asc"
         }
     },
     "listExchangeNotices": {
@@ -7263,6 +7517,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "name:asc"
+                }
             }
         ],
         "filter": {
@@ -7299,6 +7565,13 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "name"
+            ],
+            "default": "name:asc"
         }
     },
     "listKeywords": {
@@ -7359,6 +7632,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "name:asc"
+                }
             }
         ],
         "filter": {
@@ -7382,6 +7667,13 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "name"
+            ],
+            "default": "name:asc"
         }
     },
     "listLanguages": {
@@ -7472,6 +7764,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "name:asc"
+                }
             }
         ],
         "filter": {
@@ -7507,6 +7811,13 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "name"
+            ],
+            "default": "name:asc"
         }
     },
     "listProfessorDataPortalProfiles": {
@@ -7692,6 +8003,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "name:asc"
+                }
             }
         ],
         "filter": {
@@ -7780,6 +8103,13 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "name"
+            ],
+            "default": "name:asc"
         }
     },
     "listProfessorEvaluationSummaries": {
@@ -8025,6 +8355,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "canonicalKey:asc"
+                }
             }
         ],
         "filter": {
@@ -8078,6 +8420,14 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "canonicalKey",
+                "role"
+            ],
+            "default": "canonicalKey:asc"
         }
     },
     "listProfessors": {
@@ -8142,6 +8492,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "name:asc"
+                }
             }
         ],
         "filter": {
@@ -8165,6 +8527,13 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "name"
+            ],
+            "default": "name:asc"
         }
     },
     "listPrograms": {
@@ -8237,6 +8606,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "name:asc"
+                }
             }
         ],
         "filter": {
@@ -8260,6 +8641,15 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "code",
+                "name",
+                "unitCode"
+            ],
+            "default": "name:asc"
         }
     },
     "listRooms": {
@@ -8361,6 +8751,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "code:asc"
+                }
             }
         ],
         "filter": {
@@ -8398,6 +8800,13 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "code"
+            ],
+            "default": "code:asc"
         }
     },
     "listSpecializations": {
@@ -8527,6 +8936,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "programCode:asc,name:asc"
+                }
             }
         ],
         "filter": {
@@ -8578,6 +8999,16 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "programCode",
+                "programName",
+                "code",
+                "name"
+            ],
+            "default": "programCode:asc,name:asc"
         }
     },
     "listStudyPeriods": {
@@ -8712,6 +9143,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "id:asc"
+                }
             }
         ],
         "filter": {
@@ -8765,6 +9208,16 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "id",
+                "year",
+                "yearPeriod",
+                "startDate"
+            ],
+            "default": "id:asc"
         }
     },
     "listUnits": {
@@ -8884,6 +9337,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "code:asc"
+                }
             }
         ],
         "filter": {
@@ -8933,6 +9398,14 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "code",
+                "name"
+            ],
+            "default": "code:asc"
         }
     }
 } as const

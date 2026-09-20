@@ -1771,6 +1771,8 @@ export interface operations {
                         eq?: string;
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -1908,6 +1910,8 @@ export interface operations {
                         };
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -2007,6 +2011,8 @@ export interface operations {
                         in?: number[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -2076,6 +2082,8 @@ export interface operations {
                         eq?: string;
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -2193,6 +2201,8 @@ export interface operations {
                         in?: ("PROFESSOR" | "RESEARCHER" | "POSTDOCTORAL_RESEARCHER")[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -2305,6 +2315,8 @@ export interface operations {
                         eq?: string;
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -2413,6 +2425,8 @@ export interface operations {
                         eq?: string;
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -2521,6 +2535,8 @@ export interface operations {
                         eq?: string;
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -2684,6 +2700,8 @@ export interface operations {
                         in?: string[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -2793,6 +2811,8 @@ export interface operations {
                         in?: number[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -2995,6 +3015,8 @@ export interface operations {
                         eq?: string;
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -3165,6 +3187,8 @@ export interface operations {
                         in?: number[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -3304,6 +3328,8 @@ export interface operations {
                         in?: number[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -3416,6 +3442,8 @@ export interface operations {
                         eq?: string;
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -3525,6 +3553,8 @@ export interface operations {
                         in?: number[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -3643,6 +3673,8 @@ export interface operations {
                         in?: string[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -3867,6 +3899,8 @@ export interface operations {
                         eq?: string;
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -4042,6 +4076,8 @@ export interface operations {
                         in?: number[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -4154,6 +4190,8 @@ export interface operations {
                         eq?: string;
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -4296,6 +4334,8 @@ export interface operations {
                         eq?: string;
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -4457,6 +4497,8 @@ export interface operations {
                         };
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -4560,6 +4602,8 @@ export interface operations {
                         lte?: string;
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -4678,6 +4722,8 @@ export interface operations {
                         in?: ("SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER")[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;

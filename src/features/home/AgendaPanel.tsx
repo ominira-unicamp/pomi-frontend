@@ -22,6 +22,21 @@ import { ApiError } from '@/api/errors'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
+import { useDesktopLayout } from '@/components/patterns/ResponsiveFilterSurface'
 import { StudentAbsenceAction } from '@/features/student/absences/StudentAbsenceAction'
 import {
   academicDateKey,
@@ -70,6 +85,25 @@ const mealSlots: ReadonlyArray<
   ['DINNER', 'VEGAN', 'Jantar vegano'],
 ]
 
+function mealTitle(meal: DailyMeal) {
+  return (
+    mealSlots.find(
+      ([period, diet]) => period === meal.period && diet === meal.diet,
+    )?.[2] ?? 'Refeição'
+  )
+}
+
+function distinctNotes(notes: ReadonlyArray<string>) {
+  return [...new Set(notes.map((note) => note.trim()).filter(Boolean))]
+}
+
+function commonNotes(meals: ReadonlyArray<DailyMeal>) {
+  if (meals.length === 0) return []
+  return distinctNotes(meals[0].serviceNotes).filter((note) =>
+    meals.every((meal) => distinctNotes(meal.serviceNotes).includes(note)),
+  )
+}
+
 function classStatus(
   selectedDate: string,
   today: string,
@@ -83,6 +117,8 @@ function classStatus(
 }
 
 export function DailyMealsPanel({ date }: { date: string }) {
+  const desktop = useDesktopLayout()
+  const [selectedMeal, setSelectedMeal] = useState<DailyMeal>()
   const menuQuery = useQuery({
     queryKey: publicQueryKeys.dailyMenus(date),
     queryFn: () => listDailyMenus(date),
@@ -90,99 +126,179 @@ export function DailyMealsPanel({ date }: { date: string }) {
   })
   const menu = menuQuery.data?.find((item) => item.date === date)
   const meals = menu?.meals.filter((meal) => meal.status === 'AVAILABLE') ?? []
+  const sharedNotes = commonNotes(meals)
+  const selectedMealTitle = selectedMeal ? mealTitle(selectedMeal) : 'Refeição'
+  const details = selectedMeal && (
+    <div className="space-y-5 text-sm">
+      <div>
+        <h4 className="font-extrabold">Prato principal</h4>
+        <p className="mt-1 text-muted-foreground">
+          {selectedMeal.mainDish ?? 'Prato principal não informado'}
+        </p>
+      </div>
+      {selectedMeal.items.length > 0 && (
+        <div>
+          <h4 className="font-extrabold">Itens</h4>
+          <ul className="mt-1 list-disc space-y-1 pl-4 text-muted-foreground">
+            {selectedMeal.items.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {selectedMeal.serviceNotes.length > 0 && (
+        <div>
+          <h4 className="font-extrabold">Avisos</h4>
+          <ul className="mt-1 list-disc space-y-1 pl-4 text-muted-foreground">
+            {distinctNotes(selectedMeal.serviceNotes).map((note) => (
+              <li key={note}>{note}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {selectedMeal.observations.length > 0 && (
+        <div>
+          <h4 className="font-extrabold">Observações</h4>
+          <ul className="mt-1 list-disc space-y-1 pl-4 text-muted-foreground">
+            {selectedMeal.observations.map((observation) => (
+              <li key={observation}>{observation}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {selectedMeal.items.length === 0 &&
+        selectedMeal.serviceNotes.length === 0 &&
+        selectedMeal.observations.length === 0 && (
+          <p className="text-muted-foreground">Nenhuma informação adicional.</p>
+        )}
+    </div>
+  )
+  const closeDetails = (open: boolean) => {
+    if (!open) setSelectedMeal(undefined)
+  }
 
   return (
-    <section className="grid gap-4 sm:grid-cols-2" aria-label="Refeições">
-      {mealSlots.map(([period, diet, title]) => {
-        const meal = meals.find(
-          (item) => item.period === period && item.diet === diet,
-        )
+    <section aria-label="Refeições">
+      <Card className="overflow-hidden">
+        <div className="flex items-center gap-2 border-b border-strong-border/30 p-3 sm:px-4">
+          <Utensils className="size-5 text-primary" />
+          <h3 className="font-extrabold">Cardápio</h3>
+        </div>
+        {menuQuery.isLoading ? (
+          <div className="flex min-h-24 items-center justify-center gap-2 p-4 text-sm text-muted-foreground">
+            <LoaderCircle className="size-4 animate-spin" />
+            Carregando cardápio
+          </div>
+        ) : menuQuery.isError ? (
+          <p className="p-4 text-sm text-muted-foreground">
+            Não foi possível carregar o cardápio.
+          </p>
+        ) : meals.length === 0 ? (
+          <p className="p-4 text-sm text-muted-foreground">
+            Cardápio não disponível para esta data.
+          </p>
+        ) : (
+          <>
+            <div className="grid md:grid-cols-2">
+              {mealSlots.map(([period, diet, title]) => {
+                const meal = meals.find(
+                  (item) => item.period === period && item.diet === diet,
+                )
+                const specificNotes = meal
+                  ? distinctNotes(meal.serviceNotes).filter(
+                      (note) => !sharedNotes.includes(note),
+                    )
+                  : []
 
-        return (
-          <Card
-            key={`${period}-${diet}`}
-            className="p-4"
-            aria-labelledby={`agenda-${period}-${diet}`}
-          >
-            <div className="flex items-center gap-2">
-              <Utensils className="size-5 text-primary" />
-              <h3 id={`agenda-${period}-${diet}`} className="font-extrabold">
-                {title}
-              </h3>
-            </div>
-            {menuQuery.isLoading ? (
-              <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                <LoaderCircle className="size-4 animate-spin" />
-                Carregando cardápio
-              </div>
-            ) : menuQuery.isError ? (
-              <p className="mt-4 text-sm text-muted-foreground">
-                Não foi possível carregar o cardápio.
-              </p>
-            ) : !meal ? (
-              <p className="mt-4 text-sm text-muted-foreground">
-                Cardápio não disponível para esta data.
-              </p>
-            ) : (
-              <div className="mt-4 space-y-4">
-                <div>
-                  <p className="text-xs font-black tracking-[0.12em] text-primary uppercase">
-                    Prato principal
-                  </p>
-                  <p className="mt-1 text-sm font-bold">
-                    {meal.mainDish ?? 'Prato principal não informado'}
-                  </p>
-                </div>
-                {meal.serviceNotes.length > 0 && (
-                  <div>
-                    <p className="text-xs font-black tracking-[0.12em] text-primary uppercase">
-                      Avisos
-                    </p>
-                    <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-muted-foreground">
-                      {meal.serviceNotes.map((note) => (
-                        <li key={note}>{note}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                <details className="border-t border-strong-border/30 pt-3">
-                  <summary className="cursor-pointer text-sm font-bold text-primary">
-                    Ver cardápio completo
-                  </summary>
-                  {meal.items.length > 0 || meal.observations.length > 0 ? (
-                    <div className="mt-3 space-y-3 text-sm">
-                      {meal.items.length > 0 && (
-                        <div>
-                          <p className="font-bold">Itens</p>
-                          <ul className="mt-1 list-disc space-y-1 pl-4 text-muted-foreground">
-                            {meal.items.map((item) => (
-                              <li key={item}>{item}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                      {meal.observations.length > 0 && (
-                        <div>
-                          <p className="font-bold">Observações</p>
-                          <ul className="mt-1 list-disc space-y-1 pl-4 text-muted-foreground">
-                            {meal.observations.map((observation) => (
-                              <li key={observation}>{observation}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                return meal ? (
+                  <button
+                    key={`${period}-${diet}`}
+                    type="button"
+                    aria-label={`Ver detalhes de ${title}`}
+                    onClick={() => setSelectedMeal(meal)}
+                    className="pomi-focus group min-h-20 border-b border-strong-border/30 p-3 text-left transition-colors hover:bg-secondary/30 md:odd:border-r"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <h4 className="text-xs font-black tracking-[0.12em] text-primary uppercase">
+                        {title}
+                      </h4>
+                      <ChevronRight className="size-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5" />
                     </div>
-                  ) : (
-                    <p className="mt-3 text-sm text-muted-foreground">
-                      Nenhuma informação adicional.
+                    <p className="mt-1 text-sm font-bold">
+                      {meal.mainDish ?? 'Prato principal não informado'}
                     </p>
-                  )}
-                </details>
+                    {specificNotes.length > 0 && (
+                      <div className="mt-3">
+                        <p className="text-xs font-black tracking-[0.12em] text-primary uppercase">
+                          Avisos
+                        </p>
+                        <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-muted-foreground">
+                          {specificNotes.map((note) => (
+                            <li key={note}>{note}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </button>
+                ) : (
+                  <div
+                    key={`${period}-${diet}`}
+                    className="min-h-20 border-b border-strong-border/30 p-3 md:odd:border-r"
+                  >
+                    <h4 className="text-xs font-black tracking-[0.12em] text-primary uppercase">
+                      {title}
+                    </h4>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Refeição não disponível para esta data.
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+            {sharedNotes.length > 0 && (
+              <div className="bg-secondary/20 p-3 sm:px-4">
+                <h4 className="font-extrabold">Avisos gerais</h4>
+                <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-muted-foreground">
+                  {sharedNotes.map((note) => (
+                    <li key={note}>{note}</li>
+                  ))}
+                </ul>
               </div>
             )}
-          </Card>
-        )
-      })}
+          </>
+        )}
+      </Card>
+      {desktop ? (
+        <Dialog open={Boolean(selectedMeal)} onOpenChange={closeDetails}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>{selectedMealTitle}</DialogTitle>
+              <DialogDescription>
+                Detalhes do cardápio selecionado.
+              </DialogDescription>
+            </DialogHeader>
+            {details}
+          </DialogContent>
+        </Dialog>
+      ) : (
+        <Sheet open={Boolean(selectedMeal)} onOpenChange={closeDetails}>
+          <SheetContent
+            side="bottom"
+            className="max-h-[85dvh] rounded-t-xl bg-card text-card-foreground"
+            closeButtonClassName="text-card-foreground hover:bg-accent"
+          >
+            <SheetHeader className="border-b-2 border-strong-border pr-12">
+              <SheetTitle>{selectedMealTitle}</SheetTitle>
+              <SheetDescription>
+                Detalhes do cardápio selecionado.
+              </SheetDescription>
+            </SheetHeader>
+            <div className="pomi-scrollbar overflow-y-auto px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
+              {details}
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
     </section>
   )
 }

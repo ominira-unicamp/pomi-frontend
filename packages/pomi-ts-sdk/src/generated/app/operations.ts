@@ -1,3 +1,4 @@
+import type { SortInput } from '../../runtime/sorting.js'
 import type { operations } from './openapi.js'
 import type { GeneratedOperationDefinition } from '../../runtime/operation.js'
 
@@ -13,6 +14,11 @@ type BodyInput<Body, Required extends boolean> = [Body] extends [never]
 type HeaderInput<Header> = [NonNullable<Header>] extends [never]
     ? {}
     : { headers?: NonNullable<Header> }
+type SortQuery<Query, SortField extends string> = ParameterRecord<Query> extends infer Parameters
+    ? Parameters extends { sort: unknown }
+    ? Omit<Parameters, 'sort'> & { sort: SortInput<SortField> }
+    : Omit<Parameters, 'sort'> & { sort?: SortInput<SortField> }
+    : never
 type OperationInput<Path, Query, Header, Body, BodyRequired extends boolean> =
     ParameterRecord<Path> & ParameterRecord<Query> & HeaderInput<Header> & BodyInput<Body, BodyRequired>
 
@@ -121,55 +127,55 @@ export type getStudentSharedPeriodPlanningProblem = operations["getStudentShared
 export type getTagInput = OperationInput<operations["getTag"]['parameters']['path'], operations["getTag"]['parameters']['query'], operations["getTag"]['parameters']['header'], RequestBodyOf<operations["getTag"]>, false>
 export type getTagOutput = import('./domain.js').Tag
 export type getTagProblem = operations["getTag"]['responses'][400]['content']["application/problem+json"] | operations["getTag"]['responses'][404]['content']["application/problem+json"] | operations["getTag"]['responses'][500]['content']["application/problem+json"]
-export type listBotGrantsInput = OperationInput<operations["listBotGrants"]['parameters']['path'], operations["listBotGrants"]['parameters']['query'], operations["listBotGrants"]['parameters']['header'], RequestBodyOf<operations["listBotGrants"]>, false>
+export type listBotGrantsInput = OperationInput<operations["listBotGrants"]['parameters']['path'], SortQuery<operations["listBotGrants"]['parameters']['query'], "createdAt" | "capability" | "botDisplayName">, operations["listBotGrants"]['parameters']['header'], RequestBodyOf<operations["listBotGrants"]>, false>
 export type listBotGrantsOutput = import('./domain.js').Page<import('./domain.js').BotGrant>
 export type listBotGrantsProblem = operations["listBotGrants"]['responses'][400]['content']["application/problem+json"] | operations["listBotGrants"]['responses'][500]['content']["application/problem+json"]
-export type listBotsInput = OperationInput<operations["listBots"]['parameters']['path'], operations["listBots"]['parameters']['query'], operations["listBots"]['parameters']['header'], RequestBodyOf<operations["listBots"]>, false>
+export type listBotsInput = OperationInput<operations["listBots"]['parameters']['path'], SortQuery<operations["listBots"]['parameters']['query'], "displayName">, operations["listBots"]['parameters']['header'], RequestBodyOf<operations["listBots"]>, false>
 export type listBotsOutput = import('./domain.js').Page<import('./domain.js').BotIdentity>
 export type listBotsProblem = operations["listBots"]['responses'][400]['content']["application/problem+json"] | operations["listBots"]['responses'][500]['content']["application/problem+json"]
-export type listCategoriesInput = OperationInput<operations["listCategories"]['parameters']['path'], operations["listCategories"]['parameters']['query'], operations["listCategories"]['parameters']['header'], RequestBodyOf<operations["listCategories"]>, false>
+export type listCategoriesInput = OperationInput<operations["listCategories"]['parameters']['path'], SortQuery<operations["listCategories"]['parameters']['query'], "name">, operations["listCategories"]['parameters']['header'], RequestBodyOf<operations["listCategories"]>, false>
 export type listCategoriesOutput = import('./domain.js').Page<import('./domain.js').Category>
 export type listCategoriesProblem = operations["listCategories"]['responses'][400]['content']["application/problem+json"] | operations["listCategories"]['responses'][500]['content']["application/problem+json"]
-export type listCourseTagsInput = OperationInput<operations["listCourseTags"]['parameters']['path'], operations["listCourseTags"]['parameters']['query'], operations["listCourseTags"]['parameters']['header'], RequestBodyOf<operations["listCourseTags"]>, false>
+export type listCourseTagsInput = OperationInput<operations["listCourseTags"]['parameters']['path'], SortQuery<operations["listCourseTags"]['parameters']['query'], "name" | "categoryId">, operations["listCourseTags"]['parameters']['header'], RequestBodyOf<operations["listCourseTags"]>, false>
 export type listCourseTagsOutput = import('./domain.js').Page<import('./domain.js').Tag>
 export type listCourseTagsProblem = operations["listCourseTags"]['responses'][400]['content']["application/problem+json"] | operations["listCourseTags"]['responses'][404]['content']["application/problem+json"] | operations["listCourseTags"]['responses'][500]['content']["application/problem+json"]
-export type listPendingProfessorEvaluationsInput = OperationInput<operations["listPendingProfessorEvaluations"]['parameters']['path'], operations["listPendingProfessorEvaluations"]['parameters']['query'], operations["listPendingProfessorEvaluations"]['parameters']['header'], RequestBodyOf<operations["listPendingProfessorEvaluations"]>, false>
+export type listPendingProfessorEvaluationsInput = OperationInput<operations["listPendingProfessorEvaluations"]['parameters']['path'], SortQuery<operations["listPendingProfessorEvaluations"]['parameters']['query'], "courseCode" | "courseName" | "classCode" | "professorName">, operations["listPendingProfessorEvaluations"]['parameters']['header'], RequestBodyOf<operations["listPendingProfessorEvaluations"]>, false>
 export type listPendingProfessorEvaluationsOutput = import('./domain.js').Page<import('./domain.js').PendingProfessorEvaluation>
 export type listPendingProfessorEvaluationsProblem = operations["listPendingProfessorEvaluations"]['responses'][400]['content']["application/problem+json"] | operations["listPendingProfessorEvaluations"]['responses'][500]['content']["application/problem+json"]
-export type listPublicSharedPeriodPlanningsInput = OperationInput<operations["listPublicSharedPeriodPlannings"]['parameters']['path'], operations["listPublicSharedPeriodPlannings"]['parameters']['query'], operations["listPublicSharedPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["listPublicSharedPeriodPlannings"]>, false>
+export type listPublicSharedPeriodPlanningsInput = OperationInput<operations["listPublicSharedPeriodPlannings"]['parameters']['path'], SortQuery<operations["listPublicSharedPeriodPlannings"]['parameters']['query'], "updatedAt" | "name" | "studyPeriodYear">, operations["listPublicSharedPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["listPublicSharedPeriodPlannings"]>, false>
 export type listPublicSharedPeriodPlanningsOutput = import('./domain.js').Page<import('./domain.js').SharedPeriodPlanning>
 export type listPublicSharedPeriodPlanningsProblem = operations["listPublicSharedPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["listPublicSharedPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
-export type listStudentAbsencesInput = OperationInput<operations["listStudentAbsences"]['parameters']['path'], operations["listStudentAbsences"]['parameters']['query'], operations["listStudentAbsences"]['parameters']['header'], RequestBodyOf<operations["listStudentAbsences"]>, false>
+export type listStudentAbsencesInput = OperationInput<operations["listStudentAbsences"]['parameters']['path'], SortQuery<operations["listStudentAbsences"]['parameters']['query'], "date" | "courseCode" | "classCode" | "start" | "createdAt">, operations["listStudentAbsences"]['parameters']['header'], RequestBodyOf<operations["listStudentAbsences"]>, false>
 export type listStudentAbsencesOutput = import('./domain.js').Page<import('./domain.js').StudentAbsence>
 export type listStudentAbsencesProblem = operations["listStudentAbsences"]['responses'][400]['content']["application/problem+json"] | operations["listStudentAbsences"]['responses'][500]['content']["application/problem+json"]
-export type listStudentCourseAttemptsInput = OperationInput<operations["listStudentCourseAttempts"]['parameters']['path'], operations["listStudentCourseAttempts"]['parameters']['query'], operations["listStudentCourseAttempts"]['parameters']['header'], RequestBodyOf<operations["listStudentCourseAttempts"]>, false>
+export type listStudentCourseAttemptsInput = OperationInput<operations["listStudentCourseAttempts"]['parameters']['path'], SortQuery<operations["listStudentCourseAttempts"]['parameters']['query'], "createdAt" | "updatedAt" | "courseCode" | "status" | "grade">, operations["listStudentCourseAttempts"]['parameters']['header'], RequestBodyOf<operations["listStudentCourseAttempts"]>, false>
 export type listStudentCourseAttemptsOutput = import('./domain.js').Page<import('./domain.js').StudentCourseAttempt>
 export type listStudentCourseAttemptsProblem = operations["listStudentCourseAttempts"]['responses'][400]['content']["application/problem+json"] | operations["listStudentCourseAttempts"]['responses'][500]['content']["application/problem+json"]
-export type listStudentCurriculaInput = OperationInput<operations["listStudentCurricula"]['parameters']['path'], operations["listStudentCurricula"]['parameters']['query'], operations["listStudentCurricula"]['parameters']['header'], RequestBodyOf<operations["listStudentCurricula"]>, false>
+export type listStudentCurriculaInput = OperationInput<operations["listStudentCurricula"]['parameters']['path'], SortQuery<operations["listStudentCurricula"]['parameters']['query'], "isFavorite" | "updatedAt" | "name">, operations["listStudentCurricula"]['parameters']['header'], RequestBodyOf<operations["listStudentCurricula"]>, false>
 export type listStudentCurriculaOutput = import('./domain.js').Page<import('./domain.js').CurriculumSummary>
 export type listStudentCurriculaProblem = operations["listStudentCurricula"]['responses'][400]['content']["application/problem+json"] | operations["listStudentCurricula"]['responses'][500]['content']["application/problem+json"]
-export type listStudentFeedbackReportsInput = OperationInput<operations["listStudentFeedbackReports"]['parameters']['path'], operations["listStudentFeedbackReports"]['parameters']['query'], operations["listStudentFeedbackReports"]['parameters']['header'], RequestBodyOf<operations["listStudentFeedbackReports"]>, false>
+export type listStudentFeedbackReportsInput = OperationInput<operations["listStudentFeedbackReports"]['parameters']['path'], SortQuery<operations["listStudentFeedbackReports"]['parameters']['query'], "createdAt" | "updatedAt" | "status" | "kind" | "title">, operations["listStudentFeedbackReports"]['parameters']['header'], RequestBodyOf<operations["listStudentFeedbackReports"]>, false>
 export type listStudentFeedbackReportsOutput = import('./domain.js').Page<import('./domain.js').FeedbackReport>
 export type listStudentFeedbackReportsProblem = operations["listStudentFeedbackReports"]['responses'][400]['content']["application/problem+json"] | operations["listStudentFeedbackReports"]['responses'][500]['content']["application/problem+json"]
-export type listStudentFriendshipsInput = OperationInput<operations["listStudentFriendships"]['parameters']['path'], operations["listStudentFriendships"]['parameters']['query'], operations["listStudentFriendships"]['parameters']['header'], RequestBodyOf<operations["listStudentFriendships"]>, false>
+export type listStudentFriendshipsInput = OperationInput<operations["listStudentFriendships"]['parameters']['path'], SortQuery<operations["listStudentFriendships"]['parameters']['query'], "updatedAt" | "status">, operations["listStudentFriendships"]['parameters']['header'], RequestBodyOf<operations["listStudentFriendships"]>, false>
 export type listStudentFriendshipsOutput = import('./domain.js').Page<import('./domain.js').StudentFriendship>
 export type listStudentFriendshipsProblem = operations["listStudentFriendships"]['responses'][400]['content']["application/problem+json"] | operations["listStudentFriendships"]['responses'][500]['content']["application/problem+json"]
-export type listStudentPeopleInput = OperationInput<operations["listStudentPeople"]['parameters']['path'], operations["listStudentPeople"]['parameters']['query'], operations["listStudentPeople"]['parameters']['header'], RequestBodyOf<operations["listStudentPeople"]>, false>
+export type listStudentPeopleInput = OperationInput<operations["listStudentPeople"]['parameters']['path'], SortQuery<operations["listStudentPeople"]['parameters']['query'], "displayName">, operations["listStudentPeople"]['parameters']['header'], RequestBodyOf<operations["listStudentPeople"]>, false>
 export type listStudentPeopleOutput = import('./domain.js').Page<import('./domain.js').StudentPublicPerson>
 export type listStudentPeopleProblem = operations["listStudentPeople"]['responses'][400]['content']["application/problem+json"] | operations["listStudentPeople"]['responses'][500]['content']["application/problem+json"]
-export type listStudentPeriodPlanningsInput = OperationInput<operations["listStudentPeriodPlannings"]['parameters']['path'], operations["listStudentPeriodPlannings"]['parameters']['query'], operations["listStudentPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["listStudentPeriodPlannings"]>, false>
+export type listStudentPeriodPlanningsInput = OperationInput<operations["listStudentPeriodPlannings"]['parameters']['path'], SortQuery<operations["listStudentPeriodPlannings"]['parameters']['query'], "updatedAt" | "name" | "studyPeriodYear" | "studyPeriodYearPeriod" | "visibility">, operations["listStudentPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["listStudentPeriodPlannings"]>, false>
 export type listStudentPeriodPlanningsOutput = import('./domain.js').Page<import('./domain.js').PeriodPlanning>
 export type listStudentPeriodPlanningsProblem = operations["listStudentPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["listStudentPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
-export type listStudentSharedPeriodPlanningsInput = OperationInput<operations["listStudentSharedPeriodPlannings"]['parameters']['path'], operations["listStudentSharedPeriodPlannings"]['parameters']['query'], operations["listStudentSharedPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["listStudentSharedPeriodPlannings"]>, false>
+export type listStudentSharedPeriodPlanningsInput = OperationInput<operations["listStudentSharedPeriodPlannings"]['parameters']['path'], SortQuery<operations["listStudentSharedPeriodPlannings"]['parameters']['query'], "updatedAt" | "name" | "studyPeriodYear">, operations["listStudentSharedPeriodPlannings"]['parameters']['header'], RequestBodyOf<operations["listStudentSharedPeriodPlannings"]>, false>
 export type listStudentSharedPeriodPlanningsOutput = import('./domain.js').Page<import('./domain.js').SharedPeriodPlanning>
 export type listStudentSharedPeriodPlanningsProblem = operations["listStudentSharedPeriodPlannings"]['responses'][400]['content']["application/problem+json"] | operations["listStudentSharedPeriodPlannings"]['responses'][500]['content']["application/problem+json"]
-export type listStudentTagInterestsInput = OperationInput<operations["listStudentTagInterests"]['parameters']['path'], operations["listStudentTagInterests"]['parameters']['query'], operations["listStudentTagInterests"]['parameters']['header'], RequestBodyOf<operations["listStudentTagInterests"]>, false>
+export type listStudentTagInterestsInput = OperationInput<operations["listStudentTagInterests"]['parameters']['path'], SortQuery<operations["listStudentTagInterests"]['parameters']['query'], "name">, operations["listStudentTagInterests"]['parameters']['header'], RequestBodyOf<operations["listStudentTagInterests"]>, false>
 export type listStudentTagInterestsOutput = import('./domain.js').Page<import('./domain.js').StudentTagInterest>
 export type listStudentTagInterestsProblem = operations["listStudentTagInterests"]['responses'][400]['content']["application/problem+json"] | operations["listStudentTagInterests"]['responses'][500]['content']["application/problem+json"]
-export type listTagCoursesInput = OperationInput<operations["listTagCourses"]['parameters']['path'], operations["listTagCourses"]['parameters']['query'], operations["listTagCourses"]['parameters']['header'], RequestBodyOf<operations["listTagCourses"]>, false>
+export type listTagCoursesInput = OperationInput<operations["listTagCourses"]['parameters']['path'], SortQuery<operations["listTagCourses"]['parameters']['query'], "code" | "name" | "credits">, operations["listTagCourses"]['parameters']['header'], RequestBodyOf<operations["listTagCourses"]>, false>
 export type listTagCoursesOutput = import('./domain.js').Page<import('./domain.js').TagRelatedCourse>
 export type listTagCoursesProblem = operations["listTagCourses"]['responses'][400]['content']["application/problem+json"] | operations["listTagCourses"]['responses'][404]['content']["application/problem+json"] | operations["listTagCourses"]['responses'][500]['content']["application/problem+json"]
-export type listTagsInput = OperationInput<operations["listTags"]['parameters']['path'], operations["listTags"]['parameters']['query'], operations["listTags"]['parameters']['header'], RequestBodyOf<operations["listTags"]>, false>
+export type listTagsInput = OperationInput<operations["listTags"]['parameters']['path'], SortQuery<operations["listTags"]['parameters']['query'], "name" | "categoryId">, operations["listTags"]['parameters']['header'], RequestBodyOf<operations["listTags"]>, false>
 export type listTagsOutput = import('./domain.js').Page<import('./domain.js').Tag>
 export type listTagsProblem = operations["listTags"]['responses'][400]['content']["application/problem+json"] | operations["listTags"]['responses'][500]['content']["application/problem+json"]
 export type removeCourseTagInput = OperationInput<operations["removeCourseTag"]['parameters']['path'], operations["removeCourseTag"]['parameters']['query'], operations["removeCourseTag"]['parameters']['header'], RequestBodyOf<operations["removeCourseTag"]>, false>
@@ -4132,7 +4138,8 @@ export const operationDefinitions = {
         "pathParameters": [],
         "queryParameters": [
             "page",
-            "pageSize"
+            "pageSize",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -4262,9 +4269,30 @@ export const operationDefinitions = {
                         ],
                         "description": "Number of items per page, or \"all\" to return every item."
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "createdAt:desc"
+                    }
                 }
             ],
-            "filter": null
+            "filter": null,
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "createdAt",
+                    "capability",
+                    "botDisplayName"
+                ],
+                "default": "createdAt:desc"
+            }
         },
         "sdk": {
             "resource": "botGrants",
@@ -4292,7 +4320,8 @@ export const operationDefinitions = {
         "pathParameters": [],
         "queryParameters": [
             "page",
-            "pageSize"
+            "pageSize",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -4422,9 +4451,28 @@ export const operationDefinitions = {
                         ],
                         "description": "Number of items per page, or \"all\" to return every item."
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "displayName:asc"
+                    }
                 }
             ],
-            "filter": null
+            "filter": null,
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "displayName"
+                ],
+                "default": "displayName:asc"
+            }
         },
         "sdk": {
             "resource": "bots",
@@ -4452,7 +4500,8 @@ export const operationDefinitions = {
         "pathParameters": [],
         "queryParameters": [
             "page",
-            "pageSize"
+            "pageSize",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -4582,9 +4631,28 @@ export const operationDefinitions = {
                         ],
                         "description": "Number of items per page, or \"all\" to return every item."
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "name:asc"
+                    }
                 }
             ],
-            "filter": null
+            "filter": null,
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "name"
+                ],
+                "default": "name:asc"
+            }
         },
         "sdk": {
             "resource": "categories",
@@ -4614,7 +4682,8 @@ export const operationDefinitions = {
         ],
         "queryParameters": [
             "page",
-            "pageSize"
+            "pageSize",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -4759,9 +4828,29 @@ export const operationDefinitions = {
                         ],
                         "description": "Number of items per page, or \"all\" to return every item."
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "name:asc"
+                    }
                 }
             ],
-            "filter": null
+            "filter": null,
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "name",
+                    "categoryId"
+                ],
+                "default": "name:asc"
+            }
         },
         "sdk": {
             "resource": "courseTags",
@@ -4795,7 +4884,8 @@ export const operationDefinitions = {
         "queryParameters": [
             "page",
             "pageSize",
-            "filter"
+            "filter",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -4978,6 +5068,18 @@ export const operationDefinitions = {
                         },
                         "type": "object"
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "courseCode:asc,classCode:asc,professorName:asc"
+                    }
                 }
             ],
             "filter": {
@@ -5015,6 +5117,16 @@ export const operationDefinitions = {
                     "maxDepth": 3,
                     "maxParameters": 100
                 }
+            },
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "courseCode",
+                    "courseName",
+                    "classCode",
+                    "professorName"
+                ],
+                "default": "courseCode:asc,classCode:asc,professorName:asc"
             }
         },
         "sdk": {
@@ -5048,7 +5160,8 @@ export const operationDefinitions = {
             "page",
             "pageSize",
             "query",
-            "filter"
+            "filter",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -5170,6 +5283,18 @@ export const operationDefinitions = {
                         },
                         "type": "object"
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "updatedAt:desc"
+                    }
                 }
             ],
             "filter": {
@@ -5193,6 +5318,15 @@ export const operationDefinitions = {
                     "maxDepth": 3,
                     "maxParameters": 100
                 }
+            },
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "updatedAt",
+                    "name",
+                    "studyPeriodYear"
+                ],
+                "default": "updatedAt:desc"
             }
         },
         "sdk": {
@@ -5225,7 +5359,8 @@ export const operationDefinitions = {
         "queryParameters": [
             "page",
             "pageSize",
-            "filter"
+            "filter",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -5390,6 +5525,18 @@ export const operationDefinitions = {
                         },
                         "type": "object"
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "date:desc"
+                    }
                 }
             ],
             "filter": {
@@ -5413,6 +5560,17 @@ export const operationDefinitions = {
                     "maxDepth": 3,
                     "maxParameters": 100
                 }
+            },
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "date",
+                    "courseCode",
+                    "classCode",
+                    "start",
+                    "createdAt"
+                ],
+                "default": "date:desc"
             }
         },
         "sdk": {
@@ -5447,7 +5605,8 @@ export const operationDefinitions = {
         "queryParameters": [
             "page",
             "pageSize",
-            "filter"
+            "filter",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -5689,6 +5848,18 @@ export const operationDefinitions = {
                         },
                         "type": "object"
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "createdAt:desc"
+                    }
                 }
             ],
             "filter": {
@@ -5747,6 +5918,17 @@ export const operationDefinitions = {
                     "maxDepth": 3,
                     "maxParameters": 100
                 }
+            },
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "createdAt",
+                    "updatedAt",
+                    "courseCode",
+                    "status",
+                    "grade"
+                ],
+                "default": "createdAt:desc"
             }
         },
         "sdk": {
@@ -5780,7 +5962,8 @@ export const operationDefinitions = {
         ],
         "queryParameters": [
             "page",
-            "pageSize"
+            "pageSize",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -5910,9 +6093,30 @@ export const operationDefinitions = {
                         ],
                         "description": "Number of items per page, or \"all\" to return every item."
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "isFavorite:desc,updatedAt:desc"
+                    }
                 }
             ],
-            "filter": null
+            "filter": null,
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "isFavorite",
+                    "updatedAt",
+                    "name"
+                ],
+                "default": "isFavorite:desc,updatedAt:desc"
+            }
         },
         "sdk": {
             "resource": "curricula",
@@ -5945,7 +6149,8 @@ export const operationDefinitions = {
         ],
         "queryParameters": [
             "page",
-            "pageSize"
+            "pageSize",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -6075,9 +6280,32 @@ export const operationDefinitions = {
                         ],
                         "description": "Number of items per page, or \"all\" to return every item."
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "createdAt:desc"
+                    }
                 }
             ],
-            "filter": null
+            "filter": null,
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "createdAt",
+                    "updatedAt",
+                    "status",
+                    "kind",
+                    "title"
+                ],
+                "default": "createdAt:desc"
+            }
         },
         "sdk": {
             "resource": "feedbackReports",
@@ -6111,7 +6339,8 @@ export const operationDefinitions = {
         "queryParameters": [
             "page",
             "pageSize",
-            "filter"
+            "filter",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -6312,6 +6541,18 @@ export const operationDefinitions = {
                         },
                         "type": "object"
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "updatedAt:desc"
+                    }
                 }
             ],
             "filter": {
@@ -6354,6 +6595,14 @@ export const operationDefinitions = {
                     "maxDepth": 3,
                     "maxParameters": 100
                 }
+            },
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "updatedAt",
+                    "status"
+                ],
+                "default": "updatedAt:desc"
             }
         },
         "sdk": {
@@ -6388,7 +6637,8 @@ export const operationDefinitions = {
         "queryParameters": [
             "page",
             "pageSize",
-            "query"
+            "query",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -6475,9 +6725,28 @@ export const operationDefinitions = {
                         "type": "string",
                         "minLength": 1
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "displayName:asc"
+                    }
                 }
             ],
-            "filter": null
+            "filter": null,
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "displayName"
+                ],
+                "default": "displayName:asc"
+            }
         },
         "sdk": {
             "resource": "studentPeople",
@@ -6511,7 +6780,8 @@ export const operationDefinitions = {
         ],
         "queryParameters": [
             "page",
-            "pageSize"
+            "pageSize",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -6641,9 +6911,32 @@ export const operationDefinitions = {
                         ],
                         "description": "Number of items per page, or \"all\" to return every item."
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "updatedAt:desc"
+                    }
                 }
             ],
-            "filter": null
+            "filter": null,
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "updatedAt",
+                    "name",
+                    "studyPeriodYear",
+                    "studyPeriodYearPeriod",
+                    "visibility"
+                ],
+                "default": "updatedAt:desc"
+            }
         },
         "sdk": {
             "resource": "periodPlannings",
@@ -6677,7 +6970,8 @@ export const operationDefinitions = {
         "queryParameters": [
             "page",
             "pageSize",
-            "filter"
+            "filter",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -6791,6 +7085,18 @@ export const operationDefinitions = {
                         },
                         "type": "object"
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "updatedAt:desc"
+                    }
                 }
             ],
             "filter": {
@@ -6815,6 +7121,15 @@ export const operationDefinitions = {
                     "maxDepth": 3,
                     "maxParameters": 100
                 }
+            },
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "updatedAt",
+                    "name",
+                    "studyPeriodYear"
+                ],
+                "default": "updatedAt:desc"
             }
         },
         "sdk": {
@@ -6849,7 +7164,8 @@ export const operationDefinitions = {
         ],
         "queryParameters": [
             "page",
-            "pageSize"
+            "pageSize",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -6979,9 +7295,28 @@ export const operationDefinitions = {
                         ],
                         "description": "Number of items per page, or \"all\" to return every item."
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "name:asc"
+                    }
                 }
             ],
-            "filter": null
+            "filter": null,
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "name"
+                ],
+                "default": "name:asc"
+            }
         },
         "sdk": {
             "resource": "studentTagInterests",
@@ -7014,7 +7349,8 @@ export const operationDefinitions = {
         ],
         "queryParameters": [
             "page",
-            "pageSize"
+            "pageSize",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -7151,9 +7487,30 @@ export const operationDefinitions = {
                         "default": 20,
                         "description": "Number of items per page."
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "code:asc"
+                    }
                 }
             ],
-            "filter": null
+            "filter": null,
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "code",
+                    "name",
+                    "credits"
+                ],
+                "default": "code:asc"
+            }
         },
         "sdk": {
             "resource": "courseTags",
@@ -7185,7 +7542,8 @@ export const operationDefinitions = {
         "queryParameters": [
             "page",
             "pageSize",
-            "filter"
+            "filter",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -7403,6 +7761,18 @@ export const operationDefinitions = {
                         },
                         "type": "object"
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "name:asc"
+                    }
                 }
             ],
             "filter": {
@@ -7453,6 +7823,14 @@ export const operationDefinitions = {
                     "maxDepth": 3,
                     "maxParameters": 100
                 }
+            },
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "name",
+                    "categoryId"
+                ],
+                "default": "name:asc"
             }
         },
         "sdk": {

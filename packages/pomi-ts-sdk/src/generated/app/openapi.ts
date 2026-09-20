@@ -1567,6 +1567,8 @@ export interface operations {
                 page?: number;
 
                 pageSize?: number | "all";
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -1620,6 +1622,8 @@ export interface operations {
                 page?: number;
 
                 pageSize?: number | "all";
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -2163,6 +2167,8 @@ export interface operations {
                 page?: number;
 
                 pageSize?: number | "all";
+
+                sort?: string;
             };
             header?: never;
             path: {
@@ -2454,6 +2460,8 @@ export interface operations {
                 page?: number;
 
                 pageSize?: number | "all";
+
+                sort?: string;
             };
             header?: never;
             path: {
@@ -2725,6 +2733,8 @@ export interface operations {
                 page?: number;
 
                 pageSize?: number | "all";
+
+                sort?: string;
             };
             header?: never;
             path: {
@@ -2842,6 +2852,8 @@ export interface operations {
                         in?: number[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -2942,6 +2954,8 @@ export interface operations {
                         in?: string[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path: {
@@ -3154,6 +3168,8 @@ export interface operations {
                         eq?: "FIRST_SEMESTER" | "SECOND_SEMESTER";
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path: {
@@ -3396,6 +3412,8 @@ export interface operations {
                         in?: number[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path: {
@@ -3584,6 +3602,8 @@ export interface operations {
                         in?: number[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path: {
@@ -3859,6 +3879,8 @@ export interface operations {
 
                 pageSize?: number;
                 query?: string;
+
+                sort?: string;
             };
             header?: never;
             path: {
@@ -3966,6 +3988,8 @@ export interface operations {
                         eq?: "INCOMING" | "OUTGOING";
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path: {
@@ -4264,6 +4288,8 @@ export interface operations {
                 page?: number;
 
                 pageSize?: number | "all";
+
+                sort?: string;
             };
             header?: never;
             path: {
@@ -4519,6 +4545,8 @@ export interface operations {
                 page?: number;
 
                 pageSize?: number | "all";
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -4811,6 +4839,8 @@ export interface operations {
                         in?: number[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -5110,6 +5140,8 @@ export interface operations {
                 page?: number;
 
                 pageSize?: number | "all";
+
+                sort?: string;
             };
             header?: never;
             path: {
@@ -5174,6 +5206,8 @@ export interface operations {
                 page?: number;
 
                 pageSize?: number;
+
+                sort?: string;
             };
             header?: never;
             path: {
@@ -5334,6 +5368,8 @@ export interface operations {
                 page?: number;
 
                 pageSize?: number | "all";
+
+                sort?: string;
             };
             header?: never;
             path: {
