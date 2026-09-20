@@ -29,10 +29,12 @@ export function SheetContent({
   children,
   side = 'left',
   closeButtonClassName,
+  closeButtonLabel = 'Fechar menu',
   ...props
 }: ComponentProps<typeof DialogPrimitive.Content> & {
   side?: 'top' | 'right' | 'bottom' | 'left'
   closeButtonClassName?: string
+  closeButtonLabel?: string
 }) {
   const position = {
     top: 'inset-x-0 top-0 border-b-2 data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top',
@@ -62,7 +64,7 @@ export function SheetContent({
           )}
         >
           <X className="size-5" />
-          <span className="sr-only">Fechar menu</span>
+          <span className="sr-only">{closeButtonLabel}</span>
         </DialogPrimitive.Close>
       </DialogPrimitive.Content>
     </SheetPortal>

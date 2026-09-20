@@ -1,4 +1,4 @@
-import { defineConfig, mergeConfig } from 'vitest/config'
+import { configDefaults, defineConfig, mergeConfig } from 'vitest/config'
 
 import viteConfig from './vite.config'
 
@@ -6,7 +6,11 @@ export default mergeConfig(
   viteConfig,
   defineConfig({
     test: {
-      exclude: ['packages/pomi-ts-sdk/src/generated*.test.ts'],
+      exclude: [
+        ...configDefaults.exclude,
+        'packages/pomi-ts-sdk/src/generated*.test.ts',
+        'packages/pomi-ts-sdk/sdk-gen/**/*.test.ts',
+      ],
       environment: 'jsdom',
       environmentOptions: {
         jsdom: {

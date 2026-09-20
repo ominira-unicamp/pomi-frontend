@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useDesktopLayout } from '@/hooks/useDesktopLayout'
 import { cn } from '@/lib/utils'
 
 type CourseFilter = 'prefix' | 'credits'
@@ -44,21 +45,6 @@ const filterOptions: ReadonlyArray<
   { key: 'prefix', label: 'Prefixo' },
   { key: 'credits', label: 'Créditos' },
 ]
-
-function useDesktopLayout() {
-  const [desktop, setDesktop] = useState(
-    () => window.matchMedia('(min-width: 640px)').matches,
-  )
-
-  useEffect(() => {
-    const media = window.matchMedia('(min-width: 640px)')
-    const update = () => setDesktop(media.matches)
-    media.addEventListener('change', update)
-    return () => media.removeEventListener('change', update)
-  }, [])
-
-  return desktop
-}
 
 export function CourseSearchDialog({
   open,

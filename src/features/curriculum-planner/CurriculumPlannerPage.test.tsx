@@ -697,11 +697,11 @@ describe('CurriculumPlannerPage', () => {
     })
     expect(within(dialog).getByText('CE738')).toBeTruthy()
     expect(
-      (
-        within(dialog).getByRole('button', {
+      within(dialog)
+        .getByRole('button', {
           name: /Selecionar CE738, Redes/,
-        }) as HTMLTableRowElement
-      ).getAttribute('aria-disabled'),
+        })
+        .getAttribute('aria-disabled'),
     ).toBe('true')
     expect(within(dialog).getByText('CE739')).toBeTruthy()
     fireEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }))
@@ -858,20 +858,23 @@ describe('CurriculumPlannerPage', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue(
-        Response.json([
-          {
-            id: 1,
-            catalogProgramId: 1,
-            code: 'GERAL',
-            name: 'Sugestão geral',
-            type: 'GENERAL',
-            specialization: null,
-            semesters: [
-              { semester: 1, electiveCredits: 0, courses: [] },
-              { semester: 2, electiveCredits: 0, courses: [] },
-            ],
-          },
-        ]),
+        Response.json({
+          data: [
+            {
+              id: 1,
+              catalogProgramId: 1,
+              code: 'GERAL',
+              name: 'Sugestão geral',
+              type: 'GENERAL',
+              specialization: null,
+              semesters: [
+                { semester: 1, electiveCredits: 0, courses: [] },
+                { semester: 2, electiveCredits: 0, courses: [] },
+              ],
+            },
+          ],
+          _paths: { next: null },
+        }),
       ),
     )
     const planner = createInMemoryCurriculumPlanner({

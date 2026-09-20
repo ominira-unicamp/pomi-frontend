@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { ExternalLink, MessageSquareWarning } from 'lucide-react'
-import { useEffect, useState } from 'react'
-
 import {
   Dialog,
   DialogContent,
@@ -22,21 +20,7 @@ import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
 import { CatalogCourseDetailsContent } from '@/features/course-catalog/CatalogCourseDetailsContent'
 import { getCatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
-
-function useDesktopLayout() {
-  const [desktop, setDesktop] = useState(
-    () => window.matchMedia('(min-width: 640px)').matches,
-  )
-
-  useEffect(() => {
-    const media = window.matchMedia('(min-width: 640px)')
-    const update = () => setDesktop(media.matches)
-    media.addEventListener('change', update)
-    return () => media.removeEventListener('change', update)
-  }, [])
-
-  return desktop
-}
+import { useDesktopLayout } from '@/hooks/useDesktopLayout'
 
 export function CatalogProgramCourseDialog({
   course,

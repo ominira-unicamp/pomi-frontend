@@ -1,5 +1,5 @@
 import { AlertCircle, CalendarX2, LoaderCircle } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { useQuery } from '@tanstack/react-query'
 import type { StudentAbsenceController } from '@/features/student/absences/useStudentAbsences'
@@ -32,6 +32,7 @@ import {
   occurrenceFromMeeting,
 } from '@/features/student/absences/studentAbsences'
 import { listClassSchedulesByStudyPeriod } from '@/features/student/data/studentApi'
+import { useDesktopLayout } from '@/hooks/useDesktopLayout'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 type StudentAbsencePanelProps = Readonly<{
@@ -123,21 +124,6 @@ function formatMissedHours(minutes: number) {
   if (!minutes) return 'Nenhuma hora faltada'
   if (!remainder) return `${hours} ${hours === 1 ? 'hora' : 'horas'} faltadas`
   return `${hours}h${String(remainder).padStart(2, '0')} faltadas`
-}
-
-function useDesktopLayout() {
-  const [desktop, setDesktop] = useState(
-    () => window.matchMedia('(min-width: 640px)').matches,
-  )
-
-  useEffect(() => {
-    const media = window.matchMedia('(min-width: 640px)')
-    const update = () => setDesktop(media.matches)
-    media.addEventListener('change', update)
-    return () => media.removeEventListener('change', update)
-  }, [])
-
-  return desktop
 }
 
 function absenceErrorMessage(error: unknown, action: 'registrar' | 'remover') {

@@ -528,9 +528,7 @@ describe('HomePage', () => {
     expect(within(dialog).getByText('Arroz')).toBeTruthy()
     expect(within(dialog).getByText('Contém glúten')).toBeTruthy()
     expect(within(dialog).getByText('Servido no RU')).toBeTruthy()
-    fireEvent.click(
-      within(dialog).getByRole('button', { name: 'Fechar menu' }),
-    )
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Fechar' }))
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
     fireEvent.click(screen.getByRole('button', { name: 'Dia anterior' }))
     await waitFor(() => expect(listDailyMenus).toHaveBeenCalledTimes(2))

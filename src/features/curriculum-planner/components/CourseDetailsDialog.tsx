@@ -1,8 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { ExternalLink, MessageSquareWarning, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
-
 import { periodReference } from '@pomi/planner-domain/curriculum'
 import type {
   Course,
@@ -33,26 +31,12 @@ import {
 import { CatalogCourseDetailsContent } from '@/features/course-catalog/CatalogCourseDetailsContent'
 import { getCatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
 import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
+import { useDesktopLayout } from '@/hooks/useDesktopLayout'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import { cn } from '@/lib/utils'
 
 const outsideValue = '__outside__'
 const unallocatedValue = '__unallocated__'
-
-function useDesktopLayout() {
-  const [desktop, setDesktop] = useState(
-    () => window.matchMedia('(min-width: 640px)').matches,
-  )
-
-  useEffect(() => {
-    const media = window.matchMedia('(min-width: 640px)')
-    const update = () => setDesktop(media.matches)
-    media.addEventListener('change', update)
-    return () => media.removeEventListener('change', update)
-  }, [])
-
-  return desktop
-}
 
 function PlanningSection({
   course,

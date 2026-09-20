@@ -24,6 +24,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { feedbackFeatureKeys } from '@/features/feedback/feedbackReportApi'
+import { useDesktopLayout } from '@/hooks/useDesktopLayout'
 
 type Props = Readonly<{
   open: boolean
@@ -37,21 +38,6 @@ type Props = Readonly<{
   onSubmit: (draft: FeedbackDraft) => Promise<void>
   onLogin: (draft: FeedbackDraft) => void
 }>
-
-function useDesktopLayout() {
-  const [desktop, setDesktop] = useState(
-    () => window.matchMedia('(min-width: 640px)').matches,
-  )
-
-  useEffect(() => {
-    const media = window.matchMedia('(min-width: 640px)')
-    const update = () => setDesktop(media.matches)
-    media.addEventListener('change', update)
-    return () => media.removeEventListener('change', update)
-  }, [])
-
-  return desktop
-}
 
 function defaultInput(): FeedbackReportInput {
   return {

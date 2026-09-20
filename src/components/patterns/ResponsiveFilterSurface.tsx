@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import type { ReactElement, ReactNode } from 'react'
 
 import {
@@ -17,21 +16,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-
-export function useDesktopLayout() {
-  const [desktop, setDesktop] = useState(
-    () => window.matchMedia('(min-width: 640px)').matches,
-  )
-
-  useEffect(() => {
-    const media = window.matchMedia('(min-width: 640px)')
-    const update = () => setDesktop(media.matches)
-    media.addEventListener('change', update)
-    return () => media.removeEventListener('change', update)
-  }, [])
-
-  return desktop
-}
+import { useDesktopLayout } from '@/hooks/useDesktopLayout'
 
 export function ResponsiveFilterSurface({
   open,

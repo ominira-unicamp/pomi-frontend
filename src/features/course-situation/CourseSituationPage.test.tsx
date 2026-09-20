@@ -233,7 +233,9 @@ describe('CourseSituationPage', () => {
       screen.getByRole('button', { name: 'Adicionar disciplina' }),
     )
 
-    expect(screen.getByRole('dialog')).toBeTruthy()
+    const dialog = screen.getByRole('dialog')
+    expect(dialog.className).toContain('bottom-0')
+    expect(dialog.className).toContain('slide-in-from-bottom')
     expect(
       screen.getByRole<HTMLInputElement>('combobox', {
         name: 'Modalidade de avaliação',

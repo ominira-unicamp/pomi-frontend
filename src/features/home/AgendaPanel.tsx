@@ -19,24 +19,10 @@ import type { StudentAbsenceController } from '@/features/student/absences/useSt
 import type { DailyMeal } from '@/features/home/dailyMenuApi'
 import type { TodayClassStatus } from '@/features/home/todayClasses'
 import { ApiError } from '@/api/errors'
+import { ResponsiveDialog } from '@/components/patterns/ResponsiveDialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
-import { useDesktopLayout } from '@/components/patterns/ResponsiveFilterSurface'
 import { StudentAbsenceAction } from '@/features/student/absences/StudentAbsenceAction'
 import {
   academicDateKey,
@@ -117,7 +103,6 @@ function classStatus(
 }
 
 export function DailyMealsPanel({ date }: { date: string }) {
-  const desktop = useDesktopLayout()
   const [selectedMeal, setSelectedMeal] = useState<DailyMeal>()
   const menuQuery = useQuery({
     queryKey: publicQueryKeys.dailyMenus(date),
@@ -268,37 +253,15 @@ export function DailyMealsPanel({ date }: { date: string }) {
           </>
         )}
       </Card>
-      {desktop ? (
-        <Dialog open={Boolean(selectedMeal)} onOpenChange={closeDetails}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{selectedMealTitle}</DialogTitle>
-              <DialogDescription>
-                Detalhes do cardápio selecionado.
-              </DialogDescription>
-            </DialogHeader>
-            {details}
-          </DialogContent>
-        </Dialog>
-      ) : (
-        <Sheet open={Boolean(selectedMeal)} onOpenChange={closeDetails}>
-          <SheetContent
-            side="bottom"
-            className="max-h-[85dvh] rounded-t-xl bg-card text-card-foreground"
-            closeButtonClassName="text-card-foreground hover:bg-accent"
-          >
-            <SheetHeader className="border-b-2 border-strong-border pr-12">
-              <SheetTitle>{selectedMealTitle}</SheetTitle>
-              <SheetDescription>
-                Detalhes do cardápio selecionado.
-              </SheetDescription>
-            </SheetHeader>
-            <div className="pomi-scrollbar overflow-y-auto px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
-              {details}
-            </div>
-          </SheetContent>
-        </Sheet>
-      )}
+      <ResponsiveDialog
+        open={Boolean(selectedMeal)}
+        onOpenChange={closeDetails}
+        title={selectedMealTitle}
+        description="Detalhes do cardápio selecionado."
+        sheetContentClassName="max-h-[85dvh]"
+      >
+        {details}
+      </ResponsiveDialog>
     </section>
   )
 }
