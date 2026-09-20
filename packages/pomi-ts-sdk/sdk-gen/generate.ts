@@ -147,15 +147,20 @@ function createDomainRegistry(
 ): DomainRegistry {
   const models = new Map<string, string>()
   const transportFields = new Map<string, ReadonlyArray<string>>()
-  const metadata = new Map<string, NonNullable<OpenApiSchema['x-pomi-schema']>>()
+  const metadata = new Map<
+    string,
+    NonNullable<OpenApiSchema['x-pomi-schema']>
+  >()
   const names = new Map<string, string>()
   for (const [schemaName, schema] of Object.entries(
     document.components?.schemas ?? {},
   )) {
     const schemaMetadata = schema['x-pomi-schema']
-    if (!schemaMetadata) throw new Error(`Missing x-pomi-schema in ${schemaName}`)
+    if (!schemaMetadata)
+      throw new Error(`Missing x-pomi-schema in ${schemaName}`)
     metadata.set(schemaName, schemaMetadata)
-    if (Array.isArray(schema.enum) || schemaMetadata.generate === false) continue
+    if (Array.isArray(schema.enum) || schemaMetadata.generate === false)
+      continue
     if (
       schemaMetadata.kind === 'input' ||
       schemaMetadata.kind === 'problem' ||
@@ -172,8 +177,7 @@ function createDomainRegistry(
     }
     names.set(modelName, schemaName)
     models.set(schemaName, modelName)
-    const fields =
-      schemaMetadata.transportFields ?? []
+    const fields = schemaMetadata.transportFields ?? []
     transportFields.set(schemaName, fields)
   }
   return { models, transportFields, metadata }
@@ -308,11 +312,18 @@ function responseMetadata(
   )
 }
 
+function operationSortMetadata(operation: OpenApiOperation) {
+  return (operation.parameters ?? []).find(
+    (parameter) => parameter.in === 'query' && parameter.name === 'sort',
+  )?.['x-pomi-sort']
+}
+
 function queryMetadata(operation: OpenApiOperation) {
   const parameters = (operation.parameters ?? []).filter(
     (parameter) => parameter.in === 'query' && parameter.name,
   )
   const filter = parameters.find((parameter) => parameter.name === 'filter')
+  const sortMetadata = operationSortMetadata(operation)
   return {
     parameters: parameters.map((parameter) => ({
       name: parameter.name!,
@@ -323,7 +334,15 @@ function queryMetadata(operation: OpenApiOperation) {
       schema: parameter.schema ?? null,
     })),
     filter: filter?.['x-pomi-filters'] ?? null,
+    ...(sortMetadata ? { sort: sortMetadata } : {}),
   }
+}
+
+function sortFieldType(operation: OpenApiOperation) {
+  const metadata = operationSortMetadata(operation)
+  return metadata
+    ? metadata.fields.map((field) => JSON.stringify(field)).join(' | ')
+    : undefined
 }
 
 function operationMetadata(entry: OperationEntry) {
@@ -354,18 +373,26 @@ function createDomainSource(registry: DomainRegistry) {
   const modelAliases = [...registry.models.entries()].map(
     ([schemaName, modelName]) => {
       const fields = registry.transportFields.get(schemaName) ?? []
-      const source = fields.length > 0
-        ? `Omit<${modelName}Transport, ${fields.map((field) => JSON.stringify(field)).join(' | ')}>`
-        : `${modelName}Transport`
+      const source =
+        fields.length > 0
+          ? `Omit<${modelName}Transport, ${fields.map((field) => JSON.stringify(field)).join(' | ')}>`
+          : `${modelName}Transport`
       return `export type ${modelName}Transport = components['schemas']['${schemaName}']\nexport type ${modelName} = Domain<${source}>`
     },
   )
   const pathType = (root: string, path: string) =>
-    path.split('.').filter(Boolean).reduce((type, field) => `${type}[${JSON.stringify(field)}]`, root)
-  const domainExports = [...registry.models.entries()].flatMap(([schemaName, modelName]) =>
-    Object.entries(registry.metadata.get(schemaName)?.domainExports ?? {}).map(
-      ([name, path]) => `export type ${name} = Domain<${pathType(`${modelName}Transport`, path)}>`,
-    ),
+    path
+      .split('.')
+      .filter(Boolean)
+      .reduce((type, field) => `${type}[${JSON.stringify(field)}]`, root)
+  const domainExports = [...registry.models.entries()].flatMap(
+    ([schemaName, modelName]) =>
+      Object.entries(
+        registry.metadata.get(schemaName)?.domainExports ?? {},
+      ).map(
+        ([name, path]) =>
+          `export type ${name} = Domain<${pathType(`${modelName}Transport`, path)}>`,
+      ),
   )
   const definitions = Object.fromEntries(
     [...registry.models.entries()].map(([schemaName, modelName]) => [
@@ -469,6 +496,9 @@ function createOperationsSource(
   document: OpenApiDocument,
   registry: DomainRegistry,
 ) {
+  const hasSorting = entries.some(
+    (entry) => operationSortMetadata(entry.operation) !== undefined,
+  )
   const definitions: Array<string> = []
   const typeAliases: Array<string> = []
   const inputProperties: Array<string> = []
@@ -484,7 +514,11 @@ function createOperationsSource(
     }
     const operationType = `operations[${JSON.stringify(operationId)}]`
     const bodyRequired = entry.operation.requestBody?.required === true
-    const inputType = `OperationInput<${operationType}['parameters']['path'], ${operationType}['parameters']['query'], ${operationType}['parameters']['header'], RequestBodyOf<${operationType}>, ${bodyRequired}>`
+    const fields = sortFieldType(entry.operation)
+    const queryType = fields
+      ? `SortQuery<${operationType}['parameters']['query'], ${fields}>`
+      : `${operationType}['parameters']['query']`
+    const inputType = `OperationInput<${operationType}['parameters']['path'], ${queryType}, ${operationType}['parameters']['header'], RequestBodyOf<${operationType}>, ${bodyRequired}>`
     const outputType = operationSuccessType(
       entry.operation,
       operationType,
@@ -504,7 +538,7 @@ function createOperationsSource(
     )
   }
 
-  return `import type { operations } from './openapi.js'
+  return `${hasSorting ? `import type { SortInput } from '../../runtime/sorting.js'\n` : ''}import type { operations } from './openapi.js'
 import type { GeneratedOperationDefinition } from '../../runtime/operation.js'
 
 type ParameterRecord<T> = [NonNullable<T>] extends [never] ? {} : NonNullable<T>
@@ -519,7 +553,16 @@ type BodyInput<Body, Required extends boolean> = [Body] extends [never]
 type HeaderInput<Header> = [NonNullable<Header>] extends [never]
   ? {}
   : { headers?: NonNullable<Header> }
-type OperationInput<Path, Query, Header, Body, BodyRequired extends boolean> =
+${
+  hasSorting
+    ? `type SortQuery<Query, SortField extends string> = ParameterRecord<Query> extends infer Parameters
+  ? Parameters extends { sort: unknown }
+    ? Omit<Parameters, 'sort'> & { sort: SortInput<SortField> }
+    : Omit<Parameters, 'sort'> & { sort?: SortInput<SortField> }
+    : never
+`
+    : ''
+}type OperationInput<Path, Query, Header, Body, BodyRequired extends boolean> =
   ParameterRecord<Path> & ParameterRecord<Query> & HeaderInput<Header> & BodyInput<Body, BodyRequired>
 
 ${typeAliases.join('\n')}
@@ -664,9 +707,10 @@ function createResourcesSource(model: SdkTargetModel) {
         const method = paginatedEntry.operation['x-pomi-sdk'].method
         const pagesName = paginated.length === 1 ? 'pages' : `${method}Pages`
         const listAllName = paginated.length === 1 ? 'listAll' : `${method}All`
-        const defaultedInput = pagination.defaultMode === 'all'
-          ? `{ ...input, pageSize: input.pageSize ?? 'all' }`
-          : `{ ...input, page: input.page ?? 1, pageSize: input.pageSize ?? ${pagination.defaultPageSize} }`
+        const defaultedInput =
+          pagination.defaultMode === 'all'
+            ? `{ ...input, pageSize: input.pageSize ?? 'all' }`
+            : `{ ...input, page: input.page ?? 1, pageSize: input.pageSize ?? ${pagination.defaultPageSize} }`
         const listAllArguments = [
           ...paths(paginatedEntry).map(({ publicName }) => publicName),
           'input',
@@ -753,6 +797,28 @@ function createFiltersSource(entries: Array<OperationEntry>) {
   return `${imports.length ? `import type { ${imports.join(', ')} } from './operations.js'\n\n` : ''}${aliases.join('\n')}
 
 export const filterCapabilities = ${JSON.stringify(metadata, null, 2)} as const
+`
+}
+
+function createSortingSource(entries: Array<OperationEntry>) {
+  const sorted = entries.filter(
+    (entry) => operationSortMetadata(entry.operation) !== undefined,
+  )
+  const imports = sorted.map((entry) => `${entry.operation.operationId!}Input`)
+  const aliases = sorted.map(
+    (entry) =>
+      `export type ${entry.operation.operationId!}Sort = NonNullable<${entry.operation.operationId!}Input['sort']>`,
+  )
+  const metadata = Object.fromEntries(
+    sorted.map((entry) => [
+      entry.operation.operationId!,
+      operationSortMetadata(entry.operation),
+    ]),
+  )
+  return `export type { SortDirection, SortInput, SortTerm } from '../../runtime/sorting.js'
+${imports.length ? `import type { ${imports.join(', ')} } from './operations.js'\n\n` : ''}${aliases.join('\n')}
+
+export const sortCapabilities = ${JSON.stringify(metadata, null, 2)} as const
 `
 }
 
@@ -945,6 +1011,7 @@ export * from './paths.js'
 export * from './problems.js'
 export * from './resources.js'
 export * from './runtime.js'
+export * from './sorting.js'
 `
 }
 
@@ -1079,6 +1146,11 @@ async function main() {
       project.createSourceFile(
         resolve(directory, 'filters.ts'),
         createFiltersSource([...operations]),
+        { overwrite: true },
+      )
+      project.createSourceFile(
+        resolve(directory, 'sorting.ts'),
+        createSortingSource([...operations]),
         { overwrite: true },
       )
       project.createSourceFile(

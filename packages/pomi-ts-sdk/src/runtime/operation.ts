@@ -64,6 +64,7 @@ export type GeneratedOperationDefinition = Readonly<{
   query: Readonly<{
     parameters: ReadonlyArray<unknown>
     filter: unknown
+    sort?: unknown
   }>
   sdk: Readonly<{
     resource: string

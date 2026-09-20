@@ -1,3 +1,4 @@
+import type { SortInput } from '../../runtime/sorting.js'
 import type { operations } from './openapi.js'
 import type { GeneratedOperationDefinition } from '../../runtime/operation.js'
 
@@ -13,6 +14,11 @@ type BodyInput<Body, Required extends boolean> = [Body] extends [never]
 type HeaderInput<Header> = [NonNullable<Header>] extends [never]
     ? {}
     : { headers?: NonNullable<Header> }
+type SortQuery<Query, SortField extends string> = ParameterRecord<Query> extends infer Parameters
+    ? Parameters extends { sort: unknown }
+    ? Omit<Parameters, 'sort'> & { sort: SortInput<SortField> }
+    : Omit<Parameters, 'sort'> & { sort?: SortInput<SortField> }
+    : never
 type OperationInput<Path, Query, Header, Body, BodyRequired extends boolean> =
     ParameterRecord<Path> & ParameterRecord<Query> & HeaderInput<Header> & BodyInput<Body, BodyRequired>
 
@@ -100,7 +106,7 @@ export type listCalendarEventsProblem = operations["listCalendarEvents"]['respon
 export type listCalendarTagsInput = OperationInput<operations["listCalendarTags"]['parameters']['path'], operations["listCalendarTags"]['parameters']['query'], operations["listCalendarTags"]['parameters']['header'], RequestBodyOf<operations["listCalendarTags"]>, false>
 export type listCalendarTagsOutput = import('./domain.js').Page<import('./domain.js').CalendarTag>
 export type listCalendarTagsProblem = operations["listCalendarTags"]['responses'][400]['content']["application/problem+json"] | operations["listCalendarTags"]['responses'][500]['content']["application/problem+json"]
-export type listCatalogCoursesInput = OperationInput<operations["listCatalogCourses"]['parameters']['path'], operations["listCatalogCourses"]['parameters']['query'], operations["listCatalogCourses"]['parameters']['header'], RequestBodyOf<operations["listCatalogCourses"]>, false>
+export type listCatalogCoursesInput = OperationInput<operations["listCatalogCourses"]['parameters']['path'], SortQuery<operations["listCatalogCourses"]['parameters']['query'], "catalogYear" | "code" | "name" | "credits">, operations["listCatalogCourses"]['parameters']['header'], RequestBodyOf<operations["listCatalogCourses"]>, false>
 export type listCatalogCoursesOutput = import('./domain.js').Page<import('./domain.js').CatalogCourse>
 export type listCatalogCoursesProblem = operations["listCatalogCourses"]['responses'][400]['content']["application/problem+json"] | operations["listCatalogCourses"]['responses'][500]['content']["application/problem+json"]
 export type listCatalogProgramsInput = OperationInput<operations["listCatalogPrograms"]['parameters']['path'], operations["listCatalogPrograms"]['parameters']['query'], operations["listCatalogPrograms"]['parameters']['header'], RequestBodyOf<operations["listCatalogPrograms"]>, false>
@@ -121,7 +127,7 @@ export type listCoauthorsProblem = operations["listCoauthors"]['responses'][400]
 export type listCoordinatorsInput = OperationInput<operations["listCoordinators"]['parameters']['path'], operations["listCoordinators"]['parameters']['query'], operations["listCoordinators"]['parameters']['header'], RequestBodyOf<operations["listCoordinators"]>, false>
 export type listCoordinatorsOutput = import('./domain.js').Page<import('./domain.js').Coordinator>
 export type listCoordinatorsProblem = operations["listCoordinators"]['responses'][400]['content']["application/problem+json"] | operations["listCoordinators"]['responses'][500]['content']["application/problem+json"]
-export type listCourseEvaluationSummariesInput = OperationInput<operations["listCourseEvaluationSummaries"]['parameters']['path'], operations["listCourseEvaluationSummaries"]['parameters']['query'], operations["listCourseEvaluationSummaries"]['parameters']['header'], RequestBodyOf<operations["listCourseEvaluationSummaries"]>, false>
+export type listCourseEvaluationSummariesInput = OperationInput<operations["listCourseEvaluationSummaries"]['parameters']['path'], SortQuery<operations["listCourseEvaluationSummaries"]['parameters']['query'], "course.code" | "course.name" | "responseCount" | "wouldTakeAgain" | "fairness" | "clarity" | "difficulty">, operations["listCourseEvaluationSummaries"]['parameters']['header'], RequestBodyOf<operations["listCourseEvaluationSummaries"]>, false>
 export type listCourseEvaluationSummariesOutput = import('./domain.js').Page<import('./domain.js').CourseEvaluationSummary>
 export type listCourseEvaluationSummariesProblem = operations["listCourseEvaluationSummaries"]['responses'][400]['content']["application/problem+json"] | operations["listCourseEvaluationSummaries"]['responses'][500]['content']["application/problem+json"]
 export type listCoursesInput = OperationInput<operations["listCourses"]['parameters']['path'], operations["listCourses"]['parameters']['query'], operations["listCourses"]['parameters']['header'], RequestBodyOf<operations["listCourses"]>, false>
@@ -136,7 +142,7 @@ export type listDailyMenusProblem = operations["listDailyMenus"]['responses'][40
 export type listDepartmentsInput = OperationInput<operations["listDepartments"]['parameters']['path'], operations["listDepartments"]['parameters']['query'], operations["listDepartments"]['parameters']['header'], RequestBodyOf<operations["listDepartments"]>, false>
 export type listDepartmentsOutput = import('./domain.js').Page<import('./domain.js').Department>
 export type listDepartmentsProblem = operations["listDepartments"]['responses'][400]['content']["application/problem+json"] | operations["listDepartments"]['responses'][500]['content']["application/problem+json"]
-export type listExchangeNoticesInput = OperationInput<operations["listExchangeNotices"]['parameters']['path'], operations["listExchangeNotices"]['parameters']['query'], operations["listExchangeNotices"]['parameters']['header'], RequestBodyOf<operations["listExchangeNotices"]>, false>
+export type listExchangeNoticesInput = OperationInput<operations["listExchangeNotices"]['parameters']['path'], SortQuery<operations["listExchangeNotices"]['parameters']['query'], "registrationEnd" | "registrationStart" | "number" | "issuer" | "title" | "place.name">, operations["listExchangeNotices"]['parameters']['header'], RequestBodyOf<operations["listExchangeNotices"]>, false>
 export type listExchangeNoticesOutput = import('./domain.js').Page<import('./domain.js').ExchangeNotice>
 export type listExchangeNoticesProblem = operations["listExchangeNotices"]['responses'][400]['content']["application/problem+json"] | operations["listExchangeNotices"]['responses'][500]['content']["application/problem+json"]
 export type listExchangePlacesInput = OperationInput<operations["listExchangePlaces"]['parameters']['path'], operations["listExchangePlaces"]['parameters']['query'], operations["listExchangePlaces"]['parameters']['header'], RequestBodyOf<operations["listExchangePlaces"]>, false>
@@ -151,7 +157,7 @@ export type listLanguagesProblem = operations["listLanguages"]['responses'][400]
 export type listProfessorDataPortalProfilesInput = OperationInput<operations["listProfessorDataPortalProfiles"]['parameters']['path'], operations["listProfessorDataPortalProfiles"]['parameters']['query'], operations["listProfessorDataPortalProfiles"]['parameters']['header'], RequestBodyOf<operations["listProfessorDataPortalProfiles"]>, false>
 export type listProfessorDataPortalProfilesOutput = import('./domain.js').Page<import('./domain.js').ProfessorDataPortalProfileSummary>
 export type listProfessorDataPortalProfilesProblem = operations["listProfessorDataPortalProfiles"]['responses'][400]['content']["application/problem+json"] | operations["listProfessorDataPortalProfiles"]['responses'][500]['content']["application/problem+json"]
-export type listProfessorEvaluationSummariesInput = OperationInput<operations["listProfessorEvaluationSummaries"]['parameters']['path'], operations["listProfessorEvaluationSummaries"]['parameters']['query'], operations["listProfessorEvaluationSummaries"]['parameters']['header'], RequestBodyOf<operations["listProfessorEvaluationSummaries"]>, false>
+export type listProfessorEvaluationSummariesInput = OperationInput<operations["listProfessorEvaluationSummaries"]['parameters']['path'], SortQuery<operations["listProfessorEvaluationSummaries"]['parameters']['query'], "professor.name" | "responseCount" | "wouldTakeAgain" | "fairness" | "clarity" | "difficulty">, operations["listProfessorEvaluationSummaries"]['parameters']['header'], RequestBodyOf<operations["listProfessorEvaluationSummaries"]>, false>
 export type listProfessorEvaluationSummariesOutput = import('./domain.js').Page<import('./domain.js').ProfessorEvaluationSummary>
 export type listProfessorEvaluationSummariesProblem = operations["listProfessorEvaluationSummaries"]['responses'][400]['content']["application/problem+json"] | operations["listProfessorEvaluationSummaries"]['responses'][500]['content']["application/problem+json"]
 export type listProfessorPositionsInput = OperationInput<operations["listProfessorPositions"]['parameters']['path'], operations["listProfessorPositions"]['parameters']['query'], operations["listProfessorPositions"]['parameters']['header'], RequestBodyOf<operations["listProfessorPositions"]>, false>
@@ -3530,7 +3536,8 @@ export const operationDefinitions = {
         "queryParameters": [
             "page",
             "pageSize",
-            "filter"
+            "filter",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -3876,6 +3883,18 @@ export const operationDefinitions = {
                         },
                         "type": "object"
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "catalogYear:desc,code:asc"
+                    }
                 }
             ],
             "filter": {
@@ -3992,6 +4011,16 @@ export const operationDefinitions = {
                     "maxDepth": 3,
                     "maxParameters": 100
                 }
+            },
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "catalogYear",
+                    "code",
+                    "name",
+                    "credits"
+                ],
+                "default": "catalogYear:desc,code:asc"
             }
         },
         "sdk": {
@@ -6102,7 +6131,8 @@ export const operationDefinitions = {
         "queryParameters": [
             "page",
             "pageSize",
-            "filter"
+            "filter",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -6246,6 +6276,18 @@ export const operationDefinitions = {
                         },
                         "type": "object"
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "course.code:asc"
+                    }
                 }
             ],
             "filter": {
@@ -6284,6 +6326,19 @@ export const operationDefinitions = {
                     "maxDepth": 3,
                     "maxParameters": 100
                 }
+            },
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "course.code",
+                    "course.name",
+                    "responseCount",
+                    "wouldTakeAgain",
+                    "fairness",
+                    "clarity",
+                    "difficulty"
+                ],
+                "default": "course.code:asc"
             }
         },
         "sdk": {
@@ -7698,6 +7753,7 @@ export const operationDefinitions = {
             "page",
             "pageSize",
             "filter",
+            "sort",
             "q"
         ],
         "headerParameters": [],
@@ -8067,6 +8123,18 @@ export const operationDefinitions = {
                     }
                 },
                 {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "registrationEnd:desc,registrationStart:desc"
+                    }
+                },
+                {
                     "name": "q",
                     "required": false,
                     "description": null,
@@ -8191,6 +8259,18 @@ export const operationDefinitions = {
                     "maxDepth": 3,
                     "maxParameters": 100
                 }
+            },
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "registrationEnd",
+                    "registrationStart",
+                    "number",
+                    "issuer",
+                    "title",
+                    "place.name"
+                ],
+                "default": "registrationEnd:desc,registrationStart:desc"
             }
         },
         "sdk": {
@@ -9318,7 +9398,8 @@ export const operationDefinitions = {
         "queryParameters": [
             "page",
             "pageSize",
-            "filter"
+            "filter",
+            "sort"
         ],
         "headerParameters": [],
         "cookieParameters": [],
@@ -9433,6 +9514,18 @@ export const operationDefinitions = {
                         },
                         "type": "object"
                     }
+                },
+                {
+                    "name": "sort",
+                    "required": false,
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "style": "form",
+                    "explode": false,
+                    "schema": {
+                        "type": "string",
+                        "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                        "example": "professor.name:asc"
+                    }
                 }
             ],
             "filter": {
@@ -9457,6 +9550,18 @@ export const operationDefinitions = {
                     "maxDepth": 3,
                     "maxParameters": 100
                 }
+            },
+            "sort": {
+                "version": 1,
+                "fields": [
+                    "professor.name",
+                    "responseCount",
+                    "wouldTakeAgain",
+                    "fairness",
+                    "clarity",
+                    "difficulty"
+                ],
+                "default": "professor.name:asc"
             }
         },
         "sdk": {

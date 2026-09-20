@@ -39,6 +39,37 @@ test('executes a generated Data operation with structured query parameters', asy
   assert.match(requests[0]?.url ?? '', /filter%5Bcredits%5D%5Bgte%5D=4/)
 })
 
+test('serializes structured sorting through the generated resource client', async () => {
+  let requestedUrl = ''
+  const sdk = sdkWith(async (input) => {
+    requestedUrl = String(input)
+    return new Response(
+      JSON.stringify({
+        data: [],
+        quantity: 0,
+        total: 0,
+        _paths: { next: null, prev: null },
+      }),
+      {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      },
+    )
+  })
+
+  await sdk.data.catalogCourses.list({
+    sort: [
+      { field: 'credits', direction: 'desc' },
+      { field: 'code', direction: 'asc' },
+    ],
+  })
+
+  assert.equal(
+    new URL(requestedUrl).searchParams.get('sort'),
+    'credits:desc,code:asc',
+  )
+})
+
 test('sends App request bodies and bearer authentication for 201 responses', async () => {
   const requests: Array<{ url: string; init?: RequestInit }> = []
   const sdk = sdkWith(

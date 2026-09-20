@@ -4115,6 +4115,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "catalogYear:desc,code:asc"
+                }
             }
         ],
         "filter": {
@@ -4231,6 +4243,16 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "catalogYear",
+                "code",
+                "name",
+                "credits"
+            ],
+            "default": "catalogYear:desc,code:asc"
         }
     },
     "listCatalogPrograms": {
@@ -5721,6 +5743,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "course.code:asc"
+                }
             }
         ],
         "filter": {
@@ -5759,6 +5793,19 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "course.code",
+                "course.name",
+                "responseCount",
+                "wouldTakeAgain",
+                "fairness",
+                "clarity",
+                "difficulty"
+            ],
+            "default": "course.code:asc"
         }
     },
     "listCourses": {
@@ -6975,6 +7022,18 @@ export const queryCapabilities = {
                 }
             },
             {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "registrationEnd:desc,registrationStart:desc"
+                }
+            },
+            {
                 "name": "q",
                 "required": false,
                 "description": null,
@@ -7099,6 +7158,18 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "registrationEnd",
+                "registrationStart",
+                "number",
+                "issuer",
+                "title",
+                "place.name"
+            ],
+            "default": "registrationEnd:desc,registrationStart:desc"
         }
     },
     "listExchangePlaces": {
@@ -7776,6 +7847,18 @@ export const queryCapabilities = {
                     },
                     "type": "object"
                 }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "professor.name:asc"
+                }
             }
         ],
         "filter": {
@@ -7800,6 +7883,18 @@ export const queryCapabilities = {
                 "maxDepth": 3,
                 "maxParameters": 100
             }
+        },
+        "sort": {
+            "version": 1,
+            "fields": [
+                "professor.name",
+                "responseCount",
+                "wouldTakeAgain",
+                "fairness",
+                "clarity",
+                "difficulty"
+            ],
+            "default": "professor.name:asc"
         }
     },
     "listProfessorPositions": {

@@ -17,12 +17,14 @@ import {
 import {
   domainModelDefinitions as dataDomainModels,
   filterCapabilities as dataFilterCapabilities,
+  sortCapabilities as dataSortCapabilities,
   operationDefinitions as dataOperations,
   operationPaths as dataPaths,
   type getCatalogProgramsOutput,
   type getClassSchedulesOutput,
   type getCoursesOutput,
   type listCatalogCoursesOutput,
+  type listCatalogCoursesInput,
   type listCatalogsOutput,
   type listClassesOutput,
   type listCatalogProgramsOutput,
@@ -97,14 +99,49 @@ type DomainTypeAssertions = [
   Assert<Equal<listTagCoursesOutput['data'][number], TagRelatedCourse>>,
   Assert<Equal<listCatalogProgramsOutput['data'][number], CatalogProgram>>,
   Assert<Equal<getCatalogProgramsOutput, CatalogProgram>>,
-  Assert<Equal<listStudentCourseAttemptsOutput['data'][number], StudentCourseAttempt>>,
-  Assert<Equal<listPublicSharedPeriodPlanningsOutput['data'][number], SharedPeriodPlanningPage['data'][number]>>,
+  Assert<
+    Equal<listStudentCourseAttemptsOutput['data'][number], StudentCourseAttempt>
+  >,
+  Assert<
+    Equal<
+      listPublicSharedPeriodPlanningsOutput['data'][number],
+      SharedPeriodPlanningPage['data'][number]
+    >
+  >,
   Assert<Equal<listStudentPeopleOutput['data'][number], StudentPublicPerson>>,
   AssertFalse<'_paths' extends keyof Course ? true : false>,
   AssertFalse<'_paths' extends keyof ClassSchedule ? true : false>,
   AssertFalse<'_paths' extends keyof BlockSet ? true : false>,
 ]
+type SortTermOf<Input> = Input extends { sort?: infer Sort }
+  ? NonNullable<Sort> extends ReadonlyArray<infer Term>
+    ? Term
+    : never
+  : never
+type SortingTypeAssertions = [
+  Assert<
+    Equal<
+      SortTermOf<listCatalogCoursesInput>['field'],
+      'catalogYear' | 'code' | 'name' | 'credits'
+    >
+  >,
+  Assert<
+    Equal<SortTermOf<listCatalogCoursesInput>['direction'], 'asc' | 'desc'>
+  >,
+  AssertFalse<
+    [] extends NonNullable<listCatalogCoursesInput['sort']> ? true : false
+  >,
+  AssertFalse<
+    {
+      field: 'unknown'
+      direction: 'asc'
+    } extends SortTermOf<listCatalogCoursesInput>
+      ? true
+      : false
+  >,
+]
 const domainTypeAssertions = undefined as unknown as DomainTypeAssertions
+const sortingTypeAssertions = undefined as unknown as SortingTypeAssertions
 
 test('generates separate operational manifests for Data and App', () => {
   assert.equal(Object.keys(dataOperations).length, 53)
@@ -125,10 +162,7 @@ test('generates separate operational manifests for Data and App', () => {
   )
   assert.equal(dataOperations.listClasses.sdk?.resource, 'classes')
   assert.equal(dataOperations.listClasses.pagination?.defaultMode, 'page')
-  assert.equal(
-    appOperations.listTagCourses.pagination?.defaultMode,
-    'page',
-  )
+  assert.equal(appOperations.listTagCourses.pagination?.defaultMode, 'page')
   assert.equal(
     appOperations.listPublicSharedPeriodPlannings.pagination?.defaultMode,
     'page',
@@ -153,6 +187,7 @@ test('generates type-checked resources and explicit operation bindings', () => {
 
 test('generates canonical domain models independently from operation envelopes', () => {
   assert.equal(domainTypeAssertions, undefined)
+  assert.equal(sortingTypeAssertions, undefined)
   for (const model of [
     'Course',
     'CatalogProgram',
@@ -293,6 +328,11 @@ test('exposes filter capabilities and operation-specific problems', () => {
   )
   assert.equal(appQueryCapabilities.listStudentAbsences.filter?.version, 1)
   assert.ok(appEnumValues.StudentCourseAttemptStatus.length > 1)
+  assert.deepEqual(dataSortCapabilities.listCatalogCourses, {
+    version: 1,
+    fields: ['catalogYear', 'code', 'name', 'credits'],
+    default: 'catalogYear:desc,code:asc',
+  })
 })
 
 test('generates typed path and query builders', () => {
@@ -312,6 +352,16 @@ test('generates typed path and query builders', () => {
       },
     }),
     '/student/7/absences',
+  )
+  const sortedPath = dataPaths.listCatalogCourses({
+    sort: [
+      { field: 'credits', direction: 'desc' },
+      { field: 'code', direction: 'asc' },
+    ],
+  })
+  assert.equal(
+    new URL(sortedPath, 'https://pomi.test').searchParams.get('sort'),
+    'credits:desc,code:asc',
   )
 })
 

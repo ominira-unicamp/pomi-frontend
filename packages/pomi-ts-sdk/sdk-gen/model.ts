@@ -44,6 +44,12 @@ export type PaginationMetadata = {
   allowAll: boolean
 }
 
+export type SortMetadata = {
+  version: 1
+  fields: ReadonlyArray<string>
+  default: string
+}
+
 export type OpenApiParameter = JsonObject & {
   name?: string
   in?: string
@@ -53,6 +59,7 @@ export type OpenApiParameter = JsonObject & {
   style?: string
   explode?: boolean
   'x-pomi-filters'?: unknown
+  'x-pomi-sort'?: SortMetadata
 }
 
 export type OpenApiResponse = JsonObject & {

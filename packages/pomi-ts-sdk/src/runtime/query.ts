@@ -1,3 +1,4 @@
+import { serializeSortInput } from './sorting.js'
 import type { GeneratedOperationDefinition } from './operation.js'
 
 type QueryRecord = Readonly<Record<string, unknown>>
@@ -31,8 +32,13 @@ export function buildQuery(
       name === 'page' ? 0 : name === 'pageSize' ? 1 : 2
     return priority(left) - priority(right)
   })
-  for (const name of orderedParameters)
+  for (const name of orderedParameters) {
+    if (name === 'sort' && input[name] !== undefined) {
+      parameters.append(name, serializeSortInput(input[name]))
+      continue
+    }
     appendValue(parameters, name, input[name])
+  }
   return parameters.toString()
 }
 

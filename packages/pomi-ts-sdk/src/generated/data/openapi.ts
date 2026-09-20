@@ -1546,6 +1546,8 @@ export interface operations {
                         in?: number[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -1601,6 +1603,8 @@ export interface operations {
                         in?: string[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -2881,6 +2885,8 @@ export interface operations {
                         in?: ("ALL_PERIODS" | "ODD_PERIODS" | "EVEN_PERIODS" | "UNIT_DISCRETION")[];
                     };
                 };
+
+                sort?: string;
             };
             header?: never;
             path?: never;
@@ -3795,6 +3801,8 @@ export interface operations {
                         in?: string[];
                     };
                 };
+
+                sort?: string;
                 q?: string;
             };
             header?: never;
