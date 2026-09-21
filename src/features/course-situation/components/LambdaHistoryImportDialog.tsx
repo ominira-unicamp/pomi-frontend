@@ -1,6 +1,9 @@
 import { useState } from 'react'
 
-import type { StudentHistoryParseResult } from '@/features/student/historyImport/studentHistoryParser'
+import type {
+  StudentHistoryImportSemester,
+  StudentHistoryParseResult,
+} from '@/features/student/historyImport/studentHistoryParser'
 import {
   studentHistoryImportFormat,
   studentHistoryImportVersion,
@@ -14,21 +17,48 @@ import { Input } from '@/components/ui/input'
 const LAMBDA_URL =
   'https://n4aomvseqbz4qp35mdlhp6mpqu0njzqr.lambda-url.sa-east-1.on.aws/'
 
+// Shape of the lambda response
+type LambdaNotasDisciplina = Readonly<{
+  disciplina: string
+  turma: string
+  nota: string
+  situacao: string
+}>
+
+type LambdaNotasEntry = Readonly<{
+  ano: number
+  periodo: string
+  disciplinas: ReadonlyArray<LambdaNotasDisciplina>
+}>
+
+type LambdaGradeHorariaEntry = Readonly<{
+  ano: number
+  periodo: number
+  tipoPeriodo: string
+  nomeDisciplina: string
+  codigoDisciplina: string
+  codigoTurma: string
+  horarios: ReadonlyArray<{ dia: number; hora: number; sala: string }>
+}>
+
 type LambdaResponse = Readonly<{
-  tamanho: number
-  retorno: ReadonlyArray<{
-    ano: number
-    periodo: string
-    disciplinas: ReadonlyArray<{
-      disciplina: string
-      turma: string
-      nota: string
-      situacao: string
-    }>
+  notas: Readonly<{
+    tamanho: number
+    retorno: ReadonlyArray<LambdaNotasEntry>
+  }>
+  gradeHoraria: Readonly<{
+    tamanho: number
+    retorno: ReadonlyArray<LambdaGradeHorariaEntry>
   }>
 }>
 
-function parseYearPeriod(
+// Internal course type extended to allow ENROLLED status
+type ImportCourse = StudentHistoryImportSemester['courses'][number]
+type ImportCourseWithEnrolled = Omit<ImportCourse, 'status'> & {
+  status: ImportCourse['status'] | 'ENROLLED'
+}
+
+function parseNotaYearPeriod(
   periodo: string,
 ): 'FIRST_SEMESTER' | 'SECOND_SEMESTER' | null {
   const normalized = periodo.trim()
@@ -37,9 +67,15 @@ function parseYearPeriod(
   return null
 }
 
-function parseSituacao(
-  situacao: string,
-): StudentHistoryParseResult['value']['semesters'][number]['courses'][number]['status'] | null {
+function parseGradeHorariaYearPeriod(
+  periodo: number,
+): 'FIRST_SEMESTER' | 'SECOND_SEMESTER' | null {
+  if (periodo === 1) return 'FIRST_SEMESTER'
+  if (periodo === 2) return 'SECOND_SEMESTER'
+  return null
+}
+
+function parseSituacao(situacao: string): ImportCourse['status'] | null {
   const normalized = situacao.trim()
   if (normalized.includes('Aprovado por Nota')) return 'APPROVED'
   if (
@@ -59,41 +95,79 @@ function parseSituacao(
 
 function lambdaResponseToParseResult(
   data: LambdaResponse,
-  username: string
+  username: string,
 ): StudentHistoryParseResult {
-  const semesters = data.retorno
-    .map((entry) => {
-      const yearPeriod = parseYearPeriod(entry.periodo)
-      if (!yearPeriod) return null
+  // Build a map from "year:yearPeriod" → semester (mutable during build)
+  const semesterMap = new Map<
+    string,
+    { year: number; yearPeriod: 'FIRST_SEMESTER' | 'SECOND_SEMESTER'; courses: Array<ImportCourseWithEnrolled> }
+  >()
 
-      const courses = entry.disciplinas
-        .map((disc) => {
-          const status = parseSituacao(disc.situacao)
-          if (!status) return null
-          const notaNum = parseFloat(disc.nota)
-          return {
-            code: disc.disciplina.trim(),
-            name: disc.disciplina.trim(),
-            grade: isNaN(notaNum) ? null : notaNum,
-            workloadHours: null,
-            credits: null,
-            status,
-          } as const
-        })
-        .filter((c): c is NonNullable<typeof c> => c !== null)
+  // Process currently enrolled subjects (gradeHoraria) — add as ENROLLED
+  for (const entry of data.gradeHoraria.retorno) {
+    const yearPeriod = parseGradeHorariaYearPeriod(entry.periodo)
+    if (!yearPeriod) continue
 
-      return { year: entry.ano, yearPeriod, courses } as const
+    const key = `${entry.ano}:${yearPeriod}`
+    const semester = semesterMap.get(key) ?? {
+      year: entry.ano,
+      yearPeriod,
+      courses: [],
+    }
+
+    semester.courses.push({
+      code: entry.codigoDisciplina.trim(),
+      name: entry.nomeDisciplina.trim(),
+      grade: null,
+      workloadHours: null,
+      credits: null,
+      status: 'ENROLLED',
     })
-    .filter(
-      (s): s is NonNullable<typeof s> => s !== null && s.courses.length > 0,
-    )
+
+    semesterMap.set(key, semester)
+  }
+
+  // Process completed-course history (notas)
+  for (const entry of data.notas.retorno) {
+    const yearPeriod = parseNotaYearPeriod(entry.periodo)
+    if (!yearPeriod) continue
+
+    const key = `${entry.ano}:${yearPeriod}`
+    const semester = semesterMap.get(key) ?? {
+      year: entry.ano,
+      yearPeriod,
+      courses: [],
+    }
+
+    for (const disc of entry.disciplinas) {
+      const status = parseSituacao(disc.situacao)
+      if (!status) continue
+      const notaNum = parseFloat(disc.nota)
+      semester.courses.push({
+        code: disc.disciplina.trim(),
+        name: disc.disciplina.trim(),
+        grade: isNaN(notaNum) ? null : notaNum,
+        workloadHours: null,
+        credits: null,
+        status,
+      })
+    }
+
+    semesterMap.set(key, semester)
+  }
+
+  const semesters = [...semesterMap.values()].filter(
+    (s) => s.courses.length > 0,
+  )
 
   return {
     value: {
       format: studentHistoryImportFormat,
       version: studentHistoryImportVersion,
       student: { ra: username },
-      semesters,
+      // Cast needed because ENROLLED is not in the parser's narrow status union
+      // but the backend accepts it for course history imports
+      semesters: semesters as unknown as Array<StudentHistoryImportSemester>,
     },
     warnings: [],
   }
@@ -135,12 +209,12 @@ export function LambdaHistoryImportDialog({
         throw new Error(`Erro ${response.status}: ${response.statusText}`)
       }
       const data = (await response.json()) as LambdaResponse
-      if (data.retorno.length === 0) {
+      if (data.notas.retorno.length === 0) {
         throw new Error('Nenhum dado encontrado para este usuário.')
       }
-      const result = lambdaResponseToParseResult(data, username)
+      const result = lambdaResponseToParseResult(data, username.trim())
       if (result.value.semesters.length === 0) {
-        throw new Error('Nenhum semestre reconhecido nos dados retornados.')
+        throw new Error('Nenhum dado reconhecido nos dados retornados.')
       }
       onOpenChange(false)
       setUsername('')
