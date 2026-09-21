@@ -1423,7 +1423,11 @@ export interface components {
         ClassEntity: {
             id: number;
             code: string;
-            reservations: number[];
+            reservationPrograms: {
+                id: number;
+                code: number;
+                name: string;
+            }[];
             courseId: number;
             studyPeriodId: number;
             professorIds: number[];

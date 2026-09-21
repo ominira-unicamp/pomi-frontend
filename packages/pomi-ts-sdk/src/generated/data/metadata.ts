@@ -2636,10 +2636,27 @@ export const componentSchemas = {
             "code": {
                 "type": "string"
             },
-            "reservations": {
+            "reservationPrograms": {
                 "type": "array",
                 "items": {
-                    "type": "integer"
+                    "type": "object",
+                    "properties": {
+                        "id": {
+                            "type": "integer"
+                        },
+                        "code": {
+                            "type": "integer"
+                        },
+                        "name": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "id",
+                        "code",
+                        "name"
+                    ],
+                    "additionalProperties": false
                 }
             },
             "courseId": {
@@ -2727,7 +2744,7 @@ export const componentSchemas = {
         "required": [
             "id",
             "code",
-            "reservations",
+            "reservationPrograms",
             "courseId",
             "studyPeriodId",
             "professorIds",

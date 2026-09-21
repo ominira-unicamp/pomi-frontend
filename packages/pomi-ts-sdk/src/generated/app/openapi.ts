@@ -997,7 +997,11 @@ export interface components {
         PeriodPlanningClass: {
             id: number;
             code: string;
-            reservations: number[];
+            reservationPrograms: {
+                id: number;
+                code: number;
+                name: string;
+            }[];
             courseId: number;
             courseCode: string;
             courseCredits: number;

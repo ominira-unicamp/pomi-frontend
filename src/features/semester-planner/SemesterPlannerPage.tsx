@@ -263,29 +263,53 @@ export function SemesterPlannerPage({
     setManualCourseIds(guide.manualCourseIds)
   }, [document.guide])
 
-  const anonymousCatalogPrograms =
-    anonymousCurriculumDataQuery.data?.catalogPrograms ?? []
-  const anonymousCatalogs = [
-    ...new Map(
-      anonymousCatalogPrograms.map((catalogProgram) => [
-        catalogProgram.catalog.id,
-        {
-          value: catalogProgram.catalog.id,
-          label: `Catálogo ${catalogProgram.catalog.year}`,
-        },
-      ]),
-    ).values(),
-  ].sort((left, right) => right.label.localeCompare(left.label))
-  const anonymousPrograms = anonymousCatalogPrograms
-    .filter(
-      (catalogProgram) => catalogProgram.catalog.id === anonymousCatalogId,
-    )
-    .sort((left, right) => compareProgramCodes(left.program, right.program))
-  const programCatalogPrograms = anonymousCatalogPrograms
-    .filter((catalogProgram) => catalogProgram.catalog.id === programCatalogId)
-    .sort((left, right) => compareProgramCodes(left.program, right.program))
-  const selectedProgramCatalog = anonymousCatalogPrograms.find(
-    (catalogProgram) => catalogProgram.id === programCatalogProgramId,
+  const anonymousCatalogPrograms = useMemo(
+    () => anonymousCurriculumDataQuery.data?.catalogPrograms ?? [],
+    [anonymousCurriculumDataQuery.data?.catalogPrograms],
+  )
+  const anonymousCatalogs = useMemo(
+    () =>
+      [
+        ...new Map(
+          anonymousCatalogPrograms.map((catalogProgram) => [
+            catalogProgram.catalog.id,
+            {
+              value: catalogProgram.catalog.id,
+              label: `Catálogo ${catalogProgram.catalog.year}`,
+            },
+          ]),
+        ).values(),
+      ].sort((left, right) => right.label.localeCompare(left.label)),
+    [anonymousCatalogPrograms],
+  )
+  const anonymousPrograms = useMemo(
+    () =>
+      anonymousCatalogPrograms
+        .filter(
+          (catalogProgram) => catalogProgram.catalog.id === anonymousCatalogId,
+        )
+        .sort((left, right) =>
+          compareProgramCodes(left.program, right.program),
+        ),
+    [anonymousCatalogId, anonymousCatalogPrograms],
+  )
+  const programCatalogPrograms = useMemo(
+    () =>
+      anonymousCatalogPrograms
+        .filter(
+          (catalogProgram) => catalogProgram.catalog.id === programCatalogId,
+        )
+        .sort((left, right) =>
+          compareProgramCodes(left.program, right.program),
+        ),
+    [anonymousCatalogPrograms, programCatalogId],
+  )
+  const selectedProgramCatalog = useMemo(
+    () =>
+      anonymousCatalogPrograms.find(
+        (catalogProgram) => catalogProgram.id === programCatalogProgramId,
+      ),
+    [anonymousCatalogPrograms, programCatalogProgramId],
   )
   useEffect(() => {
     const profile = studentProfileQuery.data
@@ -423,6 +447,265 @@ export function SemesterPlannerPage({
     placeholderData: (previous) => previous,
   })
   const snapshot = snapshotQuery.data
+
+  const loadedView = useMemo(() => {
+    if (!query.data || !snapshot) return undefined
+
+    const selectedIds = new Set(document.classIds)
+    const selectedClassIdsWithConflict = new Set(
+      snapshot.conflicts.flatMap((conflict) => [
+        conflict.classId,
+        conflict.conflictingClassId,
+      ]),
+    )
+    const courseById = new Map<number, (typeof query.data.courses)[number]>(
+      query.data.courses.map((course) => [course.id, course]),
+    )
+    for (const course of anonymousCurriculumDataQuery.data?.courses ?? []) {
+      const courseId = Number(course.id)
+      if (!courseById.has(courseId)) {
+        courseById.set(courseId, {
+          id: courseId,
+          code: course.code,
+          name: course.name,
+          credits: course.credits,
+        })
+      }
+    }
+    const classById = new Map(query.data.classes.map((item) => [item.id, item]))
+    const plannerSummary = buildSemesterPlannerSummary({
+      selectedClasses: snapshot.selectedClasses,
+      coursesById: courseById,
+      meetings: query.data.meetings,
+      conflicts: snapshot.conflicts,
+    })
+    const detailedConflicts = buildDetailedScheduleConflicts({
+      conflicts: snapshot.conflicts,
+      classesById: classById,
+      meetings: query.data.meetings,
+    })
+    const curriculumPeriodPositions = new Map(
+      curriculumQuery.data?.periods.map((period) => [
+        String(period.id),
+        period.position,
+      ]) ?? [],
+    )
+    const curriculumGuideCourses =
+      guideSource === 'saved' && guideCurriculumId
+        ? (curriculumQuery.data?.courses ?? []).flatMap((item) => {
+            const course = courseById.get(Number(item.courseId))
+            if (!course) return []
+            return [
+              {
+                course,
+                semester: item.periodId
+                  ? (curriculumPeriodPositions.get(String(item.periodId)) ?? 0)
+                  : 0,
+              },
+            ]
+          })
+        : guideSource === 'suggestion' && anonymousSuggestionCourseIds
+          ? anonymousSuggestionCourseIds.flatMap((semester) =>
+              semester.courseIds.flatMap((courseId) => {
+                const course = courseById.get(courseId)
+                return course ? [{ course, semester: semester.semester }] : []
+              }),
+            )
+          : []
+    const guideCourses = curriculumGuideCourses.filter(
+      (item, index, items) =>
+        items.findIndex((other) => other.course.id === item.course.id) ===
+        index,
+    )
+    const scheduledCourseIds = new Set(
+      document.classIds.flatMap((classId) => {
+        const courseId = classById.get(classId)?.courseId
+        return courseId === undefined ? [] : [courseId]
+      }),
+    )
+    const selectedProgramBlocks = programGuideBlocks(
+      selectedProgramCatalog,
+      programSpecializationId,
+      programLanguageId,
+    )
+    const guideClassContext = buildGuideClassContext(
+      guideMode,
+      guideCourses,
+      selectedProgramBlocks,
+      manualCourseIds,
+      courseById,
+    )
+    const filteredGuideClasses = filterClassesGuide({
+      filters,
+      courses: query.data.courses,
+      classes: query.data.classes,
+      meetings: query.data.meetings,
+      selectedClassIds: selectedIds,
+      completedCourseIds,
+      guideClassContext,
+    })
+    const disciplineGuideClasses = filterClassesGuide({
+      filters: { ...filters, courseId: '' },
+      courses: query.data.courses,
+      classes: query.data.classes,
+      meetings: query.data.meetings,
+      selectedClassIds: selectedIds,
+      completedCourseIds,
+      guideClassContext,
+    })
+    const courseClassAvailability = buildCourseClassAvailability({
+      classes: query.data.classes,
+      matchingClasses: disciplineGuideClasses,
+    })
+    const matchingCourseIds = new Set(
+      disciplineGuideClasses.map((classItem) => classItem.courseId),
+    )
+    const selectedCourseIds = new Set(
+      query.data.classes
+        .filter((classItem) => selectedIds.has(classItem.id))
+        .map((classItem) => classItem.courseId),
+    )
+    const normalizedDisciplineSearch = filters.search
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase('pt-BR')
+    const hasRestrictiveGuideFilters = Boolean(
+      filters.search ||
+      filters.start ||
+      filters.end ||
+      filters.timePeriods.length ||
+      filters.days.length ||
+      filters.withoutConflict ||
+      filters.withoutCompleted ||
+      filters.withoutIncluded,
+    )
+    const disciplineMatchesFilters = (course: SemesterCourse) => {
+      if (matchingCourseIds.has(course.id)) return true
+      if (filters.withoutCompleted && completedCourseIds.has(course.id))
+        return false
+      if (filters.withoutIncluded && selectedCourseIds.has(course.id))
+        return false
+      if (
+        normalizedDisciplineSearch &&
+        !`${course.code} ${course.name}`
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLocaleLowerCase('pt-BR')
+          .includes(normalizedDisciplineSearch)
+      )
+        return false
+      const totalClasses = courseClassAvailability.get(course.id)?.total ?? 0
+      if (totalClasses === 0) return !filters.withoutUnavailable
+      return hasRestrictiveGuideFilters
+    }
+    const disciplineResultCount = [...matchingCourseIds].filter(
+      (courseId) => !scheduledCourseIds.has(courseId),
+    ).length
+    const manualCourseIdSet = new Set(manualCourseIds)
+    function coursesForElectiveRequirement(
+      requirement: (typeof selectedProgramBlocks)[number]['blocks']['electives'][number],
+    ) {
+      const courseIds = new Set<number>()
+      for (const selector of requirement.eligibleCourses) {
+        if (selector.type === 'specificCourse') {
+          courseIds.add(Number(selector.courseId))
+          continue
+        }
+        if (selector.type === 'prefix') {
+          const prefix = selector.prefix.toUpperCase()
+          for (const course of courseById.values()) {
+            if (course.code.toUpperCase().startsWith(prefix))
+              courseIds.add(course.id)
+          }
+        }
+      }
+      return [...courseIds]
+        .flatMap((courseId) => {
+          const course = courseById.get(courseId)
+          return course &&
+            !scheduledCourseIds.has(course.id) &&
+            !manualCourseIdSet.has(course.id) &&
+            disciplineMatchesFilters(course)
+            ? [course]
+            : []
+        })
+        .sort((left, right) => left.code.localeCompare(right.code, 'pt-BR'))
+    }
+    const visibleManualCourses = manualCourseIds.flatMap((courseId) => {
+      const course = courseById.get(courseId)
+      return course &&
+        !scheduledCourseIds.has(course.id) &&
+        disciplineMatchesFilters(course)
+        ? [{ course, semester: 0 }]
+        : []
+    })
+    const visibleDisciplineGroups = guideCourses
+      .filter(
+        ({ course }) =>
+          !scheduledCourseIds.has(course.id) &&
+          !manualCourseIdSet.has(course.id) &&
+          disciplineMatchesFilters(course),
+      )
+      .reduce<Array<{ semester: number; courses: typeof guideCourses }>>(
+        (groups, item) => {
+          const group = groups.at(-1)
+          if (group?.semester === item.semester) group.courses.push(item)
+          else {
+            const existing = groups.find(
+              (candidate) => candidate.semester === item.semester,
+            )
+            if (existing) existing.courses.push(item)
+            else groups.push({ semester: item.semester, courses: [item] })
+          }
+          return groups
+        },
+        [],
+      )
+      .sort((left, right) => left.semester - right.semester)
+      .map((group) => ({
+        ...group,
+        courses: [...group.courses].sort((left, right) =>
+          left.course.code.localeCompare(right.course.code),
+        ),
+      }))
+
+    return {
+      classById,
+      courseById,
+      courseClassAvailability,
+      coursesForElectiveRequirement,
+      detailedConflicts,
+      disciplineMatchesFilters,
+      disciplineResultCount,
+      filteredGuideClasses,
+      guideClassContext,
+      hasRestrictiveGuideFilters,
+      manualCourseIdSet,
+      plannerSummary,
+      scheduledCourseIds,
+      selectedClassIdsWithConflict,
+      selectedIds,
+      selectedProgramBlocks,
+      visibleDisciplineGroups,
+      visibleManualCourses,
+    }
+  }, [
+    anonymousCurriculumDataQuery.data,
+    anonymousSuggestionCourseIds,
+    completedCourseIds,
+    curriculumQuery.data,
+    document.classIds,
+    filters,
+    guideCurriculumId,
+    guideMode,
+    guideSource,
+    manualCourseIds,
+    programLanguageId,
+    programSpecializationId,
+    query.data,
+    selectedProgramCatalog,
+    snapshot,
+  ])
 
   async function dispatch(
     command: Parameters<NonNullable<typeof planner>['dispatch']>[0],
@@ -646,39 +929,26 @@ export function SemesterPlannerPage({
     )
   }
 
-  const selectedIds = new Set(document.classIds)
-  const selectedClassIdsWithConflict = new Set(
-    snapshot.conflicts.flatMap((conflict) => [
-      conflict.classId,
-      conflict.conflictingClassId,
-    ]),
-  )
-  const courseById = new Map<number, (typeof query.data.courses)[number]>(
-    query.data.courses.map((course) => [course.id, course]),
-  )
-  for (const course of anonymousCurriculumDataQuery.data?.courses ?? []) {
-    const courseId = Number(course.id)
-    if (!courseById.has(courseId)) {
-      courseById.set(courseId, {
-        id: courseId,
-        code: course.code,
-        name: course.name,
-        credits: course.credits,
-      })
-    }
-  }
-  const classById = new Map(query.data.classes.map((item) => [item.id, item]))
-  const plannerSummary = buildSemesterPlannerSummary({
-    selectedClasses: snapshot.selectedClasses,
-    coursesById: courseById,
-    meetings: query.data.meetings,
-    conflicts: snapshot.conflicts,
-  })
-  const detailedConflicts = buildDetailedScheduleConflicts({
-    conflicts: snapshot.conflicts,
-    classesById: classById,
-    meetings: query.data.meetings,
-  })
+  const {
+    classById,
+    courseById,
+    courseClassAvailability,
+    coursesForElectiveRequirement,
+    detailedConflicts,
+    disciplineMatchesFilters,
+    disciplineResultCount,
+    filteredGuideClasses,
+    guideClassContext,
+    hasRestrictiveGuideFilters,
+    manualCourseIdSet,
+    plannerSummary,
+    scheduledCourseIds,
+    selectedClassIdsWithConflict,
+    selectedIds,
+    selectedProgramBlocks,
+    visibleDisciplineGroups,
+    visibleManualCourses,
+  } = loadedView!
   const selectedClassDetails = selectedClassDetailsId
     ? classById.get(selectedClassDetailsId)
     : undefined
@@ -690,189 +960,7 @@ export function SemesterPlannerPage({
       ?.year ??
     mostRecentStudyPeriodsFirst(query.data.studyPeriods).at(0)?.year ??
     new Date().getFullYear()
-  const curriculumPeriodPositions = new Map(
-    curriculumQuery.data?.periods.map((period) => [
-      String(period.id),
-      period.position,
-    ]) ?? [],
-  )
-  const curriculumGuideCourses =
-    guideSource === 'saved' && guideCurriculumId
-      ? (curriculumQuery.data?.courses ?? []).flatMap((item) => {
-          const course = courseById.get(Number(item.courseId))
-          if (!course) return []
-          return [
-            {
-              course,
-              semester: item.periodId
-                ? (curriculumPeriodPositions.get(String(item.periodId)) ?? 0)
-                : 0,
-            },
-          ]
-        })
-      : guideSource === 'suggestion' && anonymousSuggestionCourseIds
-        ? anonymousSuggestionCourseIds.flatMap((semester) =>
-            semester.courseIds.flatMap((courseId) => {
-              const course = courseById.get(courseId)
-              return course ? [{ course, semester: semester.semester }] : []
-            }),
-          )
-        : []
-  const guideCourses = curriculumGuideCourses.filter(
-    (item, index, items) =>
-      items.findIndex((other) => other.course.id === item.course.id) === index,
-  )
-  const scheduledCourseIds = new Set(
-    document.classIds.flatMap((classId) => {
-      const courseId = classById.get(classId)?.courseId
-      return courseId === undefined ? [] : [courseId]
-    }),
-  )
-  const selectedProgramBlocks = programGuideBlocks(
-    selectedProgramCatalog,
-    programSpecializationId,
-    programLanguageId,
-  )
-  const guideClassContext = buildGuideClassContext(
-    guideMode,
-    guideCourses,
-    selectedProgramBlocks,
-    manualCourseIds,
-    courseById,
-  )
-  const filteredGuideClasses = filterClassesGuide({
-    filters,
-    courses: query.data.courses,
-    classes: query.data.classes,
-    meetings: query.data.meetings,
-    selectedClassIds: selectedIds,
-    completedCourseIds,
-    guideClassContext,
-  })
-  const disciplineGuideClasses = filterClassesGuide({
-    filters: { ...filters, courseId: '' },
-    courses: query.data.courses,
-    classes: query.data.classes,
-    meetings: query.data.meetings,
-    selectedClassIds: selectedIds,
-    completedCourseIds,
-    guideClassContext,
-  })
-  const courseClassAvailability = buildCourseClassAvailability({
-    classes: query.data.classes,
-    matchingClasses: disciplineGuideClasses,
-  })
-  const matchingCourseIds = new Set(
-    disciplineGuideClasses.map((classItem) => classItem.courseId),
-  )
-  const selectedCourseIds = new Set(
-    query.data.classes
-      .filter((classItem) => selectedIds.has(classItem.id))
-      .map((classItem) => classItem.courseId),
-  )
-  const normalizedDisciplineSearch = filters.search
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLocaleLowerCase('pt-BR')
-  const disciplineMatchesFilters = (course: SemesterCourse) => {
-    if (matchingCourseIds.has(course.id)) return true
-    if (filters.withoutCompleted && completedCourseIds.has(course.id))
-      return false
-    if (filters.withoutIncluded && selectedCourseIds.has(course.id))
-      return false
-    if (
-      normalizedDisciplineSearch &&
-      !`${course.code} ${course.name}`
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLocaleLowerCase('pt-BR')
-        .includes(normalizedDisciplineSearch)
-    )
-      return false
-    const totalClasses = courseClassAvailability.get(course.id)?.total ?? 0
-    if (totalClasses === 0) return !filters.withoutUnavailable
-    return hasRestrictiveGuideFilters
-  }
-  const disciplineResultCount = [...matchingCourseIds].filter(
-    (courseId) => !scheduledCourseIds.has(courseId),
-  ).length
-  const hasRestrictiveGuideFilters = Boolean(
-    filters.search ||
-    filters.start ||
-    filters.end ||
-    filters.timePeriods.length ||
-    filters.days.length ||
-    filters.withoutConflict ||
-    filters.withoutCompleted ||
-    filters.withoutIncluded,
-  )
-  const manualCourseIdSet = new Set(manualCourseIds)
-  function coursesForElectiveRequirement(
-    requirement: (typeof selectedProgramBlocks)[number]['blocks']['electives'][number],
-  ) {
-    const courseIds = new Set<number>()
-    for (const selector of requirement.eligibleCourses) {
-      if (selector.type === 'specificCourse') {
-        courseIds.add(Number(selector.courseId))
-        continue
-      }
-      if (selector.type === 'prefix') {
-        const prefix = selector.prefix.toUpperCase()
-        for (const course of courseById.values()) {
-          if (course.code.toUpperCase().startsWith(prefix))
-            courseIds.add(course.id)
-        }
-      }
-    }
-    return [...courseIds]
-      .flatMap((courseId) => {
-        const course = courseById.get(courseId)
-        return course &&
-          !scheduledCourseIds.has(course.id) &&
-          !manualCourseIdSet.has(course.id) &&
-          disciplineMatchesFilters(course)
-          ? [course]
-          : []
-      })
-      .sort((left, right) => left.code.localeCompare(right.code, 'pt-BR'))
-  }
-  const visibleManualCourses = manualCourseIds.flatMap((courseId) => {
-    const course = courseById.get(courseId)
-    return course &&
-      !scheduledCourseIds.has(course.id) &&
-      disciplineMatchesFilters(course)
-      ? [{ course, semester: 0 }]
-      : []
-  })
-  const visibleDisciplineGroups = guideCourses
-    .filter(
-      ({ course }) =>
-        !scheduledCourseIds.has(course.id) &&
-        !manualCourseIdSet.has(course.id) &&
-        disciplineMatchesFilters(course),
-    )
-    .reduce<Array<{ semester: number; courses: typeof guideCourses }>>(
-      (groups, item) => {
-        const group = groups.at(-1)
-        if (group?.semester === item.semester) group.courses.push(item)
-        else {
-          const existing = groups.find(
-            (candidate) => candidate.semester === item.semester,
-          )
-          if (existing) existing.courses.push(item)
-          else groups.push({ semester: item.semester, courses: [item] })
-        }
-        return groups
-      },
-      [],
-    )
-    .sort((left, right) => left.semester - right.semester)
-    .map((group) => ({
-      ...group,
-      courses: [...group.courses].sort((left, right) =>
-        left.course.code.localeCompare(right.course.code),
-      ),
-    }))
+
   const suggestionSelector = (
     <div className="space-y-3">
       <label className="block text-xs font-extrabold">
