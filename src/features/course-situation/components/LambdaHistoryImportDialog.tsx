@@ -114,7 +114,7 @@ function lambdaResponseToParseResult(
     semester.courses.push({
       code: entry.codigoDisciplina.trim(),
       name: entry.nomeDisciplina.trim(),
-      classCode: entry.codigoTurma.trim(),
+      classCode: entry.codigoTurma.trim() || null,
       grade: null,
       workloadHours: null,
       credits: null,
@@ -143,7 +143,7 @@ function lambdaResponseToParseResult(
       semester.courses.push({
         code: disc.disciplina.trim(),
         name: disc.disciplina.trim(),
-        classCode: disc.turma.trim(),
+        classCode: disc.turma.trim() || null,
         grade: isNaN(notaNum) ? null : notaNum,
         workloadHours: null,
         credits: null,
