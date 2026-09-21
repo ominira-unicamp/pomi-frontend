@@ -1271,7 +1271,7 @@ export interface components {
             }[];
         };
 
-        HistoryCourseStatus: "APPROVED" | "APPROVED_BY_ATTENDANCE" | "APPROVED_BY_PROFICIENCY" | "DROPPED" | "FAILED_BY_ATTENDANCE" | "SUFFICIENT";
+        HistoryCourseStatus: "ENROLLED" | "APPROVED" | "APPROVED_BY_ATTENDANCE" | "APPROVED_BY_PROFICIENCY" | "DROPPED" | "FAILED_BY_ATTENDANCE" | "SUFFICIENT";
         StudentAbsence: {
             id: number;
             studentCourseAttemptId: number;

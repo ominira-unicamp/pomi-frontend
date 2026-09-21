@@ -2515,6 +2515,7 @@ export const componentSchemas = {
     "HistoryCourseStatus": {
         "type": "string",
         "enum": [
+            "ENROLLED",
             "APPROVED",
             "APPROVED_BY_ATTENDANCE",
             "APPROVED_BY_PROFICIENCY",
@@ -3838,6 +3839,7 @@ export const enumValues = {
         "INSUFFICIENT"
     ],
     "HistoryCourseStatus": [
+        "ENROLLED",
         "APPROVED",
         "APPROVED_BY_ATTENDANCE",
         "APPROVED_BY_PROFICIENCY",

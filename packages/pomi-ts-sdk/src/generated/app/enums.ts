@@ -25,7 +25,7 @@ export type CourseEvaluationMode = (typeof courseEvaluationModeValues)[number]
 export const studentCourseAttemptStatusValues = ["ENROLLED", "DROPPED", "APPROVED", "FAILED_BY_GRADE", "APPROVED_BY_ATTENDANCE", "APPROVED_BY_PROFICIENCY", "FAILED_BY_ATTENDANCE", "SUFFICIENT", "INSUFFICIENT"] as const
 export type StudentCourseAttemptStatus = (typeof studentCourseAttemptStatusValues)[number]
 
-export const historyCourseStatusValues = ["APPROVED", "APPROVED_BY_ATTENDANCE", "APPROVED_BY_PROFICIENCY", "DROPPED", "FAILED_BY_ATTENDANCE", "SUFFICIENT"] as const
+export const historyCourseStatusValues = ["ENROLLED", "APPROVED", "APPROVED_BY_ATTENDANCE", "APPROVED_BY_PROFICIENCY", "DROPPED", "FAILED_BY_ATTENDANCE", "SUFFICIENT"] as const
 export type HistoryCourseStatus = (typeof historyCourseStatusValues)[number]
 
 export const studentProfileVisibilityValues = ["PRIVATE", "FRIENDS", "PUBLIC"] as const
