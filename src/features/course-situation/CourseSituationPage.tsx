@@ -41,6 +41,7 @@ import { CourseAttemptDialog } from '@/features/course-situation/components/Cour
 import { CourseHistorySection } from '@/features/course-situation/components/CourseHistorySection'
 import { EnrolledCoursesSection } from '@/features/course-situation/components/EnrolledCoursesSection'
 import { HistoryImportDialog } from '@/features/course-situation/components/HistoryImportDialog'
+import { LambdaHistoryImportDialog } from '@/features/course-situation/components/LambdaHistoryImportDialog'
 import {
   groupCourseHistory,
   parseGrade,
@@ -97,6 +98,7 @@ export function CourseSituationPage() {
     useState<StudentHistoryParseResult>()
   const [historyImportSummary, setHistoryImportSummary] =
     useState<StudentHistoryImportSummary>()
+  const [lambdaImportOpen, setLambdaImportOpen] = useState(false)
 
   const {
     auth,
@@ -502,6 +504,7 @@ export function CourseSituationPage() {
             onEvaluate={setEvaluationTarget}
             onEdit={openEdit}
             onRemove={setRemovalAttemptId}
+            onLambdaImport={() => setLambdaImportOpen(true)}
           />
         </TabsContent>
       </Tabs>
@@ -512,6 +515,13 @@ export function CourseSituationPage() {
           if (!open && !historyImporting) setPendingHistoryImport(undefined)
         }}
         onConfirm={() => void confirmHistoryImport()}
+      />
+      <LambdaHistoryImportDialog
+        open={lambdaImportOpen}
+        onOpenChange={setLambdaImportOpen}
+        onResult={(result) => {
+          setPendingHistoryImport(result)
+        }}
       />
       <Dialog
         open={removalAttemptId !== undefined}

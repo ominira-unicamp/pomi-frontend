@@ -1,4 +1,4 @@
-import { Upload } from 'lucide-react'
+import { Globe, Upload } from 'lucide-react'
 import { CourseAttemptRow } from './CourseAttemptRow'
 import type { ChangeEvent, RefObject } from 'react'
 
@@ -33,6 +33,7 @@ export function CourseHistorySection({
   onEvaluate,
   onEdit,
   onRemove,
+  onLambdaImport,
 }: {
   groups: ReadonlyArray<CourseHistoryGroup>
   fileInputRef: RefObject<HTMLInputElement | null>
@@ -46,6 +47,7 @@ export function CourseHistorySection({
   onEvaluate: (target: ProfessorEvaluationTarget) => void
   onEdit: (attempt: StudentCourseAttempt) => void
   onRemove: (attemptId: number) => void
+  onLambdaImport: () => void
 }) {
   return (
     <div className="space-y-5">
@@ -73,6 +75,26 @@ export function CourseHistorySection({
             onClick={() => fileInputRef.current?.click()}
           >
             <Upload /> {importing ? 'Lendo…' : 'Escolher PDF'}
+          </Button>
+        </SectionHeader>
+      </Section>
+      <Section variant="bordered">
+        <SectionHeader className="mb-0 sm:items-center">
+          <div>
+            <SectionTitle className="text-base">
+              Buscar via DAC
+            </SectionTitle>
+            <SectionDescription>
+              Informe seu usuário e senha da DAC para importar o histórico
+              automaticamente. (Utilize com cautela, funcionalidade em beta)
+            </SectionDescription>
+          </div>
+          <Button
+            className="shrink-0"
+            disabled={importing}
+            onClick={onLambdaImport}
+          >
+            <Globe /> Buscar histórico
           </Button>
         </SectionHeader>
       </Section>
