@@ -52,11 +52,7 @@ type LambdaResponse = Readonly<{
   }>
 }>
 
-// Internal course type extended to allow ENROLLED status
 type ImportCourse = StudentHistoryImportSemester['courses'][number]
-type ImportCourseWithEnrolled = Omit<ImportCourse, 'status'> & {
-  status: ImportCourse['status'] | 'ENROLLED'
-}
 
 function parseNotaYearPeriod(
   periodo: string,
@@ -100,7 +96,7 @@ function lambdaResponseToParseResult(
   // Build a map from "year:yearPeriod" → semester (mutable during build)
   const semesterMap = new Map<
     string,
-    { year: number; yearPeriod: 'FIRST_SEMESTER' | 'SECOND_SEMESTER'; courses: Array<ImportCourseWithEnrolled> }
+    { year: number; yearPeriod: 'FIRST_SEMESTER' | 'SECOND_SEMESTER'; courses: Array<ImportCourse> }
   >()
 
   // Process currently enrolled subjects (gradeHoraria) — add as ENROLLED
@@ -118,6 +114,7 @@ function lambdaResponseToParseResult(
     semester.courses.push({
       code: entry.codigoDisciplina.trim(),
       name: entry.nomeDisciplina.trim(),
+      classCode: entry.codigoTurma.trim(),
       grade: null,
       workloadHours: null,
       credits: null,
@@ -146,6 +143,7 @@ function lambdaResponseToParseResult(
       semester.courses.push({
         code: disc.disciplina.trim(),
         name: disc.disciplina.trim(),
+        classCode: disc.turma.trim(),
         grade: isNaN(notaNum) ? null : notaNum,
         workloadHours: null,
         credits: null,
@@ -165,9 +163,7 @@ function lambdaResponseToParseResult(
       format: studentHistoryImportFormat,
       version: studentHistoryImportVersion,
       student: { ra: username },
-      // Cast needed because ENROLLED is not in the parser's narrow status union
-      // but the backend accepts it for course history imports
-      semesters: semesters as unknown as Array<StudentHistoryImportSemester>,
+      semesters,
     },
     warnings: [],
   }

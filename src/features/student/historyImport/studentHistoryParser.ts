@@ -1,36 +1,15 @@
 import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs'
 import pdfWorkerUrl from 'pdfjs-dist/legacy/build/pdf.worker.mjs?url'
 
+import type { createStudentHistoryInput } from '@ominira/pomi-sdk/generated/app'
+
 export const studentHistoryImportFormat = 'pomi-student-history'
 export const studentHistoryImportVersion = 1
 
-export type StudentHistoryImportCourse = Readonly<{
-  code: string
-  name: string
-  grade: number | null
-  workloadHours: number | null
-  credits: number | null
-  status:
-    | 'APPROVED'
-    | 'APPROVED_BY_ATTENDANCE'
-    | 'APPROVED_BY_PROFICIENCY'
-    | 'DROPPED'
-    | 'FAILED_BY_ATTENDANCE'
-    | 'SUFFICIENT'
-}>
+export type StudentHistoryImport = createStudentHistoryInput['body']
+export type StudentHistoryImportSemester = StudentHistoryImport['semesters'][number]
+export type StudentHistoryImportCourse = StudentHistoryImportSemester['courses'][number]
 
-export type StudentHistoryImportSemester = Readonly<{
-  year: number
-  yearPeriod: 'FIRST_SEMESTER' | 'SECOND_SEMESTER' | 'SUMMER' | 'WINTER'
-  courses: ReadonlyArray<StudentHistoryImportCourse>
-}>
-
-export type StudentHistoryImport = Readonly<{
-  format: typeof studentHistoryImportFormat
-  version: typeof studentHistoryImportVersion
-  student: Readonly<{ ra: string }>
-  semesters: ReadonlyArray<StudentHistoryImportSemester>
-}>
 
 export type StudentHistoryParseWarning = Readonly<{
   page: number | null
@@ -97,7 +76,7 @@ function isNoise(value: string) {
 }
 
 function previousName(lines: ReadonlyArray<string>, index: number) {
-  const names: string[] = []
+  const names: Array<string> = []
   for (let cursor = index - 1; cursor >= 0 && names.length < 3; cursor -= 1) {
     const line = cleanName(lines[cursor] ?? '')
     if (!line || isNoise(line)) continue
@@ -121,12 +100,12 @@ function parseText(text: string): StudentHistoryParseResult {
   const raMatch = text.match(raPattern)
   if (!raMatch) throw new Error('Não foi possível encontrar o RA no histórico.')
 
-  const warnings: StudentHistoryParseWarning[] = []
-  const semesters: StudentHistoryImportSemester[] = []
+  const warnings: Array<StudentHistoryParseWarning> = []
+  const semesters: Array<StudentHistoryImportSemester> = []
   let current: {
     year: number
     yearPeriod: StudentHistoryImportSemester['yearPeriod']
-    courses: StudentHistoryImportCourse[]
+    courses: Array<StudentHistoryImportCourse>
   } | null = null
 
   lines.forEach((line, index) => {
@@ -196,7 +175,7 @@ export async function parseStudentHistoryPdf(file: File) {
   const document = await pdfjs.getDocument({
     data: new Uint8Array(await file.arrayBuffer()),
   }).promise
-  const pages: string[] = []
+  const pages: Array<string> = []
   for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
     const page = await document.getPage(pageNumber)
     const content = await page.getTextContent()
@@ -208,7 +187,7 @@ export async function parseStudentHistoryPdf(file: File) {
       if (!('str' in item) || !('transform' in item)) continue
       const positioned = item as typeof item & {
         str: string
-        transform: number[]
+        transform: Array<number>
         width?: number
       }
       const y = Math.round(positioned.transform[5] ?? 0)
@@ -227,7 +206,7 @@ export async function parseStudentHistoryPdf(file: File) {
           const ordered = items.sort((left, right) => left.x - right.x)
           return ordered.reduce((line, item, index) => {
             if (index === 0) return item.str
-            const previous = ordered[index - 1]!
+            const previous = ordered[index - 1]
             const gap = item.x - (previous.x + previous.width)
             return `${line}${gap > 12 ? '   ' : ' '}${item.str}`
           }, '')
