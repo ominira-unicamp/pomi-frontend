@@ -1263,6 +1263,7 @@ export interface components {
                 courses: {
                     code: string;
                     name: string;
+                    classCode?: string | null;
                     grade: number | null;
                     workloadHours: number | null;
                     credits: number | null;

@@ -2460,6 +2460,11 @@ export const componentSchemas = {
                                         "type": "string",
                                         "minLength": 1
                                     },
+                                    "classCode": {
+                                        "type": "string",
+                                        "nullable": true,
+                                        "minLength": 1
+                                    },
                                     "grade": {
                                         "type": "number",
                                         "nullable": true,
