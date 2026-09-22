@@ -4,11 +4,14 @@ export type CourseOfferingPeriod = (typeof courseOfferingPeriodValues)[number]
 export const courseOfferingKindValues = ["FULL", "PARTIAL", "SPECIAL"] as const
 export type CourseOfferingKind = (typeof courseOfferingKindValues)[number]
 
+export const catalogProgramEntityShiftValues = ["DAYTIME", "NIGHT", null] as const
+export type CatalogProgramEntityShift = (typeof catalogProgramEntityShiftValues)[number]
+
+export const catalogProgramEntityCreditLimitTypeValues = ["NONE", "FIXED", "CR_FORMULA", null] as const
+export type CatalogProgramEntityCreditLimitType = (typeof catalogProgramEntityCreditLimitTypeValues)[number]
+
 export const courseRequirementTypeValues = ["any", "prefix", "specific"] as const
 export type CourseRequirementType = (typeof courseRequirementTypeValues)[number]
-
-export const curriculumSuggestionTypeValues = ["GENERAL", "SPECIALIZATION", "PRE_OPTION"] as const
-export type CurriculumSuggestionType = (typeof curriculumSuggestionTypeValues)[number]
 
 export const yearPeriodValues = ["SUMMER", "FIRST_SEMESTER", "WINTER", "SECOND_SEMESTER"] as const
 export type YearPeriod = (typeof yearPeriodValues)[number]
@@ -28,8 +31,9 @@ export type MealStatus = (typeof mealStatusValues)[number]
 export const enumValueNames = {
     "CourseOfferingPeriod": "courseOfferingPeriodValues",
     "CourseOfferingKind": "courseOfferingKindValues",
+    "CatalogProgramEntity.shift": "catalogProgramEntityShiftValues",
+    "CatalogProgramEntity.creditLimitType": "catalogProgramEntityCreditLimitTypeValues",
     "CourseRequirementType": "courseRequirementTypeValues",
-    "CurriculumSuggestionType": "curriculumSuggestionTypeValues",
     "YearPeriod": "yearPeriodValues",
     "DayOfWeek": "dayOfWeekValues",
     "MealPeriod": "mealPeriodValues",

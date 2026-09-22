@@ -35,7 +35,7 @@ export function emptyGuide(): SemesterPlanningGuide {
     },
     program: {
       catalogProgramId: null,
-      specializationId: null,
+      catalogProgramVariantId: null,
       languageId: null,
     },
     manualCourseIds: [],
@@ -49,7 +49,7 @@ export function guideFromApi(value: {
   suggestionId: number | null
   suggestionCatalogProgramId: number | null
   catalogProgramId: number | null
-  specializationId: number | null
+  catalogProgramVariantId: number | null
   languageId: number | null
   manualCourseIds: ReadonlyArray<number>
 }): SemesterPlanningGuide {
@@ -66,7 +66,7 @@ export function guideFromApi(value: {
     },
     program: {
       catalogProgramId: value.catalogProgramId,
-      specializationId: value.specializationId,
+      catalogProgramVariantId: value.catalogProgramVariantId,
       languageId: value.languageId,
     },
     manualCourseIds: value.manualCourseIds,
@@ -153,20 +153,23 @@ export function selectorLabel(selector: CourseSelector, courseCode?: string) {
 
 export function programGuideBlocks(
   catalogProgram: CatalogProgramOption | undefined,
-  specializationId: string,
+  catalogProgramVariantId: string,
   languageId: string,
 ) {
   if (!catalogProgram) return []
   const groups: Array<Readonly<{ title: string; blocks: CurriculumBlocks }>> = [
     { title: 'Base', blocks: catalogProgram.baseBlocks },
   ]
-  const specialization = catalogProgram.specializations.find(
-    (item) => item.id === specializationId,
+  const variant = catalogProgram.variants.find(
+    (item) => item.id === catalogProgramVariantId,
   )
-  if (specialization)
+  if (variant)
     groups.push({
-      title: `Habilitação · ${specialization.code}`,
-      blocks: specialization.blocks,
+      title:
+        variant.specializationId === null
+          ? `Modalidade · ${variant.name}`
+          : `Modalidade · ${variant.code}`,
+      blocks: variant.blocks,
     })
   const language = catalogProgram.languages.find(
     (item) => item.id === languageId,

@@ -1664,13 +1664,56 @@ export const componentSchemas = {
             "programName": {
                 "type": "string"
             },
+            "shift": {
+                "type": "string",
+                "nullable": true,
+                "enum": [
+                    "DAYTIME",
+                    "NIGHT",
+                    null
+                ]
+            },
+            "creditLimitType": {
+                "type": "string",
+                "nullable": true,
+                "enum": [
+                    "NONE",
+                    "FIXED",
+                    "CR_FORMULA",
+                    null
+                ]
+            },
+            "creditLimitFixedCredits": {
+                "type": "integer",
+                "nullable": true
+            },
+            "creditLimitBeforeThresholdCredits": {
+                "type": "integer",
+                "nullable": true
+            },
+            "creditLimitThresholdCredits": {
+                "type": "integer",
+                "nullable": true
+            },
+            "creditLimitCrBase": {
+                "type": "integer",
+                "nullable": true
+            },
+            "creditLimitCrMultiplier": {
+                "type": "number",
+                "nullable": true
+            },
+            "professionalPracticeDescription": {
+                "type": "string",
+                "nullable": true
+            },
             "base": {
                 "$ref": "#/components/schemas/CourseBlockSet"
             },
-            "modalities": {
+            "variants": {
                 "type": "array",
                 "items": {
-                    "$ref": "#/components/schemas/CatalogProgramModality"
+                    "$ref": "#/components/schemas/CatalogProgramVariant"
                 }
             },
             "languages": {
@@ -1711,8 +1754,16 @@ export const componentSchemas = {
             "catalogYear",
             "programCode",
             "programName",
+            "shift",
+            "creditLimitType",
+            "creditLimitFixedCredits",
+            "creditLimitBeforeThresholdCredits",
+            "creditLimitThresholdCredits",
+            "creditLimitCrBase",
+            "creditLimitCrMultiplier",
+            "professionalPracticeDescription",
             "base",
-            "modalities",
+            "variants",
             "languages",
             "_paths"
         ],
@@ -1735,8 +1786,8 @@ export const componentSchemas = {
                     "resource": "programs",
                     "cardinality": "one"
                 },
-                "modalities": {
-                    "resource": "specializations",
+                "variants": {
+                    "resource": "catalogProgramVariants",
                     "cardinality": "many"
                 },
                 "languages": {
@@ -1869,11 +1920,19 @@ export const componentSchemas = {
             "publicName": "ElectiveBlock"
         }
     },
-    "CatalogProgramModality": {
+    "CatalogProgramVariant": {
         "type": "object",
         "properties": {
-            "specializationId": {
+            "id": {
                 "type": "integer"
+            },
+            "programId": {
+                "type": "integer",
+                "nullable": true
+            },
+            "specializationId": {
+                "type": "integer",
+                "nullable": true
             },
             "curriculumSuggestionId": {
                 "type": "integer",
@@ -1885,20 +1944,57 @@ export const componentSchemas = {
             "name": {
                 "type": "string"
             },
+            "integralizationCredits": {
+                "type": "integer",
+                "nullable": true
+            },
+            "integralizationSupervisedHours": {
+                "type": "integer",
+                "nullable": true
+            },
+            "integralizationExtensionHours": {
+                "type": "integer",
+                "nullable": true
+            },
+            "integralizationSemesters": {
+                "type": "integer",
+                "nullable": true
+            },
+            "integralizationMaximumSemesters": {
+                "type": "integer",
+                "nullable": true
+            },
+            "professionalDescription": {
+                "type": "string",
+                "nullable": true
+            },
+            "recognitionDescription": {
+                "type": "string",
+                "nullable": true
+            },
             "blocks": {
                 "$ref": "#/components/schemas/CourseBlockSet"
             }
         },
         "required": [
+            "id",
+            "programId",
             "specializationId",
             "curriculumSuggestionId",
             "code",
             "name",
+            "integralizationCredits",
+            "integralizationSupervisedHours",
+            "integralizationExtensionHours",
+            "integralizationSemesters",
+            "integralizationMaximumSemesters",
+            "professionalDescription",
+            "recognitionDescription",
             "blocks"
         ],
         "x-pomi-schema": {
             "kind": "projection",
-            "publicName": "CatalogProgramModality"
+            "publicName": "CatalogProgramVariant"
         }
     },
     "CatalogProgramLanguage": {
@@ -1932,6 +2028,11 @@ export const componentSchemas = {
                 "minimum": 0,
                 "exclusiveMinimum": true
             },
+            "catalogProgramVariantId": {
+                "type": "integer",
+                "minimum": 0,
+                "exclusiveMinimum": true
+            },
             "catalogProgramId": {
                 "type": "integer",
                 "minimum": 0,
@@ -1955,17 +2056,6 @@ export const componentSchemas = {
             "programName": {
                 "type": "string",
                 "minLength": 1
-            },
-            "code": {
-                "type": "string",
-                "minLength": 1
-            },
-            "name": {
-                "type": "string",
-                "minLength": 1
-            },
-            "type": {
-                "$ref": "#/components/schemas/CurriculumSuggestionType"
             },
             "specialization": {
                 "type": "object",
@@ -2025,14 +2115,12 @@ export const componentSchemas = {
         },
         "required": [
             "id",
+            "catalogProgramVariantId",
             "catalogProgramId",
             "catalogYear",
             "programId",
             "programCode",
             "programName",
-            "code",
-            "name",
-            "type",
             "specialization",
             "semesters",
             "_paths"
@@ -2047,18 +2135,6 @@ export const componentSchemas = {
             "transportFields": [
                 "_paths"
             ]
-        }
-    },
-    "CurriculumSuggestionType": {
-        "type": "string",
-        "enum": [
-            "GENERAL",
-            "SPECIALIZATION",
-            "PRE_OPTION"
-        ],
-        "x-pomi-schema": {
-            "kind": "value-object",
-            "publicName": "CurriculumSuggestionType"
         }
     },
     "SemesterSuggestionEntity": {
@@ -2269,7 +2345,7 @@ export const componentSchemas = {
             "name": {
                 "type": "string"
             },
-            "catalogSpecializationsCount": {
+            "catalogProgramVariantsCount": {
                 "type": "integer"
             },
             "studentsCount": {
@@ -2298,7 +2374,7 @@ export const componentSchemas = {
             "programName",
             "code",
             "name",
-            "catalogSpecializationsCount",
+            "catalogProgramVariantsCount",
             "studentsCount",
             "_paths"
         ],
@@ -3209,15 +3285,21 @@ export const enumValues = {
         "PARTIAL",
         "SPECIAL"
     ],
+    "CatalogProgramEntity.shift": [
+        "DAYTIME",
+        "NIGHT",
+        null
+    ],
+    "CatalogProgramEntity.creditLimitType": [
+        "NONE",
+        "FIXED",
+        "CR_FORMULA",
+        null
+    ],
     "CourseRequirementType": [
         "any",
         "prefix",
         "specific"
-    ],
-    "CurriculumSuggestionType": [
-        "GENERAL",
-        "SPECIALIZATION",
-        "PRE_OPTION"
     ],
     "YearPeriod": [
         "SUMMER",
@@ -6409,6 +6491,31 @@ export const queryCapabilities = {
                                 }
                             ]
                         },
+                        "catalogProgramVariantId": {
+                            "oneOf": [
+                                {
+                                    "minimum": 1,
+                                    "type": "integer"
+                                },
+                                {
+                                    "additionalProperties": false,
+                                    "properties": {
+                                        "eq": {
+                                            "minimum": 1,
+                                            "type": "integer"
+                                        },
+                                        "in": {
+                                            "items": {
+                                                "minimum": 1,
+                                                "type": "integer"
+                                            },
+                                            "type": "array"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            ]
+                        },
                         "catalogId": {
                             "oneOf": [
                                 {
@@ -6509,72 +6616,6 @@ export const queryCapabilities = {
                                 }
                             ]
                         },
-                        "code": {
-                            "oneOf": [
-                                {
-                                    "minLength": 1,
-                                    "type": "string"
-                                },
-                                {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "eq": {
-                                            "minLength": 1,
-                                            "type": "string"
-                                        },
-                                        "ne": {
-                                            "minLength": 1,
-                                            "type": "string"
-                                        },
-                                        "in": {
-                                            "items": {
-                                                "minLength": 1,
-                                                "type": "string"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
-                        },
-                        "type": {
-                            "oneOf": [
-                                {
-                                    "enum": [
-                                        "GENERAL",
-                                        "SPECIALIZATION",
-                                        "PRE_OPTION"
-                                    ],
-                                    "type": "string"
-                                },
-                                {
-                                    "additionalProperties": false,
-                                    "properties": {
-                                        "eq": {
-                                            "enum": [
-                                                "GENERAL",
-                                                "SPECIALIZATION",
-                                                "PRE_OPTION"
-                                            ],
-                                            "type": "string"
-                                        },
-                                        "in": {
-                                            "items": {
-                                                "enum": [
-                                                    "GENERAL",
-                                                    "SPECIALIZATION",
-                                                    "PRE_OPTION"
-                                                ],
-                                                "type": "string"
-                                            },
-                                            "type": "array"
-                                        }
-                                    },
-                                    "type": "object"
-                                }
-                            ]
-                        },
                         "specializationId": {
                             "oneOf": [
                                 {
@@ -6613,7 +6654,7 @@ export const queryCapabilities = {
                 "schema": {
                     "type": "string",
                     "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
-                    "example": "catalogYear:desc,programCode:desc,code:asc"
+                    "example": "catalogYear:desc,programCode:desc,specializationCode:asc"
                 }
             }
         ],
@@ -6623,6 +6664,19 @@ export const queryCapabilities = {
                 {
                     "path": [
                         "catalogProgramId"
+                    ],
+                    "schema": {
+                        "minimum": 1,
+                        "type": "integer"
+                    },
+                    "operators": [
+                        "eq",
+                        "in"
+                    ]
+                },
+                {
+                    "path": [
+                        "catalogProgramVariantId"
                     ],
                     "schema": {
                         "minimum": 1,
@@ -6687,37 +6741,6 @@ export const queryCapabilities = {
                 },
                 {
                     "path": [
-                        "code"
-                    ],
-                    "schema": {
-                        "minLength": 1,
-                        "type": "string"
-                    },
-                    "operators": [
-                        "eq",
-                        "ne",
-                        "in"
-                    ]
-                },
-                {
-                    "path": [
-                        "type"
-                    ],
-                    "schema": {
-                        "enum": [
-                            "GENERAL",
-                            "SPECIALIZATION",
-                            "PRE_OPTION"
-                        ],
-                        "type": "string"
-                    },
-                    "operators": [
-                        "eq",
-                        "in"
-                    ]
-                },
-                {
-                    "path": [
                         "specializationId"
                     ],
                     "schema": {
@@ -6742,11 +6765,9 @@ export const queryCapabilities = {
                 "catalogYear",
                 "programCode",
                 "programName",
-                "code",
-                "name",
-                "type"
+                "specializationCode"
             ],
-            "default": "catalogYear:desc,programCode:desc,code:asc"
+            "default": "catalogYear:desc,programCode:desc,specializationCode:asc"
         }
     },
     "listDailyMenus": {

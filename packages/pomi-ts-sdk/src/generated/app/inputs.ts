@@ -1,5 +1,7 @@
-import type { createCategoryInput, createFeedbackReportInput, createStudentAbsencesInput, createStudentCourseAttemptsInput, createStudentCurriculaInput, createStudentFeedbackReportInput, createStudentFriendshipInput, createStudentHistoryInput, createStudentPeriodPlanningsInput, createStudentsInput, createTagInput, deleteStudentsInput, replaceBotGrantInput, updateCategoryInput, updateExchangeNoticeSubscriptionInput, updateProfessorEvaluationInput, updateStudentCourseAttemptsInput, updateStudentCurriculaInput, updateStudentPeriodPlanningsInput, updateStudentPublicProfileInput, updateStudentsInput, updateTagInput } from './operations.js'
+import type { createAuthUserInput, createCategoryInput, createFeedbackReportInput, createStudentAbsencesInput, createStudentCourseAttemptsInput, createStudentCurriculaInput, createStudentFeedbackReportInput, createStudentFriendshipInput, createStudentHistoryInput, createStudentPeriodPlanningsInput, createStudentsInput, createTagInput, deleteStudentsInput, replaceBotGrantInput, updateAuthUserInput, updateCategoryInput, updateExchangeNoticeSubscriptionInput, updateFeedbackReportInput, updateProfessorEvaluationInput, updateStudentCourseAttemptsInput, updateStudentCurriculaInput, updateStudentPeriodPlanningsInput, updateStudentPublicProfileInput, updateStudentsInput, updateTagInput } from './operations.js'
 
+export type createAuthUserRequest = Readonly<createAuthUserInput>
+export type createAuthUserBody = createAuthUserInput extends { body?: infer Body } ? Readonly<Body> : never
 export type createCategoryRequest = Readonly<createCategoryInput>
 export type createCategoryBody = createCategoryInput extends { body?: infer Body } ? Readonly<Body> : never
 export type createFeedbackReportRequest = Readonly<createFeedbackReportInput>
@@ -26,10 +28,14 @@ export type deleteStudentsRequest = Readonly<deleteStudentsInput>
 export type deleteStudentsBody = deleteStudentsInput extends { body?: infer Body } ? Readonly<Body> : never
 export type replaceBotGrantRequest = Readonly<replaceBotGrantInput>
 export type replaceBotGrantBody = replaceBotGrantInput extends { body?: infer Body } ? Readonly<Body> : never
+export type updateAuthUserRequest = Readonly<updateAuthUserInput>
+export type updateAuthUserBody = updateAuthUserInput extends { body?: infer Body } ? Readonly<Body> : never
 export type updateCategoryRequest = Readonly<updateCategoryInput>
 export type updateCategoryBody = updateCategoryInput extends { body?: infer Body } ? Readonly<Body> : never
 export type updateExchangeNoticeSubscriptionRequest = Readonly<updateExchangeNoticeSubscriptionInput>
 export type updateExchangeNoticeSubscriptionBody = updateExchangeNoticeSubscriptionInput extends { body?: infer Body } ? Readonly<Body> : never
+export type updateFeedbackReportRequest = Readonly<updateFeedbackReportInput>
+export type updateFeedbackReportBody = updateFeedbackReportInput extends { body?: infer Body } ? Readonly<Body> : never
 export type updateProfessorEvaluationRequest = Readonly<updateProfessorEvaluationInput>
 export type updateProfessorEvaluationBody = updateProfessorEvaluationInput extends { body?: infer Body } ? Readonly<Body> : never
 export type updateStudentCourseAttemptsRequest = Readonly<updateStudentCourseAttemptsInput>

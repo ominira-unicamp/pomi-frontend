@@ -11,7 +11,7 @@ export const Route = createFileRoute('/cursos/')({
     catalogId: readPositiveInteger(search.catalogId),
     programId: readPositiveInteger(search.programId),
     catalogProgramId: readPositiveInteger(search.catalogProgramId),
-    specializationId: readPositiveInteger(search.specializationId),
+    catalogProgramVariantId: readPositiveInteger(search.catalogProgramVariantId),
     dependencyCourseId: readPositiveInteger(search.dependencyCourseId),
     tab:
       search.tab === 'proposal' || search.tab === 'dependencies'

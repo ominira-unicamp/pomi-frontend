@@ -1247,8 +1247,18 @@ export interface components {
             catalogYear: number;
             programCode: number;
             programName: string;
+
+            shift: "DAYTIME" | "NIGHT" | null;
+
+            creditLimitType: "NONE" | "FIXED" | "CR_FORMULA" | null;
+            creditLimitFixedCredits: number | null;
+            creditLimitBeforeThresholdCredits: number | null;
+            creditLimitThresholdCredits: number | null;
+            creditLimitCrBase: number | null;
+            creditLimitCrMultiplier: number | null;
+            professionalPracticeDescription: string | null;
             base: components["schemas"]["CourseBlockSet"];
-            modalities: components["schemas"]["CatalogProgramModality"][];
+            variants: components["schemas"]["CatalogProgramVariant"][];
             languages: components["schemas"]["CatalogProgramLanguage"][];
             _paths: {
                 self: string;
@@ -1279,11 +1289,20 @@ export interface components {
             credits: number;
             courses: components["schemas"]["CourseRequirement"][];
         };
-        CatalogProgramModality: {
-            specializationId: number;
+        CatalogProgramVariant: {
+            id: number;
+            programId: number | null;
+            specializationId: number | null;
             curriculumSuggestionId: number | null;
             code: string;
             name: string;
+            integralizationCredits: number | null;
+            integralizationSupervisedHours: number | null;
+            integralizationExtensionHours: number | null;
+            integralizationSemesters: number | null;
+            integralizationMaximumSemesters: number | null;
+            professionalDescription: string | null;
+            recognitionDescription: string | null;
             blocks: components["schemas"]["CourseBlockSet"];
         };
         CatalogProgramLanguage: {
@@ -1293,14 +1312,12 @@ export interface components {
         };
         CurriculumSuggestionEntity: {
             id: number;
+            catalogProgramVariantId: number;
             catalogProgramId: number;
             catalogYear: number;
             programId: number;
             programCode: number;
             programName: string;
-            code: string;
-            name: string;
-            type: components["schemas"]["CurriculumSuggestionType"];
             specialization: {
                 id: number;
                 code: string;
@@ -1313,8 +1330,6 @@ export interface components {
                 specialization: string | null;
             };
         };
-
-        CurriculumSuggestionType: "GENERAL" | "SPECIALIZATION" | "PRE_OPTION";
         SemesterSuggestionEntity: {
             semester: number;
             electiveCredits: number;
@@ -1357,7 +1372,7 @@ export interface components {
             programName: string;
             code: string;
             name: string;
-            catalogSpecializationsCount: number;
+            catalogProgramVariantsCount: number;
             studentsCount: number;
             _paths: {
                 self: string;
@@ -3301,6 +3316,10 @@ export interface operations {
                         eq?: number;
                         in?: number[];
                     };
+                    catalogProgramVariantId?: number | {
+                        eq?: number;
+                        in?: number[];
+                    };
                     catalogId?: number | {
                         eq?: number;
                         in?: number[];
@@ -3316,16 +3335,6 @@ export interface operations {
                     programCode?: number | {
                         eq?: number;
                         in?: number[];
-                    };
-                    code?: string | {
-                        eq?: string;
-                        ne?: string;
-                        in?: string[];
-                    };
-                    type?: ("GENERAL" | "SPECIALIZATION" | "PRE_OPTION") | {
-
-                        eq?: "GENERAL" | "SPECIALIZATION" | "PRE_OPTION";
-                        in?: ("GENERAL" | "SPECIALIZATION" | "PRE_OPTION")[];
                     };
                     specializationId?: number | {
                         eq?: number;

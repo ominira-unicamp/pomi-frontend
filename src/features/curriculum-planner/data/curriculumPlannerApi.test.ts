@@ -33,7 +33,7 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
                   },
                 ],
               },
-              modalities: [],
+              variants: [],
               languages: [],
             }],
             _paths: { next: null },

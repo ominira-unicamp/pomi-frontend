@@ -17,7 +17,7 @@ export type CurriculumDocument = Readonly<{
   isFavorite: boolean
   selection: {
     catalogProgramId: string | null
-    specializationId: string | null
+    catalogProgramVariantId: string | null
     languageId: string | null
   }
   planningStart: {
@@ -36,7 +36,7 @@ export type CurriculumSummary = Readonly<{
   isFavorite: boolean
   selection: Readonly<{
     catalogProgramId: number | null
-    specializationId: number | null
+    catalogProgramVariantId: number | null
     languageId: number | null
   }>
   createdAt?: string
@@ -50,7 +50,9 @@ function documentFromApi(entity: CurriculumApiEntity): CurriculumDocument {
     isFavorite: entity.isFavorite,
     selection: {
       catalogProgramId: toStringOrNull(entity.selection.catalogProgramId),
-      specializationId: toStringOrNull(entity.selection.specializationId),
+      catalogProgramVariantId: toStringOrNull(
+        entity.selection.catalogProgramVariantId,
+      ),
       languageId: toStringOrNull(entity.selection.languageId),
     },
     planningStart: entity.planningStart,
@@ -86,9 +88,9 @@ export async function listCurricula(
         typeof summary.selection.catalogProgramId === 'number'
           ? summary.selection.catalogProgramId
           : null,
-      specializationId:
-        typeof summary.selection.specializationId === 'number'
-          ? summary.selection.specializationId
+      catalogProgramVariantId:
+        typeof summary.selection.catalogProgramVariantId === 'number'
+          ? summary.selection.catalogProgramVariantId
           : null,
       languageId:
         typeof summary.selection.languageId === 'number'
@@ -160,7 +162,9 @@ function toCreateBody(document: CurriculumDocument) {
     name: document.name,
     selection: {
       catalogProgramId: toNumberOrNull(document.selection.catalogProgramId),
-      specializationId: toNumberOrNull(document.selection.specializationId),
+      catalogProgramVariantId: toNumberOrNull(
+        document.selection.catalogProgramVariantId,
+      ),
       languageId: toNumberOrNull(document.selection.languageId),
     },
     planningStart: document.planningStart,
@@ -208,7 +212,7 @@ export function documentFromState(
     isFavorite: false,
     selection: {
       catalogProgramId: state.selection.catalogProgramId ?? null,
-      specializationId: state.selection.specializationId ?? null,
+      catalogProgramVariantId: state.selection.catalogProgramVariantId ?? null,
       languageId: state.selection.languageId ?? null,
     },
     planningStart: state.plan.planningStart
@@ -232,7 +236,7 @@ export function stateFromDocument(
   const courses = Array.isArray(document.courses) ? document.courses : []
   const selection = (document as Partial<CurriculumDocument>).selection ?? {
     catalogProgramId: null,
-    specializationId: null,
+    catalogProgramVariantId: null,
     languageId: null,
   }
   const periodIds = new Set(periods.map((period) => String(period.id)))
@@ -254,8 +258,8 @@ export function stateFromDocument(
       ...(selection.catalogProgramId !== null
         ? { catalogProgramId: String(selection.catalogProgramId) as never }
         : {}),
-      ...(selection.specializationId !== null
-        ? { specializationId: String(selection.specializationId) as never }
+      ...(selection.catalogProgramVariantId !== null
+        ? { catalogProgramVariantId: String(selection.catalogProgramVariantId) as never }
         : {}),
       ...(selection.languageId !== null
         ? { languageId: String(selection.languageId) as never }
@@ -323,7 +327,7 @@ export function patchBodyFromState(
     name: next.name,
     selection: {
       catalogProgramId: toNumberOrNull(next.selection.catalogProgramId),
-      specializationId: toNumberOrNull(next.selection.specializationId),
+      catalogProgramVariantId: toNumberOrNull(next.selection.catalogProgramVariantId),
       languageId: toNumberOrNull(next.selection.languageId),
     },
     planningStart: next.planningStart,

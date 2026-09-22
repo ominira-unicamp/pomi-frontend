@@ -76,6 +76,19 @@ export function CourseProfilePanel({
       ),
     [catalogId, catalogPrograms, programId],
   )
+  const specializationOptions = useMemo(
+    () =>
+      (selectedProgram?.variants ?? [])
+        .filter(
+          (variant): variant is typeof variant & { specializationId: number } =>
+            variant.specializationId !== null,
+        )
+        .map((variant) => ({
+          value: String(variant.specializationId),
+          label: `${variant.code} — ${variant.name}`,
+        })),
+    [selectedProgram],
+  )
 
   useEffect(() => {
     setCatalogId(profile?.catalogId ? String(profile.catalogId) : '')
@@ -97,8 +110,8 @@ export function CourseProfilePanel({
   const values: CourseProfileValues = {
     catalogId: catalogId ? Number(catalogId) : null,
     programId: selectedProgram ? Number(selectedProgram.program.id) : null,
-    specializationId: selectedProgram?.specializations.some(
-      (item) => item.id === specializationId,
+    specializationId: specializationOptions.some(
+      (item) => item.value === specializationId,
     )
       ? Number(specializationId)
       : null,
@@ -178,18 +191,15 @@ export function CourseProfilePanel({
               }}
             />
           </Field>
-          {selectedProgram?.specializations.length ? (
+          {specializationOptions.length ? (
             <Field>
-              <FieldLabel>Habilitação</FieldLabel>
+              <FieldLabel>Modalidade</FieldLabel>
               <AutocompleteSelect
-                ariaLabel="Habilitação"
+                ariaLabel="Modalidade"
                 value={specializationId}
-                emptyLabel="Sem habilitação"
-                options={selectedProgram.specializations.map((item) => ({
-                  value: item.id,
-                  label: `${item.code} — ${item.name}`,
-                }))}
-                placeholder="Escolha a habilitação"
+                emptyLabel="Sem modalidade"
+                options={specializationOptions}
+                placeholder="Escolha a modalidade"
                 onValueChange={setSpecializationId}
               />
             </Field>

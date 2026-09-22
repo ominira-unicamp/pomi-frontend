@@ -27,9 +27,10 @@ describe('CourseProfilePanel', () => {
               name: 'Ciência da Computação',
             },
             baseBlocks: { mandatory: [], electives: [] },
-            specializations: [
+            variants: [
               {
-                id: '30' as never,
+                id: '300' as never,
+                specializationId: 30,
                 code: 'AA',
                 name: 'Sistemas',
                 blocks: { mandatory: [], electives: [] },
@@ -52,7 +53,7 @@ describe('CourseProfilePanel', () => {
       await screen.findByRole('combobox', { name: 'Catálogo' }),
     ).toBeTruthy()
     expect(screen.getByRole('combobox', { name: 'Programa' })).toBeTruthy()
-    expect(screen.getByRole('combobox', { name: 'Habilitação' })).toBeTruthy()
+    expect(screen.getByRole('combobox', { name: 'Modalidade' })).toBeTruthy()
     expect(screen.getByRole('combobox', { name: 'Língua' })).toBeTruthy()
     expect(
       screen

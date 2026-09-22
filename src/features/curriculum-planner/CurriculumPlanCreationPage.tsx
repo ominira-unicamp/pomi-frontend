@@ -3,8 +3,10 @@ import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
+  catalogProgramVariantForSelection,
   planningFromSuggestion,
   suggestionForAcademicSelection,
+  suggestionLabel,
 } from '@pomi/planner-domain/curriculum'
 import type {
   CatalogProgramId,
@@ -16,6 +18,7 @@ import type {
 } from '@pomi/planner-domain/curriculum'
 import type { InitialAcademicSelection } from '@/features/planning-shared/components/InitialAcademicSelectionFields'
 import type { CurriculumDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
+import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { CreationWizard } from '@/components/CreationWizard'
@@ -37,7 +40,6 @@ import {
   isApprovedStudentCourseAttempt,
   listStudentCourseAttempts,
 } from '@/features/student/data/studentApi'
-import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
 import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
 import {
   privateQueryKeys,
@@ -65,7 +67,7 @@ export function CurriculumPlanCreationPage() {
     catalogId: '',
     programId: '',
     catalogProgramId: '',
-    specializationId: '',
+    catalogProgramVariantId: '',
     languageId: '',
   })
   const [source, setSource] = useState<'blank' | 'suggestion' | 'history'>(
@@ -126,7 +128,7 @@ export function CurriculumPlanCreationPage() {
   const suggestions = suggestionsQuery.data ?? []
   const suggestion = suggestionForAcademicSelection(
     suggestions,
-    selection.specializationId || undefined,
+    selection.catalogProgramVariantId || undefined,
   )
   const selectedCatalogYear = staticQuery.data?.catalogPrograms.find(
     (item) => item.catalog.id === selection.catalogId,
@@ -152,11 +154,11 @@ export function CurriculumPlanCreationPage() {
       catalogId: catalogProgram.catalog.id,
       programId: catalogProgram.program.id,
       catalogProgramId: catalogProgram.id,
-      specializationId: catalogProgram.specializations.some(
-        (item) => Number(item.id) === profile.specializationId,
-      )
-        ? String(profile.specializationId)
-        : '',
+      catalogProgramVariantId:
+        catalogProgramVariantForSelection(
+          catalogProgram,
+          profile.specializationId,
+        )?.id ?? '',
       languageId: catalogProgram.languages.some(
         (item) => Number(item.id) === profile.languageId,
       )
@@ -224,9 +226,9 @@ export function CurriculumPlanCreationPage() {
                 : suggestions.length === 0
                   ? 'Não há sugestões curriculares disponíveis para o programa selecionado.'
                   : !suggestion
-                    ? selection.specializationId
-                      ? 'Não foi possível deduzir uma sugestão para a habilitação selecionada.'
-                      : 'Não foi possível deduzir uma sugestão para a base acadêmica selecionada.'
+                    ? selection.catalogProgramVariantId
+                      ? 'Não há sugestão curricular para a modalidade selecionada.'
+                      : 'Selecione uma modalidade para usar a sugestão curricular.'
                     : undefined
 
   async function submit() {
@@ -439,8 +441,8 @@ export function CurriculumPlanCreationPage() {
             selection={selection}
             staticData={staticQuery.data}
             source={source}
-            suggestionLabel={
-              suggestion ? `${suggestion.code} — ${suggestion.name}` : undefined
+            selectedSuggestionLabel={
+              suggestion ? suggestionLabel(suggestion) : undefined
             }
           />
         )}
@@ -482,8 +484,8 @@ export function buildInitialState({
       ...(selection.catalogProgramId
         ? { catalogProgramId: selection.catalogProgramId as CatalogProgramId }
         : {}),
-      ...(selection.specializationId
-        ? { specializationId: selection.specializationId as never }
+      ...(selection.catalogProgramVariantId
+        ? { catalogProgramVariantId: selection.catalogProgramVariantId as never }
         : {}),
       ...(selection.languageId
         ? { languageId: selection.languageId as never }
@@ -511,10 +513,10 @@ function periodsFromStudentHistory(
   planningStart: NonNullable<CurriculumPlannerState['plan']['planningStart']>,
 ): ReadonlyArray<ReadonlyArray<CourseId>> {
   const seenCourseIds = new Set<CourseId>()
-  const withoutPeriod: CourseId[] = []
+  const withoutPeriod: Array<CourseId> = []
   const grouped = new Map<
     string,
-    { year: number; yearPeriod: string; courseIds: CourseId[] }
+    { year: number; yearPeriod: string; courseIds: Array<CourseId> }
   >()
 
   for (const attempt of attempts) {
@@ -586,7 +588,7 @@ function earliestHistoryPeriod(attempts: ReadonlyArray<StudentCourseAttempt>) {
         left.year - right.year ||
         historyPeriodOrder(left.yearPeriod) -
           historyPeriodOrder(right.yearPeriod),
-    )[0]
+    ).at(0)
   if (!period) return undefined
   return {
     year: period.year,
@@ -678,7 +680,7 @@ function CurriculumReview({
   selection,
   staticData,
   source,
-  suggestionLabel,
+  selectedSuggestionLabel,
 }: {
   name: string
   year: number
@@ -687,13 +689,13 @@ function CurriculumReview({
   selection: InitialAcademicSelection
   staticData: CurriculumPlannerStaticData
   source: 'blank' | 'suggestion' | 'history'
-  suggestionLabel?: string
+  selectedSuggestionLabel?: string
 }) {
   const selected = staticData.catalogPrograms.find(
     (item) => item.id === selection.catalogProgramId,
   )
-  const specialization = selected?.specializations.find(
-    (item) => item.id === selection.specializationId,
+  const variant = selected?.variants.find(
+    (item) => item.id === selection.catalogProgramVariantId,
   )
   const language = selected?.languages.find(
     (item) => item.id === selection.languageId,
@@ -707,14 +709,21 @@ function CurriculumReview({
           ['Programa', `${selected.program.code} — ${selected.program.name}`],
         ]
       : [['Base acadêmica', 'Definir depois']]),
-    ...(specialization
-      ? [['Habilitação', `${specialization.code} — ${specialization.name}`]]
+    ...(variant
+      ? [
+          [
+            'Modalidade',
+            variant.specializationId === null
+              ? variant.name
+              : `${variant.code} — ${variant.name}`,
+          ],
+        ]
       : []),
     ...(language ? [['Língua', language.name]] : []),
     [
       'Ponto de partida',
       source === 'suggestion'
-        ? (suggestionLabel ?? 'Sugestão curricular')
+        ? (selectedSuggestionLabel ?? 'Sugestão curricular')
         : source === 'history'
           ? 'Histórico escolar do aluno'
           : 'Em branco',

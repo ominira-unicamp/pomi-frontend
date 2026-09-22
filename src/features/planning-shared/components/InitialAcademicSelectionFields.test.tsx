@@ -16,7 +16,7 @@ const staticData: CurriculumPlannerStaticData = {
       catalog: { id: 'catalog' as never, year: 2025 },
       program: { id: 'program' as never, code: '10', name: 'Sem opções' },
       baseBlocks: { mandatory: [], electives: [] },
-      specializations: [],
+      variants: [],
       languages: [],
     },
     {
@@ -25,11 +25,19 @@ const staticData: CurriculumPlannerStaticData = {
       catalog: { id: 'catalog' as never, year: 2025 },
       program: { id: 'program-2' as never, code: '20', name: 'Com opções' },
       baseBlocks: { mandatory: [], electives: [] },
-      specializations: [
+      variants: [
         {
           id: 'specialization' as never,
+          specializationId: 30,
           code: 'H',
-          name: 'Habilitação',
+          name: 'Opção A',
+          blocks: { mandatory: [], electives: [] },
+        },
+        {
+          id: 'specialization-2' as never,
+          specializationId: 31,
+          code: 'H2',
+          name: 'Opção B',
           blocks: { mandatory: [], electives: [] },
         },
       ],
@@ -54,7 +62,7 @@ describe('InitialAcademicSelectionFields', () => {
           catalogId: 'catalog',
           programId: 'program',
           catalogProgramId: 'plain',
-          specializationId: '',
+          catalogProgramVariantId: '',
           languageId: '',
         }}
         onChange={onChange}
@@ -62,7 +70,7 @@ describe('InitialAcademicSelectionFields', () => {
     )
 
     expect(
-      screen.queryByRole('combobox', { name: 'Habilitação inicial' }),
+      screen.queryByRole('combobox', { name: 'Modalidade inicial' }),
     ).toBeNull()
     expect(
       screen.queryByRole('combobox', { name: 'Língua inicial' }),
@@ -75,7 +83,7 @@ describe('InitialAcademicSelectionFields', () => {
           catalogId: 'catalog',
           programId: 'program-2',
           catalogProgramId: 'full',
-          specializationId: '',
+          catalogProgramVariantId: '',
           languageId: '',
         }}
         onChange={onChange}
@@ -83,7 +91,7 @@ describe('InitialAcademicSelectionFields', () => {
     )
 
     expect(
-      screen.getByRole('combobox', { name: 'Habilitação inicial' }),
+      screen.getByRole('combobox', { name: 'Modalidade inicial' }),
     ).toBeTruthy()
     expect(
       screen.getByRole('combobox', { name: 'Língua inicial' }),
@@ -99,7 +107,7 @@ describe('InitialAcademicSelectionFields', () => {
           catalogId: 'catalog',
           programId: 'program-2',
           catalogProgramId: 'full',
-          specializationId: 'specialization',
+          catalogProgramVariantId: 'specialization',
           languageId: 'language',
         }}
         onChange={onChange}
@@ -116,7 +124,7 @@ describe('InitialAcademicSelectionFields', () => {
       catalogId: '',
       programId: 'program-2',
       catalogProgramId: '',
-      specializationId: '',
+      catalogProgramVariantId: '',
       languageId: '',
     })
   })
@@ -130,7 +138,7 @@ describe('InitialAcademicSelectionFields', () => {
           catalogId: 'catalog',
           programId: 'program',
           catalogProgramId: 'plain',
-          specializationId: '',
+          catalogProgramVariantId: '',
           languageId: '',
         }}
         onChange={onChange}
@@ -143,7 +151,7 @@ describe('InitialAcademicSelectionFields', () => {
       catalogId: 'catalog',
       programId: 'program-2',
       catalogProgramId: 'full',
-      specializationId: '',
+      catalogProgramVariantId: '',
       languageId: '',
     })
   })

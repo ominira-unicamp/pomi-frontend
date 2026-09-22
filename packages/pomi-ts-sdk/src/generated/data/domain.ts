@@ -100,8 +100,8 @@ export type CourseRequirement = Domain<Omit<CourseRequirementTransport, "_paths"
 export type ElectiveBlockTransport = components['schemas']['ElectiveBlock']
 export type ElectiveBlock = Domain<ElectiveBlockTransport>
 
-export type CatalogProgramModalityTransport = components['schemas']['CatalogProgramModality']
-export type CatalogProgramModality = Domain<CatalogProgramModalityTransport>
+export type CatalogProgramVariantTransport = components['schemas']['CatalogProgramVariant']
+export type CatalogProgramVariant = Domain<CatalogProgramVariantTransport>
 
 export type CatalogProgramLanguageTransport = components['schemas']['CatalogProgramLanguage']
 export type CatalogProgramLanguage = Domain<CatalogProgramLanguageTransport>
@@ -374,8 +374,8 @@ export const domainModelDefinitions = {
                 "resource": "programs",
                 "cardinality": "one"
             },
-            "modalities": {
-                "resource": "specializations",
+            "variants": {
+                "resource": "catalogProgramVariants",
                 "cardinality": "many"
             },
             "languages": {
@@ -409,8 +409,8 @@ export const domainModelDefinitions = {
         "readOnlyFields": [],
         "relations": {}
     },
-    "CatalogProgramModality": {
-        "schema": "CatalogProgramModality",
+    "CatalogProgramVariant": {
+        "schema": "CatalogProgramVariant",
         "transportFields": [],
         "identityFields": [],
         "readOnlyFields": [],

@@ -141,11 +141,9 @@ export const sortCapabilities = {
             "catalogYear",
             "programCode",
             "programName",
-            "code",
-            "name",
-            "type"
+            "specializationCode"
         ],
-        "default": "catalogYear:desc,programCode:desc,code:asc"
+        "default": "catalogYear:desc,programCode:desc,specializationCode:asc"
     },
     "listDailyMenus": {
         "version": 1,

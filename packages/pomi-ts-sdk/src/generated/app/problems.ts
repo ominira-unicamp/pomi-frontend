@@ -22,6 +22,13 @@ export const problemCatalog = {
         "title": "Recurso não encontrado",
         "hasFields": false
     },
+    "urn:pomi:problem:admin-identity-managed-by-cli": {
+        "schemaName": "AdminIdentityManagedByCliProblem",
+        "type": "urn:pomi:problem:admin-identity-managed-by-cli",
+        "status": 403,
+        "title": "Identidade administrada pela linha de comando",
+        "hasFields": false
+    },
     "urn:pomi:problem:unique-constraint-conflict": {
         "schemaName": "UniqueConstraintConflictProblem",
         "type": "urn:pomi:problem:unique-constraint-conflict",
@@ -111,6 +118,10 @@ export const operationProblemTypes = {
     "addCourseTag": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:reference-not-found",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "createAuthUser": [
+        "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
     "createCategory": [
@@ -295,6 +306,10 @@ export const operationProblemTypes = {
         "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
+    "listAuthUsers": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:internal-server-error"
+    ],
     "listBotGrants": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
@@ -310,6 +325,10 @@ export const operationProblemTypes = {
     "listCourseTags": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "listFeedbackReports": [
+        "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
     "listPendingProfessorEvaluations": [
@@ -348,6 +367,10 @@ export const operationProblemTypes = {
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
+    "listStudents": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:internal-server-error"
+    ],
     "listStudentSharedPeriodPlannings": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
@@ -379,6 +402,12 @@ export const operationProblemTypes = {
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:internal-server-error"
     ],
+    "updateAuthUser": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:admin-identity-managed-by-cli",
+        "urn:pomi:problem:resource-not-found",
+        "urn:pomi:problem:internal-server-error"
+    ],
     "updateCategory": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:resource-not-found",
@@ -388,6 +417,11 @@ export const operationProblemTypes = {
     "updateExchangeNoticeSubscription": [
         "urn:pomi:problem:invalid-request",
         "urn:pomi:problem:reference-not-found",
+        "urn:pomi:problem:internal-server-error"
+    ],
+    "updateFeedbackReport": [
+        "urn:pomi:problem:invalid-request",
+        "urn:pomi:problem:resource-not-found",
         "urn:pomi:problem:internal-server-error"
     ],
     "updateProfessorEvaluation": [
@@ -449,6 +483,7 @@ export type ProblemByType = {
     "urn:pomi:problem:invalid-request": components['schemas']["InvalidRequestProblem"]
     "urn:pomi:problem:internal-server-error": components['schemas']["InternalServerErrorProblem"]
     "urn:pomi:problem:resource-not-found": components['schemas']["ResourceNotFoundProblem"]
+    "urn:pomi:problem:admin-identity-managed-by-cli": components['schemas']["AdminIdentityManagedByCliProblem"]
     "urn:pomi:problem:unique-constraint-conflict": components['schemas']["UniqueConstraintConflictProblem"]
     "urn:pomi:problem:reference-not-found": components['schemas']["ReferenceNotFoundProblem"]
     "urn:pomi:problem:invalid-student-profile": components['schemas']["InvalidStudentProfileProblem"]

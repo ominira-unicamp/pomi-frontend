@@ -9,9 +9,9 @@ import type { CurriculumSuggestion } from './suggestionPlanning'
 const suggestion: CurriculumSuggestion = {
   id: 'suggestion-1',
   catalogProgramId: 'program-1' as never,
-  code: 'GERAL',
-  name: 'Sugestão geral',
-  type: 'GENERAL',
+  catalogProgramVariantId: 'variant-1' as never,
+  programName: 'Programa geral',
+  specialization: null,
   semesters: [
     {
       semester: 1,
@@ -66,45 +66,34 @@ describe('planningFromSuggestion', () => {
 })
 
 describe('suggestionForAcademicSelection', () => {
-  const general: CurriculumSuggestion = {
+  const firstVariant: CurriculumSuggestion = {
     ...suggestion,
-    id: 'general',
-    type: 'GENERAL',
+    id: 'first-variant',
   }
-  const preOption: CurriculumSuggestion = {
+  const secondVariant: CurriculumSuggestion = {
     ...suggestion,
-    id: 'pre-option',
-    type: 'PRE_OPTION',
-  }
-  const specialization: CurriculumSuggestion = {
-    ...suggestion,
-    id: 'specialization',
-    type: 'SPECIALIZATION',
-    specialization: {
-      id: 'specialization-1' as never,
-      code: 'ESP',
-      name: 'Especialização',
-    },
+    id: 'second-variant',
+    catalogProgramVariantId: 'variant-2' as never,
   }
 
-  it('uses the selected specialization before the general suggestion', () => {
+  it('uses the suggestion that belongs to the selected variant', () => {
     expect(
       suggestionForAcademicSelection(
-        [general, specialization],
-        'specialization-1',
+        [firstVariant, secondVariant],
+        'variant-2',
       ),
-    ).toBe(specialization)
+    ).toBe(secondVariant)
   })
 
-  it('uses the general suggestion when no specialization is selected', () => {
+  it('does not infer a suggestion without a selected variant', () => {
     expect(
-      suggestionForAcademicSelection([preOption, general], undefined),
-    ).toBe(general)
+      suggestionForAcademicSelection([firstVariant], undefined),
+    ).toBeUndefined()
   })
 
-  it('falls back to the pre-option suggestion when it is the only compatible one', () => {
-    expect(suggestionForAcademicSelection([preOption], undefined)).toBe(
-      preOption,
-    )
+  it('does not fall back to a suggestion from another variant', () => {
+    expect(
+      suggestionForAcademicSelection([firstVariant], 'variant-2'),
+    ).toBeUndefined()
   })
 })

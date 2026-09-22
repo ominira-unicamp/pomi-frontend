@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 
 import {
   planningFromSuggestion,
-  suggestionTypeLabel,
+  suggestionLabel,
 } from '@pomi/planner-domain/curriculum'
 import type { ReactNode } from 'react'
 import type {
@@ -14,9 +14,10 @@ import type {
   CurriculumPlannerStaticData,
 } from '@pomi/planner-domain/curriculum'
 import type { PlannerDispatch } from '@/features/curriculum-planner/types'
+import type {StudentCourseAttempt} from '@/features/student/data/studentApi';
 import {
-  isApprovedStudentCourseAttempt,
-  type StudentCourseAttempt,
+
+  isApprovedStudentCourseAttempt
 } from '@/features/student/data/studentApi'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -179,7 +180,7 @@ export function SuggestionOnboardingPanel({
               }
               options={suggestions.map((suggestion) => ({
                 value: suggestion.id,
-                label: `${suggestion.code} — ${suggestion.name} (${suggestionTypeLabel(suggestion.type)})`,
+                label: suggestionLabel(suggestion),
               }))}
               placeholder={
                 suggestionsQuery.isLoading
@@ -356,7 +357,7 @@ export function ChangeSuggestionDialog({
           </DialogTitle>
           <DialogDescription>
             {confirmationOpen
-              ? `O planejamento atual será substituído pela sugestão ${selected?.name ?? ''}. O histórico de disciplinas concluídas será preservado.`
+              ? `O planejamento atual será substituído pela sugestão ${selected ? suggestionLabel(selected) : ''}. O histórico de disciplinas concluídas será preservado.`
               : 'A sugestão substituirá os períodos e as escolhas de currículo. O histórico de disciplinas concluídas será preservado.'}
           </DialogDescription>
         </DialogHeader>
@@ -425,7 +426,7 @@ export function ChangeSuggestionDialog({
                 }
                 options={suggestions.map((suggestion) => ({
                   value: suggestion.id,
-                  label: `${suggestion.code} — ${suggestion.name} (${suggestionTypeLabel(suggestion.type)}${suggestion.specialization ? ` — ${suggestion.specialization.code} — ${suggestion.specialization.name}` : ''})`,
+                  label: suggestionLabel(suggestion),
                 }))}
                 placeholder={
                   suggestionsQuery.isLoading

@@ -17,7 +17,7 @@ describe('AboutPage', () => {
       screen
         .getByRole('link', { name: /documentação da API/i })
         .getAttribute('href'),
-    ).toMatch(/\/public-docs$/)
+    ).toMatch(/\/docs$/)
     expect(
       screen.getByRole('link', { name: '@ominira.unicamp' }).getAttribute('href'),
     ).toBe('https://www.instagram.com/ominira.unicamp/')

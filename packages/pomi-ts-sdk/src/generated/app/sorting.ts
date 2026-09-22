@@ -1,10 +1,12 @@
 export type { SortDirection, SortInput, SortTerm } from '../../runtime/sorting.js'
-import type { listBotGrantsInput, listBotsInput, listCategoriesInput, listCourseTagsInput, listPendingProfessorEvaluationsInput, listPublicSharedPeriodPlanningsInput, listStudentAbsencesInput, listStudentCourseAttemptsInput, listStudentCurriculaInput, listStudentFeedbackReportsInput, listStudentFriendshipsInput, listStudentPeopleInput, listStudentPeriodPlanningsInput, listStudentSharedPeriodPlanningsInput, listStudentTagInterestsInput, listTagCoursesInput, listTagsInput } from './operations.js'
+import type { listAuthUsersInput, listBotGrantsInput, listBotsInput, listCategoriesInput, listCourseTagsInput, listFeedbackReportsInput, listPendingProfessorEvaluationsInput, listPublicSharedPeriodPlanningsInput, listStudentAbsencesInput, listStudentCourseAttemptsInput, listStudentCurriculaInput, listStudentFeedbackReportsInput, listStudentFriendshipsInput, listStudentPeopleInput, listStudentPeriodPlanningsInput, listStudentsInput, listStudentSharedPeriodPlanningsInput, listStudentTagInterestsInput, listTagCoursesInput, listTagsInput } from './operations.js'
 
+export type listAuthUsersSort = NonNullable<listAuthUsersInput['sort']>
 export type listBotGrantsSort = NonNullable<listBotGrantsInput['sort']>
 export type listBotsSort = NonNullable<listBotsInput['sort']>
 export type listCategoriesSort = NonNullable<listCategoriesInput['sort']>
 export type listCourseTagsSort = NonNullable<listCourseTagsInput['sort']>
+export type listFeedbackReportsSort = NonNullable<listFeedbackReportsInput['sort']>
 export type listPendingProfessorEvaluationsSort = NonNullable<listPendingProfessorEvaluationsInput['sort']>
 export type listPublicSharedPeriodPlanningsSort = NonNullable<listPublicSharedPeriodPlanningsInput['sort']>
 export type listStudentAbsencesSort = NonNullable<listStudentAbsencesInput['sort']>
@@ -14,12 +16,23 @@ export type listStudentFeedbackReportsSort = NonNullable<listStudentFeedbackRepo
 export type listStudentFriendshipsSort = NonNullable<listStudentFriendshipsInput['sort']>
 export type listStudentPeopleSort = NonNullable<listStudentPeopleInput['sort']>
 export type listStudentPeriodPlanningsSort = NonNullable<listStudentPeriodPlanningsInput['sort']>
+export type listStudentsSort = NonNullable<listStudentsInput['sort']>
 export type listStudentSharedPeriodPlanningsSort = NonNullable<listStudentSharedPeriodPlanningsInput['sort']>
 export type listStudentTagInterestsSort = NonNullable<listStudentTagInterestsInput['sort']>
 export type listTagCoursesSort = NonNullable<listTagCoursesInput['sort']>
 export type listTagsSort = NonNullable<listTagsInput['sort']>
 
 export const sortCapabilities = {
+    "listAuthUsers": {
+        "version": 1,
+        "fields": [
+            "id",
+            "displayName",
+            "email",
+            "status"
+        ],
+        "default": "id:asc"
+    },
     "listBotGrants": {
         "version": 1,
         "fields": [
@@ -50,6 +63,17 @@ export const sortCapabilities = {
             "categoryId"
         ],
         "default": "name:asc"
+    },
+    "listFeedbackReports": {
+        "version": 1,
+        "fields": [
+            "createdAt",
+            "updatedAt",
+            "status",
+            "kind",
+            "title"
+        ],
+        "default": "createdAt:desc"
     },
     "listPendingProfessorEvaluations": {
         "version": 1,
@@ -137,6 +161,16 @@ export const sortCapabilities = {
             "visibility"
         ],
         "default": "updatedAt:desc"
+    },
+    "listStudents": {
+        "version": 1,
+        "fields": [
+            "id",
+            "ra",
+            "name",
+            "entryYear"
+        ],
+        "default": "id:asc"
     },
     "listStudentSharedPeriodPlannings": {
         "version": 1,

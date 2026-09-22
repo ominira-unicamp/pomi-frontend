@@ -1,6 +1,9 @@
 export const studentCapabilityValues = ["STUDENT_PROFILE_READ", "STUDENT_PROFILE_WRITE", "STUDENT_HISTORY_READ", "STUDENT_HISTORY_WRITE", "STUDENT_PLANNING_READ", "STUDENT_PLANNING_WRITE", "STUDENT_SOCIAL_READ", "STUDENT_SOCIAL_WRITE", "STUDENT_FEEDBACK_READ", "STUDENT_FEEDBACK_WRITE"] as const
 export type StudentCapability = (typeof studentCapabilityValues)[number]
 
+export const authUserStatusValues = ["ACTIVE", "DISABLED"] as const
+export type AuthUserStatus = (typeof authUserStatusValues)[number]
+
 export const yearPeriodValues = ["SUMMER", "FIRST_SEMESTER", "WINTER", "SECOND_SEMESTER"] as const
 export type YearPeriod = (typeof yearPeriodValues)[number]
 
@@ -51,6 +54,7 @@ export type FeedbackStatus = (typeof feedbackStatusValues)[number]
 
 export const enumValueNames = {
     "StudentCapability": "studentCapabilityValues",
+    "AuthUserStatus": "authUserStatusValues",
     "YearPeriod": "yearPeriodValues",
     "PlanningVisibility": "planningVisibilityValues",
     "PlanningGuideMode": "planningGuideModeValues",

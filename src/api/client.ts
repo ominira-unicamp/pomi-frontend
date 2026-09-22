@@ -13,6 +13,6 @@ const dataApiUrl = configuredDataApiUrl || 'http://localhost:3000'
 const appApiUrl = configuredAppApiUrl || 'http://localhost:3001'
 
 export const pomiSdk = createPomiSdk({ dataApiUrl, appApiUrl })
-export function publicDocsUrl() {
-  return new URL('/public-docs', dataApiUrl).href
+export function docsUrl() {
+  return new URL('/docs', dataApiUrl).href
 }

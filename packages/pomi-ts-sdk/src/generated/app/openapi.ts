@@ -67,6 +67,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/auth-users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+
+        get: operations["listAuthUsers"];
+        put?: never;
+
+        post: operations["createAuthUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/auth-users/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+
+        patch: operations["updateAuthUser"];
+        trace?: never;
+    };
     "/students/{id}": {
         parameters: {
             query?: never;
@@ -93,7 +128,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+
+        get: operations["listStudents"];
         put?: never;
 
         post: operations["createStudents"];
@@ -545,6 +581,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/admin/feedback-reports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+
+        get: operations["listFeedbackReports"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/feedback-reports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+
+        patch: operations["updateFeedbackReport"];
+        trace?: never;
+    };
     "/student/{sid}/exchange-notice-subscription": {
         parameters: {
             query?: never;
@@ -813,6 +883,47 @@ export interface components {
         ReplaceBotGrantBody: {
             capabilities: components["schemas"]["StudentCapability"][];
         };
+        AuthUserEntity: {
+            id: number;
+            issuer: string;
+            subject: string;
+            email: string | null;
+            displayName: string | null;
+            status: components["schemas"]["AuthUserStatus"];
+            roles: {
+                authUserId: number;
+                role: string;
+            }[];
+            capabilities: {
+                authUserId: number;
+                capability: string;
+            }[];
+        };
+
+        AuthUserStatus: "ACTIVE" | "DISABLED";
+        CreateBotAuthUserBody: {
+            subject: string;
+            displayName: string;
+
+            capabilities: components["schemas"]["AuthCapability"][];
+        };
+
+        AuthCapability: "ACADEMIC_WRITE";
+        AdminIdentityManagedByCliProblem: {
+
+            type: "urn:pomi:problem:admin-identity-managed-by-cli";
+
+            title: "Identidade administrada pela linha de comando";
+
+            status: 403;
+            detail: string;
+            instance?: string;
+        };
+        PatchAuthUserBody: {
+            status?: components["schemas"]["AuthUserStatus"];
+            displayName?: string;
+            capabilities?: components["schemas"]["AuthCapability"][];
+        };
         StudentEntity: {
             id: number;
             ra: string;
@@ -888,7 +999,7 @@ export interface components {
             isFavorite: boolean;
             selection: {
                 catalogProgramId: number | null;
-                specializationId: number | null;
+                catalogProgramVariantId: number | null;
                 languageId: number | null;
             };
             planningStart: {
@@ -924,7 +1035,7 @@ export interface components {
             isFavorite: boolean;
             selection: {
                 catalogProgramId: number | null;
-                specializationId: number | null;
+                catalogProgramVariantId: number | null;
                 languageId: number | null;
             };
 
@@ -986,7 +1097,7 @@ export interface components {
             suggestionId: number | null;
             suggestionCatalogProgramId?: number | null;
             catalogProgramId: number | null;
-            specializationId: number | null;
+            catalogProgramVariantId: number | null;
             languageId: number | null;
             manualCourseIds: number[];
         };
@@ -1487,6 +1598,10 @@ export interface components {
         };
 
         FeedbackStatus: "OPEN" | "IN_PROGRESS" | "CLOSED";
+        PatchFeedbackReportBody: {
+            status?: components["schemas"]["FeedbackStatus"];
+            adminMessage?: string | null;
+        };
         ExchangeNoticeSubscription: {
             studentId: number;
             enabled: boolean;
@@ -1727,6 +1842,167 @@ export interface operations {
             };
         };
     };
+    listAuthUsers: {
+        parameters: {
+            query?: {
+
+                page?: number;
+
+                pageSize?: number | "all";
+
+                sort?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["AuthUserEntity"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
+                };
+            };
+
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["InvalidRequestProblem"];
+                };
+            };
+
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["InternalServerErrorProblem"];
+                };
+            };
+        };
+    };
+    createAuthUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateBotAuthUserBody"];
+            };
+        };
+        responses: {
+
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthUserEntity"];
+                };
+            };
+
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["InvalidRequestProblem"];
+                };
+            };
+
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["InternalServerErrorProblem"];
+                };
+            };
+        };
+    };
+    updateAuthUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchAuthUserBody"];
+            };
+        };
+        responses: {
+
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthUserEntity"];
+                };
+            };
+
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["InvalidRequestProblem"];
+                };
+            };
+
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["AdminIdentityManagedByCliProblem"];
+                };
+            };
+
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ResourceNotFoundProblem"];
+                };
+            };
+
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["InternalServerErrorProblem"];
+                };
+            };
+        };
+    };
     getStudents: {
         parameters: {
             query?: never;
@@ -1889,6 +2165,61 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ReferenceNotFoundProblem"] | components["schemas"]["InvalidStudentProfileProblem"];
+                };
+            };
+
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["InternalServerErrorProblem"];
+                };
+            };
+        };
+    };
+    listStudents: {
+        parameters: {
+            query?: {
+
+                page?: number;
+
+                pageSize?: number | "all";
+
+                sort?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["StudentEntity"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
+                };
+            };
+
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["InvalidRequestProblem"];
                 };
             };
 
@@ -2088,7 +2419,7 @@ export interface operations {
                     isFavorite?: boolean;
                     selection?: {
                         catalogProgramId?: number | null;
-                        specializationId?: number | null;
+                        catalogProgramVariantId?: number | null;
                         languageId?: number | null;
                     };
                     planningStart?: {
@@ -2238,7 +2569,7 @@ export interface operations {
                     name?: string;
                     selection?: {
                         catalogProgramId?: number | null;
-                        specializationId?: number | null;
+                        catalogProgramVariantId?: number | null;
                         languageId?: number | null;
                     };
                     planningStart?: {
@@ -4393,6 +4724,115 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ReferenceNotFoundProblem"] | components["schemas"]["InvalidFeedbackReportProblem"];
+                };
+            };
+
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["InternalServerErrorProblem"];
+                };
+            };
+        };
+    };
+    listFeedbackReports: {
+        parameters: {
+            query?: {
+
+                page?: number;
+
+                pageSize?: number | "all";
+
+                sort?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        data: components["schemas"]["FeedbackReport"][];
+                        quantity: number;
+                        total: number;
+                        _paths: {
+                            firstPage: string;
+                            lastPage: string;
+                            next: string | null;
+                            prev: string | null;
+                        };
+                    };
+                };
+            };
+
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["InvalidRequestProblem"];
+                };
+            };
+
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["InternalServerErrorProblem"];
+                };
+            };
+        };
+    };
+    updateFeedbackReport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PatchFeedbackReportBody"];
+            };
+        };
+        responses: {
+
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FeedbackReport"];
+                };
+            };
+
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["InvalidRequestProblem"];
+                };
+            };
+
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ResourceNotFoundProblem"];
                 };
             };
 

@@ -6,11 +6,11 @@ import { CatalogProgramPage } from './CatalogProgramPage'
 import type {
   CatalogId,
   CatalogProgramId,
+  CatalogProgramVariantId,
   CourseId,
   CurriculumPlannerStaticData,
   LanguageId,
   ProgramId,
-  SpecializationId,
 } from '@pomi/planner-domain/curriculum'
 import type { ReactNode } from 'react'
 
@@ -96,15 +96,17 @@ const staticData: CurriculumPlannerStaticData = {
           },
         ],
       },
-      specializations: [
+      variants: [
         {
-          id: '7' as SpecializationId,
+          id: '7' as CatalogProgramVariantId,
+          specializationId: 7,
           code: 'CB',
           name: 'Contrabaixo',
           blocks: { mandatory: [], electives: [] },
         },
         {
-          id: '8' as SpecializationId,
+          id: '8' as CatalogProgramVariantId,
+          specializationId: 8,
           code: 'CL',
           name: 'Clarineta',
           blocks: { mandatory: [], electives: [] },
@@ -148,11 +150,10 @@ const suggestions = [
   {
     id: '11',
     catalogProgramId: '101' as CatalogProgramId,
-    code: 'CB',
-    name: 'Contrabaixo',
-    type: 'SPECIALIZATION' as const,
+    catalogProgramVariantId: '7' as CatalogProgramVariantId,
+    programName: 'Música',
     specialization: {
-      id: '7' as SpecializationId,
+      id: 7,
       code: 'CB',
       name: 'Contrabaixo',
     },
@@ -174,22 +175,13 @@ const suggestions = [
   {
     id: '12',
     catalogProgramId: '101' as CatalogProgramId,
-    code: 'CL',
-    name: 'Clarineta',
-    type: 'SPECIALIZATION' as const,
+    catalogProgramVariantId: '8' as CatalogProgramVariantId,
+    programName: 'Música',
     specialization: {
-      id: '8' as SpecializationId,
+      id: 8,
       code: 'CL',
       name: 'Clarineta',
     },
-    semesters: [],
-  },
-  {
-    id: '13',
-    catalogProgramId: '101' as CatalogProgramId,
-    code: 'GERAL',
-    name: 'Geral',
-    type: 'GENERAL' as const,
     semesters: [],
   },
 ]
@@ -241,7 +233,7 @@ type TestSearch = Readonly<{
   catalogId?: number
   programId?: number
   catalogProgramId?: number
-  specializationId?: number
+  catalogProgramVariantId?: number
   dependencyCourseId?: number
   tab: 'full' | 'proposal' | 'dependencies'
 }>
@@ -251,7 +243,7 @@ function renderPage(
     catalogId: 1,
     programId: 22,
     catalogProgramId: 101,
-    specializationId: 7,
+    catalogProgramVariantId: 7,
     tab: 'full' as const,
   },
 ) {
@@ -307,7 +299,7 @@ describe('CatalogProgramPage', () => {
     useStudentProfile.mockReturnValue({ profileQuery: { data: undefined } })
   })
 
-  it('renders the full curriculum with language options and selected specialization', async () => {
+  it('renders the full curriculum with language options and selected variant', async () => {
     renderPage()
 
     expect(await screen.findByText('Núcleo comum ao curso')).toBeTruthy()
@@ -325,11 +317,11 @@ describe('CatalogProgramPage', () => {
     ).toBeTruthy()
   })
 
-  it('filters specialization proposals by the selected specialization', async () => {
+  it('filters variant proposals by the selected variant', async () => {
     renderPage({
       catalogId: 1,
       catalogProgramId: 101,
-      specializationId: 7,
+      catalogProgramVariantId: 7,
       tab: 'proposal',
     })
 
@@ -352,7 +344,7 @@ describe('CatalogProgramPage', () => {
       catalogId: 1,
       programId: 22,
       catalogProgramId: 101,
-      specializationId: undefined,
+      catalogProgramVariantId: undefined,
       tab: 'full',
     })
   })
@@ -374,7 +366,7 @@ describe('CatalogProgramPage', () => {
         catalogId: 1,
         programId: 22,
         catalogProgramId: 101,
-        specializationId: 7,
+        catalogProgramVariantId: 7,
         tab: 'full',
       })
     })
@@ -407,7 +399,7 @@ describe('CatalogProgramPage', () => {
         catalogId: 1,
         programId: 22,
         catalogProgramId: 101,
-        specializationId: 7,
+        catalogProgramVariantId: 7,
         tab: 'proposal',
       },
       { resetScroll: false },
@@ -428,7 +420,7 @@ describe('CatalogProgramPage', () => {
         catalogId: 1,
         programId: 22,
         catalogProgramId: 101,
-        specializationId: 7,
+        catalogProgramVariantId: 7,
         tab: 'dependencies',
         dependencyCourseId: 1,
       },
@@ -446,7 +438,7 @@ describe('CatalogProgramPage', () => {
       catalogId: 1,
       programId: 22,
       catalogProgramId: 101,
-      specializationId: 7,
+      catalogProgramVariantId: 7,
       dependencyCourseId: 2,
       tab: 'dependencies',
     })
@@ -470,7 +462,7 @@ describe('CatalogProgramPage', () => {
       catalogId: 1,
       programId: 22,
       catalogProgramId: 101,
-      specializationId: 7,
+      catalogProgramVariantId: 7,
       tab: 'dependencies',
     })
 
@@ -506,7 +498,7 @@ describe('CatalogProgramPage', () => {
       catalogId: 1,
       programId: 22,
       catalogProgramId: 101,
-      specializationId: 7,
+      catalogProgramVariantId: 7,
       tab: 'dependencies',
     })
 
@@ -559,7 +551,7 @@ describe('CatalogProgramPage', () => {
       catalogId: 1,
       programId: 22,
       catalogProgramId: 101,
-      specializationId: undefined,
+      catalogProgramVariantId: undefined,
       tab: 'full',
     })
   })
@@ -637,7 +629,7 @@ describe('CatalogProgramPage', () => {
     renderPage({
       catalogId: 1,
       catalogProgramId: 101,
-      specializationId: 7,
+      catalogProgramVariantId: 7,
       tab: 'proposal',
     })
 

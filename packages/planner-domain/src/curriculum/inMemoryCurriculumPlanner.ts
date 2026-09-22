@@ -1,3 +1,4 @@
+import { catalogProgramVariantForSelection } from './curriculumPlanner'
 import type {
   AcademicRecord,
   CourseId,
@@ -89,13 +90,13 @@ function definitionFromState(
   const catalogProgram = activeCatalog(state.selection, staticData)
   if (!catalogProgram) return undefined
   const blocks: Array<CurriculumBlocks> = [catalogProgram.baseBlocks]
-  const specialization = catalogProgram.specializations.find(
-    (item) => item.id === state.selection.specializationId,
+  const variant = catalogProgram.variants.find(
+    (item) => item.id === state.selection.catalogProgramVariantId,
   )
   const language = catalogProgram.languages.find(
     (item) => item.id === state.selection.languageId,
   )
-  if (specialization) blocks.push(specialization.blocks)
+  if (variant) blocks.push(variant.blocks)
   if (language) blocks.push(language.blocks)
   return {
     catalogProgramId: catalogProgram.id,
@@ -139,10 +140,13 @@ function calendarPeriodIndex(year: number, semester: 1 | 2) {
   return year * 2 + semester - 1
 }
 
-function planningStartFromCalendarIndex(index: number, semesterNumber: number) {
+function planningStartFromCalendarIndex(
+  index: number,
+  semesterNumber: number,
+): { year: number; semester: 1 | 2; semesterNumber: number } {
   return {
     year: Math.floor(index / 2),
-    semester: (index % 2 === 0 ? 1 : 2) as 1 | 2,
+    semester: (index % 2 === 0 ? 1 : 2),
     semesterNumber,
   }
 }
@@ -174,29 +178,43 @@ function executeCommand(
       }
       const selected = command.catalogProgramId ?? undefined
       if (selected === state.selection.catalogProgramId) return ok(next)
-      next.selection = { catalogProgramId: selected }
+      const selectedProgram = staticData.catalogPrograms.find(
+        (item) => item.id === selected,
+      )
+      const defaultVariant = selectedProgram
+        ? catalogProgramVariantForSelection(selectedProgram)
+        : undefined
+      next.selection = {
+        catalogProgramId: selected,
+        ...(defaultVariant
+          ? { catalogProgramVariantId: defaultVariant.id }
+          : {}),
+      }
       return ok(next)
     }
-    case 'selectSpecialization': {
-      if (command.specializationId === null) {
-        next.selection = { ...next.selection, specializationId: undefined }
+    case 'selectCatalogProgramVariant': {
+      if (command.catalogProgramVariantId === null) {
+        next.selection = { ...next.selection, catalogProgramVariantId: undefined }
         return ok(next)
       }
       if (
         !catalogProgram ||
-        !catalogProgram.specializations.some(
-          (item) => item.id === command.specializationId,
+        !catalogProgram.variants.some(
+          (item) => item.id === command.catalogProgramVariantId,
         )
       ) {
         return fail({
           code: 'invalidSelection',
           retryable: false,
-          details: { field: 'specializationId', id: command.specializationId },
+          details: {
+            field: 'catalogProgramVariantId',
+            id: command.catalogProgramVariantId,
+          },
         })
       }
       next.selection = {
         ...next.selection,
-        specializationId: command.specializationId,
+        catalogProgramVariantId: command.catalogProgramVariantId,
       }
       return ok(next)
     }
@@ -230,13 +248,13 @@ function executeCommand(
       if (imported.selection.catalogProgramId && !selected)
         return invalidInput('catalogProgram', 'incompatible')
       if (
-        imported.selection.specializationId &&
+        imported.selection.catalogProgramVariantId &&
         (!selected ||
-          !selected.specializations.some(
-            (item) => item.id === imported.selection.specializationId,
+          !selected.variants.some(
+            (item) => item.id === imported.selection.catalogProgramVariantId,
           ))
       )
-        return invalidInput('specialization', 'incompatible')
+        return invalidInput('catalogProgramVariant', 'incompatible')
       if (
         imported.selection.languageId &&
         (!selected ||
@@ -302,7 +320,8 @@ function executeCommand(
       const configuredStart = next.plan.planningStart
       const existingStartIndex = configuredStart
         ? calendarPeriodIndex(configuredStart.year, configuredStart.semester)
-        : (historicalIndexes[0] ?? (next.plan.periods.length ? 0 : undefined))
+        : (historicalIndexes.at(0) ??
+          (next.plan.periods.length ? 0 : undefined))
       const historicalStartIndex = historicalIndexes.length
         ? Math.min(...historicalIndexes)
         : existingStartIndex
@@ -764,7 +783,7 @@ function isCurriculumPlannerImport(value: unknown): boolean {
   if (!isRecord(value) || !isRecord(value.selection)) return false
   const selection = value.selection
   if (
-    !['catalogProgramId', 'specializationId', 'languageId'].every((field) => {
+    !['catalogProgramId', 'catalogProgramVariantId', 'languageId'].every((field) => {
       const id = selection[field]
       return id === undefined || typeof id === 'string'
     }) ||

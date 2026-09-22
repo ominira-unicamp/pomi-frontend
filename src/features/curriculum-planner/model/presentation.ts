@@ -10,8 +10,8 @@ export function curriculumPlannerErrorText(error: PlannerError | string) {
     const importReasons = {
       catalogProgram:
         'O catálogo/programa do arquivo não está disponível nos dados atuais.',
-      specialization:
-        'A habilitação do arquivo não pertence ao programa atual.',
+      catalogProgramVariant:
+        'A modalidade do arquivo não pertence ao programa atual.',
       language: 'A língua do arquivo não pertence ao programa atual.',
       courses:
         'O arquivo contém uma ou mais disciplinas que não existem no catálogo atual.',
@@ -46,8 +46,8 @@ export function curriculumSummaryDetails(
     (item) => Number(item.id) === summary.selection.catalogProgramId,
   )
   if (!catalogProgram) return []
-  const specialization = catalogProgram.specializations.find(
-    (item) => Number(item.id) === summary.selection.specializationId,
+  const variant = catalogProgram.variants.find(
+    (item) => Number(item.id) === summary.selection.catalogProgramVariantId,
   )
   const language = catalogProgram.languages.find(
     (item) => Number(item.id) === summary.selection.languageId,
@@ -58,11 +58,14 @@ export function curriculumSummaryDetails(
       label: 'Curso',
       value: `${catalogProgram.program.code} · ${catalogProgram.program.name}`,
     },
-    ...(specialization
+    ...(variant
       ? [
           {
-            label: 'Habilitação',
-            value: `${specialization.code} · ${specialization.name}`,
+            label: 'Modalidade',
+            value:
+              variant.specializationId === null
+                ? variant.name
+                : `${variant.code} · ${variant.name}`,
           },
         ]
       : []),

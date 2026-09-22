@@ -93,7 +93,7 @@ const staticData: CurriculumPlannerStaticData = {
           },
         ],
       },
-      specializations: [],
+      variants: [],
       languages: [],
     },
   ],
@@ -462,9 +462,10 @@ describe('CurriculumPlannerPage', () => {
           id: 'program-2026' as CatalogProgramId,
           catalog: { id: 'catalog-2026' as never, year: 2026 },
           program: { ...selectedProgram.program, id: 'program-id' as never },
-          specializations: [
+          variants: [
             {
               id: 'specialization' as never,
+              specializationId: 30,
               code: 'ESP',
               name: 'Especial',
               blocks: { mandatory: [], electives: [] },
@@ -483,9 +484,10 @@ describe('CurriculumPlannerPage', () => {
           id: 'program-2025' as CatalogProgramId,
           catalog: { id: 'catalog-2025' as never, year: 2025 },
           program: { ...selectedProgram.program, id: 'program-id' as never },
-          specializations: [
+          variants: [
             {
               id: 'specialization' as never,
+              specializationId: 30,
               code: 'ESP',
               name: 'Especial',
               blocks: { mandatory: [], electives: [] },
@@ -505,7 +507,7 @@ describe('CurriculumPlannerPage', () => {
       revision: 'revision' as PlannerRevision,
       selection: {
         catalogProgramId: 'program-2026' as CatalogProgramId,
-        specializationId: 'specialization' as never,
+        catalogProgramVariantId: 'specialization' as never,
         languageId: 'language' as never,
       },
       plan: { periods: [] },
@@ -534,8 +536,8 @@ describe('CurriculumPlannerPage', () => {
       catalogProgramId: 'program-2025',
     })
     expect(dispatch).toHaveBeenNthCalledWith(2, {
-      type: 'selectSpecialization',
-      specializationId: 'specialization',
+      type: 'selectCatalogProgramVariant',
+      catalogProgramVariantId: 'specialization',
     })
     expect(dispatch).toHaveBeenNthCalledWith(3, {
       type: 'selectLanguage',

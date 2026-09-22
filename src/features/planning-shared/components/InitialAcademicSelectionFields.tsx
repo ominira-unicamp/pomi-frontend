@@ -1,4 +1,8 @@
-import type { CurriculumPlannerStaticData } from '@pomi/planner-domain/curriculum'
+import {
+
+  catalogProgramVariantForSelection
+} from '@pomi/planner-domain/curriculum'
+import type {CurriculumPlannerStaticData} from '@pomi/planner-domain/curriculum';
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
 
@@ -6,7 +10,7 @@ export type InitialAcademicSelection = Readonly<{
   catalogId: string
   programId: string
   catalogProgramId: string
-  specializationId: string
+  catalogProgramVariantId: string
   languageId: string
 }>
 
@@ -68,7 +72,9 @@ export function InitialAcademicSelectionFields({
             ...value,
             programId,
             catalogProgramId: catalogProgram?.id ?? '',
-            specializationId: '',
+            catalogProgramVariantId: catalogProgram
+              ? (catalogProgramVariantForSelection(catalogProgram)?.id ?? '')
+              : '',
             languageId: '',
           })
         }}
@@ -81,37 +87,42 @@ export function InitialAcademicSelectionFields({
         emptyLabel="Definir depois"
         placeholder="Escolha o catálogo"
         options={catalogs}
-        onValueChange={(catalogId) =>
+        onValueChange={(catalogId) => {
+          const catalogProgram = staticData.catalogPrograms.find(
+            (item) =>
+              item.catalog.id === catalogId &&
+              item.program.id === selectedProgramId,
+          )
           onChange({
             ...value,
             catalogId,
-            catalogProgramId:
-              staticData.catalogPrograms.find(
-                (item) =>
-                  item.catalog.id === catalogId &&
-                  item.program.id === selectedProgramId,
-              )?.id ?? '',
-            specializationId: '',
+            catalogProgramId: catalogProgram?.id ?? '',
+            catalogProgramVariantId: catalogProgram
+              ? (catalogProgramVariantForSelection(catalogProgram)?.id ?? '')
+              : '',
             languageId: '',
           })
-        }
+        }}
       />
       {showSpecialization &&
         selected &&
-        selected.specializations.length > 0 && (
+        selected.variants.length > 1 && (
           <CreationSelect
-            label="Habilitação"
-            description="Acrescenta os requisitos específicos da habilitação escolhida."
-            ariaLabel="Habilitação inicial"
-            value={value.specializationId}
-            emptyLabel="Sem habilitação"
-            placeholder="Escolha a habilitação"
-            options={selected.specializations.map((item) => ({
+            label="Modalidade"
+            description="Define a formação usada pelo planejamento."
+            ariaLabel="Modalidade inicial"
+            value={value.catalogProgramVariantId}
+            emptyLabel="Definir depois"
+            placeholder="Escolha a modalidade"
+            options={selected.variants.map((item) => ({
               value: item.id,
-              label: `${item.code} — ${item.name}`,
+              label:
+                item.specializationId === null
+                  ? item.name
+                  : `${item.code} — ${item.name}`,
             }))}
-            onValueChange={(specializationId) =>
-              onChange({ ...value, specializationId })
+            onValueChange={(catalogProgramVariantId) =>
+              onChange({ ...value, catalogProgramVariantId })
             }
           />
         )}

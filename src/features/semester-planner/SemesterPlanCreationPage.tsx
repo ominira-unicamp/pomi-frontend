@@ -2,7 +2,12 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 
-import type { CatalogProgramId } from '@pomi/planner-domain/curriculum'
+import {
+
+  catalogProgramVariantForSelection,
+  suggestionLabel
+} from '@pomi/planner-domain/curriculum'
+import type {CatalogProgramId} from '@pomi/planner-domain/curriculum';
 import type { InitialAcademicSelection } from '@/features/planning-shared/components/InitialAcademicSelectionFields'
 import type { SemesterDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
 import type { SemesterPlanningDocument } from '@pomi/planner-domain/semester'
@@ -57,7 +62,7 @@ export function SemesterPlanCreationPage() {
     catalogId: '',
     programId: '',
     catalogProgramId: '',
-    specializationId: '',
+    catalogProgramVariantId: '',
     languageId: '',
   })
   const [suggestionId, setSuggestionId] = useState('')
@@ -117,11 +122,11 @@ export function SemesterPlanCreationPage() {
       catalogId: catalogProgram.catalog.id,
       programId: catalogProgram.program.id,
       catalogProgramId: catalogProgram.id,
-      specializationId: catalogProgram.specializations.some(
-        (item) => Number(item.id) === profile.specializationId,
-      )
-        ? String(profile.specializationId)
-        : '',
+      catalogProgramVariantId:
+        catalogProgramVariantForSelection(
+          catalogProgram,
+          profile.specializationId,
+        )?.id ?? '',
       languageId: catalogProgram.languages.some(
         (item) => Number(item.id) === profile.languageId,
       )
@@ -174,9 +179,9 @@ export function SemesterPlanCreationPage() {
           guideMode === 'program' && selection.catalogProgramId
             ? Number(selection.catalogProgramId)
             : null,
-        specializationId:
-          guideMode === 'program' && selection.specializationId
-            ? Number(selection.specializationId)
+        catalogProgramVariantId:
+          guideMode === 'program' && selection.catalogProgramVariantId
+            ? Number(selection.catalogProgramVariantId)
             : null,
         languageId:
           guideMode === 'program' && selection.languageId
@@ -413,7 +418,7 @@ export function SemesterPlanCreationPage() {
                         }
                         options={suggestions.map((item) => ({
                           value: item.id,
-                          label: `${item.code} — ${item.name}`,
+                          label: suggestionLabel(item),
                         }))}
                         placeholder={
                           selection.catalogProgramId
@@ -463,7 +468,7 @@ export function SemesterPlanCreationPage() {
                       ? `Programa${selectedCatalogProgram ? ` — ${selectedCatalogProgram.program.code} ${selectedCatalogProgram.program.name}` : ''}`
                       : curriculumSource === 'saved'
                         ? `Currículo salvo — ${curriculaQuery.data?.find((item) => String(item.id) === curriculumId)?.name ?? ''}`
-                        : `Sugestão curricular — ${suggestion ? `${suggestion.code} ${suggestion.name}` : ''}`
+                        : `Sugestão curricular — ${suggestion ? suggestionLabel(suggestion) : ''}`
                 }
               />
             </dl>

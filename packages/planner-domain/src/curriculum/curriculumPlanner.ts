@@ -7,7 +7,7 @@ export type OpaqueId<TName extends string> = string & {
 export type CatalogId = OpaqueId<'CatalogId'>
 export type CatalogProgramId = OpaqueId<'CatalogProgramId'>
 export type ProgramId = OpaqueId<'ProgramId'>
-export type SpecializationId = OpaqueId<'SpecializationId'>
+export type CatalogProgramVariantId = OpaqueId<'CatalogProgramVariantId'>
 export type LanguageId = OpaqueId<'LanguageId'>
 export type CourseId = OpaqueId<'CourseId'>
 export type PlanningPeriodId = OpaqueId<'PlanningPeriodId'>
@@ -21,8 +21,9 @@ export type Course = Readonly<{
   prefix?: string
 }>
 
-export type SpecializationOption = Readonly<{
-  id: SpecializationId
+export type CatalogProgramVariantOption = Readonly<{
+  id: CatalogProgramVariantId
+  specializationId: number | null
   code: string
   name: string
   blocks: CurriculumBlocks
@@ -47,21 +48,39 @@ export type CatalogProgramOption = Readonly<{
     name: string
   }>
   baseBlocks: CurriculumBlocks
-  specializations: ReadonlyArray<SpecializationOption>
+  variants: ReadonlyArray<CatalogProgramVariantOption>
   languages: ReadonlyArray<LanguageOption>
 }>
 
+export function catalogProgramVariantForSelection(
+  catalogProgram: CatalogProgramOption,
+  specializationId?: number | null,
+) {
+  if (specializationId != null)
+    return catalogProgram.variants.find(
+      (variant) => variant.specializationId === specializationId,
+    )
+  return (
+    catalogProgram.variants.find(
+      (variant) => variant.specializationId === null,
+    ) ??
+    (catalogProgram.variants.length === 1
+      ? catalogProgram.variants[0]
+      : undefined)
+  )
+}
+
 export type CurriculumSelection = Readonly<{
   catalogProgramId?: CatalogProgramId
-  specializationId?: SpecializationId
+  catalogProgramVariantId?: CatalogProgramVariantId
   languageId?: LanguageId
 }>
 
 export type RequirementSource =
   | Readonly<{ type: 'base' }>
   | Readonly<{
-      type: 'specialization'
-      specializationId: SpecializationId
+      type: 'variant'
+      catalogProgramVariantId: CatalogProgramVariantId
     }>
   | Readonly<{
       type: 'language'
@@ -215,14 +234,14 @@ export type CurriculumPlannerSnapshot = Readonly<{
 
 export type PlannerEntityType =
   | 'catalogProgram'
-  | 'specialization'
+  | 'catalogProgramVariant'
   | 'language'
   | 'course'
   | 'planningPeriod'
 
 export type PlannerSelectionField =
   | 'catalogProgramId'
-  | 'specializationId'
+  | 'catalogProgramVariantId'
   | 'languageId'
 
 export type PlannerError =
@@ -324,8 +343,8 @@ export type CurriculumPlannerCommand =
       catalogProgramId: CatalogProgramId | null
     }>
   | Readonly<{
-      type: 'selectSpecialization'
-      specializationId: SpecializationId | null
+      type: 'selectCatalogProgramVariant'
+      catalogProgramVariantId: CatalogProgramVariantId | null
     }>
   | Readonly<{
       type: 'selectLanguage'

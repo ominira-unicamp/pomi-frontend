@@ -1,9 +1,8 @@
 import type {
   CatalogProgramId,
+  CatalogProgramVariantId,
   CourseId,
   CurriculumSuggestion,
-  CurriculumSuggestionType,
-  SpecializationId,
 } from '@pomi/planner-domain/curriculum'
 
 import { pomiSdk } from '@/api/client'
@@ -11,7 +10,7 @@ import { pomiSdk } from '@/api/client'
 export const suggestionOnboardingPreferenceKey =
   'pomi.curriculum-planner.suggestion-onboarding-dismissed'
 
-export type { CurriculumSuggestion, CurriculumSuggestionType }
+export type { CurriculumSuggestion }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
@@ -45,17 +44,12 @@ function expectNonNegativeInteger(value: unknown) {
 function parseSuggestion(value: unknown): CurriculumSuggestion {
   if (!isRecord(value) || !Array.isArray(value.semesters))
     throw new TypeError('Expected curriculum suggestion')
-  const type = expectString(value.type)
-  if (type !== 'GENERAL' && type !== 'SPECIALIZATION' && type !== 'PRE_OPTION')
-    throw new TypeError('Expected curriculum suggestion type')
-  let specialization: CurriculumSuggestion['specialization']
+  let specialization: CurriculumSuggestion['specialization'] = null
   if (value.specialization !== null) {
     if (!isRecord(value.specialization))
       throw new TypeError('Expected specialization')
     specialization = {
-      id: String(
-        expectPositiveInteger(value.specialization.id),
-      ) as SpecializationId,
+      id: expectPositiveInteger(value.specialization.id),
       code: expectString(value.specialization.code),
       name: expectString(value.specialization.name),
     }
@@ -65,10 +59,11 @@ function parseSuggestion(value: unknown): CurriculumSuggestion {
     catalogProgramId: String(
       expectPositiveInteger(value.catalogProgramId),
     ) as CatalogProgramId,
-    code: expectString(value.code),
-    name: expectString(value.name),
-    type,
-    ...(specialization ? { specialization } : {}),
+    catalogProgramVariantId: String(
+      expectPositiveInteger(value.catalogProgramVariantId),
+    ) as CatalogProgramVariantId,
+    programName: expectString(value.programName),
+    specialization: specialization ?? null,
     semesters: value.semesters.map((semester) => {
       if (!isRecord(semester) || !Array.isArray(semester.courses))
         throw new TypeError('Expected semester suggestion')

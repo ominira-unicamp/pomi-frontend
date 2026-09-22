@@ -12,23 +12,23 @@ import { Button } from '@/components/ui/button'
 
 function curriculumBlocks(
   program: CurriculumPlannerStaticData['catalogPrograms'][number],
-  specialization?: CurriculumPlannerStaticData['catalogPrograms'][number]['specializations'][number],
+  variant?: CurriculumPlannerStaticData['catalogPrograms'][number]['variants'][number],
 ) {
   return [
     program.baseBlocks,
     ...program.languages.map((language) => language.blocks),
-    ...(specialization ? [specialization.blocks] : []),
+    ...(variant ? [variant.blocks] : []),
   ]
 }
 
 export function catalogProgramTreeCourseIds(
   program: CurriculumPlannerStaticData['catalogPrograms'][number],
-  specialization:
-    | CurriculumPlannerStaticData['catalogPrograms'][number]['specializations'][number]
+  variant:
+    | CurriculumPlannerStaticData['catalogPrograms'][number]['variants'][number]
     | undefined,
   includeElectives: boolean,
 ) {
-  const blocks = curriculumBlocks(program, specialization)
+  const blocks = curriculumBlocks(program, variant)
   const courseIds = new Set<CourseId>()
   for (const block of blocks) {
     for (const requirement of block.mandatory) {
@@ -74,7 +74,7 @@ function dependencyLinks(
 
 export function CatalogProgramDependencyTree({
   program,
-  specialization,
+  variant,
   courses,
   rules,
   completedCourseIds,
@@ -82,7 +82,7 @@ export function CatalogProgramDependencyTree({
   onOpenCourseDetails,
 }: {
   program: CurriculumPlannerStaticData['catalogPrograms'][number]
-  specialization?: CurriculumPlannerStaticData['catalogPrograms'][number]['specializations'][number]
+  variant?: CurriculumPlannerStaticData['catalogPrograms'][number]['variants'][number]
   courses: ReadonlyArray<Course>
   rules: ReadonlyArray<CoursePrerequisiteRule>
   completedCourseIds: ReadonlySet<number>
@@ -90,16 +90,16 @@ export function CatalogProgramDependencyTree({
   onOpenCourseDetails: (course: Course) => void
 }) {
   const mandatoryCourseIds = useMemo(
-    () => catalogProgramTreeCourseIds(program, specialization, false),
-    [program, specialization],
+    () => catalogProgramTreeCourseIds(program, variant, false),
+    [program, variant],
   )
   const [showElectives, setShowElectives] = useState(
     () =>
       focusedCourseId !== undefined && !mandatoryCourseIds.has(focusedCourseId),
   )
   const courseIds = useMemo(
-    () => catalogProgramTreeCourseIds(program, specialization, showElectives),
-    [program, showElectives, specialization],
+    () => catalogProgramTreeCourseIds(program, variant, showElectives),
+    [program, showElectives, variant],
   )
   const visibleCourses = useMemo(
     () => courses.filter((course) => courseIds.has(course.id)),

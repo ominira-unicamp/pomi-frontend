@@ -34,6 +34,9 @@ export type BotIdentity = Domain<BotIdentityTransport>
 export type BotGrantTransport = components['schemas']['BotGrantEntity']
 export type BotGrant = Domain<BotGrantTransport>
 
+export type AuthUserTransport = components['schemas']['AuthUserEntity']
+export type AuthUser = Domain<AuthUserTransport>
+
 export type StudentTransport = components['schemas']['StudentEntity']
 export type Student = Domain<Omit<StudentTransport, "_paths">>
 
@@ -153,6 +156,15 @@ export const domainModelDefinitions = {
     },
     "BotGrant": {
         "schema": "BotGrantEntity",
+        "transportFields": [],
+        "identityFields": [
+            "id"
+        ],
+        "readOnlyFields": [],
+        "relations": {}
+    },
+    "AuthUser": {
+        "schema": "AuthUserEntity",
         "transportFields": [],
         "identityFields": [
             "id"

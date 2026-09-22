@@ -1,27 +1,21 @@
 import type {
   CatalogProgramId,
+  CatalogProgramVariantId,
   CourseId,
   CurriculumPlannerImport,
   CurriculumPlannerSnapshot,
-  SpecializationId,
 } from './curriculumPlanner'
-
-export type CurriculumSuggestionType =
-  | 'GENERAL'
-  | 'SPECIALIZATION'
-  | 'PRE_OPTION'
 
 export type CurriculumSuggestion = Readonly<{
   id: string
   catalogProgramId: CatalogProgramId
-  code: string
-  name: string
-  type: CurriculumSuggestionType
-  specialization?: Readonly<{
-    id: SpecializationId
+  catalogProgramVariantId: CatalogProgramVariantId
+  programName: string
+  specialization: Readonly<{
+    id: number
     code: string
     name: string
-  }>
+  }> | null
   semesters: ReadonlyArray<
     Readonly<{
       semester: number
@@ -38,45 +32,21 @@ export type CurriculumSuggestion = Readonly<{
   >
 }>
 
-export function compatibleSuggestions(
-  suggestions: ReadonlyArray<CurriculumSuggestion>,
-  specializationId: string | undefined,
-) {
-  return suggestions.filter(
-    (suggestion) =>
-      suggestion.type !== 'SPECIALIZATION' ||
-      suggestion.specialization?.id === specializationId,
-  )
-}
-
 export function suggestionForAcademicSelection(
   suggestions: ReadonlyArray<CurriculumSuggestion>,
-  specializationId: string | undefined,
+  catalogProgramVariantId: string | undefined,
 ) {
-  const compatible = compatibleSuggestions(suggestions, specializationId)
-  if (specializationId) {
-    return (
-      compatible.find(
-        (suggestion) =>
-          suggestion.type === 'SPECIALIZATION' &&
-          suggestion.specialization?.id === specializationId,
-      ) ??
-      compatible.find((suggestion) => suggestion.type === 'GENERAL') ??
-      compatible.find((suggestion) => suggestion.type === 'PRE_OPTION')
-    )
-  }
-  return (
-    compatible.find((suggestion) => suggestion.type === 'GENERAL') ??
-    compatible.find((suggestion) => suggestion.type === 'PRE_OPTION')
+  if (!catalogProgramVariantId) return undefined
+  return suggestions.find(
+    (suggestion) =>
+      suggestion.catalogProgramVariantId === catalogProgramVariantId,
   )
 }
 
-export function suggestionTypeLabel(type: CurriculumSuggestion['type']) {
-  return {
-    GENERAL: 'Geral',
-    SPECIALIZATION: 'Habilitação',
-    PRE_OPTION: 'Pré-opção',
-  }[type]
+export function suggestionLabel(suggestion: CurriculumSuggestion) {
+  return suggestion.specialization
+    ? `${suggestion.specialization.code} — ${suggestion.specialization.name}`
+    : suggestion.programName
 }
 
 export function planningFromSuggestion(
@@ -93,9 +63,7 @@ export function planningFromSuggestion(
   return {
     selection: {
       catalogProgramId: suggestion.catalogProgramId,
-      ...(suggestion.specialization
-        ? { specializationId: suggestion.specialization.id }
-        : {}),
+      catalogProgramVariantId: suggestion.catalogProgramVariantId,
     },
     planningStart: { ...planningStart, semesterNumber: startSemesterNumber },
     periods: semesters.map((semester) => ({

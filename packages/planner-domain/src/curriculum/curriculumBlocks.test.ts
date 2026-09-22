@@ -50,9 +50,10 @@ const staticData: CurriculumPlannerStaticData = {
           },
         ],
       },
-      specializations: [
+      variants: [
         {
           id: 'specialization' as never,
+          specializationId: 1,
           code: 'S',
           name: 'Sistemas',
           blocks: {
@@ -60,8 +61,8 @@ const staticData: CurriculumPlannerStaticData = {
               {
                 type: 'course',
                 source: {
-                  type: 'specialization',
-                  specializationId: 'specialization' as never,
+                  type: 'variant',
+                  catalogProgramVariantId: 'specialization' as never,
                 },
                 selector: { type: 'specificCourse', courseId: '3' as CourseId },
               },
@@ -79,7 +80,7 @@ const snapshot: CurriculumPlannerSnapshot = {
   revision: 'revision' as PlannerRevision,
   selection: {
     catalogProgramId: 'program' as CatalogProgramId,
-    specializationId: 'specialization' as never,
+    catalogProgramVariantId: 'specialization' as never,
   },
   plan: {
     periods: [
@@ -111,7 +112,7 @@ describe('buildCurriculumGroups', () => {
               ],
               electives: [],
             },
-            specializations: [],
+            variants: [],
           },
         ],
       },
@@ -130,7 +131,7 @@ describe('buildCurriculumGroups', () => {
 
     expect(groups.map((group) => group.title)).toEqual([
       'Base',
-      'Habilitação · S — Sistemas',
+      'Modalidade · S — Sistemas',
     ])
     expect(groups[0].mandatory?.courses).toEqual([])
     expect(groups[0].electives[0].selectorLabels).toEqual(['AB'])

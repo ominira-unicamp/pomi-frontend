@@ -133,7 +133,7 @@ export type listCourseEvaluationSummariesProblem = operations["listCourseEvaluat
 export type listCoursesInput = OperationInput<operations["listCourses"]['parameters']['path'], SortQuery<operations["listCourses"]['parameters']['query'], "code" | "name" | "credits" | "unitCode">, operations["listCourses"]['parameters']['header'], RequestBodyOf<operations["listCourses"]>, false>
 export type listCoursesOutput = import('./domain.js').Page<import('./domain.js').Course>
 export type listCoursesProblem = operations["listCourses"]['responses'][400]['content']["application/problem+json"] | operations["listCourses"]['responses'][500]['content']["application/problem+json"]
-export type listCurriculumSuggestionsInput = OperationInput<operations["listCurriculumSuggestions"]['parameters']['path'], SortQuery<operations["listCurriculumSuggestions"]['parameters']['query'], "catalogYear" | "programCode" | "programName" | "code" | "name" | "type">, operations["listCurriculumSuggestions"]['parameters']['header'], RequestBodyOf<operations["listCurriculumSuggestions"]>, false>
+export type listCurriculumSuggestionsInput = OperationInput<operations["listCurriculumSuggestions"]['parameters']['path'], SortQuery<operations["listCurriculumSuggestions"]['parameters']['query'], "catalogYear" | "programCode" | "programName" | "specializationCode">, operations["listCurriculumSuggestions"]['parameters']['header'], RequestBodyOf<operations["listCurriculumSuggestions"]>, false>
 export type listCurriculumSuggestionsOutput = import('./domain.js').Page<import('./domain.js').CurriculumSuggestion>
 export type listCurriculumSuggestionsProblem = operations["listCurriculumSuggestions"]['responses'][400]['content']["application/problem+json"] | operations["listCurriculumSuggestions"]['responses'][500]['content']["application/problem+json"]
 export type listDailyMenusInput = OperationInput<operations["listDailyMenus"]['parameters']['path'], SortQuery<operations["listDailyMenus"]['parameters']['query'], "date" | "createdAt" | "updatedAt">, operations["listDailyMenus"]['parameters']['header'], RequestBodyOf<operations["listDailyMenus"]>, false>
@@ -7135,6 +7135,31 @@ export const operationDefinitions = {
                                     }
                                 ]
                             },
+                            "catalogProgramVariantId": {
+                                "oneOf": [
+                                    {
+                                        "minimum": 1,
+                                        "type": "integer"
+                                    },
+                                    {
+                                        "additionalProperties": false,
+                                        "properties": {
+                                            "eq": {
+                                                "minimum": 1,
+                                                "type": "integer"
+                                            },
+                                            "in": {
+                                                "items": {
+                                                    "minimum": 1,
+                                                    "type": "integer"
+                                                },
+                                                "type": "array"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                ]
+                            },
                             "catalogId": {
                                 "oneOf": [
                                     {
@@ -7235,72 +7260,6 @@ export const operationDefinitions = {
                                     }
                                 ]
                             },
-                            "code": {
-                                "oneOf": [
-                                    {
-                                        "minLength": 1,
-                                        "type": "string"
-                                    },
-                                    {
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "eq": {
-                                                "minLength": 1,
-                                                "type": "string"
-                                            },
-                                            "ne": {
-                                                "minLength": 1,
-                                                "type": "string"
-                                            },
-                                            "in": {
-                                                "items": {
-                                                    "minLength": 1,
-                                                    "type": "string"
-                                                },
-                                                "type": "array"
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
-                                ]
-                            },
-                            "type": {
-                                "oneOf": [
-                                    {
-                                        "enum": [
-                                            "GENERAL",
-                                            "SPECIALIZATION",
-                                            "PRE_OPTION"
-                                        ],
-                                        "type": "string"
-                                    },
-                                    {
-                                        "additionalProperties": false,
-                                        "properties": {
-                                            "eq": {
-                                                "enum": [
-                                                    "GENERAL",
-                                                    "SPECIALIZATION",
-                                                    "PRE_OPTION"
-                                                ],
-                                                "type": "string"
-                                            },
-                                            "in": {
-                                                "items": {
-                                                    "enum": [
-                                                        "GENERAL",
-                                                        "SPECIALIZATION",
-                                                        "PRE_OPTION"
-                                                    ],
-                                                    "type": "string"
-                                                },
-                                                "type": "array"
-                                            }
-                                        },
-                                        "type": "object"
-                                    }
-                                ]
-                            },
                             "specializationId": {
                                 "oneOf": [
                                     {
@@ -7339,7 +7298,7 @@ export const operationDefinitions = {
                     "schema": {
                         "type": "string",
                         "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
-                        "example": "catalogYear:desc,programCode:desc,code:asc"
+                        "example": "catalogYear:desc,programCode:desc,specializationCode:asc"
                     }
                 }
             ],
@@ -7349,6 +7308,19 @@ export const operationDefinitions = {
                     {
                         "path": [
                             "catalogProgramId"
+                        ],
+                        "schema": {
+                            "minimum": 1,
+                            "type": "integer"
+                        },
+                        "operators": [
+                            "eq",
+                            "in"
+                        ]
+                    },
+                    {
+                        "path": [
+                            "catalogProgramVariantId"
                         ],
                         "schema": {
                             "minimum": 1,
@@ -7413,37 +7385,6 @@ export const operationDefinitions = {
                     },
                     {
                         "path": [
-                            "code"
-                        ],
-                        "schema": {
-                            "minLength": 1,
-                            "type": "string"
-                        },
-                        "operators": [
-                            "eq",
-                            "ne",
-                            "in"
-                        ]
-                    },
-                    {
-                        "path": [
-                            "type"
-                        ],
-                        "schema": {
-                            "enum": [
-                                "GENERAL",
-                                "SPECIALIZATION",
-                                "PRE_OPTION"
-                            ],
-                            "type": "string"
-                        },
-                        "operators": [
-                            "eq",
-                            "in"
-                        ]
-                    },
-                    {
-                        "path": [
                             "specializationId"
                         ],
                         "schema": {
@@ -7468,11 +7409,9 @@ export const operationDefinitions = {
                     "catalogYear",
                     "programCode",
                     "programName",
-                    "code",
-                    "name",
-                    "type"
+                    "specializationCode"
                 ],
-                "default": "catalogYear:desc,programCode:desc,code:asc"
+                "default": "catalogYear:desc,programCode:desc,specializationCode:asc"
             }
         },
         "sdk": {

@@ -430,7 +430,7 @@ export function CurriculumPlannerProvider({
             isFavorite: false,
             selection: {
               catalogProgramId: null,
-              specializationId: null,
+              catalogProgramVariantId: null,
               languageId: null,
             },
             planningStart: null,

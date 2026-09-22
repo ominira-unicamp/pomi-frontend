@@ -32,7 +32,7 @@ const staticData: CurriculumPlannerStaticData = {
         ],
         electives: [],
       },
-      specializations: [],
+      variants: [],
       languages: [],
     },
   ],
@@ -215,7 +215,7 @@ describe('createInMemoryCurriculumPlanner', () => {
         ...initialState,
         selection: {
           catalogProgramId,
-          specializationId: 'specialization-1' as never,
+          catalogProgramVariantId: 'specialization-1' as never,
           languageId: 'language-1' as never,
         },
       },
@@ -235,7 +235,7 @@ describe('createInMemoryCurriculumPlanner', () => {
   it('keeps dependent selections when selecting the same program again', async () => {
     const selection = {
       catalogProgramId,
-      specializationId: 'specialization-1' as never,
+      catalogProgramVariantId: 'specialization-1' as never,
       languageId: 'language-1' as never,
     }
     const planner = createInMemoryCurriculumPlanner({

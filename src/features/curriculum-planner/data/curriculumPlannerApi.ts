@@ -1,6 +1,7 @@
 import type {
   CatalogId,
   CatalogProgramId,
+  CatalogProgramVariantId,
   CourseId,
   CourseRequirement,
   CourseSelector,
@@ -12,14 +13,13 @@ import type {
   PlannerResult,
   ProgramId,
   RequirementSource,
-  SpecializationId,
 } from '@pomi/planner-domain/curriculum'
 
 import type {
   CourseBlockSet as BlockSet,
   CatalogProgram,
   CatalogProgramLanguage,
-  CatalogProgramModality,
+  CatalogProgramVariant,
   Course,
   CourseRequirement as GeneratedCourseRequirement,
 } from '@ominira/pomi-sdk/generated/data'
@@ -49,8 +49,11 @@ type ApiCatalogProgram = Pick<
   | 'programName'
 > & {
   base: ApiBlockSet
-  modalities: ReadonlyArray<
-    Pick<CatalogProgramModality, 'specializationId' | 'code' | 'name'> & {
+  variants: ReadonlyArray<
+    Pick<
+      CatalogProgramVariant,
+      'id' | 'programId' | 'specializationId' | 'code' | 'name'
+    > & {
       blocks: ApiBlockSet
     }
   >
@@ -137,10 +140,16 @@ function parseCatalogProgram(value: unknown): ApiCatalogProgram {
     programCode: expectNumber(value.programCode),
     programName: expectString(value.programName),
     base: parseBlockSet(value.base),
-    modalities: expectArray(value.modalities).map((item) => {
-      if (!isRecord(item)) throw new TypeError('Expected specialization')
+    variants: expectArray(value.variants).map((item) => {
+      if (!isRecord(item)) throw new TypeError('Expected variant')
       return {
-        specializationId: expectNumber(item.specializationId),
+        id: expectNumber(item.id),
+        programId:
+          item.programId === null ? null : expectNumber(item.programId),
+        specializationId:
+          item.specializationId === null
+            ? null
+            : expectNumber(item.specializationId),
         code: expectString(item.code),
         name: expectString(item.name),
         blocks: parseBlockSet(item.blocks),
@@ -272,16 +281,17 @@ async function loadStaticData(): Promise<
             name: program.programName,
           },
           baseBlocks: blocksFromApi(program.base, { type: 'base' }),
-          specializations: program.modalities
-            .map((specialization) => ({
-              id: String(specialization.specializationId) as SpecializationId,
-              code: specialization.code,
-              name: specialization.name,
-              blocks: blocksFromApi(specialization.blocks, {
-                type: 'specialization',
-                specializationId: String(
-                  specialization.specializationId,
-                ) as SpecializationId,
+          variants: program.variants
+            .map((variant) => ({
+              id: String(variant.id) as CatalogProgramVariantId,
+              specializationId: variant.specializationId,
+              code: variant.code,
+              name: variant.name,
+              blocks: blocksFromApi(variant.blocks, {
+                type: 'variant',
+                catalogProgramVariantId: String(
+                  variant.id,
+                ) as CatalogProgramVariantId,
               }),
             }))
             .sort((left, right) => left.id.localeCompare(right.id)),

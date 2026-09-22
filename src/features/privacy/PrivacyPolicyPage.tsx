@@ -195,7 +195,7 @@ export function PrivacyPolicyPage() {
           </h3>
           <ul className="list-disc space-y-1 pl-5">
             <li>Curso de graduação</li>
-            <li>Habilitação / especialização</li>
+            <li>Modalidade curricular</li>
             <li>Ano de ingresso</li>
           </ul>
 

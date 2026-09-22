@@ -25,6 +25,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import {
+  catalogProgramVariantForSelection,
   evaluatePrerequisites,
   periodTitle,
 } from '@pomi/planner-domain/curriculum'
@@ -384,17 +385,15 @@ export function CurriculumPlannerPage({
         type: 'selectCatalogProgram',
         catalogProgramId: catalogProgram.id,
       })
-      if (planner.studentProfile?.specializationId) {
-        const specialization = catalogProgram.specializations.find(
-          (item) =>
-            Number(item.id) === planner.studentProfile?.specializationId,
-        )
-        if (specialization)
-          await planner.dispatch({
-            type: 'selectSpecialization',
-            specializationId: specialization.id,
-          })
-      }
+      const variant = catalogProgramVariantForSelection(
+        catalogProgram,
+        planner.studentProfile?.specializationId,
+      )
+      if (variant)
+        await planner.dispatch({
+          type: 'selectCatalogProgramVariant',
+          catalogProgramVariantId: variant.id,
+        })
       if (planner.studentProfile?.languageId) {
         const language = catalogProgram.languages.find(
           (item) => Number(item.id) === planner.studentProfile?.languageId,

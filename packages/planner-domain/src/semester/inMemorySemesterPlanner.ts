@@ -31,7 +31,7 @@ export function createInMemorySemesterPlanner({
       },
       program: {
         catalogProgramId: null,
-        specializationId: null,
+        catalogProgramVariantId: null,
         languageId: null,
       },
       manualCourseIds: [],

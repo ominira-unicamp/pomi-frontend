@@ -175,7 +175,7 @@ export function buildCurriculumGroups(
 ) {
   const selectionKey = [
     snapshot.selection.catalogProgramId ?? '',
-    snapshot.selection.specializationId ?? '',
+    snapshot.selection.catalogProgramVariantId ?? '',
     snapshot.selection.languageId ?? '',
   ].join(':')
   const availabilityKey = curriculumAvailabilityKey(snapshot)
@@ -189,15 +189,17 @@ export function buildCurriculumGroups(
     const next: Array<CurriculumGroupDefinition> = [
       groupDefinitionFromBlocks('base', 'Base', program.baseBlocks, staticData),
     ]
-    const specialization = program.specializations.find(
-      (option) => option.id === snapshot.selection.specializationId,
+    const variant = program.variants.find(
+      (option) => option.id === snapshot.selection.catalogProgramVariantId,
     )
-    if (specialization) {
+    if (variant) {
       next.push(
         groupDefinitionFromBlocks(
-          `specialization:${specialization.id}`,
-          `Habilitação · ${specialization.code} — ${specialization.name}`,
-          specialization.blocks,
+          `variant:${variant.id}`,
+          variant.specializationId === null
+            ? `Modalidade · ${variant.name}`
+            : `Modalidade · ${variant.code} — ${variant.name}`,
+          variant.blocks,
           staticData,
         ),
       )

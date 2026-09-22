@@ -3,8 +3,8 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
-  buildInitialState,
   CurriculumPlanCreationPage,
+  buildInitialState,
 } from './CurriculumPlanCreationPage'
 import type { ReactNode } from 'react'
 import type {
@@ -20,7 +20,7 @@ const authState = vi.hoisted(() => ({
   getAccessToken: vi.fn(),
 }))
 const suggestionLoader = vi.hoisted(() =>
-  vi.fn(() => Promise.resolve([] as never[])),
+  vi.fn(() => Promise.resolve([] as Array<never>)),
 )
 
 vi.mock('@tanstack/react-router', () => ({
@@ -55,7 +55,7 @@ vi.mock('@/features/student/hooks/useStudentProfile', () => ({
       data: {
         catalogId: 1,
         programId: 1,
-        specializationId: null,
+        catalogProgramVariantId: null,
         languageId: null,
       },
     },
@@ -79,7 +79,7 @@ const staticData: CurriculumPlannerStaticData = {
       catalog: { id: '1' as never, year: 2026 },
       program: { id: '1' as never, code: '10', name: 'Programa' },
       baseBlocks: { mandatory: [], electives: [] },
-      specializations: [],
+      variants: [],
       languages: [],
     },
     {
@@ -88,7 +88,7 @@ const staticData: CurriculumPlannerStaticData = {
       catalog: { id: '2' as never, year: 2025 },
       program: { id: '1' as never, code: '10', name: 'Programa' },
       baseBlocks: { mandatory: [], electives: [] },
-      specializations: [],
+      variants: [],
       languages: [],
     },
   ],
@@ -97,7 +97,7 @@ const staticData: CurriculumPlannerStaticData = {
 describe('CurriculumPlanCreationPage', () => {
   beforeEach(() => {
     suggestionLoader.mockReset()
-    suggestionLoader.mockResolvedValue([] as never[])
+    suggestionLoader.mockResolvedValue([] as Array<never>)
   })
 
   it('shows the academic base before identification', async () => {
@@ -204,7 +204,7 @@ describe('CurriculumPlanCreationPage', () => {
         catalogId: '1',
         programId: '1',
         catalogProgramId: 'program-2026',
-        specializationId: '',
+        catalogProgramVariantId: '',
         languageId: '',
       },
       completedCourseIds: ['101' as never],
@@ -245,7 +245,7 @@ describe('CurriculumPlanCreationPage', () => {
         catalogId: '1',
         programId: '1',
         catalogProgramId: 'program-2026',
-        specializationId: '',
+        catalogProgramVariantId: '',
         languageId: '',
       },
       completedCourseIds: ['101' as never],

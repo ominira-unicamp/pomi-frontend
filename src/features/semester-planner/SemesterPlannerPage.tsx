@@ -12,6 +12,10 @@ import {
   programGuideBlocks,
   selectorLabel,
 } from '@pomi/planner-domain/semester'
+import {
+  catalogProgramVariantForSelection,
+  suggestionLabel,
+} from '@pomi/planner-domain/curriculum'
 import type {
   GuideChanges,
   GuideMode,
@@ -154,7 +158,7 @@ export function SemesterPlannerPage({
   const [programCatalogId, setProgramCatalogId] = useState('')
   const [programCatalogTouched, setProgramCatalogTouched] = useState(false)
   const [programCatalogProgramId, setProgramCatalogProgramId] = useState('')
-  const [programSpecializationId, setProgramSpecializationId] = useState('')
+  const [programCatalogProgramVariantId, setProgramCatalogProgramVariantId] = useState('')
   const [programLanguageId, setProgramLanguageId] = useState('')
   const [anonymousSuggestionCourseIds, setAnonymousSuggestionCourseIds] =
     useState<
@@ -252,9 +256,9 @@ export function SemesterPlannerPage({
         ? String(guide.program.catalogProgramId)
         : '',
     )
-    setProgramSpecializationId(
-      guide.program.specializationId
-        ? String(guide.program.specializationId)
+    setProgramCatalogProgramVariantId(
+      guide.program.catalogProgramVariantId
+        ? String(guide.program.catalogProgramVariantId)
         : '',
     )
     setProgramLanguageId(
@@ -327,8 +331,11 @@ export function SemesterPlannerPage({
     if (!programCatalogTouched && !programCatalogProgramId) {
       setProgramCatalogId(String(catalogProgram.catalog.id))
       setProgramCatalogProgramId(String(catalogProgram.id))
-      setProgramSpecializationId(
-        profile.specializationId ? String(profile.specializationId) : '',
+      setProgramCatalogProgramVariantId(
+        catalogProgramVariantForSelection(
+          catalogProgram,
+          profile.specializationId,
+        )?.id ?? '',
       )
       setProgramLanguageId(profile.languageId ? String(profile.languageId) : '')
     }
@@ -384,9 +391,9 @@ export function SemesterPlannerPage({
         ? String(next.program.catalogProgramId)
         : '',
     )
-    setProgramSpecializationId(
-      next.program.specializationId
-        ? String(next.program.specializationId)
+    setProgramCatalogProgramVariantId(
+      next.program.catalogProgramVariantId
+        ? String(next.program.catalogProgramVariantId)
         : '',
     )
     setProgramLanguageId(
@@ -525,7 +532,7 @@ export function SemesterPlannerPage({
     )
     const selectedProgramBlocks = programGuideBlocks(
       selectedProgramCatalog,
-      programSpecializationId,
+      programCatalogProgramVariantId,
       programLanguageId,
     )
     const guideClassContext = buildGuideClassContext(
@@ -701,7 +708,7 @@ export function SemesterPlannerPage({
     guideSource,
     manualCourseIds,
     programLanguageId,
-    programSpecializationId,
+    programCatalogProgramVariantId,
     query.data,
     selectedProgramCatalog,
     snapshot,
@@ -816,9 +823,9 @@ export function SemesterPlannerPage({
         ? String(nextGuide.program.catalogProgramId)
         : '',
     )
-    setProgramSpecializationId(
-      nextGuide.program.specializationId
-        ? String(nextGuide.program.specializationId)
+    setProgramCatalogProgramVariantId(
+      nextGuide.program.catalogProgramVariantId
+        ? String(nextGuide.program.catalogProgramVariantId)
         : '',
     )
     setProgramLanguageId(
@@ -1010,7 +1017,7 @@ export function SemesterPlannerPage({
           }
           options={anonymousSuggestions.map((suggestion) => ({
             value: suggestion.id,
-            label: `${suggestion.code} — ${suggestion.name}`,
+            label: suggestionLabel(suggestion),
           }))}
           placeholder={
             anonymousSuggestionsQuery.isLoading
@@ -1160,16 +1167,22 @@ export function SemesterPlannerPage({
               : 'Escolha um catálogo primeiro'
           }
           onValueChange={(value) => {
+            const catalogProgram = anonymousCatalogPrograms.find(
+              (item) => item.id === value,
+            )
+            const variant = catalogProgram
+              ? catalogProgramVariantForSelection(catalogProgram)
+              : undefined
             setProgramCatalogTouched(true)
             setProgramCatalogProgramId(value)
-            setProgramSpecializationId('')
+            setProgramCatalogProgramVariantId(variant?.id ?? '')
             setProgramLanguageId('')
             updateGuide(
               guideWith({
                 mode: 'program',
                 program: {
                   catalogProgramId: numericId(value),
-                  specializationId: null,
+                  catalogProgramVariantId: numericId(variant?.id ?? ''),
                   languageId: null,
                 },
               }),
@@ -1177,35 +1190,33 @@ export function SemesterPlannerPage({
           }}
         />
       </label>
-      <label className="block text-xs font-extrabold">
-        Habilitação
-        <AutocompleteSelect
-          ariaLabel="Habilitação do programa"
-          value={programSpecializationId}
-          disabled={!selectedProgramCatalog}
-          emptyLabel="Sem habilitação"
-          options={(selectedProgramCatalog?.specializations ?? []).map(
-            (specialization) => ({
-              value: specialization.id,
-              label: `${specialization.code} — ${specialization.name}`,
-            }),
-          )}
-          placeholder={
-            selectedProgramCatalog
-              ? 'Escolha a habilitação'
-              : 'Escolha um programa primeiro'
-          }
-          onValueChange={(value) => {
-            setProgramSpecializationId(value)
-            updateGuide(
-              guideWith({
-                mode: 'program',
-                program: { specializationId: numericId(value) },
-              }),
-            )
-          }}
-        />
-      </label>
+      {selectedProgramCatalog && selectedProgramCatalog.variants.length > 1 ? (
+        <label className="block text-xs font-extrabold">
+          Modalidade
+          <AutocompleteSelect
+            ariaLabel="Modalidade do programa"
+            value={programCatalogProgramVariantId}
+            emptyLabel="Definir depois"
+            options={selectedProgramCatalog.variants.map((variant) => ({
+              value: variant.id,
+              label:
+                variant.specializationId === null
+                  ? variant.name
+                  : `${variant.code} — ${variant.name}`,
+            }))}
+            placeholder="Escolha a modalidade"
+            onValueChange={(value) => {
+              setProgramCatalogProgramVariantId(value)
+              updateGuide(
+                guideWith({
+                  mode: 'program',
+                  program: { catalogProgramVariantId: numericId(value) },
+                }),
+              )
+            }}
+          />
+        </label>
+      ) : null}
       <label className="block text-xs font-extrabold">
         Língua
         <AutocompleteSelect

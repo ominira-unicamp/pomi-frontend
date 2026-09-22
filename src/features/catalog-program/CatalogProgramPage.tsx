@@ -10,8 +10,8 @@ import {
 import { Fragment, useEffect, useMemo, useState } from 'react'
 
 import {
-  compatibleSuggestions,
-  suggestionTypeLabel,
+  catalogProgramVariantForSelection,
+  suggestionLabel,
 } from '@pomi/planner-domain/curriculum'
 import { CatalogProgramCourseDialog } from './CatalogProgramCourseDialog'
 import {
@@ -19,6 +19,7 @@ import {
   catalogProgramTreeCourseIds,
 } from './CatalogProgramDependencyTree'
 import type {
+  CatalogProgramVariantId,
   Course,
   CourseId,
   CourseRequirement,
@@ -26,7 +27,6 @@ import type {
   CurriculumBlocks,
   CurriculumPlannerStaticData,
   CurriculumSuggestion,
-  SpecializationId,
 } from '@pomi/planner-domain/curriculum'
 import type { KeyboardEvent } from 'react'
 import { useOptionalAuth } from '@/auth/AuthProvider'
@@ -62,7 +62,7 @@ export type CatalogProgramSearch = Readonly<{
   catalogId?: number
   programId?: number
   catalogProgramId?: number
-  specializationId?: number
+  catalogProgramVariantId?: number
   dependencyCourseId?: number
   tab: CatalogProgramTab
 }>
@@ -125,7 +125,7 @@ export function CatalogProgramPage({
       search.catalogId !== undefined ||
       search.programId !== undefined ||
       search.catalogProgramId !== undefined ||
-      search.specializationId !== undefined ||
+      search.catalogProgramVariantId !== undefined ||
       profile.programId === null
     )
       return
@@ -145,21 +145,21 @@ export function CatalogProgramPage({
             (program) => Number(program.catalog.id) === profile.catalogId,
           ) ?? latestCatalogProgram)
 
-    const specializationId =
-      profile.specializationId !== null &&
-      selectedCatalogProgram.specializations.some(
-        (specialization) =>
-          Number(specialization.id) === profile.specializationId,
-      )
-        ? profile.specializationId
-        : undefined
+    const catalogProgramVariantId = Number(
+      catalogProgramVariantForSelection(
+        selectedCatalogProgram,
+        profile.specializationId,
+      )?.id,
+    )
 
     onSearchChange({
       ...search,
       catalogId: Number(selectedCatalogProgram.catalog.id),
       programId: Number(selectedCatalogProgram.program.id),
       catalogProgramId: Number(selectedCatalogProgram.id),
-      specializationId,
+      catalogProgramVariantId: Number.isInteger(catalogProgramVariantId)
+        ? catalogProgramVariantId
+        : undefined,
     })
   }, [onSearchChange, profileQuery.data, search, staticData])
 
@@ -174,9 +174,11 @@ export function CatalogProgramPage({
         Number(program.catalog.id) === search.catalogId)
     )
   })
-  const selectedSpecialization = selectedProgram?.specializations.find(
-    (specialization) => Number(specialization.id) === search.specializationId,
-  )
+  const selectedVariant = selectedProgram
+    ? (selectedProgram.variants.find(
+        (variant) => Number(variant.id) === search.catalogProgramVariantId,
+      ) ?? catalogProgramVariantForSelection(selectedProgram))
+    : undefined
   const suggestionsQuery = useQuery({
     queryKey: publicQueryKeys.curriculumSuggestions(
       selectedProgram?.id ?? 'none',
@@ -198,7 +200,7 @@ export function CatalogProgramPage({
     if (!selectedProgram) return courseIds
     const eligibleCourseIds = catalogProgramTreeCourseIds(
       selectedProgram,
-      selectedSpecialization,
+      selectedVariant,
       true,
     )
     for (const rule of prerequisitesQuery.data?.rules ?? []) {
@@ -216,7 +218,7 @@ export function CatalogProgramPage({
       }
     }
     return courseIds
-  }, [prerequisitesQuery.data, selectedProgram, selectedSpecialization])
+  }, [prerequisitesQuery.data, selectedProgram, selectedVariant])
 
   const updateSearch = (
     change: Partial<CatalogProgramSearch>,
@@ -250,10 +252,13 @@ export function CatalogProgramPage({
     (selectedProgram ? Number(selectedProgram.program.id) : undefined)
   const catalogs = catalogOptions(staticData, selectedProgramId)
   const programs = programOptions(staticData)
-  const specializations = selectedProgram
-    ? selectedProgram.specializations.map((specialization) => ({
-        value: specialization.id,
-        label: `${specialization.code} — ${specialization.name}`,
+  const variants = selectedProgram
+    ? selectedProgram.variants.map((variant) => ({
+        value: variant.id,
+        label:
+          variant.specializationId === null
+            ? variant.name
+            : `${variant.code} — ${variant.name}`,
       }))
     : []
 
@@ -303,7 +308,12 @@ export function CatalogProgramPage({
                   catalogProgramId: latestCatalogProgram
                     ? Number(latestCatalogProgram.id)
                     : undefined,
-                  specializationId: undefined,
+                  catalogProgramVariantId: latestCatalogProgram
+                    ? Number(
+                        catalogProgramVariantForSelection(latestCatalogProgram)
+                          ?.id,
+                      ) || undefined
+                    : undefined,
                 })
               }}
             />
@@ -332,23 +342,27 @@ export function CatalogProgramPage({
                   catalogProgramId: catalogProgram
                     ? Number(catalogProgram.id)
                     : undefined,
-                  specializationId: undefined,
+                  catalogProgramVariantId: catalogProgram
+                    ? Number(
+                        catalogProgramVariantForSelection(catalogProgram)?.id,
+                      ) || undefined
+                    : undefined,
                 })
               }}
             />
           </Field>
-          {selectedProgram && specializations.length > 0 && (
+          {selectedProgram && variants.length > 1 && (
             <Field>
-              <FieldLabel>Habilitação</FieldLabel>
+              <FieldLabel>Modalidade</FieldLabel>
               <AutocompleteSelect
-                ariaLabel="Habilitação"
-                value={selectedSpecialization?.id ?? ''}
-                emptyLabel="Escolha uma habilitação"
-                options={specializations}
-                placeholder="Escolha uma habilitação"
+                ariaLabel="Modalidade"
+                value={selectedVariant?.id ?? ''}
+                emptyLabel="Escolha uma modalidade"
+                options={variants}
+                placeholder="Escolha uma modalidade"
                 onValueChange={(value) =>
                   updateSearch({
-                    specializationId: value ? Number(value) : undefined,
+                    catalogProgramVariantId: value ? Number(value) : undefined,
                   })
                 }
               />
@@ -407,7 +421,7 @@ export function CatalogProgramPage({
               <FullCurriculum
                 program={selectedProgram}
                 courses={staticData.courses}
-                specialization={selectedSpecialization}
+                variant={selectedVariant}
                 onOpenCourseDetails={setSelectedCourse}
                 completedCourseIds={completedCourseIds}
                 markCompleted={markCompleted}
@@ -426,7 +440,7 @@ export function CatalogProgramPage({
             <TabsContent value="proposal">
               <CurriculumProposal
                 suggestions={suggestionsQuery.data ?? []}
-                specializationId={selectedSpecialization?.id}
+                catalogProgramVariantId={selectedVariant?.id}
                 isLoading={suggestionsQuery.isLoading}
                 isError={suggestionsQuery.isError}
                 onRetry={() => void suggestionsQuery.refetch()}
@@ -463,7 +477,7 @@ export function CatalogProgramPage({
                 <CatalogProgramDependencyTree
                   key={search.dependencyCourseId ?? 'all'}
                   program={selectedProgram}
-                  specialization={selectedSpecialization}
+                  variant={selectedVariant}
                   courses={staticData.courses}
                   rules={prerequisitesQuery.data.rules}
                   completedCourseIds={completedCourseIds}
@@ -571,7 +585,7 @@ function programOptions(staticData: CurriculumPlannerStaticData) {
 function FullCurriculum({
   program,
   courses,
-  specialization,
+  variant,
   onOpenCourseDetails,
   completedCourseIds,
   markCompleted,
@@ -580,7 +594,7 @@ function FullCurriculum({
 }: {
   program: CurriculumPlannerStaticData['catalogPrograms'][number]
   courses: ReadonlyArray<Course>
-  specialization?: CurriculumPlannerStaticData['catalogPrograms'][number]['specializations'][number]
+  variant?: CurriculumPlannerStaticData['catalogPrograms'][number]['variants'][number]
   onOpenCourseDetails: (course: Course) => void
   completedCourseIds: ReadonlySet<number>
   markCompleted: boolean
@@ -623,21 +637,23 @@ function FullCurriculum({
           ))}
         </section>
       )}
-      {program.specializations.length > 0 && specialization && (
-        <section aria-labelledby="specialization-title" className="space-y-5">
+      {variant && (
+        <section aria-labelledby="variant-title" className="space-y-5">
           <div>
             <SectionHeading
-              id="specialization-title"
-              title={`${specialization.code} — ${specialization.name}`}
+              id="variant-title"
+              title={`${variant.code} — ${variant.name}`}
             />
             <p className="mt-2 text-sm text-muted-foreground">
               Além do núcleo comum, o aluno deverá cumprir:
             </p>
           </div>
           <CurriculumSection
-            sectionKey={`specialization-${specialization.id}`}
-            title="Disciplinas da habilitação"
-            blocks={specialization.blocks}
+            sectionKey={`variant-${variant.id}`}
+            title={
+              'Disciplinas da modalidade'
+            }
+            blocks={variant.blocks}
             courses={courses}
             onOpenCourseDetails={onOpenCourseDetails}
             completedCourseIds={completedCourseIds}
@@ -647,10 +663,10 @@ function FullCurriculum({
           />
         </section>
       )}
-      {program.specializations.length > 0 && !specialization && (
+      {program.variants.length > 0 && !variant && (
         <EmptyState
-          title="Escolha uma habilitação"
-          description="Selecione uma habilitação acima para consultar as disciplinas específicas do currículo pleno."
+          title="Escolha uma modalidade"
+          description="Selecione uma modalidade acima para consultar as disciplinas específicas do currículo pleno."
         />
       )}
     </div>
@@ -1076,7 +1092,7 @@ function requirementRow(
 
 function CurriculumProposal({
   suggestions,
-  specializationId,
+  catalogProgramVariantId,
   isLoading,
   isError,
   onRetry,
@@ -1087,7 +1103,7 @@ function CurriculumProposal({
   onOpenDependencyTree,
 }: {
   suggestions: ReadonlyArray<CurriculumSuggestion>
-  specializationId?: SpecializationId
+  catalogProgramVariantId?: CatalogProgramVariantId
   isLoading: boolean
   isError: boolean
   onRetry: () => void
@@ -1109,10 +1125,12 @@ function CurriculumProposal({
     )
   }
 
-  const visibleSuggestions = compatibleSuggestions(
-    suggestions,
-    specializationId,
-  )
+  const visibleSuggestions = catalogProgramVariantId
+    ? suggestions.filter(
+        (suggestion) =>
+          suggestion.catalogProgramVariantId === catalogProgramVariantId,
+      )
+    : []
   if (visibleSuggestions.length === 0) {
     return (
       <EmptyState
@@ -1130,21 +1148,12 @@ function CurriculumProposal({
           aria-labelledby={`suggestion-${suggestion.id}`}
         >
           <div className="mb-4 border-b-2 border-strong-border pb-3">
-            <p className="text-xs font-black tracking-[0.14em] text-primary uppercase">
-              {suggestionTypeLabel(suggestion.type)}
-            </p>
             <h2
               id={`suggestion-${suggestion.id}`}
-              className="mt-1 text-xl font-extrabold"
+              className="text-xl font-extrabold"
             >
-              {suggestion.code} — {suggestion.name}
+              {suggestionLabel(suggestion)}
             </h2>
-            {suggestion.specialization && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                {suggestion.specialization.code} —{' '}
-                {suggestion.specialization.name}
-              </p>
-            )}
           </div>
           <div className="space-y-4">
             {suggestion.semesters.map((semester) => (

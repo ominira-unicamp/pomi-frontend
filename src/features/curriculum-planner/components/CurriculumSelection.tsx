@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { catalogProgramVariantForSelection } from '@pomi/planner-domain/curriculum'
 import type {
   CurriculumPlannerSnapshot,
   CurriculumPlannerStaticData,
@@ -55,7 +56,7 @@ export function CurriculumSelectionFields({
   const selectProgram = (value: string) => {
     if (
       value !== snapshot.selection.catalogProgramId &&
-      (snapshot.selection.specializationId || snapshot.selection.languageId)
+      (snapshot.selection.catalogProgramVariantId || snapshot.selection.languageId)
     )
       setSelectionWarning(selectionWarningMessage)
     void dispatch({
@@ -74,14 +75,20 @@ export function CurriculumSelectionFields({
             program.program.id === selected.program.id,
         )
       : undefined
-    const nextSpecialization = nextProgram?.specializations.find(
-      (option) => option.id === snapshot.selection.specializationId,
+    const currentVariant = selected?.variants.find(
+      (option) => option.id === snapshot.selection.catalogProgramVariantId,
     )
+    const nextVariant = nextProgram
+      ? catalogProgramVariantForSelection(
+          nextProgram,
+          currentVariant?.specializationId,
+        )
+      : undefined
     const nextLanguage = nextProgram?.languages.find(
       (option) => option.id === snapshot.selection.languageId,
     )
     const hadIncompatibleSelection =
-      Boolean(snapshot.selection.specializationId) && !nextSpecialization
+      Boolean(snapshot.selection.catalogProgramVariantId) && !nextVariant
     const hadIncompatibleLanguage =
       Boolean(snapshot.selection.languageId) && !nextLanguage
 
@@ -91,10 +98,10 @@ export function CurriculumSelectionFields({
     })
     if (!succeeded) return
 
-    if (nextSpecialization) {
+    if (nextVariant) {
       await dispatch({
-        type: 'selectSpecialization',
-        specializationId: nextSpecialization.id,
+        type: 'selectCatalogProgramVariant',
+        catalogProgramVariantId: nextVariant.id,
       })
     }
     if (nextLanguage) {
@@ -137,23 +144,26 @@ export function CurriculumSelectionFields({
           onValueChange={selectProgram}
         />
       </label>
-      {selected?.specializations.length ? (
+      {selected && selected.variants.length > 1 ? (
         <label className="space-y-2 text-sm font-bold">
-          <span>Habilitação</span>
+          <span>Modalidade</span>
           <AutocompleteSelect
-            ariaLabel="Habilitação"
-            value={snapshot.selection.specializationId ?? ''}
+            ariaLabel="Modalidade"
+            value={snapshot.selection.catalogProgramVariantId ?? ''}
             disabled={disabled}
-            emptyLabel="Sem habilitação"
-            options={selected.specializations.map((option) => ({
+            emptyLabel="Definir depois"
+            options={selected.variants.map((option) => ({
               value: option.id,
-              label: `${option.code} — ${option.name}`,
+              label:
+                option.specializationId === null
+                  ? option.name
+                  : `${option.code} — ${option.name}`,
             }))}
-            placeholder="Digite a habilitação"
+            placeholder="Digite a modalidade"
             onValueChange={(value) =>
               void dispatch({
-                type: 'selectSpecialization',
-                specializationId: value ? (value as never) : null,
+                type: 'selectCatalogProgramVariant',
+                catalogProgramVariantId: value ? (value as never) : null,
               })
             }
           />

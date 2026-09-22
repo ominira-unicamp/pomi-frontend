@@ -2,7 +2,9 @@
 
 O pacote contém o cliente operacional gerado em `src/generated`, derivado dos contratos OpenAPI Data e App.
 
-O gerador fica em `sdk-gen`, separando o carregamento e a validação do contrato da emissão dos artefatos. Ele usa, por padrão:
+O gerador fica em `sdk-gen`, separando o carregamento e a validação do contrato da emissão dos artefatos. Antes de cada geração ou verificação, ele executa o exportador do `pomi-backend` e atualiza os documentos OpenAPI locais, que não são versionados. O backend irmão é localizado automaticamente; use `POMI_BACKEND_PATH` para sobrescrever o caminho.
+
+Depois disso, ele usa, por padrão:
 
 - `../../../openapi.json` para a API Data;
 - `../../../pomi-backend/packages/app/app-openapi.json` para a API App.

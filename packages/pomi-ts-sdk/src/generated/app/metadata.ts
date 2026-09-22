@@ -319,6 +319,200 @@ export const componentSchemas = {
             "publicName": "ReplaceBotGrantBody"
         }
     },
+    "AuthUserEntity": {
+        "type": "object",
+        "properties": {
+            "id": {
+                "type": "integer"
+            },
+            "issuer": {
+                "type": "string"
+            },
+            "subject": {
+                "type": "string"
+            },
+            "email": {
+                "type": "string",
+                "nullable": true
+            },
+            "displayName": {
+                "type": "string",
+                "nullable": true
+            },
+            "status": {
+                "$ref": "#/components/schemas/AuthUserStatus"
+            },
+            "roles": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "authUserId": {
+                            "type": "integer"
+                        },
+                        "role": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "authUserId",
+                        "role"
+                    ]
+                }
+            },
+            "capabilities": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "properties": {
+                        "authUserId": {
+                            "type": "integer"
+                        },
+                        "capability": {
+                            "type": "string"
+                        }
+                    },
+                    "required": [
+                        "authUserId",
+                        "capability"
+                    ]
+                }
+            }
+        },
+        "required": [
+            "id",
+            "issuer",
+            "subject",
+            "email",
+            "displayName",
+            "status",
+            "roles",
+            "capabilities"
+        ],
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "entity",
+            "publicName": "AuthUser",
+            "identityFields": [
+                "id"
+            ]
+        }
+    },
+    "AuthUserStatus": {
+        "type": "string",
+        "enum": [
+            "ACTIVE",
+            "DISABLED"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "AuthUserStatus"
+        }
+    },
+    "CreateBotAuthUserBody": {
+        "type": "object",
+        "properties": {
+            "subject": {
+                "type": "string",
+                "minLength": 1
+            },
+            "displayName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+            },
+            "capabilities": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/AuthCapability"
+                },
+                "default": []
+            }
+        },
+        "required": [
+            "subject",
+            "displayName"
+        ],
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "CreateBotAuthUserBody"
+        }
+    },
+    "AuthCapability": {
+        "type": "string",
+        "enum": [
+            "ACADEMIC_WRITE"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "AuthCapability"
+        }
+    },
+    "AdminIdentityManagedByCliProblem": {
+        "type": "object",
+        "properties": {
+            "type": {
+                "type": "string",
+                "enum": [
+                    "urn:pomi:problem:admin-identity-managed-by-cli"
+                ]
+            },
+            "title": {
+                "type": "string",
+                "enum": [
+                    "Identidade administrada pela linha de comando"
+                ]
+            },
+            "status": {
+                "type": "number",
+                "enum": [
+                    403
+                ]
+            },
+            "detail": {
+                "type": "string"
+            },
+            "instance": {
+                "type": "string"
+            }
+        },
+        "required": [
+            "type",
+            "title",
+            "status",
+            "detail"
+        ],
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "problem",
+            "publicName": "AdminIdentityManagedByCliProblem"
+        }
+    },
+    "PatchAuthUserBody": {
+        "type": "object",
+        "properties": {
+            "status": {
+                "$ref": "#/components/schemas/AuthUserStatus"
+            },
+            "displayName": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+            },
+            "capabilities": {
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/AuthCapability"
+                }
+            }
+        },
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "PatchAuthUserBody"
+        }
+    },
     "StudentEntity": {
         "type": "object",
         "properties": {
@@ -653,7 +847,7 @@ export const componentSchemas = {
                         "type": "integer",
                         "nullable": true
                     },
-                    "specializationId": {
+                    "catalogProgramVariantId": {
                         "type": "integer",
                         "nullable": true
                     },
@@ -664,7 +858,7 @@ export const componentSchemas = {
                 },
                 "required": [
                     "catalogProgramId",
-                    "specializationId",
+                    "catalogProgramVariantId",
                     "languageId"
                 ],
                 "additionalProperties": false
@@ -835,7 +1029,7 @@ export const componentSchemas = {
                         "type": "integer",
                         "nullable": true
                     },
-                    "specializationId": {
+                    "catalogProgramVariantId": {
                         "type": "integer",
                         "nullable": true
                     },
@@ -846,7 +1040,7 @@ export const componentSchemas = {
                 },
                 "required": [
                     "catalogProgramId",
-                    "specializationId",
+                    "catalogProgramVariantId",
                     "languageId"
                 ],
                 "additionalProperties": false
@@ -1137,7 +1331,7 @@ export const componentSchemas = {
                 "type": "integer",
                 "nullable": true
             },
-            "specializationId": {
+            "catalogProgramVariantId": {
                 "type": "integer",
                 "nullable": true
             },
@@ -1158,7 +1352,7 @@ export const componentSchemas = {
             "curriculumId",
             "suggestionId",
             "catalogProgramId",
-            "specializationId",
+            "catalogProgramVariantId",
             "languageId",
             "manualCourseIds"
         ],
@@ -3597,6 +3791,24 @@ export const componentSchemas = {
             "publicName": "FeedbackStatus"
         }
     },
+    "PatchFeedbackReportBody": {
+        "type": "object",
+        "properties": {
+            "status": {
+                "$ref": "#/components/schemas/FeedbackStatus"
+            },
+            "adminMessage": {
+                "type": "string",
+                "nullable": true,
+                "maxLength": 5000
+            }
+        },
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "input",
+            "publicName": "PatchFeedbackReportBody"
+        }
+    },
     "ExchangeNoticeSubscription": {
         "type": "object",
         "properties": {
@@ -3793,6 +4005,10 @@ export const enumValues = {
         "STUDENT_FEEDBACK_READ",
         "STUDENT_FEEDBACK_WRITE"
     ],
+    "AuthUserStatus": [
+        "ACTIVE",
+        "DISABLED"
+    ],
     "YearPeriod": [
         "SUMMER",
         "FIRST_SEMESTER",
@@ -3904,6 +4120,10 @@ export const queryCapabilities = {
         "filter": null
     },
     "addCourseTag": {
+        "parameters": [],
+        "filter": null
+    },
+    "createAuthUser": {
         "parameters": [],
         "filter": null
     },
@@ -4050,6 +4270,67 @@ export const queryCapabilities = {
     "getTag": {
         "parameters": [],
         "filter": null
+    },
+    "listAuthUsers": {
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "id:asc"
+                }
+            }
+        ],
+        "filter": null,
+        "sort": {
+            "version": 1,
+            "fields": [
+                "id",
+                "displayName",
+                "email",
+                "status"
+            ],
+            "default": "id:asc"
+        }
     },
     "listBotGrants": {
         "parameters": [
@@ -4284,6 +4565,68 @@ export const queryCapabilities = {
                 "categoryId"
             ],
             "default": "name:asc"
+        }
+    },
+    "listFeedbackReports": {
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "createdAt:desc"
+                }
+            }
+        ],
+        "filter": null,
+        "sort": {
+            "version": 1,
+            "fields": [
+                "createdAt",
+                "updatedAt",
+                "status",
+                "kind",
+                "title"
+            ],
+            "default": "createdAt:desc"
         }
     },
     "listPendingProfessorEvaluations": {
@@ -5377,6 +5720,67 @@ export const queryCapabilities = {
             "default": "updatedAt:desc"
         }
     },
+    "listStudents": {
+        "parameters": [
+            {
+                "name": "page",
+                "required": false,
+                "description": "Page number. The first page is 1.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "Page number. The first page is 1."
+                }
+            },
+            {
+                "name": "pageSize",
+                "required": false,
+                "description": "Number of items per page, or \"all\" to return every item.",
+                "style": null,
+                "explode": null,
+                "schema": {
+                    "anyOf": [
+                        {
+                            "type": "integer",
+                            "minimum": 1
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "all"
+                            ]
+                        }
+                    ],
+                    "description": "Number of items per page, or \"all\" to return every item."
+                }
+            },
+            {
+                "name": "sort",
+                "required": false,
+                "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                "style": "form",
+                "explode": false,
+                "schema": {
+                    "type": "string",
+                    "description": "Ordered comma-separated field:direction terms. Earlier terms have higher priority.",
+                    "example": "id:asc"
+                }
+            }
+        ],
+        "filter": null,
+        "sort": {
+            "version": 1,
+            "fields": [
+                "id",
+                "ra",
+                "name",
+                "entryYear"
+            ],
+            "default": "id:asc"
+        }
+    },
     "listStudentSharedPeriodPlannings": {
         "parameters": [
             {
@@ -5817,11 +6221,19 @@ export const queryCapabilities = {
         ],
         "filter": null
     },
+    "updateAuthUser": {
+        "parameters": [],
+        "filter": null
+    },
     "updateCategory": {
         "parameters": [],
         "filter": null
     },
     "updateExchangeNoticeSubscription": {
+        "parameters": [],
+        "filter": null
+    },
+    "updateFeedbackReport": {
         "parameters": [],
         "filter": null
     },

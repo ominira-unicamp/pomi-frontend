@@ -64,7 +64,7 @@ export type SemesterPlanningGuide = Readonly<{
   }>
   program: Readonly<{
     catalogProgramId: number | null
-    specializationId: number | null
+    catalogProgramVariantId: number | null
     languageId: number | null
   }>
   manualCourseIds: ReadonlyArray<number>

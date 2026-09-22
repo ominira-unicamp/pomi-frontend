@@ -889,6 +889,19 @@ export const filterCapabilities = {
             },
             {
                 "path": [
+                    "catalogProgramVariantId"
+                ],
+                "schema": {
+                    "minimum": 1,
+                    "type": "integer"
+                },
+                "operators": [
+                    "eq",
+                    "in"
+                ]
+            },
+            {
+                "path": [
                     "catalogId"
                 ],
                 "schema": {
@@ -933,37 +946,6 @@ export const filterCapabilities = {
                 "schema": {
                     "minimum": 1,
                     "type": "integer"
-                },
-                "operators": [
-                    "eq",
-                    "in"
-                ]
-            },
-            {
-                "path": [
-                    "code"
-                ],
-                "schema": {
-                    "minLength": 1,
-                    "type": "string"
-                },
-                "operators": [
-                    "eq",
-                    "ne",
-                    "in"
-                ]
-            },
-            {
-                "path": [
-                    "type"
-                ],
-                "schema": {
-                    "enum": [
-                        "GENERAL",
-                        "SPECIALIZATION",
-                        "PRE_OPTION"
-                    ],
-                    "type": "string"
                 },
                 "operators": [
                     "eq",

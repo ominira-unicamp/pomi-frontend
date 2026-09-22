@@ -24,8 +24,9 @@
     "./generated-pagination": "./src/generatedPagination.ts"
   },
   "scripts": {
-    "generate": "node --import tsx sdk-gen/generate.ts",
-    "generate:check": "node --import tsx sdk-gen/generate.ts --check",
+    "prepare:openapi": "node --import tsx sdk-gen/prepareOpenApi.ts",
+    "generate": "npm run prepare:openapi && node --import tsx sdk-gen/generate.ts",
+    "generate:check": "npm run prepare:openapi && node --import tsx sdk-gen/generate.ts --check",
     "generate:typecheck": "tsc --noEmit -p tsconfig.generated.json",
     "test:generator": "node --import tsx --test sdk-gen/*.test.ts",
     "architecture:check": "node scripts/check-architecture.mjs",

@@ -45,5 +45,7 @@ export function listStudentFeedbackReports(
   studentId: number,
   getAccessToken: GetAccessToken,
 ) {
-  return pomiSdk.app.feedbackReports.listAll(studentId, {}, { getAccessToken })
+  return pomiSdk.app.feedbackReports.listForStudentAll(studentId, {}, {
+    getAccessToken,
+  })
 }

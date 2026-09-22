@@ -350,7 +350,7 @@ export type PersistedSemesterPlanning = Readonly<{
     suggestionId: number | null
     suggestionCatalogProgramId: number | null
     catalogProgramId: number | null
-    specializationId: number | null
+    catalogProgramVariantId: number | null
     languageId: number | null
     manualCourseIds: ReadonlyArray<number>
   }>
@@ -416,7 +416,7 @@ export function createSemesterPlanning(
         suggestionCatalogProgramId:
           document.guide.curriculum.suggestionCatalogProgramId,
         catalogProgramId: document.guide.program.catalogProgramId,
-        specializationId: document.guide.program.specializationId,
+        catalogProgramVariantId: document.guide.program.catalogProgramVariantId,
         languageId: document.guide.program.languageId,
         manualCourseIds: [...new Set(document.guide.manualCourseIds)],
       },
@@ -458,7 +458,7 @@ export function patchSemesterPlanning(
         suggestionCatalogProgramId:
           document.guide.curriculum.suggestionCatalogProgramId,
         catalogProgramId: document.guide.program.catalogProgramId,
-        specializationId: document.guide.program.specializationId,
+        catalogProgramVariantId: document.guide.program.catalogProgramVariantId,
         languageId: document.guide.program.languageId,
         manualCourseIds: [...new Set(document.guide.manualCourseIds)],
       },

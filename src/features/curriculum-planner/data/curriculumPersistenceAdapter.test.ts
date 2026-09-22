@@ -12,7 +12,7 @@ vi.mock('@/features/curriculum-planner/data/curriculumPersistenceApi', () => ({
   createCurriculum,
   patchCurriculum,
   documentFromState: (state: {
-    selection: { catalogProgramId?: string; specializationId?: string; languageId?: string }
+    selection: { catalogProgramId?: string; catalogProgramVariantId?: string; languageId?: string }
     plan: {
       periods: ReadonlyArray<{ id: string; items: ReadonlyArray<{ courseId: string }> }>
       unallocatedCourseIds?: ReadonlyArray<string>
@@ -23,7 +23,7 @@ vi.mock('@/features/curriculum-planner/data/curriculumPersistenceApi', () => ({
     name,
     selection: {
       catalogProgramId: state.selection.catalogProgramId ?? null,
-      specializationId: state.selection.specializationId ?? null,
+      catalogProgramVariantId: state.selection.catalogProgramVariantId ?? null,
       languageId: state.selection.languageId ?? null,
     },
     planningStart: state.plan.planningStart ?? null,
@@ -56,7 +56,7 @@ describe('persistCurriculumState', () => {
       isFavorite: false,
       selection: {
         catalogProgramId: null,
-        specializationId: null,
+        catalogProgramVariantId: null,
         languageId: null,
       },
       planningStart: null,
@@ -110,7 +110,7 @@ describe('persistCurriculumState', () => {
       isFavorite: false,
       selection: {
         catalogProgramId: null,
-        specializationId: null,
+        catalogProgramVariantId: null,
         languageId: null,
       },
       planningStart: null,
