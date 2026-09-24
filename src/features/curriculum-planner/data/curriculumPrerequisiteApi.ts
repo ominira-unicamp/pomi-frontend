@@ -40,27 +40,28 @@ export function currentCatalogYear(date = new Date()) {
 function prerequisiteItemFromApi(
   item: CurriculumApiPrerequisiteItem,
 ): PrerequisiteItem {
-  if (item.kind === 'SPECIAL') {
+  if ('specialRequirementType' in item) {
     return {
-      kind: item.kind,
-      target: { type: 'special', code: item.code },
+      target: {
+        type: 'special',
+        requirementType: item.specialRequirementType,
+        value: item.specialRequirementValue,
+      },
     }
   }
   if (item.courseId !== null) {
     return {
-      kind: item.kind,
       target: {
         type: 'course',
         courseId: String(item.courseId) as CourseId,
-        code: item.code,
+        fulfillment: item.fulfillment,
       },
     }
   }
   return {
-    kind: item.kind,
     target: {
-      type: 'prefix',
-      prefix: item.code.replace(/-+$/g, '').trim().toUpperCase(),
+      type: 'unresolvedCourse',
+      fulfillment: item.fulfillment,
     },
   }
 }

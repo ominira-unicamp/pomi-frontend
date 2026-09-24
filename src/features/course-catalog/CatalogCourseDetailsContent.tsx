@@ -1,5 +1,4 @@
-import { Link } from '@tanstack/react-router'
-
+import { CatalogPrerequisiteItemView } from './CatalogPrerequisiteItem'
 import type { CatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
 
 export function CatalogCourseDetailsContent({
@@ -40,24 +39,12 @@ export function CatalogCourseDetailsContent({
                     ALTERNATIVA {index + 1}
                   </span>
                   {group.all.map((item, itemIndex) => (
-                    <span key={`${item.code}-${itemIndex}`}>
+                    <span key={`${itemIndex}-${JSON.stringify(item)}`}>
                       {itemIndex > 0 && <span className="mx-2">e</span>}
-                      {item.courseId !== null ? (
-                        <Link
-                          className="font-mono font-black text-primary underline-offset-4 hover:underline"
-                          to="/disciplinas/$courseId"
-                          params={{ courseId: String(item.courseId) }}
-                          search={{ catalogYear: details.catalogYear }}
-                        >
-                          {item.kind === 'PARTIAL' ? '*' : ''}
-                          {item.code}
-                        </Link>
-                      ) : (
-                        <span className="font-mono font-black">
-                          {item.kind === 'PARTIAL' ? '*' : ''}
-                          {item.code}
-                        </span>
-                      )}
+                      <CatalogPrerequisiteItemView
+                        item={item}
+                        catalogYear={details.catalogYear}
+                      />
                     </span>
                   ))}
                 </div>

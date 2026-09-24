@@ -16,6 +16,7 @@ import type { ReactNode } from 'react'
 
 const {
   getCatalogCourseDetails,
+  getCourse,
   loadCatalogPrerequisites,
   loadCurriculumCatalog,
   loadCurriculumSuggestions,
@@ -24,6 +25,7 @@ const {
   useStudentProfile,
 } = vi.hoisted(() => ({
   getCatalogCourseDetails: vi.fn(),
+  getCourse: vi.fn(),
   loadCatalogPrerequisites: vi.fn(),
   loadCurriculumCatalog: vi.fn(),
   loadCurriculumSuggestions: vi.fn(),
@@ -47,6 +49,13 @@ vi.mock('@/features/curriculum-planner/data/curriculumPrerequisiteApi', () => ({
 vi.mock('@/features/curriculum-planner/data/courseDetailsApi', () => ({
   getCatalogCourseDetails,
 }))
+
+vi.mock('@/features/course-catalog/data/courseCatalogApi', async () => {
+  const actual = await vi.importActual(
+    '@/features/course-catalog/data/courseCatalogApi',
+  )
+  return { ...actual, getCourse }
+})
 
 vi.mock('@/features/student/hooks/useStudentProfile', () => ({
   useStudentProfile,
@@ -219,9 +228,8 @@ const courseDetails = {
       {
         all: [
           {
-            code: 'MU000',
-            kind: 'FULL' as const,
             courseId: 0,
+            fulfillment: 'FULL' as const,
           },
         ],
       },
@@ -275,11 +283,10 @@ describe('CatalogProgramPage', () => {
               key: 'MU001',
               allOf: [
                 {
-                  kind: 'FULL',
                   target: {
                     type: 'course',
                     courseId: '1',
-                    code: 'MU001',
+                    fulfillment: 'FULL',
                   },
                 },
               ],
@@ -290,6 +297,14 @@ describe('CatalogProgramPage', () => {
     })
     getCatalogCourseDetails.mockReset()
     getCatalogCourseDetails.mockResolvedValue(courseDetails)
+    getCourse.mockImplementation((id: number) =>
+      Promise.resolve({
+        id,
+        code: `MU${String(id).padStart(3, '0')}`,
+        name: `Disciplina de Música ${id}`,
+        credits: 4,
+      }),
+    )
     listStudentCourseAttempts.mockResolvedValue([])
     useOptionalAuth.mockReturnValue({
       isAuthenticated: false,
@@ -570,7 +585,7 @@ describe('CatalogProgramPage', () => {
       }),
     ).toBeTruthy()
     expect(await screen.findByText('Ementa da disciplina')).toBeTruthy()
-    expect(await screen.findByText('MU000')).toBeTruthy()
+    expect(await screen.findByText(/MU000/)).toBeTruthy()
     expect(screen.queryByText('Informações acadêmicas')).toBeNull()
     expect(screen.getByRole('button', { name: 'Fechar menu' })).toBeTruthy()
     expect(
@@ -591,7 +606,7 @@ describe('CatalogProgramPage', () => {
       }),
     )
 
-    expect(await screen.findByRole('link', { name: 'MU000' })).toBeTruthy()
+    expect(await screen.findByRole('link', { name: /MU000/ })).toBeTruthy()
   })
 
   it('marks the authenticated student’s approved courses as completed', async () => {

@@ -4,17 +4,35 @@ import type {
   CurriculumPlannerSnapshot,
 } from './curriculumPlanner'
 
-export type PrerequisiteKind = 'FULL' | 'PARTIAL' | 'SPECIAL'
+export type PrerequisiteFulfillment = 'FULL' | 'PARTIAL'
+
+export type SpecialRequirementType = 'AUTHORIZATION' | 'PROGRESSION_COEFFICIENT'
 
 export type PrerequisiteTarget =
-  | Readonly<{ type: 'course'; courseId: CourseId; code: string }>
-  | Readonly<{ type: 'prefix'; prefix: string }>
-  | Readonly<{ type: 'special'; code: string }>
+  | Readonly<{
+      type: 'course'
+      courseId: CourseId
+      fulfillment: PrerequisiteFulfillment
+    }>
+  | Readonly<{
+      type: 'unresolvedCourse'
+      fulfillment: PrerequisiteFulfillment
+    }>
+  | Readonly<{
+      type: 'special'
+      requirementType: SpecialRequirementType
+      value: number
+    }>
 
-export type PrerequisiteItem = Readonly<{
-  kind: PrerequisiteKind
-  target: PrerequisiteTarget
-}>
+export type PrerequisiteItem = Readonly<{ target: PrerequisiteTarget }>
+
+export function specialRequirementCode(
+  type: SpecialRequirementType,
+  value: number,
+) {
+  if (type === 'AUTHORIZATION') return 'AA200'
+  return `AA4${String(value).padStart(2, '0')}`
+}
 
 export type PrerequisiteAlternative = Readonly<{
   key: string
@@ -77,17 +95,13 @@ export function prerequisiteAlternativeKey(
     .map((item) => {
       const target = item.target
       if (target.type === 'course')
-        return `${item.kind}:course:${target.courseId}:${target.code}`
-      if (target.type === 'prefix')
-        return `${item.kind}:prefix:${target.prefix}`
-      return `${item.kind}:special:${target.code}`
+        return `course:${target.courseId}:${target.fulfillment}`
+      if (target.type === 'unresolvedCourse')
+        return `unresolved-course:${target.fulfillment}`
+      return `special:${target.requirementType}:${target.value}`
     })
     .sort()
     .join('+')
-}
-
-function normalizePrefix(value: string) {
-  return value.toUpperCase().replace(/[\s-]/g, '')
 }
 
 function plannedPositions(snapshot: CurriculumPlannerSnapshot) {
@@ -117,82 +131,22 @@ function stateForCourse(
   return 'missing'
 }
 
-function candidateForPrefix(
-  prefix: string,
-  courses: ReadonlyArray<Course>,
-  completed: ReadonlySet<CourseId>,
-  positions: ReadonlyMap<CourseId, number>,
-  unallocated: ReadonlySet<CourseId>,
-  candidates: Map<string, Course | undefined>,
-  catalogCourseIds?: ReadonlySet<CourseId>,
-) {
-  const normalized = normalizePrefix(prefix)
-  if (candidates.has(normalized)) return candidates.get(normalized)
-  const candidate = courses
-    .filter((course) => normalizePrefix(course.code).startsWith(normalized))
-    .filter((course) => !catalogCourseIds || catalogCourseIds.has(course.id))
-    .filter(
-      (course) =>
-        completed.has(course.id) ||
-        positions.has(course.id) ||
-        unallocated.has(course.id),
-    )
-    .sort((left, right) => {
-      const leftCompleted = completed.has(left.id) ? 0 : 1
-      const rightCompleted = completed.has(right.id) ? 0 : 1
-      if (leftCompleted !== rightCompleted)
-        return leftCompleted - rightCompleted
-      const leftPosition = positions.get(left.id) ?? Number.MAX_SAFE_INTEGER
-      const rightPosition = positions.get(right.id) ?? Number.MAX_SAFE_INTEGER
-      return (
-        leftPosition - rightPosition ||
-        left.code.localeCompare(right.code, 'pt-BR')
-      )
-    })[0]
-  candidates.set(normalized, candidate)
-  return candidate
-}
-
 function evaluateItem(
   item: PrerequisiteItem,
   dependentPosition: number | undefined,
   coursesById: ReadonlyMap<CourseId, Course>,
-  courses: ReadonlyArray<Course>,
   completed: ReadonlySet<CourseId>,
   positions: ReadonlyMap<CourseId, number>,
   unallocated: ReadonlySet<CourseId>,
-  prefixCandidates: Map<string, Course | undefined>,
   catalogCourseIds?: ReadonlySet<CourseId>,
 ): PrerequisiteItemEvaluation {
   const target = item.target
-  if (target.type === 'special') return { item, status: 'unknown' }
-  if (catalogCourseIds && target.type === 'course') {
+  if (target.type !== 'course') return { item, status: 'unknown' }
+  if (catalogCourseIds) {
     if (!catalogCourseIds.has(target.courseId))
       return { item, status: 'notInCatalog' }
   }
-  if (
-    catalogCourseIds &&
-    target.type === 'prefix' &&
-    !courses.some(
-      (course) =>
-        catalogCourseIds.has(course.id) &&
-        normalizePrefix(course.code).startsWith(normalizePrefix(target.prefix)),
-    )
-  ) {
-    return { item, status: 'notInCatalog' }
-  }
-  const matchedCourse =
-    target.type === 'course'
-      ? coursesById.get(target.courseId)
-      : candidateForPrefix(
-          target.prefix,
-          courses,
-          completed,
-          positions,
-          unallocated,
-          prefixCandidates,
-          catalogCourseIds,
-        )
+  const matchedCourse = coursesById.get(target.courseId)
   if (!matchedCourse) return { item, status: 'missing' }
   return {
     item,
@@ -274,7 +228,6 @@ export function evaluatePrerequisites({
   const positions = plannedPositions(snapshot)
   const unallocated = new Set(snapshot.plan.unallocatedCourseIds ?? [])
   const coursesById = new Map(courses.map((course) => [course.id, course]))
-  const prefixCandidates = new Map<string, Course | undefined>()
   const evaluations = new Map<CourseId, CoursePrerequisiteEvaluation>()
   const links: Array<PrerequisiteLink> = []
 
@@ -288,11 +241,9 @@ export function evaluatePrerequisites({
           item,
           dependentPosition,
           coursesById,
-          courses,
           completed,
           positions,
           unallocated,
-          prefixCandidates,
           catalogCourseIds,
         ),
       ),

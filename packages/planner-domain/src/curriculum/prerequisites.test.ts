@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   evaluatePrerequisites,
   prerequisiteAlternativeKey,
+  specialRequirementCode,
 } from './prerequisites'
 import type {
   Course,
@@ -55,18 +56,27 @@ function alternative(allOf: ReadonlyArray<PrerequisiteItem>) {
 
 const firstAlternative = alternative([
   {
-    kind: 'FULL',
-    target: { type: 'course', courseId: '1' as CourseId, code: 'MA111' },
+    target: {
+      type: 'course',
+      courseId: '1' as CourseId,
+      fulfillment: 'FULL',
+    },
   },
   {
-    kind: 'FULL',
-    target: { type: 'course', courseId: '3' as CourseId, code: 'MC102' },
+    target: {
+      type: 'course',
+      courseId: '3' as CourseId,
+      fulfillment: 'FULL',
+    },
   },
 ])
 const secondAlternative = alternative([
   {
-    kind: 'FULL',
-    target: { type: 'course', courseId: '2' as CourseId, code: 'MA141' },
+    target: {
+      type: 'course',
+      courseId: '2' as CourseId,
+      fulfillment: 'FULL',
+    },
   },
 ])
 const rule: CoursePrerequisiteRule = {
@@ -192,14 +202,13 @@ describe('evaluatePrerequisites', () => {
     )
   })
 
-  it('resolves a prefix to a completed course first', () => {
-    const prefixRule: CoursePrerequisiteRule = {
+  it('keeps unresolved historical requirements unevaluable', () => {
+    const unresolvedRule: CoursePrerequisiteRule = {
       courseId: '4' as CourseId,
       alternatives: [
         alternative([
           {
-            kind: 'PARTIAL',
-            target: { type: 'prefix', prefix: 'MA' },
+            target: { type: 'unresolvedCourse', fulfillment: 'PARTIAL' },
           },
         ]),
       ],
@@ -207,12 +216,12 @@ describe('evaluatePrerequisites', () => {
     const result = evaluatePrerequisites({
       snapshot,
       courses,
-      rules: [prefixRule],
+      rules: [unresolvedRule],
     })
     const item = result.courses.get('4' as CourseId)?.alternatives[0].items[0]
 
-    expect(item?.matchedCourseId).toBe('2')
-    expect(item?.status).toBe('completed')
+    expect(item?.matchedCourseId).toBeUndefined()
+    expect(item?.status).toBe('unknown')
   })
 
   it('limits evaluation to courses that are currently relevant to the screen', () => {
@@ -229,5 +238,12 @@ describe('evaluatePrerequisites', () => {
 
     expect(result.courses.has('4' as CourseId)).toBe(true)
     expect(result.courses.has('3' as CourseId)).toBe(false)
+  })
+})
+
+describe('specialRequirementCode', () => {
+  it('reconstructs the source code for special requirements', () => {
+    expect(specialRequirementCode('AUTHORIZATION', 0)).toBe('AA200')
+    expect(specialRequirementCode('PROGRESSION_COEFFICIENT', 30)).toBe('AA430')
   })
 })

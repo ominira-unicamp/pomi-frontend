@@ -1,7 +1,8 @@
-import { Link } from '@tanstack/react-router'
 import { ExternalLink } from 'lucide-react'
+import { CatalogPrerequisiteItemView } from './CatalogPrerequisiteItem'
 import type { ReactNode } from 'react'
 
+import type { CatalogCourse } from '@/features/course-catalog/data/courseCatalogApi'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Select,
@@ -10,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import type { CatalogCourse } from '@/features/course-catalog/data/courseCatalogApi'
 
 const offeringLabels = {
   ALL_PERIODS: 'Todos os períodos',
@@ -201,24 +201,12 @@ export function CatalogCoursePrerequisites({
                   ALTERNATIVA {index + 1}
                 </span>
                 {group.all.map((item, itemIndex) => (
-                  <span key={`${item.code}-${itemIndex}`}>
+                  <span key={`${itemIndex}-${JSON.stringify(item)}`}>
                     {itemIndex > 0 && <span className="mx-2">e</span>}
-                    {item.courseId ? (
-                      <Link
-                        to="/disciplinas/$courseId"
-                        params={{ courseId: String(item.courseId) }}
-                        search={{}}
-                        className="font-mono font-black text-primary underline"
-                      >
-                        {item.kind === 'PARTIAL' ? '*' : ''}
-                        {item.code}
-                      </Link>
-                    ) : (
-                      <span className="font-mono font-black">
-                        {item.kind === 'PARTIAL' ? '*' : ''}
-                        {item.code}
-                      </span>
-                    )}
+                    <CatalogPrerequisiteItemView
+                      item={item}
+                      catalogYear={catalog.catalogYear}
+                    />
                   </span>
                 ))}
               </div>

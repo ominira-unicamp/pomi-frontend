@@ -1,7 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { ExternalLink, MessageSquareWarning, Trash2 } from 'lucide-react'
-import { periodReference } from '@pomi/planner-domain/curriculum'
+import {
+  periodReference,
+  specialRequirementCode,
+} from '@pomi/planner-domain/curriculum'
 import type {
   Course,
   CurriculumPlannerSnapshot,
@@ -119,11 +122,20 @@ function prerequisiteAlternativeLabel(
   >['alternatives'][number],
 ) {
   return alternative.items
-    .map(({ item }) => {
+    .map(({ item, matchedCourseCode }) => {
       const target = item.target
-      if (target.type === 'course') return target.code
-      if (target.type === 'prefix') return `${target.prefix}---`
-      return target.code
+      if (target.type === 'course')
+        return `${matchedCourseCode ?? `Disciplina ${target.courseId}`} (${
+          target.fulfillment === 'PARTIAL' ? 'parcial' : 'integral'
+        })`
+      if (target.type === 'unresolvedCourse')
+        return `Disciplina histórica não vinculada (${target.fulfillment === 'PARTIAL' ? 'parcial' : 'integral'})`
+      const code = specialRequirementCode(target.requirementType, target.value)
+      return `${code} — ${
+        target.requirementType === 'AUTHORIZATION'
+          ? 'Autorização'
+          : `Coeficiente de progressão: ${target.value}`
+      }`
     })
     .join(' + ')
 }

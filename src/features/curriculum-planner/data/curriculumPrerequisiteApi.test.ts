@@ -37,9 +37,12 @@ describe('curriculumPrerequisiteApi', () => {
                     {
                       all: [
                         {
-                          code: 'MA111',
-                          kind: 'FULL',
                           courseId: 11,
+                          fulfillment: 'FULL',
+                        },
+                        {
+                          courseId: null,
+                          fulfillment: 'PARTIAL',
                         },
                       ],
                     },
@@ -68,9 +71,8 @@ describe('curriculumPrerequisiteApi', () => {
                     {
                       all: [
                         {
-                          code: 'AA200',
-                          kind: 'SPECIAL',
-                          courseId: null,
+                          specialRequirementType: 'AUTHORIZATION',
+                          specialRequirementValue: 0,
                         },
                       ],
                     },
@@ -94,9 +96,18 @@ describe('curriculumPrerequisiteApi', () => {
     expect(result.year).toBe(2026)
     expect(result.courseIds).toEqual(['10', '12'])
     expect(result.rules).toHaveLength(2)
+    expect(result.rules[0].alternatives[0].allOf[1]).toEqual({
+      target: {
+        type: 'unresolvedCourse',
+        fulfillment: 'PARTIAL',
+      },
+    })
     expect(result.rules[1].alternatives[0].allOf[0]).toEqual({
-      kind: 'SPECIAL',
-      target: { type: 'special', code: 'AA200' },
+      target: {
+        type: 'special',
+        requirementType: 'AUTHORIZATION',
+        value: 0,
+      },
     })
   })
 
