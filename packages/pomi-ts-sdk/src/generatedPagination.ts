@@ -2,7 +2,7 @@ import type { ApiTarget } from './runtime/operation.js'
 
 type Page<T> = Readonly<{
   data: ReadonlyArray<T>
-  _paths?: Readonly<{ next?: string | null }>
+  links: Readonly<{ next: string | null }>
 }>
 
 type PageClient = Readonly<{
@@ -17,8 +17,8 @@ export async function collectPages<T>(
   const collected: T[] = []
   let page = await firstPage
   collected.push(...page.data)
-  while (page._paths?.next) {
-    page = await client.requestPath<Page<T>>(target, page._paths.next)
+  while (page.links.next) {
+    page = await client.requestPath<Page<T>>(target, page.links.next)
     collected.push(...page.data)
   }
   return collected

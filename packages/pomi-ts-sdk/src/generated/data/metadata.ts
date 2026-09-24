@@ -14,37 +14,15 @@ export const componentSchemas = {
             "total": {
                 "type": "integer"
             },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "firstPage": {
-                        "type": "string"
-                    },
-                    "lastPage": {
-                        "type": "string"
-                    },
-                    "next": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "prev": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                },
-                "required": [
-                    "firstPage",
-                    "lastPage",
-                    "next",
-                    "prev"
-                ]
+            "links": {
+                "$ref": "#/components/schemas/PaginationLinks"
             }
         },
         "required": [
             "data",
             "quantity",
             "total",
-            "_paths"
+            "links"
         ],
         "x-pomi-schema": {
             "kind": "page",
@@ -99,6 +77,46 @@ export const componentSchemas = {
         "x-pomi-schema": {
             "kind": "projection",
             "publicName": "ProfessorEvaluationSummary"
+        }
+    },
+    "PaginationLinks": {
+        "type": "object",
+        "properties": {
+            "self": {
+                "type": "string",
+                "format": "uri-reference"
+            },
+            "first": {
+                "type": "string",
+                "format": "uri-reference"
+            },
+            "last": {
+                "type": "string",
+                "format": "uri-reference"
+            },
+            "next": {
+                "type": "string",
+                "nullable": true,
+                "format": "uri-reference"
+            },
+            "previous": {
+                "type": "string",
+                "nullable": true,
+                "format": "uri-reference"
+            }
+        },
+        "required": [
+            "self",
+            "first",
+            "last",
+            "next",
+            "previous"
+        ],
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "transport",
+            "publicName": "PaginationLinks",
+            "generate": false
         }
     },
     "InvalidRequestProblem": {
@@ -236,37 +254,15 @@ export const componentSchemas = {
             "total": {
                 "type": "integer"
             },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "firstPage": {
-                        "type": "string"
-                    },
-                    "lastPage": {
-                        "type": "string"
-                    },
-                    "next": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "prev": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                },
-                "required": [
-                    "firstPage",
-                    "lastPage",
-                    "next",
-                    "prev"
-                ]
+            "links": {
+                "$ref": "#/components/schemas/PaginationLinks"
             }
         },
         "required": [
             "data",
             "quantity",
             "total",
-            "_paths"
+            "links"
         ],
         "x-pomi-schema": {
             "kind": "page",
@@ -449,29 +445,12 @@ export const componentSchemas = {
             },
             "name": {
                 "type": "string"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "classes": {
-                        "type": "string"
-                    },
-                    "courses": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "classes",
-                    "courses"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
             "id",
             "code",
-            "name",
-            "_paths"
+            "name"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -479,9 +458,6 @@ export const componentSchemas = {
             "publicName": "Unit",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -515,27 +491,6 @@ export const componentSchemas = {
                 "type": "string",
                 "nullable": true,
                 "minLength": 1
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "classes": {
-                        "type": "string"
-                    },
-                    "unit": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "catalogCourses": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "classes",
-                    "unit",
-                    "catalogCourses"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -545,8 +500,7 @@ export const componentSchemas = {
             "credits",
             "prefix",
             "unitId",
-            "unitCode",
-            "_paths"
+            "unitCode"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -554,9 +508,6 @@ export const componentSchemas = {
             "publicName": "Course",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -575,44 +526,19 @@ export const componentSchemas = {
             "total": {
                 "type": "integer"
             },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "firstPage": {
-                        "type": "string"
-                    },
-                    "lastPage": {
-                        "type": "string"
-                    },
-                    "next": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "prev": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                },
-                "required": [
-                    "firstPage",
-                    "lastPage",
-                    "next",
-                    "prev"
-                ]
+            "links": {
+                "$ref": "#/components/schemas/PaginationLinks"
             }
         },
         "required": [
             "data",
             "quantity",
             "total",
-            "_paths"
+            "links"
         ],
         "x-pomi-schema": {
             "kind": "page",
-            "publicName": "PageCourses",
-            "transportFields": [
-                "_paths"
-            ]
+            "publicName": "PageCourses"
         }
     },
     "ProfessorEntity": {
@@ -623,28 +549,11 @@ export const componentSchemas = {
             },
             "name": {
                 "type": "string"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "entity": {
-                        "type": "string"
-                    },
-                    "dataPortalProfile": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                },
-                "required": [
-                    "entity",
-                    "dataPortalProfile"
-                ]
             }
         },
         "required": [
             "id",
-            "name",
-            "_paths"
+            "name"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -652,9 +561,6 @@ export const componentSchemas = {
             "publicName": "Professor",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -673,44 +579,19 @@ export const componentSchemas = {
             "total": {
                 "type": "integer"
             },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "firstPage": {
-                        "type": "string"
-                    },
-                    "lastPage": {
-                        "type": "string"
-                    },
-                    "next": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "prev": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                },
-                "required": [
-                    "firstPage",
-                    "lastPage",
-                    "next",
-                    "prev"
-                ]
+            "links": {
+                "$ref": "#/components/schemas/PaginationLinks"
             }
         },
         "required": [
             "data",
             "quantity",
             "total",
-            "_paths"
+            "links"
         ],
         "x-pomi-schema": {
             "kind": "page",
-            "publicName": "PageProfessors",
-            "transportFields": [
-                "_paths"
-            ]
+            "publicName": "PageProfessors"
         }
     },
     "ProfessorDataPortalProfileSummary": {
@@ -769,22 +650,6 @@ export const componentSchemas = {
             },
             "position": {
                 "$ref": "#/components/schemas/ProfessorPosition"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "professor": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self",
-                    "professor"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -796,16 +661,12 @@ export const componentSchemas = {
             "lattesAbstract",
             "unit",
             "department",
-            "position",
-            "_paths"
+            "position"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
             "kind": "projection",
-            "publicName": "ProfessorDataPortalProfileSummary",
-            "transportFields": [
-                "_paths"
-            ]
+            "publicName": "ProfessorDataPortalProfileSummary"
         }
     },
     "Department": {
@@ -1112,22 +973,6 @@ export const componentSchemas = {
                     ],
                     "additionalProperties": false
                 }
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "professor": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self",
-                    "professor"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -1144,8 +989,7 @@ export const componentSchemas = {
             "citationNames",
             "trainings",
             "keywords",
-            "coauthors",
-            "_paths"
+            "coauthors"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -1153,9 +997,6 @@ export const componentSchemas = {
             "publicName": "ProfessorDataPortalProfile",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -1217,23 +1058,11 @@ export const componentSchemas = {
             },
             "code": {
                 "type": "string"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "entity": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "entity"
-                ]
             }
         },
         "required": [
             "id",
-            "code",
-            "_paths"
+            "code"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -1241,9 +1070,6 @@ export const componentSchemas = {
             "publicName": "Room",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -1280,34 +1106,6 @@ export const componentSchemas = {
                     2,
                     3
                 ]
-            },
-            "links": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string",
-                        "example": "/catalogs/1"
-                    }
-                },
-                "required": [
-                    "self"
-                ]
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "courses": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self",
-                    "courses"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -1316,18 +1114,13 @@ export const componentSchemas = {
             "programsCount",
             "coursesCount",
             "studentsCount",
-            "programIds",
-            "links",
-            "_paths"
+            "programIds"
         ],
         "x-pomi-schema": {
             "kind": "entity",
             "publicName": "Catalog",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -1472,26 +1265,42 @@ export const componentSchemas = {
                                 "all": {
                                     "type": "array",
                                     "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "code": {
-                                                "type": "string",
-                                                "minLength": 1
+                                        "anyOf": [
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "courseId": {
+                                                        "type": "integer"
+                                                    },
+                                                    "fulfillment": {
+                                                        "$ref": "#/components/schemas/CatalogCoursePrerequisiteFulfillment"
+                                                    }
+                                                },
+                                                "required": [
+                                                    "courseId",
+                                                    "fulfillment"
+                                                ],
+                                                "additionalProperties": false
                                             },
-                                            "kind": {
-                                                "$ref": "#/components/schemas/CourseOfferingKind"
-                                            },
-                                            "courseId": {
-                                                "type": "integer",
-                                                "nullable": true
+                                            {
+                                                "type": "object",
+                                                "properties": {
+                                                    "specialRequirementType": {
+                                                        "$ref": "#/components/schemas/CatalogCourseSpecialRequirementType"
+                                                    },
+                                                    "specialRequirementValue": {
+                                                        "type": "integer",
+                                                        "minimum": 0,
+                                                        "maximum": 100
+                                                    }
+                                                },
+                                                "required": [
+                                                    "specialRequirementType",
+                                                    "specialRequirementValue"
+                                                ],
+                                                "additionalProperties": false
                                             }
-                                        },
-                                        "required": [
-                                            "code",
-                                            "kind",
-                                            "courseId"
-                                        ],
-                                        "additionalProperties": false
+                                        ]
                                     }
                                 }
                             },
@@ -1504,31 +1313,6 @@ export const componentSchemas = {
                 },
                 "required": [
                     "any"
-                ],
-                "additionalProperties": false
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "catalog": {
-                        "type": "string"
-                    },
-                    "course": {
-                        "type": "string"
-                    },
-                    "coordinator": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                },
-                "required": [
-                    "self",
-                    "catalog",
-                    "course",
-                    "coordinator"
                 ],
                 "additionalProperties": false
             }
@@ -1550,8 +1334,7 @@ export const componentSchemas = {
             "syllabus",
             "bibliography",
             "sourceUrl",
-            "prerequisites",
-            "_paths"
+            "prerequisites"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -1559,9 +1342,6 @@ export const componentSchemas = {
             "publicName": "CatalogCourse",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -1580,16 +1360,26 @@ export const componentSchemas = {
             "publicName": "CourseOfferingPeriod"
         }
     },
-    "CourseOfferingKind": {
+    "CatalogCoursePrerequisiteFulfillment": {
         "type": "string",
         "enum": [
             "FULL",
-            "PARTIAL",
-            "SPECIAL"
+            "PARTIAL"
         ],
         "x-pomi-schema": {
             "kind": "value-object",
-            "publicName": "CourseOfferingKind"
+            "publicName": "CatalogCoursePrerequisiteFulfillment"
+        }
+    },
+    "CatalogCourseSpecialRequirementType": {
+        "type": "string",
+        "enum": [
+            "AUTHORIZATION",
+            "PROGRESSION_COEFFICIENT"
+        ],
+        "x-pomi-schema": {
+            "kind": "value-object",
+            "publicName": "CatalogCourseSpecialRequirementType"
         }
     },
     "CoordinatorEntity": {
@@ -1604,29 +1394,12 @@ export const componentSchemas = {
             },
             "catalogCoursesCount": {
                 "type": "integer"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "catalogCourses": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self",
-                    "catalogCourses"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
             "id",
             "name",
-            "catalogCoursesCount",
-            "_paths"
+            "catalogCoursesCount"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -1634,9 +1407,6 @@ export const componentSchemas = {
             "publicName": "Coordinator",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -1721,29 +1491,6 @@ export const componentSchemas = {
                 "items": {
                     "$ref": "#/components/schemas/CatalogProgramLanguage"
                 }
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "catalog": {
-                        "type": "string"
-                    },
-                    "program": {
-                        "type": "string"
-                    },
-                    "curriculumSuggestions": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self",
-                    "catalog",
-                    "program",
-                    "curriculumSuggestions"
-                ]
             }
         },
         "required": [
@@ -1764,8 +1511,7 @@ export const componentSchemas = {
             "professionalPracticeDescription",
             "base",
             "variants",
-            "languages",
-            "_paths"
+            "languages"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -1773,9 +1519,6 @@ export const componentSchemas = {
             "publicName": "CatalogProgram",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ],
             "relations": {
                 "catalogId": {
@@ -1850,19 +1593,6 @@ export const componentSchemas = {
             "catalogCourseId": {
                 "type": "integer",
                 "nullable": true
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "catalogCourse": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                },
-                "required": [
-                    "catalogCourse"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -1872,17 +1602,13 @@ export const componentSchemas = {
             "courseCode",
             "courseName",
             "prefix",
-            "catalogCourseId",
-            "_paths"
+            "catalogCourseId"
         ],
         "x-pomi-schema": {
             "kind": "entity",
             "publicName": "CourseRequirement",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -2087,30 +1813,6 @@ export const componentSchemas = {
                 "items": {
                     "$ref": "#/components/schemas/SemesterSuggestionEntity"
                 }
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    "catalogProgram": {
-                        "type": "string",
-                        "minLength": 1
-                    },
-                    "specialization": {
-                        "type": "string",
-                        "nullable": true,
-                        "minLength": 1
-                    }
-                },
-                "required": [
-                    "self",
-                    "catalogProgram",
-                    "specialization"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -2122,8 +1824,7 @@ export const componentSchemas = {
             "programCode",
             "programName",
             "specialization",
-            "semesters",
-            "_paths"
+            "semesters"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -2131,9 +1832,6 @@ export const componentSchemas = {
             "publicName": "CurriculumSuggestion",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -2214,33 +1912,18 @@ export const componentSchemas = {
             },
             "catalogLanguagesCount": {
                 "type": "integer"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self"
-                ]
             }
         },
         "required": [
             "id",
             "name",
-            "catalogLanguagesCount",
-            "_paths"
+            "catalogLanguagesCount"
         ],
         "x-pomi-schema": {
             "kind": "entity",
             "publicName": "Language",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -2279,21 +1962,6 @@ export const componentSchemas = {
             },
             "studentsCount": {
                 "type": "integer"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "unit": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self",
-                    "unit"
-                ]
             }
         },
         "required": [
@@ -2303,17 +1971,13 @@ export const componentSchemas = {
             "unitId",
             "unit",
             "catalogProgramsCount",
-            "studentsCount",
-            "_paths"
+            "studentsCount"
         ],
         "x-pomi-schema": {
             "kind": "entity",
             "publicName": "Program",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -2350,21 +2014,6 @@ export const componentSchemas = {
             },
             "studentsCount": {
                 "type": "integer"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "program": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self",
-                    "program"
-                ]
             }
         },
         "required": [
@@ -2375,17 +2024,13 @@ export const componentSchemas = {
             "code",
             "name",
             "catalogProgramVariantsCount",
-            "studentsCount",
-            "_paths"
+            "studentsCount"
         ],
         "x-pomi-schema": {
             "kind": "entity",
             "publicName": "Specialization",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -2431,18 +2076,6 @@ export const componentSchemas = {
                 "items": {
                     "$ref": "#/components/schemas/ExchangeNoticeFile"
                 }
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -2454,8 +2087,7 @@ export const componentSchemas = {
             "registrationOriginalText",
             "registrationStart",
             "registrationEnd",
-            "files",
-            "_paths"
+            "files"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -2463,9 +2095,6 @@ export const componentSchemas = {
             "publicName": "ExchangeNotice",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -2480,24 +2109,11 @@ export const componentSchemas = {
             },
             "name": {
                 "type": "string"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "notices": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "notices"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
             "id",
-            "name",
-            "_paths"
+            "name"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -2505,9 +2121,6 @@ export const componentSchemas = {
             "publicName": "ExchangePlace",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -2552,32 +2165,16 @@ export const componentSchemas = {
             },
             "name": {
                 "type": "string"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "notices": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "notices"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
             "id",
-            "name",
-            "_paths"
+            "name"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
             "kind": "projection",
-            "publicName": "ExchangePlaceListItem",
-            "transportFields": [
-                "_paths"
-            ]
+            "publicName": "ExchangePlaceListItem"
         }
     },
     "CalendarEvent": {
@@ -2632,17 +2229,6 @@ export const componentSchemas = {
                     ],
                     "additionalProperties": false
                 }
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "entity": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "entity"
-                ]
             }
         },
         "required": [
@@ -2650,8 +2236,7 @@ export const componentSchemas = {
             "startDate",
             "endDate",
             "description",
-            "tags",
-            "_paths"
+            "tags"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -2659,9 +2244,6 @@ export const componentSchemas = {
             "publicName": "CalendarEvent",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -2673,23 +2255,11 @@ export const componentSchemas = {
             },
             "name": {
                 "type": "string"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "entity": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "entity"
-                ]
             }
         },
         "required": [
             "id",
-            "name",
-            "_paths"
+            "name"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -2697,9 +2267,6 @@ export const componentSchemas = {
             "publicName": "CalendarTag",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -2782,39 +2349,6 @@ export const componentSchemas = {
                     ],
                     "additionalProperties": false
                 }
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "studyPeriod": {
-                        "type": "string"
-                    },
-                    "unit": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "course": {
-                        "type": "string"
-                    },
-                    "class": {
-                        "type": "string"
-                    },
-                    "classSchedules": {
-                        "type": "string"
-                    },
-                    "professors": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "studyPeriod",
-                    "unit",
-                    "course",
-                    "class",
-                    "classSchedules",
-                    "professors"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -2829,8 +2363,7 @@ export const componentSchemas = {
             "courseCode",
             "unitId",
             "unitCode",
-            "professors",
-            "_paths"
+            "professors"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -2838,9 +2371,6 @@ export const componentSchemas = {
             "publicName": "Class",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -2906,35 +2436,6 @@ export const componentSchemas = {
             },
             "studyPeriodYearPeriod": {
                 "$ref": "#/components/schemas/YearPeriod"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "entity": {
-                        "type": "string"
-                    },
-                    "studyPeriod": {
-                        "type": "string"
-                    },
-                    "unit": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "course": {
-                        "type": "string"
-                    },
-                    "class": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "entity",
-                    "studyPeriod",
-                    "unit",
-                    "course",
-                    "class"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -2952,8 +2453,7 @@ export const componentSchemas = {
             "courseCode",
             "studyPeriodId",
             "studyPeriodYear",
-            "studyPeriodYearPeriod",
-            "_paths"
+            "studyPeriodYearPeriod"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -2961,9 +2461,6 @@ export const componentSchemas = {
             "publicName": "ClassSchedule",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ],
             "relations": {
                 "roomId": {
@@ -3021,44 +2518,19 @@ export const componentSchemas = {
             "total": {
                 "type": "integer"
             },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "firstPage": {
-                        "type": "string"
-                    },
-                    "lastPage": {
-                        "type": "string"
-                    },
-                    "next": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "prev": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                },
-                "required": [
-                    "firstPage",
-                    "lastPage",
-                    "next",
-                    "prev"
-                ]
+            "links": {
+                "$ref": "#/components/schemas/PaginationLinks"
             }
         },
         "required": [
             "data",
             "quantity",
             "total",
-            "_paths"
+            "links"
         ],
         "x-pomi-schema": {
             "kind": "page",
-            "publicName": "PageClassSchedules",
-            "transportFields": [
-                "_paths"
-            ]
+            "publicName": "PageClassSchedules"
         }
     },
     "DailyMenu": {
@@ -3086,18 +2558,6 @@ export const componentSchemas = {
             "updatedAt": {
                 "type": "string",
                 "format": "date-time"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -3105,8 +2565,7 @@ export const componentSchemas = {
             "date",
             "meals",
             "createdAt",
-            "updatedAt",
-            "_paths"
+            "updatedAt"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -3114,9 +2573,6 @@ export const componentSchemas = {
             "publicName": "DailyMenu",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -3234,29 +2690,13 @@ export const componentSchemas = {
                         "format": "date-time"
                     }
                 ]
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "classes": {
-                        "type": "string"
-                    },
-                    "classSchedules": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "classes",
-                    "classSchedules"
-                ]
             }
         },
         "required": [
             "id",
             "year",
             "yearPeriod",
-            "startDate",
-            "_paths"
+            "startDate"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -3264,9 +2704,6 @@ export const componentSchemas = {
             "publicName": "StudyPeriod",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     }
@@ -3280,10 +2717,13 @@ export const enumValues = {
         "UNIT_DISCRETION",
         null
     ],
-    "CourseOfferingKind": [
+    "CatalogCoursePrerequisiteFulfillment": [
         "FULL",
-        "PARTIAL",
-        "SPECIAL"
+        "PARTIAL"
+    ],
+    "CatalogCourseSpecialRequirementType": [
+        "AUTHORIZATION",
+        "PROGRESSION_COEFFICIENT"
     ],
     "CatalogProgramEntity.shift": [
         "DAYTIME",

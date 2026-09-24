@@ -36,7 +36,7 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
               variants: [],
               languages: [],
             }],
-            _paths: { next: null },
+            links: { next: null },
           }),
         )
       }
@@ -54,7 +54,7 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
             ],
             quantity: 1,
             total: 1,
-            _paths: { next: null },
+            links: { next: null },
           }),
         )
       }
@@ -73,7 +73,7 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
             ],
             quantity: 2,
             total: 3,
-            _paths: { next: '/courses?page=2&pageSize=100' },
+            links: { next: '/courses?page=2&pageSize=100' },
           }),
         )
       }

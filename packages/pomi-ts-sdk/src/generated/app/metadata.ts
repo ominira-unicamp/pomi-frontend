@@ -181,6 +181,46 @@ export const componentSchemas = {
             ]
         }
     },
+    "PaginationLinks": {
+        "type": "object",
+        "properties": {
+            "self": {
+                "type": "string",
+                "format": "uri-reference"
+            },
+            "first": {
+                "type": "string",
+                "format": "uri-reference"
+            },
+            "last": {
+                "type": "string",
+                "format": "uri-reference"
+            },
+            "next": {
+                "type": "string",
+                "nullable": true,
+                "format": "uri-reference"
+            },
+            "previous": {
+                "type": "string",
+                "nullable": true,
+                "format": "uri-reference"
+            }
+        },
+        "required": [
+            "self",
+            "first",
+            "last",
+            "next",
+            "previous"
+        ],
+        "additionalProperties": false,
+        "x-pomi-schema": {
+            "kind": "transport",
+            "publicName": "PaginationLinks",
+            "generate": false
+        }
+    },
     "BotGrantEntity": {
         "type": "object",
         "properties": {
@@ -546,21 +586,6 @@ export const componentSchemas = {
             "languageId": {
                 "type": "integer",
                 "nullable": true
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "classes": {
-                        "type": "string"
-                    },
-                    "classSchedules": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "classes",
-                    "classSchedules"
-                ]
             }
         },
         "required": [
@@ -571,8 +596,7 @@ export const componentSchemas = {
             "specializationId",
             "catalogId",
             "entryYear",
-            "languageId",
-            "_paths"
+            "languageId"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -580,9 +604,6 @@ export const componentSchemas = {
             "publicName": "Student",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -963,22 +984,6 @@ export const componentSchemas = {
             "updatedAt": {
                 "type": "string",
                 "format": "date-time"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "student": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self",
-                    "student"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -992,8 +997,7 @@ export const componentSchemas = {
             "courses",
             "periods",
             "createdAt",
-            "updatedAt",
-            "_paths"
+            "updatedAt"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -1001,9 +1005,6 @@ export const componentSchemas = {
             "publicName": "Curriculum",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -1052,22 +1053,6 @@ export const componentSchemas = {
             "updatedAt": {
                 "type": "string",
                 "format": "date-time"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "student": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self",
-                    "student"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -1077,8 +1062,7 @@ export const componentSchemas = {
             "isFavorite",
             "selection",
             "createdAt",
-            "updatedAt",
-            "_paths"
+            "updatedAt"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -1086,9 +1070,6 @@ export const componentSchemas = {
             "publicName": "CurriculumSummary",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -1207,31 +1188,6 @@ export const componentSchemas = {
                 "items": {
                     "$ref": "#/components/schemas/PeriodPlanningClass"
                 }
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "student": {
-                        "type": "string"
-                    },
-                    "studyPeriod": {
-                        "type": "string"
-                    },
-                    "curriculum": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                },
-                "required": [
-                    "self",
-                    "student",
-                    "studyPeriod",
-                    "curriculum"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -1247,8 +1203,7 @@ export const componentSchemas = {
             "guide",
             "createdAt",
             "updatedAt",
-            "classes",
-            "_paths"
+            "classes"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -1256,9 +1211,6 @@ export const componentSchemas = {
             "publicName": "PeriodPlanning",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ],
             "relations": {
                 "studentId": {
@@ -1692,44 +1644,19 @@ export const componentSchemas = {
             "total": {
                 "type": "integer"
             },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "firstPage": {
-                        "type": "string"
-                    },
-                    "lastPage": {
-                        "type": "string"
-                    },
-                    "next": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "prev": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                },
-                "required": [
-                    "firstPage",
-                    "lastPage",
-                    "next",
-                    "prev"
-                ]
+            "links": {
+                "$ref": "#/components/schemas/PaginationLinks"
             }
         },
         "required": [
             "data",
             "quantity",
             "total",
-            "_paths"
+            "links"
         ],
         "x-pomi-schema": {
             "kind": "page",
-            "publicName": "SharedPeriodPlanningPage",
-            "transportFields": [
-                "_paths"
-            ]
+            "publicName": "SharedPeriodPlanningPage"
         }
     },
     "SharedPeriodPlanning": {
@@ -2129,35 +2056,6 @@ export const componentSchemas = {
             },
             "class": {
                 "$ref": "#/components/schemas/CourseAttemptClass"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "student": {
-                        "type": "string"
-                    },
-                    "course": {
-                        "type": "string"
-                    },
-                    "studyPeriod": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "class": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                },
-                "required": [
-                    "self",
-                    "student",
-                    "course",
-                    "studyPeriod",
-                    "class"
-                ]
             }
         },
         "required": [
@@ -2173,8 +2071,7 @@ export const componentSchemas = {
             "updatedAt",
             "course",
             "studyPeriod",
-            "class",
-            "_paths"
+            "class"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -2182,9 +2079,6 @@ export const componentSchemas = {
             "publicName": "StudentCourseAttempt",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ],
             "relations": {
                 "course": {
@@ -2780,38 +2674,6 @@ export const componentSchemas = {
             },
             "end": {
                 "type": "string"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "courseAttempt": {
-                        "type": "string"
-                    },
-                    "classSchedule": {
-                        "type": "string"
-                    },
-                    "class": {
-                        "type": "string"
-                    },
-                    "course": {
-                        "type": "string"
-                    },
-                    "studyPeriod": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self",
-                    "courseAttempt",
-                    "classSchedule",
-                    "class",
-                    "course",
-                    "studyPeriod"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -2830,8 +2692,7 @@ export const componentSchemas = {
             "classCode",
             "dayOfWeek",
             "start",
-            "end",
-            "_paths"
+            "end"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -2839,9 +2700,6 @@ export const componentSchemas = {
             "publicName": "StudentAbsence",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -3031,18 +2889,6 @@ export const componentSchemas = {
                 "type": "integer",
                 "nullable": true
             },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self"
-                ],
-                "additionalProperties": false
-            },
             "enabled": {
                 "type": "boolean"
             },
@@ -3059,7 +2905,6 @@ export const componentSchemas = {
             "program",
             "specialization",
             "entryYear",
-            "_paths",
             "enabled",
             "currentCoursesVisibility"
         ],
@@ -3069,9 +2914,6 @@ export const componentSchemas = {
             "publicName": "StudentPublicProfile",
             "identityFields": [
                 "publicId"
-            ],
-            "transportFields": [
-                "_paths"
             ]
         }
     },
@@ -3161,37 +3003,15 @@ export const componentSchemas = {
             "total": {
                 "type": "integer"
             },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "firstPage": {
-                        "type": "string"
-                    },
-                    "lastPage": {
-                        "type": "string"
-                    },
-                    "next": {
-                        "type": "string",
-                        "nullable": true
-                    },
-                    "prev": {
-                        "type": "string",
-                        "nullable": true
-                    }
-                },
-                "required": [
-                    "firstPage",
-                    "lastPage",
-                    "next",
-                    "prev"
-                ]
+            "links": {
+                "$ref": "#/components/schemas/PaginationLinks"
             }
         },
         "required": [
             "data",
             "quantity",
             "total",
-            "_paths"
+            "links"
         ],
         "x-pomi-schema": {
             "kind": "page",
@@ -3290,18 +3110,6 @@ export const componentSchemas = {
             "entryYear": {
                 "type": "integer",
                 "nullable": true
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -3312,8 +3120,7 @@ export const componentSchemas = {
             "currentCourses",
             "program",
             "specialization",
-            "entryYear",
-            "_paths"
+            "entryYear"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -3321,9 +3128,6 @@ export const componentSchemas = {
             "publicName": "StudentPublicPerson",
             "identityFields": [
                 "publicId"
-            ],
-            "transportFields": [
-                "_paths"
             ],
             "relations": {
                 "currentCourses": {
@@ -3366,22 +3170,6 @@ export const componentSchemas = {
                 "type": "string",
                 "nullable": true,
                 "format": "date-time"
-            },
-            "_paths": {
-                "type": "object",
-                "properties": {
-                    "self": {
-                        "type": "string"
-                    },
-                    "friend": {
-                        "type": "string"
-                    }
-                },
-                "required": [
-                    "self",
-                    "friend"
-                ],
-                "additionalProperties": false
             }
         },
         "required": [
@@ -3390,8 +3178,7 @@ export const componentSchemas = {
             "direction",
             "friend",
             "createdAt",
-            "acceptedAt",
-            "_paths"
+            "acceptedAt"
         ],
         "additionalProperties": false,
         "x-pomi-schema": {
@@ -3399,9 +3186,6 @@ export const componentSchemas = {
             "publicName": "StudentFriendship",
             "identityFields": [
                 "id"
-            ],
-            "transportFields": [
-                "_paths"
             ],
             "relations": {
                 "friend": {

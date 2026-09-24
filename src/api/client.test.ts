@@ -29,7 +29,7 @@ describe('API SDK adapter', () => {
         data: [],
         quantity: 0,
         total: 0,
-        _paths: { next: null, prev: null },
+        links: { self: '', first: '', last: '', next: null, previous: null },
       }),
     )
     vi.stubGlobal('fetch', fetchMock)

@@ -48,7 +48,7 @@ test('serializes structured sorting through the generated resource client', asyn
         data: [],
         quantity: 0,
         total: 0,
-        _paths: { next: null, prev: null },
+        links: { self: '', first: '', last: '', next: null, previous: null },
       }),
       {
         status: 200,
@@ -227,7 +227,13 @@ test('exposes expressive course operations and follows generated pagination meta
         data: [{ id: secondPage ? 2 : 1 }],
         quantity: 1,
         total: 2,
-        _paths: { next: secondPage ? null : '/courses?page=2', prev: null },
+        links: {
+          self: '/courses?page=1',
+          first: '/courses?page=1',
+          last: '/courses?page=2',
+          next: secondPage ? null : '/courses?page=2',
+          previous: null,
+        },
       }),
       { status: 200, headers: { 'content-type': 'application/json' } },
     )
@@ -289,7 +295,13 @@ test('supports generated pagination for resources with path parameters', async (
         data: [{ id: secondPage ? 2 : 1 }],
         quantity: 1,
         total: 2,
-        _paths: { next: secondPage ? null : '/tags/4/courses?page=2' },
+        links: {
+          self: '/tags/4/courses?page=1',
+          first: '/tags/4/courses?page=1',
+          last: '/tags/4/courses?page=2',
+          next: secondPage ? null : '/tags/4/courses?page=2',
+          previous: null,
+        },
       }),
       { status: 200, headers: { 'content-type': 'application/json' } },
     )

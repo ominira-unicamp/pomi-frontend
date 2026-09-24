@@ -38,7 +38,6 @@ describe('curriculum persistence API', () => {
         ],
         createdAt: '2026-01-01T00:00:00.000Z',
         updatedAt: '2026-01-02T00:00:00.000Z',
-        _paths: { self: '/curriculum/12', student: '/student/3' },
       }),
     )
     vi.stubGlobal('fetch', fetchMock)

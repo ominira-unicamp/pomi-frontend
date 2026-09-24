@@ -39,13 +39,13 @@ describe('tag taxonomy API', () => {
         new Response(
           JSON.stringify({
             data: [first],
-            _paths: { next: '/tags/8/courses?page=2&pageSize=100' },
+            links: { next: '/tags/8/courses?page=2&pageSize=100' },
           }),
         ),
       )
       .mockResolvedValueOnce(
         new Response(
-          JSON.stringify({ data: [second], _paths: { next: null } }),
+          JSON.stringify({ data: [second], links: { next: null } }),
         ),
       )
 

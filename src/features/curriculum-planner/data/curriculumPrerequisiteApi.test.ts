@@ -20,7 +20,7 @@ describe('curriculumPrerequisiteApi', () => {
         return Promise.resolve(
           Response.json({
             data: [{ id: 26, year: 2026 }],
-            _paths: { next: null },
+            links: { next: null },
           }),
         )
       if (
@@ -49,7 +49,7 @@ describe('curriculumPrerequisiteApi', () => {
             ],
             quantity: 1,
             total: 2,
-            _paths: {
+            links: {
               next: '/catalog-courses?catalogId=26&page=2&pageSize=1000',
             },
           }),
@@ -80,7 +80,7 @@ describe('curriculumPrerequisiteApi', () => {
             ],
             quantity: 1,
             total: 2,
-            _paths: { next: null },
+            links: { next: null },
           }),
         )
       return Promise.reject(new Error(`Unexpected request: ${input}`))
@@ -104,7 +104,7 @@ describe('curriculumPrerequisiteApi', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(() =>
-        Promise.resolve(Response.json({ data: [], _paths: { next: null } })),
+        Promise.resolve(Response.json({ data: [], links: { next: null } })),
       ),
     )
 

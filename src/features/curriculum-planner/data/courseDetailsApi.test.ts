@@ -40,7 +40,7 @@ describe('courseDetailsApi', () => {
       expect(url.pathname).toBe('/catalog-courses')
       expect(url.searchParams.get('filter[courseId]')).toBe('10')
       return Promise.resolve(
-        Response.json({ data: [details], _paths: { next: null } }),
+        Response.json({ data: [details], links: { next: null } }),
       )
     })
     vi.stubGlobal('fetch', fetchMock)
@@ -53,7 +53,7 @@ describe('courseDetailsApi', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(() =>
-        Promise.resolve(Response.json({ data: [], _paths: { next: null } })),
+        Promise.resolve(Response.json({ data: [], links: { next: null } })),
       ),
     )
 

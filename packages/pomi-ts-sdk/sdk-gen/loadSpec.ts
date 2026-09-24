@@ -183,7 +183,7 @@ function validateOperation(entry: OperationModel) {
   const queries = parameterNames(entry.operation, 'query')
   if (!queries.includes('page') || !queries.includes('pageSize'))
     throw new Error(`Paginated operation ${id} must expose page and pageSize`)
-  for (const field of ['data', 'quantity', 'total', '_paths.next']) {
+  for (const field of ['data', 'quantity', 'total', 'links.next']) {
     if (
       !successfulSchemas(entry).some((schema) =>
         schemaHasPath(entry.document, schema, field),

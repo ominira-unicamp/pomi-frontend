@@ -81,7 +81,7 @@ describe('feedbackReportApi', () => {
         data: reports,
         quantity: reports.length,
         total: reports.length,
-        _paths: { next: null },
+        links: { next: null },
       }),
     )
     vi.stubGlobal('fetch', fetchMock)

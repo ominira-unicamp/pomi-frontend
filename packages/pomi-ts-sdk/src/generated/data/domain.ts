@@ -8,18 +8,19 @@ export type Domain<T> = T extends null
     ? { readonly [Key in keyof T]: Domain<T[Key]> }
     : T
 
-export type PagePaths = {
-    firstPage: string
-    lastPage: string
+export type PaginationLinks = {
+    self: string
+    first: string
+    last: string
     next: string | null
-    prev: string | null
+    previous: string | null
 }
 
 export type Page<T> = {
     data: ReadonlyArray<T>
     quantity: number
     total: number
-    _paths: PagePaths
+    links: PaginationLinks
 }
 
 export type DomainComponentSchemaName = keyof components['schemas']
@@ -41,22 +42,22 @@ export type CourseProfessorEvaluationSummaryTransport = components['schemas']['C
 export type CourseProfessorEvaluationSummary = Domain<CourseProfessorEvaluationSummaryTransport>
 
 export type UnitTransport = components['schemas']['UnitEntity']
-export type Unit = Domain<Omit<UnitTransport, "_paths">>
+export type Unit = Domain<UnitTransport>
 
 export type CourseTransport = components['schemas']['CourseEntity']
-export type Course = Domain<Omit<CourseTransport, "_paths">>
+export type Course = Domain<CourseTransport>
 
 export type PageCoursesTransport = components['schemas']['PageCourses']
-export type PageCourses = Domain<Omit<PageCoursesTransport, "_paths">>
+export type PageCourses = Domain<PageCoursesTransport>
 
 export type ProfessorTransport = components['schemas']['ProfessorEntity']
-export type Professor = Domain<Omit<ProfessorTransport, "_paths">>
+export type Professor = Domain<ProfessorTransport>
 
 export type PageProfessorsTransport = components['schemas']['PageProfessors']
-export type PageProfessors = Domain<Omit<PageProfessorsTransport, "_paths">>
+export type PageProfessors = Domain<PageProfessorsTransport>
 
 export type ProfessorDataPortalProfileSummaryTransport = components['schemas']['ProfessorDataPortalProfileSummary']
-export type ProfessorDataPortalProfileSummary = Domain<Omit<ProfessorDataPortalProfileSummaryTransport, "_paths">>
+export type ProfessorDataPortalProfileSummary = Domain<ProfessorDataPortalProfileSummaryTransport>
 
 export type DepartmentTransport = components['schemas']['Department']
 export type Department = Domain<DepartmentTransport>
@@ -68,7 +69,7 @@ export type CareerReferenceTransport = components['schemas']['CareerReference']
 export type CareerReference = Domain<CareerReferenceTransport>
 
 export type ProfessorDataPortalProfileTransport = components['schemas']['ProfessorDataPortalProfile']
-export type ProfessorDataPortalProfile = Domain<Omit<ProfessorDataPortalProfileTransport, "_paths">>
+export type ProfessorDataPortalProfile = Domain<ProfessorDataPortalProfileTransport>
 
 export type KeywordTransport = components['schemas']['Keyword']
 export type Keyword = Domain<KeywordTransport>
@@ -77,25 +78,25 @@ export type CoauthorTransport = components['schemas']['Coauthor']
 export type Coauthor = Domain<CoauthorTransport>
 
 export type RoomTransport = components['schemas']['RoomEntity']
-export type Room = Domain<Omit<RoomTransport, "_paths">>
+export type Room = Domain<RoomTransport>
 
 export type CatalogTransport = components['schemas']['Catalog']
-export type Catalog = Domain<Omit<CatalogTransport, "_paths">>
+export type Catalog = Domain<CatalogTransport>
 
 export type CatalogCourseTransport = components['schemas']['CatalogCourseEntity']
-export type CatalogCourse = Domain<Omit<CatalogCourseTransport, "_paths">>
+export type CatalogCourse = Domain<CatalogCourseTransport>
 
 export type CoordinatorTransport = components['schemas']['CoordinatorEntity']
-export type Coordinator = Domain<Omit<CoordinatorTransport, "_paths">>
+export type Coordinator = Domain<CoordinatorTransport>
 
 export type CatalogProgramTransport = components['schemas']['CatalogProgramEntity']
-export type CatalogProgram = Domain<Omit<CatalogProgramTransport, "_paths">>
+export type CatalogProgram = Domain<CatalogProgramTransport>
 
 export type CourseBlockSetTransport = components['schemas']['CourseBlockSet']
 export type CourseBlockSet = Domain<CourseBlockSetTransport>
 
 export type CourseRequirementTransport = components['schemas']['CourseRequirement']
-export type CourseRequirement = Domain<Omit<CourseRequirementTransport, "_paths">>
+export type CourseRequirement = Domain<CourseRequirementTransport>
 
 export type ElectiveBlockTransport = components['schemas']['ElectiveBlock']
 export type ElectiveBlock = Domain<ElectiveBlockTransport>
@@ -107,7 +108,7 @@ export type CatalogProgramLanguageTransport = components['schemas']['CatalogProg
 export type CatalogProgramLanguage = Domain<CatalogProgramLanguageTransport>
 
 export type CurriculumSuggestionTransport = components['schemas']['CurriculumSuggestionEntity']
-export type CurriculumSuggestion = Domain<Omit<CurriculumSuggestionTransport, "_paths">>
+export type CurriculumSuggestion = Domain<CurriculumSuggestionTransport>
 
 export type SemesterSuggestionTransport = components['schemas']['SemesterSuggestionEntity']
 export type SemesterSuggestion = Domain<SemesterSuggestionTransport>
@@ -116,49 +117,49 @@ export type CurriculumSuggestionCourseTransport = components['schemas']['Curricu
 export type CurriculumSuggestionCourse = Domain<CurriculumSuggestionCourseTransport>
 
 export type LanguageTransport = components['schemas']['Language']
-export type Language = Domain<Omit<LanguageTransport, "_paths">>
+export type Language = Domain<LanguageTransport>
 
 export type ProgramTransport = components['schemas']['Program']
-export type Program = Domain<Omit<ProgramTransport, "_paths">>
+export type Program = Domain<ProgramTransport>
 
 export type SpecializationTransport = components['schemas']['Specialization']
-export type Specialization = Domain<Omit<SpecializationTransport, "_paths">>
+export type Specialization = Domain<SpecializationTransport>
 
 export type ExchangeNoticeTransport = components['schemas']['ExchangeNotice']
-export type ExchangeNotice = Domain<Omit<ExchangeNoticeTransport, "_paths">>
+export type ExchangeNotice = Domain<ExchangeNoticeTransport>
 
 export type ExchangePlaceTransport = components['schemas']['ExchangePlace']
-export type ExchangePlace = Domain<Omit<ExchangePlaceTransport, "_paths">>
+export type ExchangePlace = Domain<ExchangePlaceTransport>
 
 export type ExchangeNoticeFileTransport = components['schemas']['ExchangeNoticeFile']
 export type ExchangeNoticeFile = Domain<ExchangeNoticeFileTransport>
 
 export type ExchangePlaceListItemTransport = components['schemas']['ExchangePlaceListItem']
-export type ExchangePlaceListItem = Domain<Omit<ExchangePlaceListItemTransport, "_paths">>
+export type ExchangePlaceListItem = Domain<ExchangePlaceListItemTransport>
 
 export type CalendarEventTransport = components['schemas']['CalendarEvent']
-export type CalendarEvent = Domain<Omit<CalendarEventTransport, "_paths">>
+export type CalendarEvent = Domain<CalendarEventTransport>
 
 export type CalendarTagTransport = components['schemas']['CalendarTag']
-export type CalendarTag = Domain<Omit<CalendarTagTransport, "_paths">>
+export type CalendarTag = Domain<CalendarTagTransport>
 
 export type ClassTransport = components['schemas']['ClassEntity']
-export type Class = Domain<Omit<ClassTransport, "_paths">>
+export type Class = Domain<ClassTransport>
 
 export type ClassScheduleTransport = components['schemas']['ClassScheduleEntity']
-export type ClassSchedule = Domain<Omit<ClassScheduleTransport, "_paths">>
+export type ClassSchedule = Domain<ClassScheduleTransport>
 
 export type PageClassSchedulesTransport = components['schemas']['PageClassSchedules']
-export type PageClassSchedules = Domain<Omit<PageClassSchedulesTransport, "_paths">>
+export type PageClassSchedules = Domain<PageClassSchedulesTransport>
 
 export type DailyMenuTransport = components['schemas']['DailyMenu']
-export type DailyMenu = Domain<Omit<DailyMenuTransport, "_paths">>
+export type DailyMenu = Domain<DailyMenuTransport>
 
 export type MealTransport = components['schemas']['Meal']
 export type Meal = Domain<MealTransport>
 
 export type StudyPeriodTransport = components['schemas']['StudyPeriodEntity']
-export type StudyPeriod = Domain<Omit<StudyPeriodTransport, "_paths">>
+export type StudyPeriod = Domain<StudyPeriodTransport>
 
 
 
@@ -200,9 +201,7 @@ export const domainModelDefinitions = {
     },
     "Unit": {
         "schema": "UnitEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -211,9 +210,7 @@ export const domainModelDefinitions = {
     },
     "Course": {
         "schema": "CourseEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -222,18 +219,14 @@ export const domainModelDefinitions = {
     },
     "PageCourses": {
         "schema": "PageCourses",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [],
         "readOnlyFields": [],
         "relations": {}
     },
     "Professor": {
         "schema": "ProfessorEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -242,18 +235,14 @@ export const domainModelDefinitions = {
     },
     "PageProfessors": {
         "schema": "PageProfessors",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [],
         "readOnlyFields": [],
         "relations": {}
     },
     "ProfessorDataPortalProfileSummary": {
         "schema": "ProfessorDataPortalProfileSummary",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [],
         "readOnlyFields": [],
         "relations": {}
@@ -285,9 +274,7 @@ export const domainModelDefinitions = {
     },
     "ProfessorDataPortalProfile": {
         "schema": "ProfessorDataPortalProfile",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -314,9 +301,7 @@ export const domainModelDefinitions = {
     },
     "Room": {
         "schema": "RoomEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -325,9 +310,7 @@ export const domainModelDefinitions = {
     },
     "Catalog": {
         "schema": "Catalog",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -336,9 +319,7 @@ export const domainModelDefinitions = {
     },
     "CatalogCourse": {
         "schema": "CatalogCourseEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -347,9 +328,7 @@ export const domainModelDefinitions = {
     },
     "Coordinator": {
         "schema": "CoordinatorEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -358,9 +337,7 @@ export const domainModelDefinitions = {
     },
     "CatalogProgram": {
         "schema": "CatalogProgramEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -393,9 +370,7 @@ export const domainModelDefinitions = {
     },
     "CourseRequirement": {
         "schema": "CourseRequirement",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -425,9 +400,7 @@ export const domainModelDefinitions = {
     },
     "CurriculumSuggestion": {
         "schema": "CurriculumSuggestionEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -452,9 +425,7 @@ export const domainModelDefinitions = {
     },
     "Language": {
         "schema": "Language",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -463,9 +434,7 @@ export const domainModelDefinitions = {
     },
     "Program": {
         "schema": "Program",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -474,9 +443,7 @@ export const domainModelDefinitions = {
     },
     "Specialization": {
         "schema": "Specialization",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -485,9 +452,7 @@ export const domainModelDefinitions = {
     },
     "ExchangeNotice": {
         "schema": "ExchangeNotice",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -496,9 +461,7 @@ export const domainModelDefinitions = {
     },
     "ExchangePlace": {
         "schema": "ExchangePlace",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -516,18 +479,14 @@ export const domainModelDefinitions = {
     },
     "ExchangePlaceListItem": {
         "schema": "ExchangePlaceListItem",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [],
         "readOnlyFields": [],
         "relations": {}
     },
     "CalendarEvent": {
         "schema": "CalendarEvent",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -536,9 +495,7 @@ export const domainModelDefinitions = {
     },
     "CalendarTag": {
         "schema": "CalendarTag",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -547,9 +504,7 @@ export const domainModelDefinitions = {
     },
     "Class": {
         "schema": "ClassEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -558,9 +513,7 @@ export const domainModelDefinitions = {
     },
     "ClassSchedule": {
         "schema": "ClassScheduleEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -591,18 +544,14 @@ export const domainModelDefinitions = {
     },
     "PageClassSchedules": {
         "schema": "PageClassSchedules",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [],
         "readOnlyFields": [],
         "relations": {}
     },
     "DailyMenu": {
         "schema": "DailyMenu",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -620,9 +569,7 @@ export const domainModelDefinitions = {
     },
     "StudyPeriod": {
         "schema": "StudyPeriodEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],

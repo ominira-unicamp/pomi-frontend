@@ -24,14 +24,14 @@ describe('listClassSchedulesByStudyPeriod', () => {
         new Response(
           JSON.stringify({
             data: [firstMeeting],
-            _paths: { next: '/class-schedules?page=2' },
+            links: { next: '/class-schedules?page=2' },
           }),
           { status: 200 },
         ),
       )
       .mockResolvedValueOnce(
         new Response(
-          JSON.stringify({ data: [secondMeeting], _paths: { next: null } }),
+          JSON.stringify({ data: [secondMeeting], links: { next: null } }),
           { status: 200 },
         ),
       )

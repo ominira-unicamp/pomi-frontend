@@ -93,7 +93,15 @@ const staticData: CurriculumPlannerStaticData = {
           },
         ],
       },
-      variants: [],
+        variants: [
+          {
+            id: '2' as never,
+            specializationId: null,
+            code: 'GERAL',
+            name: 'Geral',
+            blocks: { mandatory: [], electives: [] },
+          },
+        ],
       languages: [],
     },
   ],
@@ -865,6 +873,8 @@ describe('CurriculumPlannerPage', () => {
             {
               id: 1,
               catalogProgramId: 1,
+              catalogProgramVariantId: 2,
+              programName: 'Programa geral',
               code: 'GERAL',
               name: 'Sugestão geral',
               type: 'GENERAL',
@@ -875,7 +885,7 @@ describe('CurriculumPlannerPage', () => {
               ],
             },
           ],
-          _paths: { next: null },
+          links: { next: null },
         }),
       ),
     )

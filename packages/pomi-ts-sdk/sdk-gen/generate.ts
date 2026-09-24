@@ -103,12 +103,12 @@ function pageItemSchema(document: OpenApiDocument, schema: unknown) {
   const resolved = schemaAtRef(document, schema) ?? schema
   if (!isRecord(resolved) || !isRecord(resolved.properties)) return undefined
   const data = resolved.properties.data
-  const paths = resolved.properties._paths
+  const links = schemaAtRef(document, resolved.properties.links) ?? resolved.properties.links
   if (!isRecord(data) || data.type !== 'array') return undefined
   if (
-    !isRecord(paths) ||
-    !isRecord(paths.properties) ||
-    !('next' in paths.properties)
+    !isRecord(links) ||
+    !isRecord(links.properties) ||
+    !('next' in links.properties)
   ) {
     return undefined
   }
@@ -416,18 +416,19 @@ export type Domain<T> = T extends null
       ? { readonly [Key in keyof T]: Domain<T[Key]> }
       : T
 
-export type PagePaths = {
-  firstPage: string
-  lastPage: string
+export type PaginationLinks = {
+  self: string
+  first: string
+  last: string
   next: string | null
-  prev: string | null
+  previous: string | null
 }
 
 export type Page<T> = {
   data: ReadonlyArray<T>
   quantity: number
   total: number
-  _paths: PagePaths
+  links: PaginationLinks
 }
 
 export type DomainComponentSchemaName = keyof components['schemas']
@@ -731,14 +732,14 @@ function createResourcesSource(model: SdkTargetModel) {
     (entry) => entry.operation['x-pomi-pagination'],
   )
   const paginationHelpers = hasPagination
-    ? `async function* paginateByLink<Page extends { _paths: { next: string | null } }>(firstPage: Promise<Page>, target: ${JSON.stringify(target)}, authentication: AuthenticationMode, requestPath: RequestPath, context?: PomiRequestContext): AsyncIterable<Page> {
+    ? `async function* paginateByLink<Page extends { links: { next: string | null } }>(firstPage: Promise<Page>, target: ${JSON.stringify(target)}, authentication: AuthenticationMode, requestPath: RequestPath, context?: PomiRequestContext): AsyncIterable<Page> {
   let page = await firstPage
   yield page
-  let next = page._paths.next
+  let next = page.links.next
   while (typeof next === 'string' && next.length > 0) {
     page = await requestPath<Page>(target, next, authentication, context)
     yield page
-    next = page._paths.next
+    next = page.links.next
   }
 }
 `

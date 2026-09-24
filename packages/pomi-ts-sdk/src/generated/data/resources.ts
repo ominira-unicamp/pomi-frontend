@@ -70,14 +70,14 @@ function operationInput<Input>(input: Input): Input {
     return input
 }
 
-async function* paginateByLink<Page extends { _paths: { next: string | null } }>(firstPage: Promise<Page>, target: "data", authentication: AuthenticationMode, requestPath: RequestPath, context?: PomiRequestContext): AsyncIterable<Page> {
+async function* paginateByLink<Page extends { links: { next: string | null } }>(firstPage: Promise<Page>, target: "data", authentication: AuthenticationMode, requestPath: RequestPath, context?: PomiRequestContext): AsyncIterable<Page> {
     let page = await firstPage
     yield page
-    let next = page._paths.next
+    let next = page.links.next
     while (typeof next === 'string' && next.length > 0) {
         page = await requestPath<Page>(target, next, authentication, context)
         yield page
-        next = page._paths.next
+        next = page.links.next
     }
 }
 

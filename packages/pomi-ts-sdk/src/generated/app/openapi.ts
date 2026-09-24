@@ -854,6 +854,18 @@ export interface components {
             id: number;
             displayName: string | null;
         };
+        PaginationLinks: {
+
+            self: string;
+
+            first: string;
+
+            last: string;
+
+            next: string | null;
+
+            previous: string | null;
+        };
         BotGrantEntity: {
             id: number;
             studentId: number;
@@ -933,10 +945,6 @@ export interface components {
             catalogId: number | null;
             entryYear: number | null;
             languageId: number | null;
-            _paths: {
-                classes: string;
-                classSchedules: string;
-            };
         };
         UniqueConstraintConflictProblem: {
 
@@ -1023,10 +1031,6 @@ export interface components {
             createdAt: string;
 
             updatedAt: string;
-            _paths: {
-                self: string;
-                student: string;
-            };
         };
         CurriculumSummaryEntity: {
             id: number;
@@ -1042,10 +1046,6 @@ export interface components {
             createdAt: string;
 
             updatedAt: string;
-            _paths: {
-                self: string;
-                student: string;
-            };
         };
         InvalidCurriculumProblem: {
 
@@ -1079,12 +1079,6 @@ export interface components {
 
             updatedAt: string;
             classes: components["schemas"]["PeriodPlanningClass"][];
-            _paths: {
-                self: string;
-                student: string;
-                studyPeriod: string;
-                curriculum: string | null;
-            };
         };
 
         YearPeriod: "SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER";
@@ -1170,12 +1164,7 @@ export interface components {
             data: components["schemas"]["SharedPeriodPlanning"][];
             quantity: number;
             total: number;
-            _paths: {
-                firstPage: string;
-                lastPage: string;
-                next: string | null;
-                prev: string | null;
-            };
+            links: components["schemas"]["PaginationLinks"];
         };
         SharedPeriodPlanning: {
 
@@ -1269,13 +1258,6 @@ export interface components {
             course: components["schemas"]["CourseAttemptCourse"];
             studyPeriod: components["schemas"]["CourseAttemptStudyPeriod"];
             class: components["schemas"]["CourseAttemptClass"];
-            _paths: {
-                self: string;
-                student: string;
-                course: string;
-                studyPeriod: string | null;
-                class: string | null;
-            };
         };
 
         CourseEvaluationMode: "GRADE_AND_ATTENDANCE" | "ATTENDANCE" | "CONCEPT";
@@ -1404,14 +1386,6 @@ export interface components {
             dayOfWeek: components["schemas"]["DayOfWeek"];
             start: string;
             end: string;
-            _paths: {
-                self: string;
-                courseAttempt: string;
-                classSchedule: string;
-                class: string;
-                course: string;
-                studyPeriod: string;
-            };
         };
         InvalidStudentAbsenceProblem: {
 
@@ -1453,9 +1427,6 @@ export interface components {
                 name: string;
             } | null;
             entryYear: number | null;
-            _paths: {
-                self: string;
-            };
             enabled: boolean;
             currentCoursesVisibility: components["schemas"]["StudentProfileVisibility"];
         };
@@ -1477,12 +1448,7 @@ export interface components {
             data: components["schemas"]["StudentPublicPerson"][];
             quantity: number;
             total: number;
-            _paths: {
-                firstPage: string;
-                lastPage: string;
-                next: string | null;
-                prev: string | null;
-            };
+            links: components["schemas"]["PaginationLinks"];
         };
         StudentPublicPerson: {
 
@@ -1503,9 +1469,6 @@ export interface components {
                 name: string;
             } | null;
             entryYear: number | null;
-            _paths: {
-                self: string;
-            };
         };
         StudentFriendship: {
             id: number;
@@ -1516,10 +1479,6 @@ export interface components {
             createdAt: string;
 
             acceptedAt: string | null;
-            _paths: {
-                self: string;
-                friend: string;
-            };
         };
 
         StudentFriendshipStatus: "PENDING" | "ACCEPTED";
@@ -1706,12 +1665,7 @@ export interface operations {
                         data: components["schemas"]["BotIdentityEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -1761,12 +1715,7 @@ export interface operations {
                         data: components["schemas"]["BotGrantEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -1868,12 +1817,7 @@ export interface operations {
                         data: components["schemas"]["AuthUserEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -2204,12 +2148,7 @@ export interface operations {
                         data: components["schemas"]["StudentEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -2524,12 +2463,7 @@ export interface operations {
                         data: components["schemas"]["CurriculumSummaryEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -2817,12 +2751,7 @@ export interface operations {
                         data: components["schemas"]["PeriodPlanningEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -3090,12 +3019,7 @@ export interface operations {
                         data: components["schemas"]["PeriodPlanningEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -3525,12 +3449,7 @@ export interface operations {
                         data: components["schemas"]["PendingProfessorEvaluation"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -3769,12 +3688,7 @@ export interface operations {
                         data: components["schemas"]["StudentCourseAttempt"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -3959,12 +3873,7 @@ export interface operations {
                         data: components["schemas"]["StudentAbsence"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -4345,12 +4254,7 @@ export interface operations {
                         data: components["schemas"]["StudentFriendship"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -4645,12 +4549,7 @@ export interface operations {
                         data: components["schemas"]["FeedbackReport"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -4763,12 +4662,7 @@ export interface operations {
                         data: components["schemas"]["FeedbackReport"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -5009,12 +4903,7 @@ export interface operations {
                         data: components["schemas"]["Category"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -5303,12 +5192,7 @@ export interface operations {
                         data: components["schemas"]["Tag"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -5606,12 +5490,7 @@ export interface operations {
                         data: components["schemas"]["Tag"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -5672,12 +5551,7 @@ export interface operations {
                         data: components["schemas"]["TagRelatedCourse"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -5834,12 +5708,7 @@ export interface operations {
                         data: components["schemas"]["StudentTagInterest"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };

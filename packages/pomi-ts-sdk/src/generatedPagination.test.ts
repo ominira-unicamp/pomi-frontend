@@ -9,7 +9,7 @@ test('follows next page links for the selected API target', async () => {
       requests.push({ target, path })
       return {
         data: [3],
-        _paths: { next: null },
+        links: { next: null },
       } as T
     },
   }
@@ -19,7 +19,7 @@ test('follows next page links for the selected API target', async () => {
     'data',
     Promise.resolve({
       data: [1, 2],
-      _paths: { next: '/courses?page=2' },
+      links: { next: '/courses?page=2' },
     }),
   )
 
@@ -53,7 +53,7 @@ test('propagates first page and continuation errors', async () => {
       'app',
       Promise.resolve({
         data: [1],
-        _paths: { next: '/items?page=2' },
+        links: { next: '/items?page=2' },
       }),
     ),
     continuationError,

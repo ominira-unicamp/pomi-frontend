@@ -88,7 +88,6 @@ describe('ExchangeNoticesPage', () => {
         registrationStart: '2026-09-01',
         registrationEnd: '2026-09-30',
         files: [],
-        _paths: { self: '/exchange-notices/1' },
       },
     ])
     mocks.getSubscription.mockReset()

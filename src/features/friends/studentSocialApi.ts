@@ -6,19 +6,9 @@ import type {
 } from '@ominira/pomi-sdk/generated/app'
 import { pomiSdk } from '@/api/client'
 
-type WithoutPaths<T> = T extends ReadonlyArray<infer Item>
-  ? ReadonlyArray<WithoutPaths<Item>>
-  : T extends object
-    ? {
-        readonly [Key in keyof T as Key extends '_paths'
-          ? never
-          : Key]: WithoutPaths<T[Key]>
-      }
-    : T
-
-export type PublicPerson = WithoutPaths<StudentPublicPerson>
-export type PublicProfile = WithoutPaths<StudentPublicProfile>
-export type Friendship = WithoutPaths<StudentFriendship>
+export type PublicPerson = StudentPublicPerson
+export type PublicProfile = StudentPublicProfile
+export type Friendship = StudentFriendship
 export type PublicProfileUpdate = Readonly<
   updateStudentPublicProfileInput['body']
 >

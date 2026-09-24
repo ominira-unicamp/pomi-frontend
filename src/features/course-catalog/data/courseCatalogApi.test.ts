@@ -16,7 +16,7 @@ describe('course catalog API', () => {
           data: [],
           quantity: 0,
           total: 0,
-          _paths: { next: null, prev: null },
+          links: { self: '', first: '', last: '', next: null, previous: null },
         }),
         { status: 200 },
       ),
@@ -48,13 +48,19 @@ describe('course catalog API', () => {
         new Response(
           JSON.stringify({
             data: [first],
-            _paths: { next: '/tags/8/courses?page=2&pageSize=100' },
+            links: {
+              self: '/tags/8/courses?page=1&pageSize=100',
+              first: '/tags/8/courses?page=1&pageSize=100',
+              last: '/tags/8/courses?page=2&pageSize=100',
+              next: '/tags/8/courses?page=2&pageSize=100',
+              previous: null,
+            },
           }),
           { status: 200 },
         ),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ data: [second], _paths: { next: null } }), {
+        new Response(JSON.stringify({ data: [second], links: { next: null } }), {
           status: 200,
         }),
       )

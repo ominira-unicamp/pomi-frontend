@@ -12,6 +12,8 @@ describe('loadCurriculumSuggestions', () => {
         data: [{
           id: 7,
           catalogProgramId: 3,
+          catalogProgramVariantId: 4,
+          programName: 'Programa geral',
           code: 'GERAL',
           name: 'Sugestão geral',
           type: 'GENERAL',
@@ -26,7 +28,7 @@ describe('loadCurriculumSuggestions', () => {
             },
           ],
         }],
-        _paths: { next: null },
+        links: { next: null },
       }),
     )
     vi.stubGlobal('fetch', fetchMock)
@@ -36,7 +38,6 @@ describe('loadCurriculumSuggestions', () => {
     expect(suggestions[0]).toMatchObject({
       id: '7',
       catalogProgramId: '3',
-      type: 'GENERAL',
       semesters: [{ courses: [{ id: '9' }] }],
     })
     const [request] = fetchMock.mock.calls[0] as [string]

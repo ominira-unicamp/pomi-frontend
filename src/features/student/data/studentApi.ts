@@ -20,16 +20,6 @@ import type {
 } from '@ominira/pomi-sdk/generated/app'
 import { pomiSdk } from '@/api/client'
 
-type WithoutPaths<T> = T extends ReadonlyArray<infer Item>
-  ? ReadonlyArray<WithoutPaths<Item>>
-  : T extends object
-    ? {
-        readonly [Key in keyof T as Key extends '_paths'
-          ? never
-          : Key]: WithoutPaths<T[Key]>
-      }
-    : T
-
 export type StudentProfile = Pick<
   GeneratedStudent,
   | 'id'
@@ -41,18 +31,11 @@ export type StudentProfile = Pick<
   | 'languageId'
 >
 export type StudentCourseAttempt = Omit<
-  WithoutPaths<GeneratedStudentCourseAttempt>,
+  GeneratedStudentCourseAttempt,
   'studyPeriod' | 'class'
 > & {
-  studyPeriod: WithoutPaths<CourseAttemptStudyPeriod> | null
-  class: WithoutPaths<CourseAttemptClass> | null
-  _paths: Readonly<{
-    self: string
-    student: string
-    course: string
-    studyPeriod: string | null
-    class: string | null
-  }>
+  studyPeriod: CourseAttemptStudyPeriod | null
+  class: CourseAttemptClass | null
 }
 export type StudentCourseEvaluationMode = StudentCourseAttempt['evaluationMode']
 export type StudentCourseAttemptStatus = StudentCourseAttempt['status']
@@ -67,7 +50,7 @@ export type StudentHistoryImport = DeepReadonly<
   createStudentHistoryInput['body']
 >
 export type StudentHistoryImportSummary = Readonly<GeneratedStudentHistoryImportSummary>
-export type StudentCourseAttemptClass = WithoutPaths<ClassTransport>
+export type StudentCourseAttemptClass = ClassTransport
 export type StudentClassSchedule = Pick<
   GeneratedClassSchedule,
   | 'id'

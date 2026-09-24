@@ -32,13 +32,6 @@ const attempt: StudentCourseAttempt = {
   class: { id: 40, code: 'A', professors: [] },
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
-  _paths: {
-    self: '/student/1/course-attempts/11',
-    student: '/student/1',
-    course: '/courses/20',
-    studyPeriod: '/study-periods/30',
-    class: '/classes/40',
-  },
 }
 
 const meetings: ReadonlyArray<StudentClassSchedule> = [

@@ -23,7 +23,7 @@ describe('student absence API', () => {
             data: [],
             quantity: 0,
             total: 0,
-            _paths: { next: null },
+            links: { next: null },
           }),
           { status: 200 },
         ),

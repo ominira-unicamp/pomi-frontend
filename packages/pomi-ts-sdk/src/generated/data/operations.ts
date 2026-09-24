@@ -3024,37 +3024,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -3339,37 +3317,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -3606,37 +3562,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -4120,37 +4054,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -4463,37 +4375,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -4700,37 +4590,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -5877,37 +5745,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -6102,37 +5948,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -6997,37 +6821,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -7469,37 +7271,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -7714,37 +7494,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -7986,37 +7744,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -8533,37 +8269,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -8804,37 +8518,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -9029,37 +8721,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -9296,37 +8966,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -9904,37 +9552,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -10414,37 +10040,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -10653,37 +10257,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -10933,37 +10515,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -11258,37 +10818,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }
@@ -11590,37 +11128,15 @@ export const operationDefinitions = {
                                 "total": {
                                     "type": "integer"
                                 },
-                                "_paths": {
-                                    "type": "object",
-                                    "properties": {
-                                        "firstPage": {
-                                            "type": "string"
-                                        },
-                                        "lastPage": {
-                                            "type": "string"
-                                        },
-                                        "next": {
-                                            "type": "string",
-                                            "nullable": true
-                                        },
-                                        "prev": {
-                                            "type": "string",
-                                            "nullable": true
-                                        }
-                                    },
-                                    "required": [
-                                        "firstPage",
-                                        "lastPage",
-                                        "next",
-                                        "prev"
-                                    ]
+                                "links": {
+                                    "$ref": "#/components/schemas/PaginationLinks"
                                 }
                             },
                             "required": [
                                 "data",
                                 "quantity",
                                 "total",
-                                "_paths"
+                                "links"
                             ]
                         }
                     }

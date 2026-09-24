@@ -371,7 +371,6 @@ describe('CourseSituationPage', () => {
         dayOfWeek: 'MONDAY',
         start: '08:00',
         end: '10:00',
-        _paths: {},
       },
     ])
     renderPage()

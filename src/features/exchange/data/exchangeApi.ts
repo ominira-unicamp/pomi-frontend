@@ -10,19 +10,8 @@ import type {
 } from '@ominira/pomi-sdk/generated/app'
 import { pomiSdk } from '@/api/client'
 
-type WithoutPaths<T> =
-  T extends ReadonlyArray<infer Item>
-    ? ReadonlyArray<WithoutPaths<Item>>
-    : T extends object
-      ? {
-          readonly [Key in keyof T as Key extends '_paths'
-            ? never
-            : Key]: WithoutPaths<T[Key]>
-        }
-      : T
-
-export type ExchangeNotice = WithoutPaths<GeneratedExchangeNotice>
-export type ExchangePlace = WithoutPaths<ExchangePlaceListItem>
+export type ExchangeNotice = GeneratedExchangeNotice
+export type ExchangePlace = ExchangePlaceListItem
 export type { ExchangeNoticeFile, ExchangeNoticeSubscription }
 export type ExchangeNoticeSubscriptionPatch = Readonly<
   Omit<updateExchangeNoticeSubscriptionInput['body'], 'placeIds'> & {

@@ -908,12 +908,7 @@ export interface components {
             data: components["schemas"]["ProfessorEvaluationSummary"][];
             quantity: number;
             total: number;
-            _paths: {
-                firstPage: string;
-                lastPage: string;
-                next: string | null;
-                prev: string | null;
-            };
+            links: components["schemas"]["PaginationLinks"];
         };
         ProfessorEvaluationSummary: {
             responseCount: number;
@@ -925,6 +920,18 @@ export interface components {
                 id: number;
                 name: string;
             };
+        };
+        PaginationLinks: {
+
+            self: string;
+
+            first: string;
+
+            last: string;
+
+            next: string | null;
+
+            previous: string | null;
         };
         InvalidRequestProblem: {
 
@@ -959,12 +966,7 @@ export interface components {
             data: components["schemas"]["CourseEvaluationSummary"][];
             quantity: number;
             total: number;
-            _paths: {
-                firstPage: string;
-                lastPage: string;
-                next: string | null;
-                prev: string | null;
-            };
+            links: components["schemas"]["PaginationLinks"];
         };
         CourseEvaluationSummary: {
             responseCount: number;
@@ -1008,10 +1010,6 @@ export interface components {
             id: number;
             code: string;
             name: string;
-            _paths: {
-                classes: string;
-                courses: string;
-            };
         };
         CourseEntity: {
             id: number;
@@ -1021,41 +1019,22 @@ export interface components {
             prefix: string;
             unitId: number | null;
             unitCode: string | null;
-            _paths: {
-                classes: string;
-                unit: string | null;
-                catalogCourses: string;
-            };
         };
         PageCourses: {
             data: components["schemas"]["CourseEntity"][];
             quantity: number;
             total: number;
-            _paths: {
-                firstPage: string;
-                lastPage: string;
-                next: string | null;
-                prev: string | null;
-            };
+            links: components["schemas"]["PaginationLinks"];
         };
         ProfessorEntity: {
             id: number;
             name: string;
-            _paths: {
-                entity: string;
-                dataPortalProfile: string | null;
-            };
         };
         PageProfessors: {
             data: components["schemas"]["ProfessorEntity"][];
             quantity: number;
             total: number;
-            _paths: {
-                firstPage: string;
-                lastPage: string;
-                next: string | null;
-                prev: string | null;
-            };
+            links: components["schemas"]["PaginationLinks"];
         };
         ProfessorDataPortalProfileSummary: {
             id: number;
@@ -1071,10 +1050,6 @@ export interface components {
             };
             department: components["schemas"]["Department"];
             position: components["schemas"]["ProfessorPosition"];
-            _paths: {
-                self: string;
-                professor: string;
-            };
         };
         Department: {
             id: number;
@@ -1137,10 +1112,6 @@ export interface components {
                 name: string;
                 count: number | null;
             }[];
-            _paths: {
-                self: string;
-                professor: string;
-            };
         };
         Keyword: {
             id: number;
@@ -1153,9 +1124,6 @@ export interface components {
         RoomEntity: {
             id: number;
             code: string;
-            _paths: {
-                entity: string;
-            };
         };
         Catalog: {
 
@@ -1170,14 +1138,6 @@ export interface components {
             studentsCount: number;
 
             programIds: number[];
-            links: {
-
-                self: string;
-            };
-            _paths: {
-                self: string;
-                courses: string;
-            };
         };
         CatalogCourseEntity: {
             id: number;
@@ -1212,32 +1172,26 @@ export interface components {
             sourceUrl: string | null;
             prerequisites: {
                 any: {
-                    all: {
-                        code: string;
-                        kind: components["schemas"]["CourseOfferingKind"];
-                        courseId: number | null;
-                    }[];
+                    all: ({
+                        courseId: number;
+                        fulfillment: components["schemas"]["CatalogCoursePrerequisiteFulfillment"];
+                    } | {
+                        specialRequirementType: components["schemas"]["CatalogCourseSpecialRequirementType"];
+                        specialRequirementValue: number;
+                    })[];
                 }[];
-            };
-            _paths: {
-                self: string;
-                catalog: string;
-                course: string;
-                coordinator: string | null;
             };
         };
 
         CourseOfferingPeriod: "ALL_PERIODS" | "ODD_PERIODS" | "EVEN_PERIODS" | "UNIT_DISCRETION" | null;
 
-        CourseOfferingKind: "FULL" | "PARTIAL" | "SPECIAL";
+        CatalogCoursePrerequisiteFulfillment: "FULL" | "PARTIAL";
+
+        CatalogCourseSpecialRequirementType: "AUTHORIZATION" | "PROGRESSION_COEFFICIENT";
         CoordinatorEntity: {
             id: number;
             name: string;
             catalogCoursesCount: number;
-            _paths: {
-                self: string;
-                catalogCourses: string;
-            };
         };
         CatalogProgramEntity: {
             id: number;
@@ -1260,12 +1214,6 @@ export interface components {
             base: components["schemas"]["CourseBlockSet"];
             variants: components["schemas"]["CatalogProgramVariant"][];
             languages: components["schemas"]["CatalogProgramLanguage"][];
-            _paths: {
-                self: string;
-                catalog: string;
-                program: string;
-                curriculumSuggestions: string;
-            };
         };
         CourseBlockSet: {
             mandatory: components["schemas"]["CourseRequirement"][];
@@ -1279,9 +1227,6 @@ export interface components {
             courseName: string | null;
             prefix: string | null;
             catalogCourseId: number | null;
-            _paths: {
-                catalogCourse: string | null;
-            };
         };
 
         CourseRequirementType: "any" | "prefix" | "specific";
@@ -1324,11 +1269,6 @@ export interface components {
                 name: string;
             } | null;
             semesters: components["schemas"]["SemesterSuggestionEntity"][];
-            _paths: {
-                self: string;
-                catalogProgram: string;
-                specialization: string | null;
-            };
         };
         SemesterSuggestionEntity: {
             semester: number;
@@ -1345,9 +1285,6 @@ export interface components {
             id: number;
             name: string;
             catalogLanguagesCount: number;
-            _paths: {
-                self: string;
-            };
         };
         Program: {
             id: number;
@@ -1360,10 +1297,6 @@ export interface components {
             };
             catalogProgramsCount: number;
             studentsCount: number;
-            _paths: {
-                self: string;
-                unit: string;
-            };
         };
         Specialization: {
             id: number;
@@ -1374,10 +1307,6 @@ export interface components {
             name: string;
             catalogProgramVariantsCount: number;
             studentsCount: number;
-            _paths: {
-                self: string;
-                program: string;
-            };
         };
         ExchangeNotice: {
             id: number;
@@ -1391,16 +1320,10 @@ export interface components {
 
             registrationEnd: string | null;
             files: components["schemas"]["ExchangeNoticeFile"][];
-            _paths: {
-                self: string;
-            };
         };
         ExchangePlace: {
             id: number;
             name: string;
-            _paths: {
-                notices: string;
-            };
         } | null;
         ExchangeNoticeFile: {
             id: number;
@@ -1411,9 +1334,6 @@ export interface components {
         ExchangePlaceListItem: {
             id: number;
             name: string;
-            _paths: {
-                notices: string;
-            };
         };
         CalendarEvent: {
             id: number;
@@ -1424,16 +1344,10 @@ export interface components {
                 id: number;
                 name: string;
             }[];
-            _paths: {
-                entity: string;
-            };
         };
         CalendarTag: {
             id: number;
             name: string;
-            _paths: {
-                entity: string;
-            };
         };
         ClassEntity: {
             id: number;
@@ -1455,14 +1369,6 @@ export interface components {
                 id: number;
                 name: string;
             }[];
-            _paths: {
-                studyPeriod: string;
-                unit: string | null;
-                course: string;
-                class: string;
-                classSchedules: string;
-                professors: string;
-            };
         };
 
         YearPeriod: "SUMMER" | "FIRST_SEMESTER" | "WINTER" | "SECOND_SEMESTER";
@@ -1482,13 +1388,6 @@ export interface components {
             studyPeriodId: number;
             studyPeriodYear: number;
             studyPeriodYearPeriod: components["schemas"]["YearPeriod"];
-            _paths: {
-                entity: string;
-                studyPeriod: string;
-                unit: string | null;
-                course: string;
-                class: string;
-            };
         };
 
         DayOfWeek: "MONDAY" | "TUESDAY" | "WEDNESDAY" | "THURSDAY" | "FRIDAY" | "SATURDAY" | "SUNDAY";
@@ -1496,12 +1395,7 @@ export interface components {
             data: components["schemas"]["ClassScheduleEntity"][];
             quantity: number;
             total: number;
-            _paths: {
-                firstPage: string;
-                lastPage: string;
-                next: string | null;
-                prev: string | null;
-            };
+            links: components["schemas"]["PaginationLinks"];
         };
         DailyMenu: {
             id: number;
@@ -1512,9 +1406,6 @@ export interface components {
             createdAt: string;
 
             updatedAt: string;
-            _paths: {
-                self: string;
-            };
         };
         Meal: {
             id: number;
@@ -1537,10 +1428,6 @@ export interface components {
             year: number;
             yearPeriod: components["schemas"]["YearPeriod"];
             startDate: string;
-            _paths: {
-                classes: string;
-                classSchedules: string;
-            };
         };
     };
     responses: never;
@@ -1809,12 +1696,7 @@ export interface operations {
                         data: components["schemas"]["UnitEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -2120,12 +2002,7 @@ export interface operations {
                         data: components["schemas"]["ProfessorDataPortalProfileSummary"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -2239,12 +2116,7 @@ export interface operations {
                         data: components["schemas"]["ProfessorPosition"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -2353,12 +2225,7 @@ export interface operations {
                         data: components["schemas"]["Department"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -2463,12 +2330,7 @@ export interface operations {
                         data: components["schemas"]["Keyword"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -2573,12 +2435,7 @@ export interface operations {
                         data: components["schemas"]["Coauthor"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -2738,12 +2595,7 @@ export interface operations {
                         data: components["schemas"]["RoomEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -2849,12 +2701,7 @@ export interface operations {
                         data: components["schemas"]["Catalog"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -2943,12 +2790,7 @@ export interface operations {
                         data: components["schemas"]["CatalogCourseEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -3053,12 +2895,7 @@ export interface operations {
                         data: components["schemas"]["CoordinatorEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -3225,12 +3062,7 @@ export interface operations {
                         data: components["schemas"]["CatalogProgramEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -3360,12 +3192,7 @@ export interface operations {
                         data: components["schemas"]["CurriculumSuggestionEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -3474,12 +3301,7 @@ export interface operations {
                         data: components["schemas"]["Language"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -3585,12 +3407,7 @@ export interface operations {
                         data: components["schemas"]["Program"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -3705,12 +3522,7 @@ export interface operations {
                         data: components["schemas"]["Specialization"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -3866,12 +3678,7 @@ export interface operations {
                         data: components["schemas"]["ExchangeNotice"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -3931,12 +3738,7 @@ export interface operations {
                         data: components["schemas"]["ExchangePlaceListItem"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -4108,12 +3910,7 @@ export interface operations {
                         data: components["schemas"]["CalendarEvent"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -4222,12 +4019,7 @@ export interface operations {
                         data: components["schemas"]["CalendarTag"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -4366,12 +4158,7 @@ export interface operations {
                         data: components["schemas"]["ClassEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -4634,12 +4421,7 @@ export interface operations {
                         data: components["schemas"]["DailyMenu"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };
@@ -4754,12 +4536,7 @@ export interface operations {
                         data: components["schemas"]["StudyPeriodEntity"][];
                         quantity: number;
                         total: number;
-                        _paths: {
-                            firstPage: string;
-                            lastPage: string;
-                            next: string | null;
-                            prev: string | null;
-                        };
+                        links: components["schemas"]["PaginationLinks"];
                     };
                 };
             };

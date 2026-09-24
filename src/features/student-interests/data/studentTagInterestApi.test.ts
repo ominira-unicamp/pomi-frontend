@@ -26,7 +26,7 @@ describe('student tag interest API', () => {
           data: interests,
           quantity: interests.length,
           total: interests.length,
-          _paths: { next: null },
+          links: { next: null },
         }),
         { status: 200 },
       ),

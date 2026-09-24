@@ -8,18 +8,19 @@ export type Domain<T> = T extends null
     ? { readonly [Key in keyof T]: Domain<T[Key]> }
     : T
 
-export type PagePaths = {
-    firstPage: string
-    lastPage: string
+export type PaginationLinks = {
+    self: string
+    first: string
+    last: string
     next: string | null
-    prev: string | null
+    previous: string | null
 }
 
 export type Page<T> = {
     data: ReadonlyArray<T>
     quantity: number
     total: number
-    _paths: PagePaths
+    links: PaginationLinks
 }
 
 export type DomainComponentSchemaName = keyof components['schemas']
@@ -38,16 +39,16 @@ export type AuthUserTransport = components['schemas']['AuthUserEntity']
 export type AuthUser = Domain<AuthUserTransport>
 
 export type StudentTransport = components['schemas']['StudentEntity']
-export type Student = Domain<Omit<StudentTransport, "_paths">>
+export type Student = Domain<StudentTransport>
 
 export type CurriculumTransport = components['schemas']['CurriculumEntity']
-export type Curriculum = Domain<Omit<CurriculumTransport, "_paths">>
+export type Curriculum = Domain<CurriculumTransport>
 
 export type CurriculumSummaryTransport = components['schemas']['CurriculumSummaryEntity']
-export type CurriculumSummary = Domain<Omit<CurriculumSummaryTransport, "_paths">>
+export type CurriculumSummary = Domain<CurriculumSummaryTransport>
 
 export type PeriodPlanningTransport = components['schemas']['PeriodPlanningEntity']
-export type PeriodPlanning = Domain<Omit<PeriodPlanningTransport, "_paths">>
+export type PeriodPlanning = Domain<PeriodPlanningTransport>
 
 export type PlanningGuideTransport = components['schemas']['PlanningGuide']
 export type PlanningGuide = Domain<PlanningGuideTransport>
@@ -62,7 +63,7 @@ export type PeriodPlanningScheduleTransport = components['schemas']['PeriodPlann
 export type PeriodPlanningSchedule = Domain<PeriodPlanningScheduleTransport>
 
 export type SharedPeriodPlanningPageTransport = components['schemas']['SharedPeriodPlanningPage']
-export type SharedPeriodPlanningPage = Domain<Omit<SharedPeriodPlanningPageTransport, "_paths">>
+export type SharedPeriodPlanningPage = Domain<SharedPeriodPlanningPageTransport>
 
 export type SharedPeriodPlanningTransport = components['schemas']['SharedPeriodPlanning']
 export type SharedPeriodPlanning = Domain<SharedPeriodPlanningTransport>
@@ -77,7 +78,7 @@ export type PendingProfessorEvaluationTransport = components['schemas']['Pending
 export type PendingProfessorEvaluation = Domain<PendingProfessorEvaluationTransport>
 
 export type StudentCourseAttemptTransport = components['schemas']['StudentCourseAttempt']
-export type StudentCourseAttempt = Domain<Omit<StudentCourseAttemptTransport, "_paths">>
+export type StudentCourseAttempt = Domain<StudentCourseAttemptTransport>
 
 export type CourseAttemptCourseTransport = components['schemas']['CourseAttemptCourse']
 export type CourseAttemptCourse = Domain<CourseAttemptCourseTransport>
@@ -92,10 +93,10 @@ export type StudentHistoryImportSummaryTransport = components['schemas']['Studen
 export type StudentHistoryImportSummary = Domain<StudentHistoryImportSummaryTransport>
 
 export type StudentAbsenceTransport = components['schemas']['StudentAbsence']
-export type StudentAbsence = Domain<Omit<StudentAbsenceTransport, "_paths">>
+export type StudentAbsence = Domain<StudentAbsenceTransport>
 
 export type StudentPublicProfileTransport = components['schemas']['StudentPublicProfile']
-export type StudentPublicProfile = Domain<Omit<StudentPublicProfileTransport, "_paths">>
+export type StudentPublicProfile = Domain<StudentPublicProfileTransport>
 
 export type StudentCurrentCourseTransport = components['schemas']['StudentCurrentCourse']
 export type StudentCurrentCourse = Domain<StudentCurrentCourseTransport>
@@ -104,10 +105,10 @@ export type StudentPeoplePageTransport = components['schemas']['StudentPeoplePag
 export type StudentPeoplePage = Domain<StudentPeoplePageTransport>
 
 export type StudentPublicPersonTransport = components['schemas']['StudentPublicPerson']
-export type StudentPublicPerson = Domain<Omit<StudentPublicPersonTransport, "_paths">>
+export type StudentPublicPerson = Domain<StudentPublicPersonTransport>
 
 export type StudentFriendshipTransport = components['schemas']['StudentFriendship']
-export type StudentFriendship = Domain<Omit<StudentFriendshipTransport, "_paths">>
+export type StudentFriendship = Domain<StudentFriendshipTransport>
 
 export type FeedbackReportAcceptedTransport = components['schemas']['FeedbackReportAccepted']
 export type FeedbackReportAccepted = Domain<FeedbackReportAcceptedTransport>
@@ -174,9 +175,7 @@ export const domainModelDefinitions = {
     },
     "Student": {
         "schema": "StudentEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -185,9 +184,7 @@ export const domainModelDefinitions = {
     },
     "Curriculum": {
         "schema": "CurriculumEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -196,9 +193,7 @@ export const domainModelDefinitions = {
     },
     "CurriculumSummary": {
         "schema": "CurriculumSummaryEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -207,9 +202,7 @@ export const domainModelDefinitions = {
     },
     "PeriodPlanning": {
         "schema": "PeriodPlanningEntity",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -264,9 +257,7 @@ export const domainModelDefinitions = {
     },
     "SharedPeriodPlanningPage": {
         "schema": "SharedPeriodPlanningPage",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [],
         "readOnlyFields": [],
         "relations": {}
@@ -310,9 +301,7 @@ export const domainModelDefinitions = {
     },
     "StudentCourseAttempt": {
         "schema": "StudentCourseAttempt",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -364,9 +353,7 @@ export const domainModelDefinitions = {
     },
     "StudentAbsence": {
         "schema": "StudentAbsence",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],
@@ -375,9 +362,7 @@ export const domainModelDefinitions = {
     },
     "StudentPublicProfile": {
         "schema": "StudentPublicProfile",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "publicId"
         ],
@@ -400,9 +385,7 @@ export const domainModelDefinitions = {
     },
     "StudentPublicPerson": {
         "schema": "StudentPublicPerson",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "publicId"
         ],
@@ -426,9 +409,7 @@ export const domainModelDefinitions = {
     },
     "StudentFriendship": {
         "schema": "StudentFriendship",
-        "transportFields": [
-            "_paths"
-        ],
+        "transportFields": [],
         "identityFields": [
             "id"
         ],

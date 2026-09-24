@@ -29,13 +29,6 @@ function attempt(
     },
     studyPeriod: year === null ? null : { id, year, yearPeriod: yearPeriod! },
     class: null,
-    _paths: {
-      self: '',
-      student: '',
-      course: '',
-      studyPeriod: null,
-      class: null,
-    },
   }
 }
 

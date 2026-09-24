@@ -246,14 +246,14 @@ test('generates canonical domain models independently from operation envelopes',
   }
   assert.deepEqual(dataDomainModels.Course, {
     schema: 'CourseEntity',
-    transportFields: ['_paths'],
+    transportFields: [],
     identityFields: ['id'],
     readOnlyFields: [],
     relations: {},
   })
   assert.deepEqual(dataDomainModels.ClassSchedule, {
     schema: 'ClassScheduleEntity',
-    transportFields: ['_paths'],
+    transportFields: [],
     identityFields: ['id'],
     readOnlyFields: [],
     relations: {
@@ -266,7 +266,7 @@ test('generates canonical domain models independently from operation envelopes',
   })
   assert.deepEqual(appDomainModels.StudentCourseAttempt, {
     schema: 'StudentCourseAttempt',
-    transportFields: ['_paths'],
+    transportFields: [],
     identityFields: ['id'],
     readOnlyFields: [],
     relations: {
