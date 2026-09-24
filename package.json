@@ -2,15 +2,13 @@
   "name": "pomi-frontend",
   "private": true,
   "type": "module",
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": ["packages/planner-domain"],
   "scripts": {
     "dev": "vite --port 5174 --strictPort",
     "build": "npm run feature:check && npm run domain:check && vite build && tsc",
     "preview": "vite preview",
-    "sdk:generate": "npm run generate --workspace @ominira/pomi-sdk",
-    "sdk:check": "npm run check --workspace @ominira/pomi-sdk",
+    "sdk:generate": "npm --prefix ../pomi-ts-sdk run export:openapi -- --backend ../pomi-backend && npm --prefix ../pomi-ts-sdk run generate -- --data-openapi ../openapi.json --app-openapi ../pomi-backend/packages/app/app-openapi.json",
+    "sdk:check": "npm --prefix ../pomi-ts-sdk run export:openapi -- --backend ../pomi-backend && npm --prefix ../pomi-ts-sdk run generate:check -- --data-openapi ../openapi.json --app-openapi ../pomi-backend/packages/app/app-openapi.json && npm --prefix ../pomi-ts-sdk run check",
     "test": "vitest run",
     "domain:check": "node scripts/check-domain-boundaries.mjs && npm run check --workspace @pomi/planner-domain",
     "feature:check": "node scripts/check-feature-boundaries.mjs",
@@ -23,7 +21,7 @@
     "@dnd-kit/core": "^6.3.1",
     "@fontsource-variable/outfit": "^5.3.0",
     "@pomi/planner-domain": "workspace:*",
-    "@ominira/pomi-sdk": "workspace:*",
+    "@ominira/pomi-sdk": "file:../pomi-ts-sdk",
     "@radix-ui/react-avatar": "^1.2.6",
     "@radix-ui/react-checkbox": "^1.3.11",
     "@radix-ui/react-dialog": "^1.1.23",
