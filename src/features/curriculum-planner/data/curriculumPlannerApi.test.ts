@@ -11,31 +11,56 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
       if (url.pathname === '/catalog-program') {
         return Promise.resolve(
           Response.json({
-            data: [{
-              id: 1,
-              title: 'Programa',
-              catalogId: 2,
-              catalogYear: 2026,
-              programId: 3,
-              programCode: 10,
-              programName: 'Programa',
-              base: {
-                mandatory: [
-                  { id: 99, type: 'specific', courseId: 7, prefix: null },
-                ],
-                electives: [
+            data: [
+              {
+                id: 1,
+                title: 'Programa',
+                catalogId: 2,
+                catalogYear: 2026,
+                programId: 3,
+                programCode: 10,
+                programName: 'Programa',
+                base: {
+                  mandatory: [
+                    {
+                      id: 99,
+                      type: 'specific',
+                      specific: {
+                        courseId: 7,
+                        courseCode: 'AB100',
+                        courseName: 'Algoritmos',
+                        catalogCourseId: null,
+                      },
+                    },
+                  ],
+                  electives: [
+                    {
+                      id: 55,
+                      credits: 4,
+                      courses: [
+                        {
+                          id: 98,
+                          type: 'prefix',
+                          prefix: { value: 'ab' },
+                        },
+                      ],
+                    },
+                  ],
+                },
+                variants: [
                   {
-                    id: 55,
-                    credits: 4,
-                    courses: [
-                      { id: 98, type: 'prefix', courseId: null, prefix: 'ab' },
-                    ],
+                    id: 12,
+                    type: 'SPECIALIZATION',
+                    curriculumSuggestionId: null,
+                    specialization: { specializationId: 20 },
+                    code: 'ESP',
+                    name: 'Especialização',
+                    blocks: { mandatory: [], electives: [] },
                   },
                 ],
+                languages: [],
               },
-              variants: [],
-              languages: [],
-            }],
+            ],
             links: { next: null },
           }),
         )
@@ -95,5 +120,8 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
     expect(
       result.value.catalogPrograms[0].baseBlocks.electives[0].eligibleCourses,
     ).toEqual([{ type: 'prefix', prefix: 'AB' }])
+    expect(result.value.catalogPrograms[0].variants[0]?.specializationId).toBe(
+      20,
+    )
   })
 })

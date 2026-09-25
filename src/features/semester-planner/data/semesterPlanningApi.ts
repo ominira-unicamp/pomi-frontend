@@ -6,6 +6,10 @@ import type {
   SemesterPlanningGuide,
   StudyPeriod,
 } from '@pomi/planner-domain/semester'
+import type {
+  components as AppComponents,
+  PeriodPlanning,
+} from '@ominira/pomi-sdk/generated/app'
 
 import { pomiSdk } from '@/api/client'
 import { publicStaticDataCache } from '@/lib/publicStaticDataCache'
@@ -325,50 +329,67 @@ export async function loadSemesterPlannerStaticData(
   }
 }
 
-export type PersistedSemesterPlanning = Readonly<{
-  id: number
-  name: string
-  createdAt: string
-  updatedAt: string
-  studyPeriodId: number
-  studyPeriodYear: number
-  studyPeriodYearPeriod: StudyPeriod['yearPeriod']
-  curriculumId: number | null
-  visibility: SemesterPlanningVisibility
-  classes: ReadonlyArray<
-    Readonly<{
-      id: number
-      code: string
-      courseCode: string
-      courseCredits: number
-    }>
-  >
-  guide: Readonly<{
-    mode: 'CURRICULUM' | 'PROGRAM' | 'NONE'
-    curriculumSource: 'SAVED' | 'SUGGESTION' | null
-    curriculumId: number | null
-    suggestionId: number | null
-    suggestionCatalogProgramId: number | null
-    catalogProgramId: number | null
-    catalogProgramVariantId: number | null
-    languageId: number | null
-    manualCourseIds: ReadonlyArray<number>
-  }>
-}>
+export type PersistedSemesterPlanning = PeriodPlanning
 
 export type SemesterPlanningVisibility = 'PRIVATE' | 'FRIENDS' | 'PUBLIC'
 
 type PlanningGuideInput = SemesterPlanningGuide
+type ApiPlanningGuideInput = AppComponents['schemas']['PlanningGuideInput']
+
+function planningGuideInput(guide: PlanningGuideInput): ApiPlanningGuideInput {
+  const manualCourseIds = [...new Set(guide.manualCourseIds)]
+  if (guide.mode === 'none') return { mode: 'NONE', manualCourseIds }
+  if (guide.mode === 'program') {
+    const { catalogProgramId, catalogProgramVariantId, languageId } =
+      guide.program
+    if (
+      catalogProgramId === null ||
+      catalogProgramVariantId === null ||
+      languageId === null
+    )
+      throw new TypeError('Incomplete program planning guide')
+    return {
+      mode: 'PROGRAM',
+      manualCourseIds,
+      program: { catalogProgramId, catalogProgramVariantId, languageId },
+    }
+  }
+  if (
+    guide.curriculum.source === 'saved' &&
+    guide.curriculum.curriculumId !== null
+  )
+    return {
+      mode: 'CURRICULUM',
+      manualCourseIds,
+      curriculum: {
+        source: 'SAVED',
+        saved: { curriculumId: guide.curriculum.curriculumId },
+      },
+    }
+  if (
+    guide.curriculum.source === 'suggestion' &&
+    guide.curriculum.suggestionId !== null &&
+    guide.curriculum.suggestionCatalogProgramId !== null
+  )
+    return {
+      mode: 'CURRICULUM',
+      manualCourseIds,
+      curriculum: {
+        source: 'SUGGESTION',
+        suggestion: {
+          suggestionId: guide.curriculum.suggestionId,
+          catalogProgramId: guide.curriculum.suggestionCatalogProgramId,
+        },
+      },
+    }
+  throw new TypeError('Incomplete curriculum planning guide')
+}
 
 export function listSemesterPlannings(
   studentId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiSdk.app.periodPlannings.listAll(
-    studentId,
-    {},
-    { getAccessToken },
-  ) as Promise<ReadonlyArray<PersistedSemesterPlanning>>
+  return pomiSdk.app.periodPlannings.listAll(studentId, {}, { getAccessToken })
 }
 
 export function getSemesterPlanning(
@@ -376,11 +397,7 @@ export function getSemesterPlanning(
   planId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiSdk.app.periodPlannings.get(
-    studentId,
-    planId,
-    { getAccessToken },
-  ) as Promise<PersistedSemesterPlanning>
+  return pomiSdk.app.periodPlannings.get(studentId, planId, { getAccessToken })
 }
 
 export function createSemesterPlanning(
@@ -401,28 +418,10 @@ export function createSemesterPlanning(
       studyPeriodId: document.studyPeriodId,
       curriculumId: document.curriculumId,
       classes: [...document.classIds],
-      guide: {
-        mode: document.guide.mode.toUpperCase() as
-          | 'CURRICULUM'
-          | 'PROGRAM'
-          | 'NONE',
-        curriculumSource: document.guide.curriculum.source
-          ? (document.guide.curriculum.source.toUpperCase() as
-              | 'SAVED'
-              | 'SUGGESTION')
-          : null,
-        curriculumId: document.guide.curriculum.curriculumId,
-        suggestionId: document.guide.curriculum.suggestionId,
-        suggestionCatalogProgramId:
-          document.guide.curriculum.suggestionCatalogProgramId,
-        catalogProgramId: document.guide.program.catalogProgramId,
-        catalogProgramVariantId: document.guide.program.catalogProgramVariantId,
-        languageId: document.guide.program.languageId,
-        manualCourseIds: [...new Set(document.guide.manualCourseIds)],
-      },
+      guide: planningGuideInput(document.guide),
     },
     { getAccessToken },
-  ) as Promise<PersistedSemesterPlanning>
+  )
 }
 
 export function patchSemesterPlanning(
@@ -443,28 +442,10 @@ export function patchSemesterPlanning(
       name: document.name,
       curriculumId: document.curriculumId,
       classes: { set: [...document.classIds] },
-      guide: {
-        mode: document.guide.mode.toUpperCase() as
-          | 'CURRICULUM'
-          | 'PROGRAM'
-          | 'NONE',
-        curriculumSource: document.guide.curriculum.source
-          ? (document.guide.curriculum.source.toUpperCase() as
-              | 'SAVED'
-              | 'SUGGESTION')
-          : null,
-        curriculumId: document.guide.curriculum.curriculumId,
-        suggestionId: document.guide.curriculum.suggestionId,
-        suggestionCatalogProgramId:
-          document.guide.curriculum.suggestionCatalogProgramId,
-        catalogProgramId: document.guide.program.catalogProgramId,
-        catalogProgramVariantId: document.guide.program.catalogProgramVariantId,
-        languageId: document.guide.program.languageId,
-        manualCourseIds: [...new Set(document.guide.manualCourseIds)],
-      },
+      guide: planningGuideInput(document.guide),
     },
     { getAccessToken },
-  ) as Promise<PersistedSemesterPlanning>
+  )
 }
 
 export function updateSemesterPlanningVisibility(
@@ -478,7 +459,7 @@ export function updateSemesterPlanningVisibility(
     planId,
     { visibility },
     { getAccessToken },
-  ) as Promise<PersistedSemesterPlanning>
+  )
 }
 
 export function deleteSemesterPlanning(
@@ -486,9 +467,7 @@ export function deleteSemesterPlanning(
   planId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiSdk.app.periodPlannings.delete(
-    studentId,
-    planId,
-    { getAccessToken },
-  )
+  return pomiSdk.app.periodPlannings.delete(studentId, planId, {
+    getAccessToken,
+  })
 }

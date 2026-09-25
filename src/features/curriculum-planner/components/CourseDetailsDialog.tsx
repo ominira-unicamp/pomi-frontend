@@ -285,8 +285,10 @@ function CatalogCourseDetailsLinks({
             kind: 'DATA_ISSUE',
             target: {
               type: 'ACADEMIC_RESOURCE',
-              academicResourceType: 'CATALOG_COURSE',
-              academicResourceId: details.id,
+              academicResource: {
+                type: 'CATALOG_COURSE',
+                id: details.id,
+              },
             },
             title: `Informação de ${details.code}`,
           })

@@ -390,8 +390,10 @@ export function CatalogProgramPage({
                     kind: 'DATA_ISSUE',
                     target: {
                       type: 'ACADEMIC_RESOURCE',
-                      academicResourceType: 'CATALOG_PROGRAM',
-                      academicResourceId: Number(selectedProgram.id),
+                      academicResource: {
+                        type: 'CATALOG_PROGRAM',
+                        id: Number(selectedProgram.id),
+                      },
                     },
                     title: `Informação do catálogo ${selectedProgram.catalog.year} — ${selectedProgram.program.code}`,
                   })
@@ -650,9 +652,7 @@ function FullCurriculum({
           </div>
           <CurriculumSection
             sectionKey={`variant-${variant.id}`}
-            title={
-              'Disciplinas da modalidade'
-            }
+            title={'Disciplinas da modalidade'}
             blocks={variant.blocks}
             courses={courses}
             onOpenCourseDetails={onOpenCourseDetails}

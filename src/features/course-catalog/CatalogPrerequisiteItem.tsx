@@ -7,12 +7,9 @@ import { getCourse } from '@/features/course-catalog/data/courseCatalogApi'
 
 type CatalogPrerequisite =
   CatalogCourse['prerequisites']['any'][number]['all'][number]
-type CoursePrerequisite = Extract<
-  CatalogPrerequisite,
-  { fulfillment: 'FULL' | 'PARTIAL' }
->
-type LinkedCoursePrerequisite = Omit<CoursePrerequisite, 'courseId'> & {
-  courseId: number
+type CoursePrerequisite = Extract<CatalogPrerequisite, { type: 'COURSE' }>
+type LinkedCoursePrerequisite = CoursePrerequisite & {
+  course: Omit<CoursePrerequisite['course'], 'courseId'> & { courseId: number }
 }
 
 const fulfillmentLabels = {
@@ -23,15 +20,11 @@ const fulfillmentLabels = {
 function hasCourseId(
   item: CoursePrerequisite,
 ): item is LinkedCoursePrerequisite {
-  return item.courseId !== null
+  return item.course.courseId !== null
 }
 
 function specialRequirementLabel(
-  type: CatalogPrerequisite extends infer Item
-    ? Item extends { specialRequirementType: infer RequirementType }
-      ? RequirementType
-      : never
-    : never,
+  type: 'AUTHORIZATION' | 'PROGRESSION_COEFFICIENT',
   value: number,
 ) {
   if (type === 'AUTHORIZATION') return 'Autorização necessária'
@@ -45,18 +38,17 @@ export function CatalogPrerequisiteItemView({
   item: CatalogPrerequisite
   catalogYear: number
 }) {
-  if ('specialRequirementType' in item) {
+  if (item.type === 'SPECIAL_REQUIREMENT') {
+    const specialRequirement = item.specialRequirement
+    const type = specialRequirement.type
+    const value =
+      type === 'AUTHORIZATION'
+        ? 0
+        : specialRequirement.progressionCoefficient.value
     return (
       <span className="font-semibold">
-        {specialRequirementCode(
-          item.specialRequirementType,
-          item.specialRequirementValue,
-        )}{' '}
-        —{' '}
-        {specialRequirementLabel(
-          item.specialRequirementType,
-          item.specialRequirementValue,
-        )}
+        {specialRequirementCode(type, value)} —{' '}
+        {specialRequirementLabel(type, value)}
       </span>
     )
   }
@@ -64,7 +56,8 @@ export function CatalogPrerequisiteItemView({
   if (!hasCourseId(item)) {
     return (
       <span className="font-semibold text-muted-foreground">
-        Disciplina histórica sem vínculo ({fulfillmentLabels[item.fulfillment]})
+        Disciplina histórica sem vínculo (
+        {fulfillmentLabels[item.course.fulfillment]})
       </span>
     )
   }
@@ -80,29 +73,29 @@ function LinkedCatalogPrerequisite({
   catalogYear: number
 }) {
   const query = useQuery({
-    queryKey: ['public', 'course-catalog', 'course', item.courseId],
-    queryFn: () => getCourse(item.courseId),
+    queryKey: ['public', 'course-catalog', 'course', item.course.courseId],
+    queryFn: () => getCourse(item.course.courseId),
     staleTime: Infinity,
   })
   const label = query.data
     ? `${query.data.code} — ${query.data.name}`
-    : `Disciplina ${item.courseId}`
+    : `Disciplina ${item.course.courseId}`
 
   return (
     <Link
       className="font-mono font-black text-primary underline-offset-4 hover:underline"
       to="/disciplinas/$courseId"
-      params={{ courseId: String(item.courseId) }}
+      params={{ courseId: String(item.course.courseId) }}
       search={{ catalogYear }}
       title={
-        item.fulfillment === 'PARTIAL'
+        item.course.fulfillment === 'PARTIAL'
           ? 'Pré-requisito com integralização parcial'
           : 'Pré-requisito com integralização integral'
       }
     >
       {label}
       <span className="ml-1 text-xs font-sans font-semibold text-muted-foreground">
-        ({fulfillmentLabels[item.fulfillment]})
+        ({fulfillmentLabels[item.course.fulfillment]})
       </span>
     </Link>
   )

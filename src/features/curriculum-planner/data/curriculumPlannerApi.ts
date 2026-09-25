@@ -27,10 +27,7 @@ import { ApiError } from '@/api/errors'
 import { pomiSdk } from '@/api/client'
 import { publicStaticDataCache } from '@/lib/publicStaticDataCache'
 
-type ApiCourseRequirement = Pick<
-  GeneratedCourseRequirement,
-  'type' | 'courseId' | 'prefix'
->
+type ApiCourseRequirement = GeneratedCourseRequirement
 type ApiBlockSet = {
   mandatory: ReadonlyArray<ApiCourseRequirement>
   electives: ReadonlyArray<{
@@ -49,20 +46,24 @@ type ApiCatalogProgram = Pick<
   | 'programName'
 > & {
   base: ApiBlockSet
-  variants: ReadonlyArray<
-    Pick<
-      CatalogProgramVariant,
-      'id' | 'programId' | 'specializationId' | 'code' | 'name'
-    > & {
-      blocks: ApiBlockSet
-    }
-  >
+  variants: ReadonlyArray<ApiCatalogProgramVariant>
   languages: ReadonlyArray<
     Pick<CatalogProgramLanguage, 'languageId' | 'name'> & {
       blocks: ApiBlockSet
     }
   >
 }
+type ApiCatalogProgramVariant = {
+  id: CatalogProgramVariant['id']
+  type: CatalogProgramVariant['type']
+  curriculumSuggestionId: CatalogProgramVariant['curriculumSuggestionId']
+  code: CatalogProgramVariant['code']
+  name: CatalogProgramVariant['name']
+  blocks: ApiBlockSet
+} & (
+  | { type: 'PROGRAM'; program: { programId: number } }
+  | { type: 'SPECIALIZATION'; specialization: { specializationId: number } }
+)
 type ApiCourse = Pick<Course, 'id' | 'code' | 'name' | 'credits'> & {
   prefix?: Course['prefix']
 }
@@ -109,11 +110,30 @@ function expectArray(value: unknown): Array<unknown> {
 function parseRequirement(value: unknown): ApiCourseRequirement {
   if (!isRecord(value)) throw new TypeError('Expected requirement')
   const type = expectString(value.type)
-  if (type !== 'any' && type !== 'prefix' && type !== 'specific')
-    throw new TypeError('Invalid requirement type')
-  const courseId = value.courseId === null ? null : expectNumber(value.courseId)
-  const prefix = value.prefix === null ? null : expectString(value.prefix)
-  return { type, courseId, prefix }
+  const id = expectNumber(value.id)
+  if (type === 'any') return { id, type }
+  if (type === 'prefix') {
+    if (!isRecord(value.prefix)) throw new TypeError('Expected prefix facet')
+    return { id, type, prefix: { value: expectString(value.prefix.value) } }
+  }
+  if (type === 'specific') {
+    if (!isRecord(value.specific))
+      throw new TypeError('Expected specific facet')
+    return {
+      id,
+      type,
+      specific: {
+        courseId: expectNumber(value.specific.courseId),
+        courseCode: expectString(value.specific.courseCode),
+        courseName: expectString(value.specific.courseName),
+        catalogCourseId:
+          value.specific.catalogCourseId === null
+            ? null
+            : expectNumber(value.specific.catalogCourseId),
+      },
+    }
+  }
+  throw new TypeError('Invalid requirement type')
 }
 
 function parseBlockSet(value: unknown): ApiBlockSet {
@@ -142,18 +162,41 @@ function parseCatalogProgram(value: unknown): ApiCatalogProgram {
     base: parseBlockSet(value.base),
     variants: expectArray(value.variants).map((item) => {
       if (!isRecord(item)) throw new TypeError('Expected variant')
-      return {
+      const type = expectString(item.type)
+      const common = {
         id: expectNumber(item.id),
-        programId:
-          item.programId === null ? null : expectNumber(item.programId),
-        specializationId:
-          item.specializationId === null
+        type,
+        curriculumSuggestionId:
+          item.curriculumSuggestionId === null
             ? null
-            : expectNumber(item.specializationId),
+            : expectNumber(item.curriculumSuggestionId),
         code: expectString(item.code),
         name: expectString(item.name),
         blocks: parseBlockSet(item.blocks),
       }
+      if (type === 'PROGRAM') {
+        if (!isRecord(item.program))
+          throw new TypeError('Expected program facet')
+        return {
+          ...common,
+          type,
+          program: { programId: expectNumber(item.program.programId) },
+        }
+      }
+      if (type === 'SPECIALIZATION') {
+        if (!isRecord(item.specialization))
+          throw new TypeError('Expected specialization facet')
+        return {
+          ...common,
+          type,
+          specialization: {
+            specializationId: expectNumber(
+              item.specialization.specializationId,
+            ),
+          },
+        }
+      }
+      throw new TypeError('Invalid catalog program variant type')
     }),
     languages: expectArray(value.languages).map((item) => {
       if (!isRecord(item)) throw new TypeError('Expected language')
@@ -181,16 +224,16 @@ function parseCourse(value: unknown): ApiCourse {
 
 function selectorFromApi(requirement: ApiCourseRequirement): CourseSelector {
   if (requirement.type === 'any') return { type: 'anyCourse' }
-  if (requirement.type === 'specific' && requirement.courseId !== null) {
+  if (requirement.type === 'specific') {
     return {
       type: 'specificCourse',
-      courseId: String(requirement.courseId) as CourseId,
+      courseId: String(requirement.specific.courseId) as CourseId,
     }
   }
-  if (requirement.type === 'prefix' && requirement.prefix) {
-    return { type: 'prefix', prefix: requirement.prefix.trim().toUpperCase() }
+  return {
+    type: 'prefix',
+    prefix: requirement.prefix.value.trim().toUpperCase(),
   }
-  throw new TypeError('Incomplete course requirement')
 }
 
 function blocksFromApi(
@@ -284,7 +327,10 @@ async function loadStaticData(): Promise<
           variants: program.variants
             .map((variant) => ({
               id: String(variant.id) as CatalogProgramVariantId,
-              specializationId: variant.specializationId,
+              specializationId:
+                variant.type === 'SPECIALIZATION'
+                  ? variant.specialization.specializationId
+                  : null,
               code: variant.code,
               name: variant.name,
               blocks: blocksFromApi(variant.blocks, {

@@ -43,31 +43,40 @@ export function emptyGuide(): SemesterPlanningGuide {
 }
 
 export function guideFromApi(value: {
-  mode: 'CURRICULUM' | 'PROGRAM' | 'NONE'
-  curriculumSource: 'SAVED' | 'SUGGESTION' | null
-  curriculumId: number | null
-  suggestionId: number | null
-  suggestionCatalogProgramId: number | null
-  catalogProgramId: number | null
-  catalogProgramVariantId: number | null
-  languageId: number | null
+  mode: 'NONE' | 'PROGRAM' | 'CURRICULUM'
   manualCourseIds: ReadonlyArray<number>
+  program?: {
+    catalogProgramId: number
+    catalogProgramVariantId: number
+    languageId: number
+  }
+  curriculum?:
+    | { source: 'SAVED'; saved: { curriculumId: number } }
+    | {
+        source: 'SUGGESTION'
+        suggestion: { suggestionId: number; catalogProgramId: number }
+      }
 }): SemesterPlanningGuide {
+  const saved =
+    value.curriculum?.source === 'SAVED' ? value.curriculum.saved : undefined
+  const suggestion =
+    value.curriculum?.source === 'SUGGESTION'
+      ? value.curriculum.suggestion
+      : undefined
   return {
     mode: value.mode.toLowerCase() as GuideMode,
     curriculum: {
-      source: value.curriculumSource?.toLowerCase() as
-        | 'saved'
-        | 'suggestion'
-        | null,
-      curriculumId: value.curriculumId,
-      suggestionId: value.suggestionId,
-      suggestionCatalogProgramId: value.suggestionCatalogProgramId,
+      source: value.curriculum
+        ? (value.curriculum.source.toLowerCase() as 'saved' | 'suggestion')
+        : null,
+      curriculumId: saved?.curriculumId ?? null,
+      suggestionId: suggestion?.suggestionId ?? null,
+      suggestionCatalogProgramId: suggestion?.catalogProgramId ?? null,
     },
     program: {
-      catalogProgramId: value.catalogProgramId,
-      catalogProgramVariantId: value.catalogProgramVariantId,
-      languageId: value.languageId,
+      catalogProgramId: value.program?.catalogProgramId ?? null,
+      catalogProgramVariantId: value.program?.catalogProgramVariantId ?? null,
+      languageId: value.program?.languageId ?? null,
     },
     manualCourseIds: value.manualCourseIds,
   }

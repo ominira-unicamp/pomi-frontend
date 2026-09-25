@@ -228,8 +228,8 @@ const courseDetails = {
       {
         all: [
           {
-            courseId: 0,
-            fulfillment: 'FULL' as const,
+            type: 'COURSE' as const,
+            course: { courseId: 0, fulfillment: 'FULL' as const },
           },
         ],
       },

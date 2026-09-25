@@ -193,8 +193,7 @@ export function CourseDetailsPage({
                 kind: 'DATA_ISSUE',
                 target: {
                   type: 'ACADEMIC_RESOURCE',
-                  academicResourceType: 'COURSE',
-                  academicResourceId: course.id,
+                  academicResource: { type: 'COURSE', id: course.id },
                 },
                 title: `Informação de ${course.code}`,
               })

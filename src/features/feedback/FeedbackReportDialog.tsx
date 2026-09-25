@@ -186,7 +186,9 @@ function Form({
               type="button"
               size="sm"
               variant={input.target.type === 'FEATURE' ? 'default' : 'outline'}
-              onClick={() => setTarget({ type: 'FEATURE', featureKey: 'home' })}
+              onClick={() =>
+                setTarget({ type: 'FEATURE', feature: { key: 'home' } })
+              }
             >
               Uma funcionalidade
             </Button>
@@ -194,7 +196,7 @@ function Form({
           {input.target.type === 'FEATURE' && (
             <AutocompleteSelect
               ariaLabel="Funcionalidade relacionada"
-              value={input.target.featureKey}
+              value={input.target.feature.key}
               onValueChange={(featureKey) => {
                 if (
                   feedbackFeatureKeys.includes(
@@ -203,8 +205,9 @@ function Form({
                 ) {
                   setTarget({
                     type: 'FEATURE',
-                    featureKey:
-                      featureKey as (typeof feedbackFeatureKeys)[number],
+                    feature: {
+                      key: featureKey as (typeof feedbackFeatureKeys)[number],
+                    },
                   })
                 }
               }}

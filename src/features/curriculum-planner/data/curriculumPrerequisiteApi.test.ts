@@ -37,12 +37,12 @@ describe('curriculumPrerequisiteApi', () => {
                     {
                       all: [
                         {
-                          courseId: 11,
-                          fulfillment: 'FULL',
+                          type: 'COURSE',
+                          course: { courseId: 11, fulfillment: 'FULL' },
                         },
                         {
-                          courseId: null,
-                          fulfillment: 'PARTIAL',
+                          type: 'COURSE',
+                          course: { courseId: null, fulfillment: 'PARTIAL' },
                         },
                       ],
                     },
@@ -71,8 +71,8 @@ describe('curriculumPrerequisiteApi', () => {
                     {
                       all: [
                         {
-                          specialRequirementType: 'AUTHORIZATION',
-                          specialRequirementValue: 0,
+                          type: 'SPECIAL_REQUIREMENT',
+                          specialRequirement: { type: 'AUTHORIZATION' },
                         },
                       ],
                     },

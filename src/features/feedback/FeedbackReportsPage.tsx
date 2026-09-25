@@ -33,8 +33,8 @@ const kindLabels = {
 
 function targetLabel(report: FeedbackReport) {
   if (report.target.type === 'GENERAL') return 'Geral'
-  if (report.target.type === 'FEATURE') return report.target.featureKey
-  return `${report.target.academicResourceType} #${report.target.academicResourceId}`
+  if (report.target.type === 'FEATURE') return report.target.feature.key
+  return `${report.target.academicResource.type} #${report.target.academicResource.id}`
 }
 
 function statusClass(status: FeedbackReportStatus) {
