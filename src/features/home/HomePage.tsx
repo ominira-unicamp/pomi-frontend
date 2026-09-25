@@ -284,6 +284,15 @@ function AuthenticatedHome() {
   )
   const latestSemesterPlan = semesterPlansQuery.data?.[0]
   const pendingEvaluation = pendingEvaluationsQuery.data?.[0]
+  const showRecentPlannings = Boolean(
+    studentId &&
+    (curriculaQuery.isPending ||
+      semesterPlansQuery.isPending ||
+      curriculaQuery.isError ||
+      semesterPlansQuery.isError ||
+      featuredCurriculum ||
+      latestSemesterPlan),
+  )
   async function openSituation() {
     setSituationError(false)
     try {
@@ -371,26 +380,48 @@ function AuthenticatedHome() {
           </Alert>
         )}
 
-        <AsyncSection
-          isPending={attemptsQuery.isPending}
-          isError={attemptsQuery.isError}
-          isRefreshing={attemptsQuery.isFetching && !attemptsQuery.isPending}
-          loadingLabel="Carregando agenda"
-          errorTitle="Não foi possível carregar sua agenda"
-          errorDescription="Os demais recursos da página continuam disponíveis."
-          onRetry={() => void attemptsQuery.refetch()}
-        >
-          <AgendaPanel
-            currentPeriodId={currentPeriodId}
-            currentPeriodCode={studyPeriodCode}
-            attempts={enrolledAttempts}
-            meetings={currentMeetings}
-            isLoading={todayScheduleQuery.isLoading}
-            isError={todayScheduleQuery.isError}
-            scheduleLoaded={todayScheduleQuery.isSuccess}
-            absenceController={absenceController}
-          />
-        </AsyncSection>
+        {!studentId && (
+          <Alert>
+            <AlertTitle>Perfil acadêmico indisponível</AlertTitle>
+            <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
+              Não foi possível associar sua conta a um estudante. Confirme se a
+              conta usa um e-mail DAC válido e tente novamente.
+              <button
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                onClick={() =>
+                  void queryClient.invalidateQueries({
+                    queryKey: privateQueryKeys.currentStudent(sessionSubject),
+                  })
+                }
+              >
+                Tentar novamente
+              </button>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {studentId && (
+          <AsyncSection
+            isPending={attemptsQuery.isPending}
+            isError={attemptsQuery.isError}
+            isRefreshing={attemptsQuery.isFetching && !attemptsQuery.isPending}
+            loadingLabel="Carregando agenda"
+            errorTitle="Não foi possível carregar sua agenda"
+            errorDescription="Os demais recursos da página continuam disponíveis."
+            onRetry={() => void attemptsQuery.refetch()}
+          >
+            <AgendaPanel
+              currentPeriodId={currentPeriodId}
+              currentPeriodCode={studyPeriodCode}
+              attempts={enrolledAttempts}
+              meetings={currentMeetings}
+              isLoading={todayScheduleQuery.isLoading}
+              isError={todayScheduleQuery.isError}
+              scheduleLoaded={todayScheduleQuery.isSuccess}
+              absenceController={absenceController}
+            />
+          </AsyncSection>
+        )}
 
         <section aria-labelledby="objectives-title">
           <h2 id="objectives-title" className="mb-4 text-xl font-extrabold">
@@ -439,12 +470,7 @@ function AuthenticatedHome() {
           </div>
         </section>
 
-        {(curriculaQuery.isPending ||
-          semesterPlansQuery.isPending ||
-          curriculaQuery.isError ||
-          semesterPlansQuery.isError ||
-          featuredCurriculum ||
-          latestSemesterPlan) && (
+        {showRecentPlannings && (
           <section aria-labelledby="recent-title">
             <div className="mb-4 flex items-end justify-between gap-4">
               <h2 id="recent-title" className="text-xl font-extrabold">

@@ -305,6 +305,22 @@ describe('HomePage', () => {
     expect(getCurriculum).not.toHaveBeenCalled()
   })
 
+  it('shows an actionable profile state instead of loading disabled queries', async () => {
+    authState.isAuthenticated = true
+    authState.profile = { given_name: 'Samuel' }
+    listCurricula.mockClear()
+
+    renderHome()
+
+    expect(
+      await screen.findByText('Perfil acadêmico indisponível'),
+    ).toBeTruthy()
+    expect(screen.queryByText('Carregando agenda')).toBeNull()
+    expect(screen.queryByText('Carregando planejamentos recentes')).toBeNull()
+    expect(listStudentCourseAttempts).not.toHaveBeenCalled()
+    expect(listCurricula).not.toHaveBeenCalled()
+  })
+
   it('invites the student to evaluate a professor pending from the previous semester', async () => {
     authState.isAuthenticated = true
     authState.profile = { given_name: 'Ana' }
