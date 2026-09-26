@@ -266,7 +266,7 @@ async function loadCachedMeetings(studyPeriodId: number) {
 async function refreshProfessorEvaluationSummaries() {
   professorEvaluationSummariesRefreshed = true
   if (!professorEvaluationSummariesLoad) {
-    professorEvaluationSummariesLoad = pomiSdk.data.evaluationSummaries
+    professorEvaluationSummariesLoad = pomiSdk.app.evaluationSummaries
       .listByProfessorAll({ page: 1, pageSize: 100 })
       .then(async (summaries) => {
         cachedProfessorEvaluationSummaries = summaries
@@ -416,7 +416,6 @@ export function createSemesterPlanning(
     {
       name: document.name,
       studyPeriodId: document.studyPeriodId,
-      curriculumId: document.curriculumId,
       classes: [...document.classIds],
       guide: planningGuideInput(document.guide),
     },
@@ -440,7 +439,6 @@ export function patchSemesterPlanning(
     planId,
     {
       name: document.name,
-      curriculumId: document.curriculumId,
       classes: { set: [...document.classIds] },
       guide: planningGuideInput(document.guide),
     },
