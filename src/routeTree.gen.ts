@@ -9,48 +9,469 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TaxonomiaRouteImport } from './routes/taxonomia'
+import { Route as SobreRouteImport } from './routes/sobre'
+import { Route as SituacaoDoCursoRouteImport } from './routes/situacao-do-curso'
+import { Route as PrivacidadeRouteImport } from './routes/privacidade'
+import { Route as PlanejamentosDeCurriculoRouteImport } from './routes/planejamentos-de-curriculo'
+import { Route as PessoasRouteImport } from './routes/pessoas'
+import { Route as PerfilRouteImport } from './routes/perfil'
+import { Route as MinhasSolicitacoesRouteImport } from './routes/minhas-solicitacoes'
+import { Route as EditaisDeIntercambioRouteImport } from './routes/editais-de-intercambio'
+import { Route as DisciplinasRouteImport } from './routes/disciplinas'
+import { Route as CursosRouteImport } from './routes/cursos'
+import { Route as DesignSystemRouteImport } from './routes/[_]design-system'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
+import { Route as PlanejamentosDeSemestreIndexRouteImport } from './routes/planejamentos-de-semestre.index'
+import { Route as PlanejamentosDeCurriculoIndexRouteImport } from './routes/planejamentos-de-curriculo.index'
+import { Route as PerfilIndexRouteImport } from './routes/perfil.index'
+import { Route as DisciplinasIndexRouteImport } from './routes/disciplinas.index'
+import { Route as CursosIndexRouteImport } from './routes/cursos.index'
+import { Route as PlanejamentosDeSemestreNovoRouteImport } from './routes/planejamentos-de-semestre.novo'
+import { Route as PlanejamentosDeSemestrePlanejamentoIdRouteImport } from './routes/planejamentos-de-semestre.$planejamentoId'
+import { Route as PlanejamentosDeCurriculoNovoRouteImport } from './routes/planejamentos-de-curriculo.novo'
+import { Route as PlanejamentosDeCurriculoPlanejamentoIdRouteImport } from './routes/planejamentos-de-curriculo.$planejamentoId'
+import { Route as PerfisPublicIdRouteImport } from './routes/perfis.$publicId'
+import { Route as PerfilSolicitacoesRouteImport } from './routes/perfil.solicitacoes'
+import { Route as PerfilAmigosRouteImport } from './routes/perfil.amigos'
+import { Route as EditaisDeIntercambioConfiguracoesRouteImport } from './routes/editais-de-intercambio_.configuracoes'
+import { Route as DisciplinasCourseIdRouteImport } from './routes/disciplinas.$courseId'
+import { Route as PlanejamentosDeSemestreCompartilhadoShareIdRouteImport } from './routes/planejamentos-de-semestre.compartilhado.$shareId'
 
+const TaxonomiaRoute = TaxonomiaRouteImport.update({
+  id: '/taxonomia',
+  path: '/taxonomia',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SobreRoute = SobreRouteImport.update({
+  id: '/sobre',
+  path: '/sobre',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SituacaoDoCursoRoute = SituacaoDoCursoRouteImport.update({
+  id: '/situacao-do-curso',
+  path: '/situacao-do-curso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeRoute = PrivacidadeRouteImport.update({
+  id: '/privacidade',
+  path: '/privacidade',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanejamentosDeCurriculoRoute =
+  PlanejamentosDeCurriculoRouteImport.update({
+    id: '/planejamentos-de-curriculo',
+    path: '/planejamentos-de-curriculo',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PessoasRoute = PessoasRouteImport.update({
+  id: '/pessoas',
+  path: '/pessoas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerfilRoute = PerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MinhasSolicitacoesRoute = MinhasSolicitacoesRouteImport.update({
+  id: '/minhas-solicitacoes',
+  path: '/minhas-solicitacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EditaisDeIntercambioRoute = EditaisDeIntercambioRouteImport.update({
+  id: '/editais-de-intercambio',
+  path: '/editais-de-intercambio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DisciplinasRoute = DisciplinasRouteImport.update({
+  id: '/disciplinas',
+  path: '/disciplinas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CursosRoute = CursosRouteImport.update({
+  id: '/cursos',
+  path: '/cursos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignSystemRoute = DesignSystemRouteImport.update({
+  id: '/_design-system',
+  path: '/_design-system',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
-  id: '/demo/tanstack-query',
-  path: '/demo/tanstack-query',
+const PlanejamentosDeSemestreIndexRoute =
+  PlanejamentosDeSemestreIndexRouteImport.update({
+    id: '/planejamentos-de-semestre/',
+    path: '/planejamentos-de-semestre/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PlanejamentosDeCurriculoIndexRoute =
+  PlanejamentosDeCurriculoIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => PlanejamentosDeCurriculoRoute,
+  } as any)
+const PerfilIndexRoute = PerfilIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PerfilRoute,
+} as any)
+const DisciplinasIndexRoute = DisciplinasIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DisciplinasRoute,
+} as any)
+const CursosIndexRoute = CursosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CursosRoute,
+} as any)
+const PlanejamentosDeSemestreNovoRoute =
+  PlanejamentosDeSemestreNovoRouteImport.update({
+    id: '/planejamentos-de-semestre/novo',
+    path: '/planejamentos-de-semestre/novo',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PlanejamentosDeSemestrePlanejamentoIdRoute =
+  PlanejamentosDeSemestrePlanejamentoIdRouteImport.update({
+    id: '/planejamentos-de-semestre/$planejamentoId',
+    path: '/planejamentos-de-semestre/$planejamentoId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const PlanejamentosDeCurriculoNovoRoute =
+  PlanejamentosDeCurriculoNovoRouteImport.update({
+    id: '/novo',
+    path: '/novo',
+    getParentRoute: () => PlanejamentosDeCurriculoRoute,
+  } as any)
+const PlanejamentosDeCurriculoPlanejamentoIdRoute =
+  PlanejamentosDeCurriculoPlanejamentoIdRouteImport.update({
+    id: '/$planejamentoId',
+    path: '/$planejamentoId',
+    getParentRoute: () => PlanejamentosDeCurriculoRoute,
+  } as any)
+const PerfisPublicIdRoute = PerfisPublicIdRouteImport.update({
+  id: '/perfis/$publicId',
+  path: '/perfis/$publicId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PerfilSolicitacoesRoute = PerfilSolicitacoesRouteImport.update({
+  id: '/solicitacoes',
+  path: '/solicitacoes',
+  getParentRoute: () => PerfilRoute,
+} as any)
+const PerfilAmigosRoute = PerfilAmigosRouteImport.update({
+  id: '/amigos',
+  path: '/amigos',
+  getParentRoute: () => PerfilRoute,
+} as any)
+const EditaisDeIntercambioConfiguracoesRoute =
+  EditaisDeIntercambioConfiguracoesRouteImport.update({
+    id: '/editais-de-intercambio_/configuracoes',
+    path: '/editais-de-intercambio/configuracoes',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const DisciplinasCourseIdRoute = DisciplinasCourseIdRouteImport.update({
+  id: '/$courseId',
+  path: '/$courseId',
+  getParentRoute: () => DisciplinasRoute,
+} as any)
+const PlanejamentosDeSemestreCompartilhadoShareIdRoute =
+  PlanejamentosDeSemestreCompartilhadoShareIdRouteImport.update({
+    id: '/planejamentos-de-semestre/compartilhado/$shareId',
+    path: '/planejamentos-de-semestre/compartilhado/$shareId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/_design-system': typeof DesignSystemRoute
+  '/cursos': typeof CursosRouteWithChildren
+  '/disciplinas': typeof DisciplinasRouteWithChildren
+  '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
+  '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
+  '/perfil': typeof PerfilRouteWithChildren
+  '/pessoas': typeof PessoasRoute
+  '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoRouteWithChildren
+  '/privacidade': typeof PrivacidadeRoute
+  '/situacao-do-curso': typeof SituacaoDoCursoRoute
+  '/sobre': typeof SobreRoute
+  '/taxonomia': typeof TaxonomiaRoute
+  '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
+  '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
+  '/perfil/amigos': typeof PerfilAmigosRoute
+  '/perfil/solicitacoes': typeof PerfilSolicitacoesRoute
+  '/perfis/$publicId': typeof PerfisPublicIdRoute
+  '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
+  '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
+  '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
+  '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
+  '/cursos/': typeof CursosIndexRoute
+  '/disciplinas/': typeof DisciplinasIndexRoute
+  '/perfil/': typeof PerfilIndexRoute
+  '/planejamentos-de-curriculo/': typeof PlanejamentosDeCurriculoIndexRoute
+  '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
+  '/planejamentos-de-semestre/compartilhado/$shareId': typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/_design-system': typeof DesignSystemRoute
+  '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
+  '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
+  '/pessoas': typeof PessoasRoute
+  '/privacidade': typeof PrivacidadeRoute
+  '/situacao-do-curso': typeof SituacaoDoCursoRoute
+  '/sobre': typeof SobreRoute
+  '/taxonomia': typeof TaxonomiaRoute
+  '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
+  '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
+  '/perfil/amigos': typeof PerfilAmigosRoute
+  '/perfil/solicitacoes': typeof PerfilSolicitacoesRoute
+  '/perfis/$publicId': typeof PerfisPublicIdRoute
+  '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
+  '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
+  '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
+  '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
+  '/cursos': typeof CursosIndexRoute
+  '/disciplinas': typeof DisciplinasIndexRoute
+  '/perfil': typeof PerfilIndexRoute
+  '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoIndexRoute
+  '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
+  '/planejamentos-de-semestre/compartilhado/$shareId': typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
+  '/_design-system': typeof DesignSystemRoute
+  '/cursos': typeof CursosRouteWithChildren
+  '/disciplinas': typeof DisciplinasRouteWithChildren
+  '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
+  '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
+  '/perfil': typeof PerfilRouteWithChildren
+  '/pessoas': typeof PessoasRoute
+  '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoRouteWithChildren
+  '/privacidade': typeof PrivacidadeRoute
+  '/situacao-do-curso': typeof SituacaoDoCursoRoute
+  '/sobre': typeof SobreRoute
+  '/taxonomia': typeof TaxonomiaRoute
+  '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
+  '/editais-de-intercambio_/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
+  '/perfil/amigos': typeof PerfilAmigosRoute
+  '/perfil/solicitacoes': typeof PerfilSolicitacoesRoute
+  '/perfis/$publicId': typeof PerfisPublicIdRoute
+  '/planejamentos-de-curriculo/$planejamentoId': typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
+  '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
+  '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
+  '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
+  '/cursos/': typeof CursosIndexRoute
+  '/disciplinas/': typeof DisciplinasIndexRoute
+  '/perfil/': typeof PerfilIndexRoute
+  '/planejamentos-de-curriculo/': typeof PlanejamentosDeCurriculoIndexRoute
+  '/planejamentos-de-semestre/': typeof PlanejamentosDeSemestreIndexRoute
+  '/planejamentos-de-semestre/compartilhado/$shareId': typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo/tanstack-query'
+  fullPaths:
+    | '/'
+    | '/_design-system'
+    | '/cursos'
+    | '/disciplinas'
+    | '/editais-de-intercambio'
+    | '/minhas-solicitacoes'
+    | '/perfil'
+    | '/pessoas'
+    | '/planejamentos-de-curriculo'
+    | '/privacidade'
+    | '/situacao-do-curso'
+    | '/sobre'
+    | '/taxonomia'
+    | '/disciplinas/$courseId'
+    | '/editais-de-intercambio/configuracoes'
+    | '/perfil/amigos'
+    | '/perfil/solicitacoes'
+    | '/perfis/$publicId'
+    | '/planejamentos-de-curriculo/$planejamentoId'
+    | '/planejamentos-de-curriculo/novo'
+    | '/planejamentos-de-semestre/$planejamentoId'
+    | '/planejamentos-de-semestre/novo'
+    | '/cursos/'
+    | '/disciplinas/'
+    | '/perfil/'
+    | '/planejamentos-de-curriculo/'
+    | '/planejamentos-de-semestre'
+    | '/planejamentos-de-semestre/compartilhado/$shareId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo/tanstack-query'
-  id: '__root__' | '/' | '/demo/tanstack-query'
+  to:
+    | '/'
+    | '/_design-system'
+    | '/editais-de-intercambio'
+    | '/minhas-solicitacoes'
+    | '/pessoas'
+    | '/privacidade'
+    | '/situacao-do-curso'
+    | '/sobre'
+    | '/taxonomia'
+    | '/disciplinas/$courseId'
+    | '/editais-de-intercambio/configuracoes'
+    | '/perfil/amigos'
+    | '/perfil/solicitacoes'
+    | '/perfis/$publicId'
+    | '/planejamentos-de-curriculo/$planejamentoId'
+    | '/planejamentos-de-curriculo/novo'
+    | '/planejamentos-de-semestre/$planejamentoId'
+    | '/planejamentos-de-semestre/novo'
+    | '/cursos'
+    | '/disciplinas'
+    | '/perfil'
+    | '/planejamentos-de-curriculo'
+    | '/planejamentos-de-semestre'
+    | '/planejamentos-de-semestre/compartilhado/$shareId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_design-system'
+    | '/cursos'
+    | '/disciplinas'
+    | '/editais-de-intercambio'
+    | '/minhas-solicitacoes'
+    | '/perfil'
+    | '/pessoas'
+    | '/planejamentos-de-curriculo'
+    | '/privacidade'
+    | '/situacao-do-curso'
+    | '/sobre'
+    | '/taxonomia'
+    | '/disciplinas/$courseId'
+    | '/editais-de-intercambio_/configuracoes'
+    | '/perfil/amigos'
+    | '/perfil/solicitacoes'
+    | '/perfis/$publicId'
+    | '/planejamentos-de-curriculo/$planejamentoId'
+    | '/planejamentos-de-curriculo/novo'
+    | '/planejamentos-de-semestre/$planejamentoId'
+    | '/planejamentos-de-semestre/novo'
+    | '/cursos/'
+    | '/disciplinas/'
+    | '/perfil/'
+    | '/planejamentos-de-curriculo/'
+    | '/planejamentos-de-semestre/'
+    | '/planejamentos-de-semestre/compartilhado/$shareId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
+  DesignSystemRoute: typeof DesignSystemRoute
+  CursosRoute: typeof CursosRouteWithChildren
+  DisciplinasRoute: typeof DisciplinasRouteWithChildren
+  EditaisDeIntercambioRoute: typeof EditaisDeIntercambioRoute
+  MinhasSolicitacoesRoute: typeof MinhasSolicitacoesRoute
+  PerfilRoute: typeof PerfilRouteWithChildren
+  PessoasRoute: typeof PessoasRoute
+  PlanejamentosDeCurriculoRoute: typeof PlanejamentosDeCurriculoRouteWithChildren
+  PrivacidadeRoute: typeof PrivacidadeRoute
+  SituacaoDoCursoRoute: typeof SituacaoDoCursoRoute
+  SobreRoute: typeof SobreRoute
+  TaxonomiaRoute: typeof TaxonomiaRoute
+  EditaisDeIntercambioConfiguracoesRoute: typeof EditaisDeIntercambioConfiguracoesRoute
+  PerfisPublicIdRoute: typeof PerfisPublicIdRoute
+  PlanejamentosDeSemestrePlanejamentoIdRoute: typeof PlanejamentosDeSemestrePlanejamentoIdRoute
+  PlanejamentosDeSemestreNovoRoute: typeof PlanejamentosDeSemestreNovoRoute
+  PlanejamentosDeSemestreIndexRoute: typeof PlanejamentosDeSemestreIndexRoute
+  PlanejamentosDeSemestreCompartilhadoShareIdRoute: typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/taxonomia': {
+      id: '/taxonomia'
+      path: '/taxonomia'
+      fullPath: '/taxonomia'
+      preLoaderRoute: typeof TaxonomiaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sobre': {
+      id: '/sobre'
+      path: '/sobre'
+      fullPath: '/sobre'
+      preLoaderRoute: typeof SobreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/situacao-do-curso': {
+      id: '/situacao-do-curso'
+      path: '/situacao-do-curso'
+      fullPath: '/situacao-do-curso'
+      preLoaderRoute: typeof SituacaoDoCursoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade': {
+      id: '/privacidade'
+      path: '/privacidade'
+      fullPath: '/privacidade'
+      preLoaderRoute: typeof PrivacidadeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planejamentos-de-curriculo': {
+      id: '/planejamentos-de-curriculo'
+      path: '/planejamentos-de-curriculo'
+      fullPath: '/planejamentos-de-curriculo'
+      preLoaderRoute: typeof PlanejamentosDeCurriculoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pessoas': {
+      id: '/pessoas'
+      path: '/pessoas'
+      fullPath: '/pessoas'
+      preLoaderRoute: typeof PessoasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil': {
+      id: '/perfil'
+      path: '/perfil'
+      fullPath: '/perfil'
+      preLoaderRoute: typeof PerfilRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/minhas-solicitacoes': {
+      id: '/minhas-solicitacoes'
+      path: '/minhas-solicitacoes'
+      fullPath: '/minhas-solicitacoes'
+      preLoaderRoute: typeof MinhasSolicitacoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/editais-de-intercambio': {
+      id: '/editais-de-intercambio'
+      path: '/editais-de-intercambio'
+      fullPath: '/editais-de-intercambio'
+      preLoaderRoute: typeof EditaisDeIntercambioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/disciplinas': {
+      id: '/disciplinas'
+      path: '/disciplinas'
+      fullPath: '/disciplinas'
+      preLoaderRoute: typeof DisciplinasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cursos': {
+      id: '/cursos'
+      path: '/cursos'
+      fullPath: '/cursos'
+      preLoaderRoute: typeof CursosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_design-system': {
+      id: '/_design-system'
+      path: '/_design-system'
+      fullPath: '/_design-system'
+      preLoaderRoute: typeof DesignSystemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -58,19 +479,196 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/tanstack-query': {
-      id: '/demo/tanstack-query'
-      path: '/demo/tanstack-query'
-      fullPath: '/demo/tanstack-query'
-      preLoaderRoute: typeof DemoTanstackQueryRouteImport
+    '/planejamentos-de-semestre/': {
+      id: '/planejamentos-de-semestre/'
+      path: '/planejamentos-de-semestre'
+      fullPath: '/planejamentos-de-semestre'
+      preLoaderRoute: typeof PlanejamentosDeSemestreIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planejamentos-de-curriculo/': {
+      id: '/planejamentos-de-curriculo/'
+      path: '/'
+      fullPath: '/planejamentos-de-curriculo/'
+      preLoaderRoute: typeof PlanejamentosDeCurriculoIndexRouteImport
+      parentRoute: typeof PlanejamentosDeCurriculoRoute
+    }
+    '/perfil/': {
+      id: '/perfil/'
+      path: '/'
+      fullPath: '/perfil/'
+      preLoaderRoute: typeof PerfilIndexRouteImport
+      parentRoute: typeof PerfilRoute
+    }
+    '/disciplinas/': {
+      id: '/disciplinas/'
+      path: '/'
+      fullPath: '/disciplinas/'
+      preLoaderRoute: typeof DisciplinasIndexRouteImport
+      parentRoute: typeof DisciplinasRoute
+    }
+    '/cursos/': {
+      id: '/cursos/'
+      path: '/'
+      fullPath: '/cursos/'
+      preLoaderRoute: typeof CursosIndexRouteImport
+      parentRoute: typeof CursosRoute
+    }
+    '/planejamentos-de-semestre/novo': {
+      id: '/planejamentos-de-semestre/novo'
+      path: '/planejamentos-de-semestre/novo'
+      fullPath: '/planejamentos-de-semestre/novo'
+      preLoaderRoute: typeof PlanejamentosDeSemestreNovoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planejamentos-de-semestre/$planejamentoId': {
+      id: '/planejamentos-de-semestre/$planejamentoId'
+      path: '/planejamentos-de-semestre/$planejamentoId'
+      fullPath: '/planejamentos-de-semestre/$planejamentoId'
+      preLoaderRoute: typeof PlanejamentosDeSemestrePlanejamentoIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/planejamentos-de-curriculo/novo': {
+      id: '/planejamentos-de-curriculo/novo'
+      path: '/novo'
+      fullPath: '/planejamentos-de-curriculo/novo'
+      preLoaderRoute: typeof PlanejamentosDeCurriculoNovoRouteImport
+      parentRoute: typeof PlanejamentosDeCurriculoRoute
+    }
+    '/planejamentos-de-curriculo/$planejamentoId': {
+      id: '/planejamentos-de-curriculo/$planejamentoId'
+      path: '/$planejamentoId'
+      fullPath: '/planejamentos-de-curriculo/$planejamentoId'
+      preLoaderRoute: typeof PlanejamentosDeCurriculoPlanejamentoIdRouteImport
+      parentRoute: typeof PlanejamentosDeCurriculoRoute
+    }
+    '/perfis/$publicId': {
+      id: '/perfis/$publicId'
+      path: '/perfis/$publicId'
+      fullPath: '/perfis/$publicId'
+      preLoaderRoute: typeof PerfisPublicIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/perfil/solicitacoes': {
+      id: '/perfil/solicitacoes'
+      path: '/solicitacoes'
+      fullPath: '/perfil/solicitacoes'
+      preLoaderRoute: typeof PerfilSolicitacoesRouteImport
+      parentRoute: typeof PerfilRoute
+    }
+    '/perfil/amigos': {
+      id: '/perfil/amigos'
+      path: '/amigos'
+      fullPath: '/perfil/amigos'
+      preLoaderRoute: typeof PerfilAmigosRouteImport
+      parentRoute: typeof PerfilRoute
+    }
+    '/editais-de-intercambio_/configuracoes': {
+      id: '/editais-de-intercambio_/configuracoes'
+      path: '/editais-de-intercambio/configuracoes'
+      fullPath: '/editais-de-intercambio/configuracoes'
+      preLoaderRoute: typeof EditaisDeIntercambioConfiguracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/disciplinas/$courseId': {
+      id: '/disciplinas/$courseId'
+      path: '/$courseId'
+      fullPath: '/disciplinas/$courseId'
+      preLoaderRoute: typeof DisciplinasCourseIdRouteImport
+      parentRoute: typeof DisciplinasRoute
+    }
+    '/planejamentos-de-semestre/compartilhado/$shareId': {
+      id: '/planejamentos-de-semestre/compartilhado/$shareId'
+      path: '/planejamentos-de-semestre/compartilhado/$shareId'
+      fullPath: '/planejamentos-de-semestre/compartilhado/$shareId'
+      preLoaderRoute: typeof PlanejamentosDeSemestreCompartilhadoShareIdRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
 }
 
+interface CursosRouteChildren {
+  CursosIndexRoute: typeof CursosIndexRoute
+}
+
+const CursosRouteChildren: CursosRouteChildren = {
+  CursosIndexRoute: CursosIndexRoute,
+}
+
+const CursosRouteWithChildren =
+  CursosRoute._addFileChildren(CursosRouteChildren)
+
+interface DisciplinasRouteChildren {
+  DisciplinasCourseIdRoute: typeof DisciplinasCourseIdRoute
+  DisciplinasIndexRoute: typeof DisciplinasIndexRoute
+}
+
+const DisciplinasRouteChildren: DisciplinasRouteChildren = {
+  DisciplinasCourseIdRoute: DisciplinasCourseIdRoute,
+  DisciplinasIndexRoute: DisciplinasIndexRoute,
+}
+
+const DisciplinasRouteWithChildren = DisciplinasRoute._addFileChildren(
+  DisciplinasRouteChildren,
+)
+
+interface PerfilRouteChildren {
+  PerfilAmigosRoute: typeof PerfilAmigosRoute
+  PerfilSolicitacoesRoute: typeof PerfilSolicitacoesRoute
+  PerfilIndexRoute: typeof PerfilIndexRoute
+}
+
+const PerfilRouteChildren: PerfilRouteChildren = {
+  PerfilAmigosRoute: PerfilAmigosRoute,
+  PerfilSolicitacoesRoute: PerfilSolicitacoesRoute,
+  PerfilIndexRoute: PerfilIndexRoute,
+}
+
+const PerfilRouteWithChildren =
+  PerfilRoute._addFileChildren(PerfilRouteChildren)
+
+interface PlanejamentosDeCurriculoRouteChildren {
+  PlanejamentosDeCurriculoPlanejamentoIdRoute: typeof PlanejamentosDeCurriculoPlanejamentoIdRoute
+  PlanejamentosDeCurriculoNovoRoute: typeof PlanejamentosDeCurriculoNovoRoute
+  PlanejamentosDeCurriculoIndexRoute: typeof PlanejamentosDeCurriculoIndexRoute
+}
+
+const PlanejamentosDeCurriculoRouteChildren: PlanejamentosDeCurriculoRouteChildren =
+  {
+    PlanejamentosDeCurriculoPlanejamentoIdRoute:
+      PlanejamentosDeCurriculoPlanejamentoIdRoute,
+    PlanejamentosDeCurriculoNovoRoute: PlanejamentosDeCurriculoNovoRoute,
+    PlanejamentosDeCurriculoIndexRoute: PlanejamentosDeCurriculoIndexRoute,
+  }
+
+const PlanejamentosDeCurriculoRouteWithChildren =
+  PlanejamentosDeCurriculoRoute._addFileChildren(
+    PlanejamentosDeCurriculoRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  DemoTanstackQueryRoute: DemoTanstackQueryRoute,
+  DesignSystemRoute: DesignSystemRoute,
+  CursosRoute: CursosRouteWithChildren,
+  DisciplinasRoute: DisciplinasRouteWithChildren,
+  EditaisDeIntercambioRoute: EditaisDeIntercambioRoute,
+  MinhasSolicitacoesRoute: MinhasSolicitacoesRoute,
+  PerfilRoute: PerfilRouteWithChildren,
+  PessoasRoute: PessoasRoute,
+  PlanejamentosDeCurriculoRoute: PlanejamentosDeCurriculoRouteWithChildren,
+  PrivacidadeRoute: PrivacidadeRoute,
+  SituacaoDoCursoRoute: SituacaoDoCursoRoute,
+  SobreRoute: SobreRoute,
+  TaxonomiaRoute: TaxonomiaRoute,
+  EditaisDeIntercambioConfiguracoesRoute:
+    EditaisDeIntercambioConfiguracoesRoute,
+  PerfisPublicIdRoute: PerfisPublicIdRoute,
+  PlanejamentosDeSemestrePlanejamentoIdRoute:
+    PlanejamentosDeSemestrePlanejamentoIdRoute,
+  PlanejamentosDeSemestreNovoRoute: PlanejamentosDeSemestreNovoRoute,
+  PlanejamentosDeSemestreIndexRoute: PlanejamentosDeSemestreIndexRoute,
+  PlanejamentosDeSemestreCompartilhadoShareIdRoute:
+    PlanejamentosDeSemestreCompartilhadoShareIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,0 +1,23 @@
+import type { PlannerDragData } from './components/CourseCard'
+import type {
+  CurriculumPlannerCommand,
+  PlanningPeriodId,
+} from '@pomi/planner-domain/curriculum'
+
+export function commandForCourseDrop(
+  data: PlannerDragData,
+  overId: string,
+): CurriculumPlannerCommand | undefined {
+  if (overId.startsWith('curriculum-block:')) return undefined
+  if (overId === 'unallocated') {
+    return data.currentPeriodId
+      ? { type: 'moveCourseToUnallocated', courseId: data.course.id }
+      : undefined
+  }
+  if (!overId.startsWith('period:')) return undefined
+  const periodId = overId.slice('period:'.length) as PlanningPeriodId
+  if (data.currentPeriodId === periodId) return undefined
+  return data.currentPeriodId
+    ? { type: 'moveCourseToPeriod', courseId: data.course.id, periodId }
+    : { type: 'addCourseToPeriod', courseId: data.course.id, periodId }
+}

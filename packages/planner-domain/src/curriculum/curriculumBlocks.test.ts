@@ -1,0 +1,162 @@
+import { describe, expect, it } from 'vitest'
+
+import {
+  buildCurriculumGroups,
+  curriculumAvailabilityKey,
+} from './curriculumBlocks'
+import type {
+  CatalogProgramId,
+  CourseId,
+  CurriculumPlannerSnapshot,
+  CurriculumPlannerStaticData,
+  PlannerRevision,
+  PlanningPeriodId,
+} from './curriculumPlanner'
+
+const course = (id: string, code: string, prefix: string) => ({
+  id: id as CourseId,
+  code,
+  name: code,
+  credits: 4,
+  prefix,
+})
+
+const staticData: CurriculumPlannerStaticData = {
+  courses: [
+    course('1', 'AB100', 'AB'),
+    course('2', 'AB200', 'AB'),
+    course('3', 'CD100', 'CD'),
+  ],
+  catalogPrograms: [
+    {
+      id: 'program' as CatalogProgramId,
+      title: 'Programa',
+      catalog: { id: 'catalog' as never, year: 2026 },
+      program: { id: 'course-program' as never, code: '1', name: 'Programa' },
+      baseBlocks: {
+        mandatory: [
+          {
+            type: 'course',
+            source: { type: 'base' },
+            selector: { type: 'specificCourse', courseId: '1' as CourseId },
+          },
+        ],
+        electives: [
+          {
+            type: 'electiveCredits',
+            source: { type: 'base' },
+            requiredCredits: 4,
+            eligibleCourses: [{ type: 'prefix', prefix: 'AB' }],
+          },
+        ],
+      },
+      variants: [
+        {
+          id: 'specialization' as never,
+          specializationId: 1,
+          code: 'S',
+          name: 'Sistemas',
+          blocks: {
+            mandatory: [
+              {
+                type: 'course',
+                source: {
+                  type: 'variant',
+                  catalogProgramVariantId: 'specialization' as never,
+                },
+                selector: { type: 'specificCourse', courseId: '3' as CourseId },
+              },
+            ],
+            electives: [],
+          },
+        },
+      ],
+      languages: [],
+    },
+  ],
+}
+
+const snapshot: CurriculumPlannerSnapshot = {
+  revision: 'revision' as PlannerRevision,
+  selection: {
+    catalogProgramId: 'program' as CatalogProgramId,
+    catalogProgramVariantId: 'specialization' as never,
+  },
+  plan: {
+    periods: [
+      {
+        id: 'period' as PlanningPeriodId,
+        items: [{ type: 'course', courseId: '2' as CourseId }],
+      },
+    ],
+  },
+  academicRecord: { completedCourses: [{ courseId: '1' as CourseId }] },
+}
+
+describe('buildCurriculumGroups', () => {
+  it('matches literal prefixes longer than two characters by course code', () => {
+    const groups = buildCurriculumGroups(
+      {
+        ...staticData,
+        courses: [course('4', 'QA851', 'QA')],
+        catalogPrograms: [
+          {
+            ...staticData.catalogPrograms[0],
+            baseBlocks: {
+              mandatory: [
+                {
+                  type: 'course',
+                  source: { type: 'base' },
+                  selector: { type: 'prefix', prefix: 'QA85' },
+                },
+              ],
+              electives: [],
+            },
+            variants: [],
+          },
+        ],
+      },
+      snapshot,
+    )
+
+    expect(
+      groups[0].mandatory?.courses.map(
+        ({ course: courseItem }) => courseItem.code,
+      ),
+    ).toEqual(['QA851'])
+  })
+
+  it('builds base and selected habilitation while hiding completed and planned courses', () => {
+    const groups = buildCurriculumGroups(staticData, snapshot)
+
+    expect(groups.map((group) => group.title)).toEqual([
+      'Base',
+      'Modalidade · S — Sistemas',
+    ])
+    expect(groups[0].mandatory?.courses).toEqual([])
+    expect(groups[0].electives[0].selectorLabels).toEqual(['AB'])
+    expect(groups[0].electives[0].courses).toEqual([])
+    expect(groups[1].mandatory?.courses[0].course.code).toBe('CD100')
+  })
+
+  it('reuses the group views when a planned course moves between periods', () => {
+    const before = buildCurriculumGroups(staticData, snapshot)
+    const movedSnapshot: CurriculumPlannerSnapshot = {
+      ...snapshot,
+      plan: {
+        periods: [
+          { id: 'period-a' as PlanningPeriodId, items: [] },
+          {
+            id: 'period-b' as PlanningPeriodId,
+            items: [{ type: 'course', courseId: '2' as CourseId }],
+          },
+        ],
+      },
+    }
+
+    expect(curriculumAvailabilityKey(movedSnapshot)).toBe(
+      curriculumAvailabilityKey(snapshot),
+    )
+    expect(buildCurriculumGroups(staticData, movedSnapshot)).toBe(before)
+  })
+})

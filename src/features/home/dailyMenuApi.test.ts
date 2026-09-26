@@ -1,0 +1,29 @@
+import { describe, expect, it, vi } from 'vitest'
+
+import { listDailyMenus } from '@/features/home/dailyMenuApi'
+
+describe('daily menu API', () => {
+  it('loads menus for the requested date range', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            data: [],
+            quantity: 0,
+            total: 0,
+            links: { next: null },
+          }),
+          { status: 200 },
+        ),
+      )
+
+    await expect(listDailyMenus('2026-08-21')).resolves.toEqual([])
+
+    const [request] = fetchMock.mock.calls[0] as [string]
+    const url = new URL(request)
+    expect(url.pathname).toBe('/daily-menus')
+    expect(url.searchParams.get('filter[date][gte]')).toBe('2026-08-21')
+    expect(url.searchParams.get('filter[date][lte]')).toBe('2026-08-21')
+  })
+})
