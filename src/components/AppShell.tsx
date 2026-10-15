@@ -7,6 +7,7 @@ import {
   ChevronRight,
   FileSearch,
   GraduationCap,
+  Handshake,
   House,
   Info,
   Laptop,
@@ -107,6 +108,8 @@ type NavigationItem = Readonly<{
     | '/cursos'
     | '/perfil'
     | '/pessoas'
+    | '/grupos'
+    | '/eventos'
     | '/taxonomia'
     | '/editais-de-intercambio'
     | '/minhas-solicitacoes'
@@ -188,6 +191,18 @@ const navigationGroups: ReadonlyArray<
         icon: Users,
         matches: ['/pessoas', '/perfis'],
         requiresAuth: true,
+      },
+      {
+        label: 'Grupos',
+        to: '/grupos',
+        icon: Handshake,
+        matches: ['/grupos'],
+      },
+      {
+        label: 'Eventos',
+        to: '/eventos',
+        icon: CalendarDays,
+        matches: ['/eventos'],
       },
     ],
   },
@@ -368,6 +383,9 @@ function MobileActionsMenu() {
 
 function AccountMenu() {
   const { initialized, isAuthenticated, profile, login, logout } = useAuth()
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
   const name = displayName(profile)
 
   if (!initialized) {
@@ -419,6 +437,19 @@ function AccountMenu() {
         <DropdownMenuItem asChild>
           <Link to="/perfil">
             <UserRound /> Meu perfil
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link
+            to="/meus-grupos"
+            aria-current={
+              pathname === '/meus-grupos' ||
+              pathname.startsWith('/meus-grupos/')
+                ? 'page'
+                : undefined
+            }
+          >
+            <Handshake /> Meus grupos
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => void logout()}>

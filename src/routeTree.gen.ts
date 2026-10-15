@@ -17,6 +17,9 @@ import { Route as PlanejamentosDeCurriculoRouteImport } from './routes/planejame
 import { Route as PessoasRouteImport } from './routes/pessoas'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as MinhasSolicitacoesRouteImport } from './routes/minhas-solicitacoes'
+import { Route as MeusGruposRouteImport } from './routes/meus-grupos'
+import { Route as GruposRouteImport } from './routes/grupos'
+import { Route as EventosRouteImport } from './routes/eventos'
 import { Route as EditaisDeIntercambioRouteImport } from './routes/editais-de-intercambio'
 import { Route as DisciplinasRouteImport } from './routes/disciplinas'
 import { Route as CursosRouteImport } from './routes/cursos'
@@ -25,6 +28,9 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlanejamentosDeSemestreIndexRouteImport } from './routes/planejamentos-de-semestre.index'
 import { Route as PlanejamentosDeCurriculoIndexRouteImport } from './routes/planejamentos-de-curriculo.index'
 import { Route as PerfilIndexRouteImport } from './routes/perfil.index'
+import { Route as MeusGruposIndexRouteImport } from './routes/meus-grupos.index'
+import { Route as GruposIndexRouteImport } from './routes/grupos.index'
+import { Route as EventosIndexRouteImport } from './routes/eventos.index'
 import { Route as DisciplinasIndexRouteImport } from './routes/disciplinas.index'
 import { Route as CursosIndexRouteImport } from './routes/cursos.index'
 import { Route as PlanejamentosDeSemestreNovoRouteImport } from './routes/planejamentos-de-semestre.novo'
@@ -34,9 +40,27 @@ import { Route as PlanejamentosDeCurriculoPlanejamentoIdRouteImport } from './ro
 import { Route as PerfisPublicIdRouteImport } from './routes/perfis.$publicId'
 import { Route as PerfilSolicitacoesRouteImport } from './routes/perfil.solicitacoes'
 import { Route as PerfilAmigosRouteImport } from './routes/perfil.amigos'
+import { Route as MeusGruposGroupIdRouteImport } from './routes/meus-grupos.$groupId'
+import { Route as GruposNovoRouteImport } from './routes/grupos.novo'
+import { Route as GruposGroupIdRouteImport } from './routes/grupos.$groupId'
+import { Route as EventosEventIdRouteImport } from './routes/eventos.$eventId'
 import { Route as EditaisDeIntercambioConfiguracoesRouteImport } from './routes/editais-de-intercambio_.configuracoes'
 import { Route as DisciplinasCourseIdRouteImport } from './routes/disciplinas.$courseId'
 import { Route as PlanejamentosDeSemestreCompartilhadoShareIdRouteImport } from './routes/planejamentos-de-semestre.compartilhado.$shareId'
+import { Route as GruposGroupIdGerenciarRouteImport } from './routes/grupos.$groupId_.gerenciar'
+import { Route as GruposGroupIdGerenciarIndexRouteImport } from './routes/grupos.$groupId_.gerenciar.index'
+import { Route as GruposGroupIdGerenciarPessoasRouteImport } from './routes/grupos.$groupId_.gerenciar.pessoas'
+import { Route as GruposGroupIdGerenciarPerfilRouteImport } from './routes/grupos.$groupId_.gerenciar.perfil'
+import { Route as GruposGroupIdGerenciarEventosRouteImport } from './routes/grupos.$groupId_.gerenciar.eventos'
+import { Route as GruposGroupIdGerenciarAcessosRouteImport } from './routes/grupos.$groupId_.gerenciar.acessos'
+import { Route as GruposGroupIdGerenciarPessoasConvidarRouteImport } from './routes/grupos.$groupId_.gerenciar.pessoas_.convidar'
+import { Route as GruposGroupIdGerenciarPessoasMembershipIdRouteImport } from './routes/grupos.$groupId_.gerenciar.pessoas_.$membershipId'
+import { Route as GruposGroupIdGerenciarEventosNovoRouteImport } from './routes/grupos.$groupId_.gerenciar.eventos_.novo'
+import { Route as GruposGroupIdGerenciarEventosEventIdRouteImport } from './routes/grupos.$groupId_.gerenciar.eventos_.$eventId'
+import { Route as GruposGroupIdGerenciarAcessosNovaRouteImport } from './routes/grupos.$groupId_.gerenciar.acessos_.nova'
+import { Route as GruposGroupIdGerenciarAcessosRoleIdRouteImport } from './routes/grupos.$groupId_.gerenciar.acessos_.$roleId'
+import { Route as GruposGroupIdGerenciarEventosEventIdEditarRouteImport } from './routes/grupos.$groupId_.gerenciar.eventos_.$eventId_.editar'
+import { Route as GruposGroupIdGerenciarAcessosAtribuicoesMembershipIdRouteImport } from './routes/grupos.$groupId_.gerenciar.acessos_.atribuicoes.$membershipId'
 
 const TaxonomiaRoute = TaxonomiaRouteImport.update({
   id: '/taxonomia',
@@ -77,6 +101,21 @@ const PerfilRoute = PerfilRouteImport.update({
 const MinhasSolicitacoesRoute = MinhasSolicitacoesRouteImport.update({
   id: '/minhas-solicitacoes',
   path: '/minhas-solicitacoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeusGruposRoute = MeusGruposRouteImport.update({
+  id: '/meus-grupos',
+  path: '/meus-grupos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GruposRoute = GruposRouteImport.update({
+  id: '/grupos',
+  path: '/grupos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventosRoute = EventosRouteImport.update({
+  id: '/eventos',
+  path: '/eventos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EditaisDeIntercambioRoute = EditaisDeIntercambioRouteImport.update({
@@ -120,6 +159,21 @@ const PerfilIndexRoute = PerfilIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => PerfilRoute,
+} as any)
+const MeusGruposIndexRoute = MeusGruposIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MeusGruposRoute,
+} as any)
+const GruposIndexRoute = GruposIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => GruposRoute,
+} as any)
+const EventosIndexRoute = EventosIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => EventosRoute,
 } as any)
 const DisciplinasIndexRoute = DisciplinasIndexRouteImport.update({
   id: '/',
@@ -170,6 +224,26 @@ const PerfilAmigosRoute = PerfilAmigosRouteImport.update({
   path: '/amigos',
   getParentRoute: () => PerfilRoute,
 } as any)
+const MeusGruposGroupIdRoute = MeusGruposGroupIdRouteImport.update({
+  id: '/$groupId',
+  path: '/$groupId',
+  getParentRoute: () => MeusGruposRoute,
+} as any)
+const GruposNovoRoute = GruposNovoRouteImport.update({
+  id: '/novo',
+  path: '/novo',
+  getParentRoute: () => GruposRoute,
+} as any)
+const GruposGroupIdRoute = GruposGroupIdRouteImport.update({
+  id: '/$groupId',
+  path: '/$groupId',
+  getParentRoute: () => GruposRoute,
+} as any)
+const EventosEventIdRoute = EventosEventIdRouteImport.update({
+  id: '/$eventId',
+  path: '/$eventId',
+  getParentRoute: () => EventosRoute,
+} as any)
 const EditaisDeIntercambioConfiguracoesRoute =
   EditaisDeIntercambioConfiguracoesRouteImport.update({
     id: '/editais-de-intercambio_/configuracoes',
@@ -187,6 +261,89 @@ const PlanejamentosDeSemestreCompartilhadoShareIdRoute =
     path: '/planejamentos-de-semestre/compartilhado/$shareId',
     getParentRoute: () => rootRouteImport,
   } as any)
+const GruposGroupIdGerenciarRoute = GruposGroupIdGerenciarRouteImport.update({
+  id: '/$groupId_/gerenciar',
+  path: '/$groupId/gerenciar',
+  getParentRoute: () => GruposRoute,
+} as any)
+const GruposGroupIdGerenciarIndexRoute =
+  GruposGroupIdGerenciarIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => GruposGroupIdGerenciarRoute,
+  } as any)
+const GruposGroupIdGerenciarPessoasRoute =
+  GruposGroupIdGerenciarPessoasRouteImport.update({
+    id: '/pessoas',
+    path: '/pessoas',
+    getParentRoute: () => GruposGroupIdGerenciarRoute,
+  } as any)
+const GruposGroupIdGerenciarPerfilRoute =
+  GruposGroupIdGerenciarPerfilRouteImport.update({
+    id: '/perfil',
+    path: '/perfil',
+    getParentRoute: () => GruposGroupIdGerenciarRoute,
+  } as any)
+const GruposGroupIdGerenciarEventosRoute =
+  GruposGroupIdGerenciarEventosRouteImport.update({
+    id: '/eventos',
+    path: '/eventos',
+    getParentRoute: () => GruposGroupIdGerenciarRoute,
+  } as any)
+const GruposGroupIdGerenciarAcessosRoute =
+  GruposGroupIdGerenciarAcessosRouteImport.update({
+    id: '/acessos',
+    path: '/acessos',
+    getParentRoute: () => GruposGroupIdGerenciarRoute,
+  } as any)
+const GruposGroupIdGerenciarPessoasConvidarRoute =
+  GruposGroupIdGerenciarPessoasConvidarRouteImport.update({
+    id: '/pessoas_/convidar',
+    path: '/pessoas/convidar',
+    getParentRoute: () => GruposGroupIdGerenciarRoute,
+  } as any)
+const GruposGroupIdGerenciarPessoasMembershipIdRoute =
+  GruposGroupIdGerenciarPessoasMembershipIdRouteImport.update({
+    id: '/pessoas_/$membershipId',
+    path: '/pessoas/$membershipId',
+    getParentRoute: () => GruposGroupIdGerenciarRoute,
+  } as any)
+const GruposGroupIdGerenciarEventosNovoRoute =
+  GruposGroupIdGerenciarEventosNovoRouteImport.update({
+    id: '/eventos_/novo',
+    path: '/eventos/novo',
+    getParentRoute: () => GruposGroupIdGerenciarRoute,
+  } as any)
+const GruposGroupIdGerenciarEventosEventIdRoute =
+  GruposGroupIdGerenciarEventosEventIdRouteImport.update({
+    id: '/eventos_/$eventId',
+    path: '/eventos/$eventId',
+    getParentRoute: () => GruposGroupIdGerenciarRoute,
+  } as any)
+const GruposGroupIdGerenciarAcessosNovaRoute =
+  GruposGroupIdGerenciarAcessosNovaRouteImport.update({
+    id: '/acessos_/nova',
+    path: '/acessos/nova',
+    getParentRoute: () => GruposGroupIdGerenciarRoute,
+  } as any)
+const GruposGroupIdGerenciarAcessosRoleIdRoute =
+  GruposGroupIdGerenciarAcessosRoleIdRouteImport.update({
+    id: '/acessos_/$roleId',
+    path: '/acessos/$roleId',
+    getParentRoute: () => GruposGroupIdGerenciarRoute,
+  } as any)
+const GruposGroupIdGerenciarEventosEventIdEditarRoute =
+  GruposGroupIdGerenciarEventosEventIdEditarRouteImport.update({
+    id: '/eventos_/$eventId_/editar',
+    path: '/eventos/$eventId/editar',
+    getParentRoute: () => GruposGroupIdGerenciarRoute,
+  } as any)
+const GruposGroupIdGerenciarAcessosAtribuicoesMembershipIdRoute =
+  GruposGroupIdGerenciarAcessosAtribuicoesMembershipIdRouteImport.update({
+    id: '/acessos_/atribuicoes/$membershipId',
+    path: '/acessos/atribuicoes/$membershipId',
+    getParentRoute: () => GruposGroupIdGerenciarRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -194,6 +351,9 @@ export interface FileRoutesByFullPath {
   '/cursos': typeof CursosRouteWithChildren
   '/disciplinas': typeof DisciplinasRouteWithChildren
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
+  '/eventos': typeof EventosRouteWithChildren
+  '/grupos': typeof GruposRouteWithChildren
+  '/meus-grupos': typeof MeusGruposRouteWithChildren
   '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
   '/perfil': typeof PerfilRouteWithChildren
   '/pessoas': typeof PessoasRoute
@@ -204,6 +364,10 @@ export interface FileRoutesByFullPath {
   '/taxonomia': typeof TaxonomiaRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
+  '/eventos/$eventId': typeof EventosEventIdRoute
+  '/grupos/$groupId': typeof GruposGroupIdRoute
+  '/grupos/novo': typeof GruposNovoRoute
+  '/meus-grupos/$groupId': typeof MeusGruposGroupIdRoute
   '/perfil/amigos': typeof PerfilAmigosRoute
   '/perfil/solicitacoes': typeof PerfilSolicitacoesRoute
   '/perfis/$publicId': typeof PerfisPublicIdRoute
@@ -213,10 +377,27 @@ export interface FileRoutesByFullPath {
   '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
   '/cursos/': typeof CursosIndexRoute
   '/disciplinas/': typeof DisciplinasIndexRoute
+  '/eventos/': typeof EventosIndexRoute
+  '/grupos/': typeof GruposIndexRoute
+  '/meus-grupos/': typeof MeusGruposIndexRoute
   '/perfil/': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo/': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
+  '/grupos/$groupId/gerenciar': typeof GruposGroupIdGerenciarRouteWithChildren
   '/planejamentos-de-semestre/compartilhado/$shareId': typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
+  '/grupos/$groupId/gerenciar/acessos': typeof GruposGroupIdGerenciarAcessosRoute
+  '/grupos/$groupId/gerenciar/eventos': typeof GruposGroupIdGerenciarEventosRoute
+  '/grupos/$groupId/gerenciar/perfil': typeof GruposGroupIdGerenciarPerfilRoute
+  '/grupos/$groupId/gerenciar/pessoas': typeof GruposGroupIdGerenciarPessoasRoute
+  '/grupos/$groupId/gerenciar/': typeof GruposGroupIdGerenciarIndexRoute
+  '/grupos/$groupId/gerenciar/acessos/$roleId': typeof GruposGroupIdGerenciarAcessosRoleIdRoute
+  '/grupos/$groupId/gerenciar/acessos/nova': typeof GruposGroupIdGerenciarAcessosNovaRoute
+  '/grupos/$groupId/gerenciar/eventos/$eventId': typeof GruposGroupIdGerenciarEventosEventIdRoute
+  '/grupos/$groupId/gerenciar/eventos/novo': typeof GruposGroupIdGerenciarEventosNovoRoute
+  '/grupos/$groupId/gerenciar/pessoas/$membershipId': typeof GruposGroupIdGerenciarPessoasMembershipIdRoute
+  '/grupos/$groupId/gerenciar/pessoas/convidar': typeof GruposGroupIdGerenciarPessoasConvidarRoute
+  '/grupos/$groupId/gerenciar/acessos/atribuicoes/$membershipId': typeof GruposGroupIdGerenciarAcessosAtribuicoesMembershipIdRoute
+  '/grupos/$groupId/gerenciar/eventos/$eventId/editar': typeof GruposGroupIdGerenciarEventosEventIdEditarRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -230,6 +411,10 @@ export interface FileRoutesByTo {
   '/taxonomia': typeof TaxonomiaRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
+  '/eventos/$eventId': typeof EventosEventIdRoute
+  '/grupos/$groupId': typeof GruposGroupIdRoute
+  '/grupos/novo': typeof GruposNovoRoute
+  '/meus-grupos/$groupId': typeof MeusGruposGroupIdRoute
   '/perfil/amigos': typeof PerfilAmigosRoute
   '/perfil/solicitacoes': typeof PerfilSolicitacoesRoute
   '/perfis/$publicId': typeof PerfisPublicIdRoute
@@ -239,10 +424,26 @@ export interface FileRoutesByTo {
   '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
   '/cursos': typeof CursosIndexRoute
   '/disciplinas': typeof DisciplinasIndexRoute
+  '/eventos': typeof EventosIndexRoute
+  '/grupos': typeof GruposIndexRoute
+  '/meus-grupos': typeof MeusGruposIndexRoute
   '/perfil': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
   '/planejamentos-de-semestre/compartilhado/$shareId': typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
+  '/grupos/$groupId/gerenciar/acessos': typeof GruposGroupIdGerenciarAcessosRoute
+  '/grupos/$groupId/gerenciar/eventos': typeof GruposGroupIdGerenciarEventosRoute
+  '/grupos/$groupId/gerenciar/perfil': typeof GruposGroupIdGerenciarPerfilRoute
+  '/grupos/$groupId/gerenciar/pessoas': typeof GruposGroupIdGerenciarPessoasRoute
+  '/grupos/$groupId/gerenciar': typeof GruposGroupIdGerenciarIndexRoute
+  '/grupos/$groupId/gerenciar/acessos/$roleId': typeof GruposGroupIdGerenciarAcessosRoleIdRoute
+  '/grupos/$groupId/gerenciar/acessos/nova': typeof GruposGroupIdGerenciarAcessosNovaRoute
+  '/grupos/$groupId/gerenciar/eventos/$eventId': typeof GruposGroupIdGerenciarEventosEventIdRoute
+  '/grupos/$groupId/gerenciar/eventos/novo': typeof GruposGroupIdGerenciarEventosNovoRoute
+  '/grupos/$groupId/gerenciar/pessoas/$membershipId': typeof GruposGroupIdGerenciarPessoasMembershipIdRoute
+  '/grupos/$groupId/gerenciar/pessoas/convidar': typeof GruposGroupIdGerenciarPessoasConvidarRoute
+  '/grupos/$groupId/gerenciar/acessos/atribuicoes/$membershipId': typeof GruposGroupIdGerenciarAcessosAtribuicoesMembershipIdRoute
+  '/grupos/$groupId/gerenciar/eventos/$eventId/editar': typeof GruposGroupIdGerenciarEventosEventIdEditarRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -251,6 +452,9 @@ export interface FileRoutesById {
   '/cursos': typeof CursosRouteWithChildren
   '/disciplinas': typeof DisciplinasRouteWithChildren
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
+  '/eventos': typeof EventosRouteWithChildren
+  '/grupos': typeof GruposRouteWithChildren
+  '/meus-grupos': typeof MeusGruposRouteWithChildren
   '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
   '/perfil': typeof PerfilRouteWithChildren
   '/pessoas': typeof PessoasRoute
@@ -261,6 +465,10 @@ export interface FileRoutesById {
   '/taxonomia': typeof TaxonomiaRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio_/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
+  '/eventos/$eventId': typeof EventosEventIdRoute
+  '/grupos/$groupId': typeof GruposGroupIdRoute
+  '/grupos/novo': typeof GruposNovoRoute
+  '/meus-grupos/$groupId': typeof MeusGruposGroupIdRoute
   '/perfil/amigos': typeof PerfilAmigosRoute
   '/perfil/solicitacoes': typeof PerfilSolicitacoesRoute
   '/perfis/$publicId': typeof PerfisPublicIdRoute
@@ -270,10 +478,27 @@ export interface FileRoutesById {
   '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
   '/cursos/': typeof CursosIndexRoute
   '/disciplinas/': typeof DisciplinasIndexRoute
+  '/eventos/': typeof EventosIndexRoute
+  '/grupos/': typeof GruposIndexRoute
+  '/meus-grupos/': typeof MeusGruposIndexRoute
   '/perfil/': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo/': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre/': typeof PlanejamentosDeSemestreIndexRoute
+  '/grupos/$groupId_/gerenciar': typeof GruposGroupIdGerenciarRouteWithChildren
   '/planejamentos-de-semestre/compartilhado/$shareId': typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
+  '/grupos/$groupId_/gerenciar/acessos': typeof GruposGroupIdGerenciarAcessosRoute
+  '/grupos/$groupId_/gerenciar/eventos': typeof GruposGroupIdGerenciarEventosRoute
+  '/grupos/$groupId_/gerenciar/perfil': typeof GruposGroupIdGerenciarPerfilRoute
+  '/grupos/$groupId_/gerenciar/pessoas': typeof GruposGroupIdGerenciarPessoasRoute
+  '/grupos/$groupId_/gerenciar/': typeof GruposGroupIdGerenciarIndexRoute
+  '/grupos/$groupId_/gerenciar/acessos_/$roleId': typeof GruposGroupIdGerenciarAcessosRoleIdRoute
+  '/grupos/$groupId_/gerenciar/acessos_/nova': typeof GruposGroupIdGerenciarAcessosNovaRoute
+  '/grupos/$groupId_/gerenciar/eventos_/$eventId': typeof GruposGroupIdGerenciarEventosEventIdRoute
+  '/grupos/$groupId_/gerenciar/eventos_/novo': typeof GruposGroupIdGerenciarEventosNovoRoute
+  '/grupos/$groupId_/gerenciar/pessoas_/$membershipId': typeof GruposGroupIdGerenciarPessoasMembershipIdRoute
+  '/grupos/$groupId_/gerenciar/pessoas_/convidar': typeof GruposGroupIdGerenciarPessoasConvidarRoute
+  '/grupos/$groupId_/gerenciar/acessos_/atribuicoes/$membershipId': typeof GruposGroupIdGerenciarAcessosAtribuicoesMembershipIdRoute
+  '/grupos/$groupId_/gerenciar/eventos_/$eventId_/editar': typeof GruposGroupIdGerenciarEventosEventIdEditarRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -283,6 +508,9 @@ export interface FileRouteTypes {
     | '/cursos'
     | '/disciplinas'
     | '/editais-de-intercambio'
+    | '/eventos'
+    | '/grupos'
+    | '/meus-grupos'
     | '/minhas-solicitacoes'
     | '/perfil'
     | '/pessoas'
@@ -293,6 +521,10 @@ export interface FileRouteTypes {
     | '/taxonomia'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio/configuracoes'
+    | '/eventos/$eventId'
+    | '/grupos/$groupId'
+    | '/grupos/novo'
+    | '/meus-grupos/$groupId'
     | '/perfil/amigos'
     | '/perfil/solicitacoes'
     | '/perfis/$publicId'
@@ -302,10 +534,27 @@ export interface FileRouteTypes {
     | '/planejamentos-de-semestre/novo'
     | '/cursos/'
     | '/disciplinas/'
+    | '/eventos/'
+    | '/grupos/'
+    | '/meus-grupos/'
     | '/perfil/'
     | '/planejamentos-de-curriculo/'
     | '/planejamentos-de-semestre'
+    | '/grupos/$groupId/gerenciar'
     | '/planejamentos-de-semestre/compartilhado/$shareId'
+    | '/grupos/$groupId/gerenciar/acessos'
+    | '/grupos/$groupId/gerenciar/eventos'
+    | '/grupos/$groupId/gerenciar/perfil'
+    | '/grupos/$groupId/gerenciar/pessoas'
+    | '/grupos/$groupId/gerenciar/'
+    | '/grupos/$groupId/gerenciar/acessos/$roleId'
+    | '/grupos/$groupId/gerenciar/acessos/nova'
+    | '/grupos/$groupId/gerenciar/eventos/$eventId'
+    | '/grupos/$groupId/gerenciar/eventos/novo'
+    | '/grupos/$groupId/gerenciar/pessoas/$membershipId'
+    | '/grupos/$groupId/gerenciar/pessoas/convidar'
+    | '/grupos/$groupId/gerenciar/acessos/atribuicoes/$membershipId'
+    | '/grupos/$groupId/gerenciar/eventos/$eventId/editar'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -319,6 +568,10 @@ export interface FileRouteTypes {
     | '/taxonomia'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio/configuracoes'
+    | '/eventos/$eventId'
+    | '/grupos/$groupId'
+    | '/grupos/novo'
+    | '/meus-grupos/$groupId'
     | '/perfil/amigos'
     | '/perfil/solicitacoes'
     | '/perfis/$publicId'
@@ -328,10 +581,26 @@ export interface FileRouteTypes {
     | '/planejamentos-de-semestre/novo'
     | '/cursos'
     | '/disciplinas'
+    | '/eventos'
+    | '/grupos'
+    | '/meus-grupos'
     | '/perfil'
     | '/planejamentos-de-curriculo'
     | '/planejamentos-de-semestre'
     | '/planejamentos-de-semestre/compartilhado/$shareId'
+    | '/grupos/$groupId/gerenciar/acessos'
+    | '/grupos/$groupId/gerenciar/eventos'
+    | '/grupos/$groupId/gerenciar/perfil'
+    | '/grupos/$groupId/gerenciar/pessoas'
+    | '/grupos/$groupId/gerenciar'
+    | '/grupos/$groupId/gerenciar/acessos/$roleId'
+    | '/grupos/$groupId/gerenciar/acessos/nova'
+    | '/grupos/$groupId/gerenciar/eventos/$eventId'
+    | '/grupos/$groupId/gerenciar/eventos/novo'
+    | '/grupos/$groupId/gerenciar/pessoas/$membershipId'
+    | '/grupos/$groupId/gerenciar/pessoas/convidar'
+    | '/grupos/$groupId/gerenciar/acessos/atribuicoes/$membershipId'
+    | '/grupos/$groupId/gerenciar/eventos/$eventId/editar'
   id:
     | '__root__'
     | '/'
@@ -339,6 +608,9 @@ export interface FileRouteTypes {
     | '/cursos'
     | '/disciplinas'
     | '/editais-de-intercambio'
+    | '/eventos'
+    | '/grupos'
+    | '/meus-grupos'
     | '/minhas-solicitacoes'
     | '/perfil'
     | '/pessoas'
@@ -349,6 +621,10 @@ export interface FileRouteTypes {
     | '/taxonomia'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio_/configuracoes'
+    | '/eventos/$eventId'
+    | '/grupos/$groupId'
+    | '/grupos/novo'
+    | '/meus-grupos/$groupId'
     | '/perfil/amigos'
     | '/perfil/solicitacoes'
     | '/perfis/$publicId'
@@ -358,10 +634,27 @@ export interface FileRouteTypes {
     | '/planejamentos-de-semestre/novo'
     | '/cursos/'
     | '/disciplinas/'
+    | '/eventos/'
+    | '/grupos/'
+    | '/meus-grupos/'
     | '/perfil/'
     | '/planejamentos-de-curriculo/'
     | '/planejamentos-de-semestre/'
+    | '/grupos/$groupId_/gerenciar'
     | '/planejamentos-de-semestre/compartilhado/$shareId'
+    | '/grupos/$groupId_/gerenciar/acessos'
+    | '/grupos/$groupId_/gerenciar/eventos'
+    | '/grupos/$groupId_/gerenciar/perfil'
+    | '/grupos/$groupId_/gerenciar/pessoas'
+    | '/grupos/$groupId_/gerenciar/'
+    | '/grupos/$groupId_/gerenciar/acessos_/$roleId'
+    | '/grupos/$groupId_/gerenciar/acessos_/nova'
+    | '/grupos/$groupId_/gerenciar/eventos_/$eventId'
+    | '/grupos/$groupId_/gerenciar/eventos_/novo'
+    | '/grupos/$groupId_/gerenciar/pessoas_/$membershipId'
+    | '/grupos/$groupId_/gerenciar/pessoas_/convidar'
+    | '/grupos/$groupId_/gerenciar/acessos_/atribuicoes/$membershipId'
+    | '/grupos/$groupId_/gerenciar/eventos_/$eventId_/editar'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -370,6 +663,9 @@ export interface RootRouteChildren {
   CursosRoute: typeof CursosRouteWithChildren
   DisciplinasRoute: typeof DisciplinasRouteWithChildren
   EditaisDeIntercambioRoute: typeof EditaisDeIntercambioRoute
+  EventosRoute: typeof EventosRouteWithChildren
+  GruposRoute: typeof GruposRouteWithChildren
+  MeusGruposRoute: typeof MeusGruposRouteWithChildren
   MinhasSolicitacoesRoute: typeof MinhasSolicitacoesRoute
   PerfilRoute: typeof PerfilRouteWithChildren
   PessoasRoute: typeof PessoasRoute
@@ -444,6 +740,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MinhasSolicitacoesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/meus-grupos': {
+      id: '/meus-grupos'
+      path: '/meus-grupos'
+      fullPath: '/meus-grupos'
+      preLoaderRoute: typeof MeusGruposRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/grupos': {
+      id: '/grupos'
+      path: '/grupos'
+      fullPath: '/grupos'
+      preLoaderRoute: typeof GruposRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/eventos': {
+      id: '/eventos'
+      path: '/eventos'
+      fullPath: '/eventos'
+      preLoaderRoute: typeof EventosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/editais-de-intercambio': {
       id: '/editais-de-intercambio'
       path: '/editais-de-intercambio'
@@ -499,6 +816,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/perfil/'
       preLoaderRoute: typeof PerfilIndexRouteImport
       parentRoute: typeof PerfilRoute
+    }
+    '/meus-grupos/': {
+      id: '/meus-grupos/'
+      path: '/'
+      fullPath: '/meus-grupos/'
+      preLoaderRoute: typeof MeusGruposIndexRouteImport
+      parentRoute: typeof MeusGruposRoute
+    }
+    '/grupos/': {
+      id: '/grupos/'
+      path: '/'
+      fullPath: '/grupos/'
+      preLoaderRoute: typeof GruposIndexRouteImport
+      parentRoute: typeof GruposRoute
+    }
+    '/eventos/': {
+      id: '/eventos/'
+      path: '/'
+      fullPath: '/eventos/'
+      preLoaderRoute: typeof EventosIndexRouteImport
+      parentRoute: typeof EventosRoute
     }
     '/disciplinas/': {
       id: '/disciplinas/'
@@ -563,6 +901,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PerfilAmigosRouteImport
       parentRoute: typeof PerfilRoute
     }
+    '/meus-grupos/$groupId': {
+      id: '/meus-grupos/$groupId'
+      path: '/$groupId'
+      fullPath: '/meus-grupos/$groupId'
+      preLoaderRoute: typeof MeusGruposGroupIdRouteImport
+      parentRoute: typeof MeusGruposRoute
+    }
+    '/grupos/novo': {
+      id: '/grupos/novo'
+      path: '/novo'
+      fullPath: '/grupos/novo'
+      preLoaderRoute: typeof GruposNovoRouteImport
+      parentRoute: typeof GruposRoute
+    }
+    '/grupos/$groupId': {
+      id: '/grupos/$groupId'
+      path: '/$groupId'
+      fullPath: '/grupos/$groupId'
+      preLoaderRoute: typeof GruposGroupIdRouteImport
+      parentRoute: typeof GruposRoute
+    }
+    '/eventos/$eventId': {
+      id: '/eventos/$eventId'
+      path: '/$eventId'
+      fullPath: '/eventos/$eventId'
+      preLoaderRoute: typeof EventosEventIdRouteImport
+      parentRoute: typeof EventosRoute
+    }
     '/editais-de-intercambio_/configuracoes': {
       id: '/editais-de-intercambio_/configuracoes'
       path: '/editais-de-intercambio/configuracoes'
@@ -583,6 +949,104 @@ declare module '@tanstack/react-router' {
       fullPath: '/planejamentos-de-semestre/compartilhado/$shareId'
       preLoaderRoute: typeof PlanejamentosDeSemestreCompartilhadoShareIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/grupos/$groupId_/gerenciar': {
+      id: '/grupos/$groupId_/gerenciar'
+      path: '/$groupId/gerenciar'
+      fullPath: '/grupos/$groupId/gerenciar'
+      preLoaderRoute: typeof GruposGroupIdGerenciarRouteImport
+      parentRoute: typeof GruposRoute
+    }
+    '/grupos/$groupId_/gerenciar/': {
+      id: '/grupos/$groupId_/gerenciar/'
+      path: '/'
+      fullPath: '/grupos/$groupId/gerenciar/'
+      preLoaderRoute: typeof GruposGroupIdGerenciarIndexRouteImport
+      parentRoute: typeof GruposGroupIdGerenciarRoute
+    }
+    '/grupos/$groupId_/gerenciar/pessoas': {
+      id: '/grupos/$groupId_/gerenciar/pessoas'
+      path: '/pessoas'
+      fullPath: '/grupos/$groupId/gerenciar/pessoas'
+      preLoaderRoute: typeof GruposGroupIdGerenciarPessoasRouteImport
+      parentRoute: typeof GruposGroupIdGerenciarRoute
+    }
+    '/grupos/$groupId_/gerenciar/perfil': {
+      id: '/grupos/$groupId_/gerenciar/perfil'
+      path: '/perfil'
+      fullPath: '/grupos/$groupId/gerenciar/perfil'
+      preLoaderRoute: typeof GruposGroupIdGerenciarPerfilRouteImport
+      parentRoute: typeof GruposGroupIdGerenciarRoute
+    }
+    '/grupos/$groupId_/gerenciar/eventos': {
+      id: '/grupos/$groupId_/gerenciar/eventos'
+      path: '/eventos'
+      fullPath: '/grupos/$groupId/gerenciar/eventos'
+      preLoaderRoute: typeof GruposGroupIdGerenciarEventosRouteImport
+      parentRoute: typeof GruposGroupIdGerenciarRoute
+    }
+    '/grupos/$groupId_/gerenciar/acessos': {
+      id: '/grupos/$groupId_/gerenciar/acessos'
+      path: '/acessos'
+      fullPath: '/grupos/$groupId/gerenciar/acessos'
+      preLoaderRoute: typeof GruposGroupIdGerenciarAcessosRouteImport
+      parentRoute: typeof GruposGroupIdGerenciarRoute
+    }
+    '/grupos/$groupId_/gerenciar/pessoas_/convidar': {
+      id: '/grupos/$groupId_/gerenciar/pessoas_/convidar'
+      path: '/pessoas/convidar'
+      fullPath: '/grupos/$groupId/gerenciar/pessoas/convidar'
+      preLoaderRoute: typeof GruposGroupIdGerenciarPessoasConvidarRouteImport
+      parentRoute: typeof GruposGroupIdGerenciarRoute
+    }
+    '/grupos/$groupId_/gerenciar/pessoas_/$membershipId': {
+      id: '/grupos/$groupId_/gerenciar/pessoas_/$membershipId'
+      path: '/pessoas/$membershipId'
+      fullPath: '/grupos/$groupId/gerenciar/pessoas/$membershipId'
+      preLoaderRoute: typeof GruposGroupIdGerenciarPessoasMembershipIdRouteImport
+      parentRoute: typeof GruposGroupIdGerenciarRoute
+    }
+    '/grupos/$groupId_/gerenciar/eventos_/novo': {
+      id: '/grupos/$groupId_/gerenciar/eventos_/novo'
+      path: '/eventos/novo'
+      fullPath: '/grupos/$groupId/gerenciar/eventos/novo'
+      preLoaderRoute: typeof GruposGroupIdGerenciarEventosNovoRouteImport
+      parentRoute: typeof GruposGroupIdGerenciarRoute
+    }
+    '/grupos/$groupId_/gerenciar/eventos_/$eventId': {
+      id: '/grupos/$groupId_/gerenciar/eventos_/$eventId'
+      path: '/eventos/$eventId'
+      fullPath: '/grupos/$groupId/gerenciar/eventos/$eventId'
+      preLoaderRoute: typeof GruposGroupIdGerenciarEventosEventIdRouteImport
+      parentRoute: typeof GruposGroupIdGerenciarRoute
+    }
+    '/grupos/$groupId_/gerenciar/acessos_/nova': {
+      id: '/grupos/$groupId_/gerenciar/acessos_/nova'
+      path: '/acessos/nova'
+      fullPath: '/grupos/$groupId/gerenciar/acessos/nova'
+      preLoaderRoute: typeof GruposGroupIdGerenciarAcessosNovaRouteImport
+      parentRoute: typeof GruposGroupIdGerenciarRoute
+    }
+    '/grupos/$groupId_/gerenciar/acessos_/$roleId': {
+      id: '/grupos/$groupId_/gerenciar/acessos_/$roleId'
+      path: '/acessos/$roleId'
+      fullPath: '/grupos/$groupId/gerenciar/acessos/$roleId'
+      preLoaderRoute: typeof GruposGroupIdGerenciarAcessosRoleIdRouteImport
+      parentRoute: typeof GruposGroupIdGerenciarRoute
+    }
+    '/grupos/$groupId_/gerenciar/eventos_/$eventId_/editar': {
+      id: '/grupos/$groupId_/gerenciar/eventos_/$eventId_/editar'
+      path: '/eventos/$eventId/editar'
+      fullPath: '/grupos/$groupId/gerenciar/eventos/$eventId/editar'
+      preLoaderRoute: typeof GruposGroupIdGerenciarEventosEventIdEditarRouteImport
+      parentRoute: typeof GruposGroupIdGerenciarRoute
+    }
+    '/grupos/$groupId_/gerenciar/acessos_/atribuicoes/$membershipId': {
+      id: '/grupos/$groupId_/gerenciar/acessos_/atribuicoes/$membershipId'
+      path: '/acessos/atribuicoes/$membershipId'
+      fullPath: '/grupos/$groupId/gerenciar/acessos/atribuicoes/$membershipId'
+      preLoaderRoute: typeof GruposGroupIdGerenciarAcessosAtribuicoesMembershipIdRouteImport
+      parentRoute: typeof GruposGroupIdGerenciarRoute
     }
   }
 }
@@ -610,6 +1074,96 @@ const DisciplinasRouteChildren: DisciplinasRouteChildren = {
 
 const DisciplinasRouteWithChildren = DisciplinasRoute._addFileChildren(
   DisciplinasRouteChildren,
+)
+
+interface EventosRouteChildren {
+  EventosEventIdRoute: typeof EventosEventIdRoute
+  EventosIndexRoute: typeof EventosIndexRoute
+}
+
+const EventosRouteChildren: EventosRouteChildren = {
+  EventosEventIdRoute: EventosEventIdRoute,
+  EventosIndexRoute: EventosIndexRoute,
+}
+
+const EventosRouteWithChildren =
+  EventosRoute._addFileChildren(EventosRouteChildren)
+
+interface GruposGroupIdGerenciarRouteChildren {
+  GruposGroupIdGerenciarAcessosRoute: typeof GruposGroupIdGerenciarAcessosRoute
+  GruposGroupIdGerenciarEventosRoute: typeof GruposGroupIdGerenciarEventosRoute
+  GruposGroupIdGerenciarPerfilRoute: typeof GruposGroupIdGerenciarPerfilRoute
+  GruposGroupIdGerenciarPessoasRoute: typeof GruposGroupIdGerenciarPessoasRoute
+  GruposGroupIdGerenciarIndexRoute: typeof GruposGroupIdGerenciarIndexRoute
+  GruposGroupIdGerenciarAcessosRoleIdRoute: typeof GruposGroupIdGerenciarAcessosRoleIdRoute
+  GruposGroupIdGerenciarAcessosNovaRoute: typeof GruposGroupIdGerenciarAcessosNovaRoute
+  GruposGroupIdGerenciarEventosEventIdRoute: typeof GruposGroupIdGerenciarEventosEventIdRoute
+  GruposGroupIdGerenciarEventosNovoRoute: typeof GruposGroupIdGerenciarEventosNovoRoute
+  GruposGroupIdGerenciarPessoasMembershipIdRoute: typeof GruposGroupIdGerenciarPessoasMembershipIdRoute
+  GruposGroupIdGerenciarPessoasConvidarRoute: typeof GruposGroupIdGerenciarPessoasConvidarRoute
+  GruposGroupIdGerenciarAcessosAtribuicoesMembershipIdRoute: typeof GruposGroupIdGerenciarAcessosAtribuicoesMembershipIdRoute
+  GruposGroupIdGerenciarEventosEventIdEditarRoute: typeof GruposGroupIdGerenciarEventosEventIdEditarRoute
+}
+
+const GruposGroupIdGerenciarRouteChildren: GruposGroupIdGerenciarRouteChildren =
+  {
+    GruposGroupIdGerenciarAcessosRoute: GruposGroupIdGerenciarAcessosRoute,
+    GruposGroupIdGerenciarEventosRoute: GruposGroupIdGerenciarEventosRoute,
+    GruposGroupIdGerenciarPerfilRoute: GruposGroupIdGerenciarPerfilRoute,
+    GruposGroupIdGerenciarPessoasRoute: GruposGroupIdGerenciarPessoasRoute,
+    GruposGroupIdGerenciarIndexRoute: GruposGroupIdGerenciarIndexRoute,
+    GruposGroupIdGerenciarAcessosRoleIdRoute:
+      GruposGroupIdGerenciarAcessosRoleIdRoute,
+    GruposGroupIdGerenciarAcessosNovaRoute:
+      GruposGroupIdGerenciarAcessosNovaRoute,
+    GruposGroupIdGerenciarEventosEventIdRoute:
+      GruposGroupIdGerenciarEventosEventIdRoute,
+    GruposGroupIdGerenciarEventosNovoRoute:
+      GruposGroupIdGerenciarEventosNovoRoute,
+    GruposGroupIdGerenciarPessoasMembershipIdRoute:
+      GruposGroupIdGerenciarPessoasMembershipIdRoute,
+    GruposGroupIdGerenciarPessoasConvidarRoute:
+      GruposGroupIdGerenciarPessoasConvidarRoute,
+    GruposGroupIdGerenciarAcessosAtribuicoesMembershipIdRoute:
+      GruposGroupIdGerenciarAcessosAtribuicoesMembershipIdRoute,
+    GruposGroupIdGerenciarEventosEventIdEditarRoute:
+      GruposGroupIdGerenciarEventosEventIdEditarRoute,
+  }
+
+const GruposGroupIdGerenciarRouteWithChildren =
+  GruposGroupIdGerenciarRoute._addFileChildren(
+    GruposGroupIdGerenciarRouteChildren,
+  )
+
+interface GruposRouteChildren {
+  GruposGroupIdRoute: typeof GruposGroupIdRoute
+  GruposNovoRoute: typeof GruposNovoRoute
+  GruposIndexRoute: typeof GruposIndexRoute
+  GruposGroupIdGerenciarRoute: typeof GruposGroupIdGerenciarRouteWithChildren
+}
+
+const GruposRouteChildren: GruposRouteChildren = {
+  GruposGroupIdRoute: GruposGroupIdRoute,
+  GruposNovoRoute: GruposNovoRoute,
+  GruposIndexRoute: GruposIndexRoute,
+  GruposGroupIdGerenciarRoute: GruposGroupIdGerenciarRouteWithChildren,
+}
+
+const GruposRouteWithChildren =
+  GruposRoute._addFileChildren(GruposRouteChildren)
+
+interface MeusGruposRouteChildren {
+  MeusGruposGroupIdRoute: typeof MeusGruposGroupIdRoute
+  MeusGruposIndexRoute: typeof MeusGruposIndexRoute
+}
+
+const MeusGruposRouteChildren: MeusGruposRouteChildren = {
+  MeusGruposGroupIdRoute: MeusGruposGroupIdRoute,
+  MeusGruposIndexRoute: MeusGruposIndexRoute,
+}
+
+const MeusGruposRouteWithChildren = MeusGruposRoute._addFileChildren(
+  MeusGruposRouteChildren,
 )
 
 interface PerfilRouteChildren {
@@ -652,6 +1206,9 @@ const rootRouteChildren: RootRouteChildren = {
   CursosRoute: CursosRouteWithChildren,
   DisciplinasRoute: DisciplinasRouteWithChildren,
   EditaisDeIntercambioRoute: EditaisDeIntercambioRoute,
+  EventosRoute: EventosRouteWithChildren,
+  GruposRoute: GruposRouteWithChildren,
+  MeusGruposRoute: MeusGruposRouteWithChildren,
   MinhasSolicitacoesRoute: MinhasSolicitacoesRoute,
   PerfilRoute: PerfilRouteWithChildren,
   PessoasRoute: PessoasRoute,

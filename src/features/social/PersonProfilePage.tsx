@@ -31,6 +31,7 @@ import {
   removeFriendship,
   requestFriendship,
 } from '@/features/friends/studentSocialApi'
+import { groupApi } from '@/features/groups/data/groupApi'
 import { listSharedPeriodPlanningsForPerson } from '@/features/planning-shared/data/sharedPeriodPlanningApi'
 import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
@@ -80,6 +81,21 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
         auth.getAccessToken,
       ),
     enabled: Boolean(studentId),
+  })
+  const publicProfileAvailable = Boolean(
+    personQuery.data ||
+    (ownProfileQuery.data?.publicId === publicId &&
+      ownProfileQuery.data.enabled),
+  )
+  const groupMembershipsQuery = useQuery({
+    queryKey: ['public', 'group-memberships', 'profile', publicId],
+    queryFn: () => groupApi.membersForPublicProfile(publicId),
+    enabled: publicProfileAvailable,
+  })
+  const groupsQuery = useQuery({
+    queryKey: ['public', 'groups'],
+    queryFn: groupApi.list,
+    enabled: Boolean(groupMembershipsQuery.data?.length),
   })
   const refresh = () =>
     queryClient.invalidateQueries({
@@ -148,6 +164,12 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
   const isSelf = ownProfile?.publicId === publicId
   const interests = person.interests
   const sharedPlans = plansQuery.data?.items ?? []
+  const groupIds = new Set(
+    (groupMembershipsQuery.data ?? []).map((membership) => membership.groupId),
+  )
+  const publicGroups = (groupsQuery.data ?? [])
+    .filter((group) => groupIds.has(group.id))
+    .sort((left, right) => left.name.localeCompare(right.name, 'pt-BR'))
   const scheduleMeetings: ReadonlyArray<WeeklyScheduleMeeting> =
     person.currentCourses.flatMap((course) =>
       course.schedules.map((schedule) => ({
@@ -242,6 +264,51 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
             </div>
           </CardContent>
         </Card>
+        {publicProfileAvailable && (
+          <Card variant="flat" className="border-2 border-border bg-card/80">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-extrabold">
+                Grupos de que participa
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Participações que esta pessoa escolheu mostrar publicamente.
+              </p>
+              {groupMembershipsQuery.isPending ||
+              (groupIds.size > 0 && groupsQuery.isPending) ? (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  Carregando grupos...
+                </p>
+              ) : groupMembershipsQuery.isError || groupsQuery.isError ? (
+                <p role="alert" className="mt-4 text-sm text-destructive">
+                  Não foi possível carregar os grupos desta pessoa.
+                </p>
+              ) : publicGroups.length === 0 ? (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  Nenhum grupo com participação pública.
+                </p>
+              ) : (
+                <ul className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {publicGroups.map((group) => (
+                    <li key={group.id}>
+                      <Link
+                        to="/grupos/$groupId"
+                        params={{ groupId: String(group.id) }}
+                        className="pomi-focus block rounded-md border-2 border-border p-4 hover:border-primary"
+                      >
+                        <strong>{group.name}</strong>
+                        {group.description && (
+                          <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                            {group.description}
+                          </p>
+                        )}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        )}
         <Card variant="flat" className="border-2 border-border bg-card/80">
           <CardContent className="p-6">
             <h2 className="text-xl font-extrabold">Agenda das aulas</h2>
