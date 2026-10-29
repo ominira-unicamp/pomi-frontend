@@ -35,6 +35,7 @@ import {
   updatePublicProfile,
 } from '@/features/friends/studentSocialApi'
 import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { MediaEditor } from '@/features/media/MediaEditor'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 export function ProfilePage() {
@@ -150,6 +151,28 @@ export function ProfilePage() {
     .sort((left, right) => left.name.localeCompare(right.name, 'pt-BR'))
   return form ? (
     <div className="grid gap-8">
+      <Card variant="flat" className="border-2 border-border bg-card/80">
+        <CardHeader>
+          <CardTitle>Foto do perfil</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Sua foto acompanha a visibilidade do perfil público.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <MediaEditor
+            label="Avatar do estudante"
+            target={{ kind: 'studentAvatar', studentId }}
+            mediaId={form.avatarMediaId}
+            preset="avatarLarge"
+            access={form.enabled ? 'public' : 'private'}
+            onChanged={() => {
+              void queryClient.invalidateQueries({
+                queryKey: privateQueryKeys.studentSocial(sessionSubject, studentId),
+              })
+            }}
+          />
+        </CardContent>
+      </Card>
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
         <Card variant="flat" className="border-2 border-border bg-card/80">
           <CardHeader>

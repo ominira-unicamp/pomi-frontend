@@ -35,6 +35,7 @@ import { groupApi } from '@/features/groups/data/groupApi'
 import { listSharedPeriodPlanningsForPerson } from '@/features/planning-shared/data/sharedPeriodPlanningApi'
 import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
+import { MediaImage } from '@/features/media/MediaImage'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 function visibilityLabel(visibility: 'FRIENDS' | 'PUBLIC') {
@@ -199,9 +200,17 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
           className="w-full border-2 border-border bg-card/80"
         >
           <CardContent className="grid gap-6 p-6 sm:grid-cols-[auto_minmax(0,1fr)]">
-            <span className="grid size-20 place-items-center rounded-full bg-primary text-3xl font-black text-primary-foreground">
-              {person.displayName.slice(0, 1).toUpperCase()}
-            </span>
+            <MediaImage
+              mediaId={person.avatarMediaId}
+              preset="avatarLarge"
+              alt={`Foto de ${person.displayName}`}
+              className="size-20 rounded-full object-cover"
+              fallback={
+                <span className="grid size-20 place-items-center rounded-full bg-primary text-3xl font-black text-primary-foreground">
+                  {person.displayName.slice(0, 1).toUpperCase()}
+                </span>
+              }
+            />
             <div>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>

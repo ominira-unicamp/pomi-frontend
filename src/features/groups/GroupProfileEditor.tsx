@@ -11,6 +11,7 @@ import type {
 } from '@ominira/pomi-sdk/generated/app'
 import { pomiSdk } from '@/api/client'
 import { useOptionalAuth } from '@/auth/AuthProvider'
+import { MediaEditor } from '@/features/media/MediaEditor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -69,6 +70,24 @@ export function ProfileEditor({
   })
   return (
     <div className="space-y-6">
+      {permissions.includes('GROUP_EDIT') && (
+        <section className="grid gap-5 border-b border-border pb-6 sm:grid-cols-2">
+          <MediaEditor
+            label="Avatar do grupo"
+            target={{ kind: 'groupAvatar', studentId, groupId: group.id }}
+            mediaId={group.avatarMediaId}
+            preset="avatarLarge"
+            onChanged={refresh}
+          />
+          <MediaEditor
+            label="Banner do grupo"
+            target={{ kind: 'groupBanner', studentId, groupId: group.id }}
+            mediaId={group.bannerMediaId}
+            preset="banner"
+            onChanged={refresh}
+          />
+        </section>
+      )}
       {permissions.includes('GROUP_EDIT') && (
         <form
           className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end"

@@ -14,6 +14,7 @@ import {
 } from '@/components/PageLayout'
 import { buttonVariants } from '@/components/ui/button'
 import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { MediaImage } from '@/features/media/MediaImage'
 
 export function GroupDetailPage({ groupId }: { groupId: number }) {
   const auth = useOptionalAuth()
@@ -114,6 +115,28 @@ export function GroupDetailPage({ groupId }: { groupId: number }) {
           )
         }
       />
+      {(value.bannerMediaId || value.avatarMediaId) && (
+        <div className="mb-8 flex items-center gap-4">
+          {value.avatarMediaId && (
+            <MediaImage
+              mediaId={value.avatarMediaId}
+              preset="avatarLarge"
+              alt={`Avatar do grupo ${value.name}`}
+              className="size-20 shrink-0 rounded-md object-cover"
+              fallback={null}
+            />
+          )}
+          {value.bannerMediaId && (
+            <MediaImage
+              mediaId={value.bannerMediaId}
+              preset="banner"
+              alt={`Banner do grupo ${value.name}`}
+              className="h-28 min-w-0 flex-1 rounded-md object-cover sm:h-36"
+              fallback={null}
+            />
+          )}
+        </div>
+      )}
       {value.tags.length > 0 && (
         <div
           className="mb-8 flex flex-wrap gap-2"
