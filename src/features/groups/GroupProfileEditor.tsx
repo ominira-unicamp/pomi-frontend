@@ -28,6 +28,7 @@ export function ProfileEditor({
   refresh: () => void
 }) {
   const auth = useOptionalAuth()
+  const [photoPending, setPhotoPending] = useState(false)
   const [name, setName] = useState(group.name)
   const [description, setDescription] = useState(group.description ?? '')
   const [contactType, setContactType] = useState('email')
@@ -43,6 +44,7 @@ export function ProfileEditor({
   const [editingLinkLabel, setEditingLinkLabel] = useState('')
   const [editingLinkUrl, setEditingLinkUrl] = useState('')
   const dirty =
+    photoPending ||
     name !== group.name ||
     description !== (group.description ?? '') ||
     contactValue.length > 0 ||
@@ -71,19 +73,14 @@ export function ProfileEditor({
   return (
     <div className="space-y-6">
       {permissions.includes('GROUP_EDIT') && (
-        <section className="grid gap-5 border-b border-border pb-6 sm:grid-cols-2">
+        <section className="border-b border-border pb-6">
           <MediaEditor
             label="Avatar do grupo"
+            variant="profile"
+            onPendingChange={setPhotoPending}
             target={{ kind: 'groupAvatar', studentId, groupId: group.id }}
             mediaId={group.avatarMediaId}
             preset="avatarLarge"
-            onChanged={refresh}
-          />
-          <MediaEditor
-            label="Banner do grupo"
-            target={{ kind: 'groupBanner', studentId, groupId: group.id }}
-            mediaId={group.bannerMediaId}
-            preset="banner"
             onChanged={refresh}
           />
         </section>

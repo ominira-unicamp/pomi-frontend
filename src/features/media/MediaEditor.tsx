@@ -1,8 +1,9 @@
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useId, useRef, useState } from 'react'
 
 import { MediaImage } from './MediaImage'
 import { removeMedia, uploadMedia } from './mediaApi'
+import { invalidateIdentityImages } from './invalidateMedia'
 import type { MediaPreset, MediaTarget } from './mediaApi'
 import { isApiError } from '@/api/errors'
 import { useOptionalAuth } from '@/auth/AuthProvider'
@@ -33,6 +34,8 @@ export function MediaEditor({
   preset,
   access = 'public',
   onChanged,
+  variant = 'default',
+  onPendingChange,
 }: {
   label: string
   target: MediaTarget
@@ -40,14 +43,23 @@ export function MediaEditor({
   preset: MediaPreset
   access?: 'public' | 'private'
   onChanged: () => void
+  variant?: 'default' | 'profile'
+  onPendingChange?: (pending: boolean) => void
 }) {
+  const profile = variant === 'profile'
   const auth = useOptionalAuth()
+  const queryClient = useQueryClient()
+  const changed = () => {
+    void invalidateIdentityImages(queryClient)
+    onChanged()
+  }
   const inputId = useId()
   const inputRef = useRef<HTMLInputElement>(null)
   const uploadController = useRef<AbortController | null>(null)
   const [file, setFile] = useState<File>()
   const [preview, setPreview] = useState<string>()
   const [error, setError] = useState<string>()
+  const [feedback, setFeedback] = useState('')
 
   useEffect(() => {
     if (!file) {
@@ -62,6 +74,7 @@ export function MediaEditor({
   useEffect(() => {
     setFile(undefined)
     setError(undefined)
+    setFeedback('')
     return () => {
       uploadController.current?.abort()
       uploadController.current = null
@@ -81,7 +94,8 @@ export function MediaEditor({
     },
     onSuccess: () => {
       setFile(undefined)
-      onChanged()
+      setFeedback(profile ? 'Foto atualizada.' : 'Imagem atualizada.')
+      changed()
     },
     onSettled: () => {
       uploadController.current = null
@@ -89,13 +103,20 @@ export function MediaEditor({
   })
   const remove = useMutation({
     mutationFn: () => removeMedia(target, auth.getAccessToken),
-    onSuccess: onChanged,
+    onSuccess: () => {
+      setFeedback(profile ? 'Foto removida.' : 'Imagem removida.')
+      changed()
+    },
   })
   const busy = upload.isPending || remove.isPending
-  const imageSize = preset === 'banner' ? 'h-20 w-40' : 'size-20'
+  useEffect(() => {
+    onPendingChange?.(Boolean(file) || busy)
+  }, [file, busy, onPendingChange])
+  const imageSize = 'size-20'
+  const shape = profile ? 'rounded-full' : 'rounded-md'
   const fallback = (
     <span
-      className={`grid ${imageSize} place-items-center rounded-md border-2 border-dashed border-border bg-muted text-xs font-bold text-muted-foreground`}
+      className={`grid ${imageSize} place-items-center ${shape} border-2 border-dashed border-border bg-muted text-xs font-bold text-muted-foreground`}
     >
       Sem imagem
     </span>
@@ -103,13 +124,13 @@ export function MediaEditor({
 
   return (
     <div className="space-y-3">
-      <h3 className="text-sm font-extrabold">{label}</h3>
+      {!profile && <h3 className="text-sm font-extrabold">{label}</h3>}
       <div className="flex flex-wrap items-center gap-4">
         {preview ? (
           <img
             src={preview}
             alt={`Prévia de ${label.toLowerCase()}`}
-            className={`${imageSize} rounded-md object-cover`}
+            className={`${imageSize} ${shape} object-cover object-center`}
           />
         ) : (
           <MediaImage
@@ -117,12 +138,16 @@ export function MediaEditor({
             preset={preset}
             access={access}
             alt={label}
-            className={`${imageSize} rounded-md object-cover`}
+            className={`${imageSize} ${shape} object-cover object-center`}
             fallback={fallback}
           />
         )}
         <div className="min-w-0 space-y-2">
-          <label htmlFor={inputId} className="block text-sm font-bold">
+          {profile && <h3 className="text-sm font-extrabold">{label}</h3>}
+          <label
+            htmlFor={inputId}
+            className={profile ? 'sr-only' : 'block text-sm font-bold'}
+          >
             Escolher imagem
           </label>
           <input
@@ -131,10 +156,14 @@ export function MediaEditor({
             type="file"
             accept="image/jpeg,image/png,image/webp"
             disabled={busy}
-            className="block w-full max-w-72 text-sm"
+            className={profile ? 'sr-only' : 'block w-full max-w-72 text-sm'}
+            tabIndex={profile ? -1 : undefined}
             onChange={(event) => {
               const selected = event.target.files?.[0]
               setError(undefined)
+              setFeedback('')
+              upload.reset()
+              remove.reset()
               if (!selected) return
               if (!allowedTypes.has(selected.type)) {
                 setFile(undefined)
@@ -149,36 +178,80 @@ export function MediaEditor({
             }}
           />
           <div className="flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              disabled={!file || busy}
-              onClick={() => file && upload.mutate(file)}
-            >
-              Enviar imagem
-            </Button>
+            {profile && (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={busy}
+                onClick={() => inputRef.current?.click()}
+              >
+                Alterar foto
+              </Button>
+            )}
+            {(!profile || file) && (
+              <Button
+                size="sm"
+                disabled={!file || busy}
+                onClick={() => file && upload.mutate(file)}
+              >
+                {upload.isPending
+                  ? 'Enviando...'
+                  : profile
+                    ? 'Enviar foto'
+                    : 'Enviar imagem'}
+              </Button>
+            )}
             {file && (
               <Button
                 size="sm"
                 variant="outline"
                 disabled={busy}
-                onClick={() => setFile(undefined)}
+                onClick={() => {
+                  setFile(undefined)
+                  upload.reset()
+                  setError(undefined)
+                }}
               >
-                Cancelar
+                {profile ? 'Cancelar seleção' : 'Cancelar'}
               </Button>
             )}
             {mediaId && (
               <Button
                 size="sm"
-                variant="outline"
-                disabled={busy}
-                onClick={() => remove.mutate()}
+                variant={profile ? 'ghost' : 'outline'}
+                disabled={busy || Boolean(file)}
+                onClick={() => {
+                  upload.reset()
+                  setFeedback('')
+                  remove.mutate()
+                }}
               >
-                Remover imagem
+                {remove.isPending
+                  ? 'Removendo...'
+                  : profile
+                    ? 'Remover foto'
+                    : 'Remover imagem'}
               </Button>
             )}
           </div>
         </div>
       </div>
+      {profile && (
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          JPEG, PNG ou WebP, até 5 MiB. Corte central quadrado. A foto é salva
+          ao enviar, separadamente de{' '}
+          {target.kind === 'groupAvatar' ? 'nome e descrição' : 'nome e bio'}.
+        </p>
+      )}
+      {profile && (busy || feedback) && (
+        <p role="status" className="text-xs text-muted-foreground">
+          {busy
+            ? upload.isPending
+              ? 'Enviando imagem...'
+              : 'Removendo imagem...'
+            : feedback}
+        </p>
+      )}
       {(error || upload.isError || remove.isError) && (
         <p role="alert" className="text-sm text-destructive">
           {error ?? mediaErrorMessage(upload.error ?? remove.error)}

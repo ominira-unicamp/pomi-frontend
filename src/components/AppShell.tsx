@@ -33,7 +33,7 @@ import { Brand } from '@/components/Brand'
 import { SiteFooter } from '@/components/SiteFooter'
 import { ThemeMenu } from '@/components/ThemeMenu'
 import { useTheme } from '@/components/ThemeProvider'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { AccountAvatar } from '@/features/media/AccountAvatar'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -86,15 +86,6 @@ function displayName(profile: ReturnType<typeof useAuth>['profile']) {
       profile?.email ||
       'Conta POMI',
   )
-}
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase()
 }
 
 type NavigationItem = Readonly<{
@@ -423,9 +414,7 @@ function AccountMenu() {
           className="h-11 gap-3 px-2 text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
           aria-label={`Abrir menu de ${name}`}
         >
-          <Avatar>
-            <AvatarFallback>{initials(name)}</AvatarFallback>
-          </Avatar>
+          <AccountAvatar name={name} />
           <span className="hidden max-w-40 truncate text-sm sm:inline">
             {name}
           </span>

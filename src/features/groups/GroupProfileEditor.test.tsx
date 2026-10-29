@@ -59,6 +59,8 @@ describe('partial group permissions', () => {
         refresh={refresh}
       />,
     )
+    expect(screen.getByRole('button', { name: 'Alterar foto' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Enviar foto' })).toBeNull()
     fireEvent.change(screen.getByRole('textbox', { name: 'Nome' }), {
       target: { value: 'Novo coletivo' },
     })
@@ -90,6 +92,7 @@ describe('partial group permissions', () => {
     expect(
       screen.queryByRole('button', { name: 'Salvar nome e descrição' }),
     ).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Alterar foto' })).toBeNull()
     await screen.findByRole('option', { name: 'Cultura' })
     fireEvent.change(screen.getByRole('combobox', { name: 'Escolher tag' }), {
       target: { value: '3' },

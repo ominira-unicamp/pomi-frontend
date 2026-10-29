@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import {
   Outlet,
@@ -25,6 +26,7 @@ const authState = {
 
 vi.mock('@/auth/AuthProvider', () => ({
   useAuth: () => authState,
+  useOptionalAuth: () => authState,
 }))
 
 function renderShell(initialEntry = '/') {
@@ -78,9 +80,15 @@ function renderShell(initialEntry = '/') {
   })
 
   return render(
-    <ThemeProvider>
-      <RouterProvider router={router} />
-    </ThemeProvider>,
+    <QueryClientProvider
+      client={
+        new QueryClient({ defaultOptions: { queries: { retry: false } } })
+      }
+    >
+      <ThemeProvider>
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </QueryClientProvider>,
   )
 }
 

@@ -1,9 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
-import { Copy, Eye, EyeOff, Tags, Trash2 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { Link, useBlocker } from '@tanstack/react-router'
+import { Eye, EyeOff, Tags, Trash2 } from 'lucide-react'
+import { useState } from 'react'
 
-import type { PublicProfile } from '@/features/friends/studentSocialApi'
+import type {
+  PublicProfile,
+  PublicProfileUpdate,
+} from '@/features/friends/studentSocialApi'
+import { invalidateIdentityImages } from '@/features/media/invalidateMedia'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
   EmptyState,
@@ -30,30 +34,49 @@ import {
 import { listTags } from '@/features/tag-taxonomy/data/tagTaxonomyApi'
 import {
   getPublicProfile,
-  hasPublicProfileChanges,
-  publicProfileUpdateInput,
   updatePublicProfile,
 } from '@/features/friends/studentSocialApi'
 import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
 import { MediaEditor } from '@/features/media/MediaEditor'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
+type IdentityDraft = { scope: string; displayName: string; bio: string | null }
+
+const courseVisibilityHelp = {
+  PRIVATE:
+    'Somente você pode ver suas disciplinas, turmas, horários e salas de aula.',
+  FRIENDS:
+    'Seus amigos podem ver suas disciplinas, turmas, horários e salas de aula.',
+  PUBLIC:
+    'Estudantes autenticados podem ver suas disciplinas, turmas, horários e salas de aula.',
+}
+
 export function ProfilePage() {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const queryClient = useQueryClient()
   const { studentId, studentQuery } = useStudentProfile()
-  const [form, setForm] = useState<PublicProfile>()
+  const scope = `${sessionSubject}:${studentId}`
+  const [draft, setDraft] = useState<IdentityDraft>()
+  const [photoPending, setPhotoPending] = useState(false)
   const [newInterestId, setNewInterestId] = useState('')
+  const [interestFeedback, setInterestFeedback] = useState('')
   const [visibilityDialogOpen, setVisibilityDialogOpen] = useState(false)
-  const [visibilityTarget, setVisibilityTarget] = useState(false)
+  const profileKey = privateQueryKeys.studentSocialProfile(
+    sessionSubject,
+    studentId,
+  )
   const profileQuery = useQuery({
-    queryKey: privateQueryKeys.studentSocialProfile(sessionSubject, studentId),
+    queryKey: profileKey,
     queryFn: () => getPublicProfile(studentId!, auth.getAccessToken),
     enabled: Boolean(studentId),
   })
+  const interestsKey = privateQueryKeys.studentTagInterests(
+    sessionSubject,
+    studentId,
+  )
   const interestsQuery = useQuery({
-    queryKey: privateQueryKeys.studentTagInterests(sessionSubject, studentId),
+    queryKey: interestsKey,
     queryFn: () => listStudentTagInterests(studentId!, auth.getAccessToken),
     enabled: Boolean(studentId),
     staleTime: 60 * 1000,
@@ -63,71 +86,74 @@ export function ProfilePage() {
     queryFn: listTags,
     staleTime: 5 * 60 * 1000,
   })
-  useEffect(() => {
-    if (profileQuery.data) setForm(profileQuery.data)
-  }, [profileQuery.data])
+  const profile = profileQuery.data
+  const activeDraft = draft?.scope === scope ? draft : undefined
+  const displayName = activeDraft?.displayName ?? profile?.displayName ?? ''
+  const bio = activeDraft ? activeDraft.bio : (profile?.bio ?? null)
+  const changed = Boolean(
+    profile && (displayName !== profile.displayName || bio !== profile.bio),
+  )
+  const valid =
+    displayName.trim().length > 0 &&
+    displayName.trim().length <= 80 &&
+    (bio?.length ?? 0) <= 280
+  useBlocker({
+    disabled: !changed && !photoPending,
+    enableBeforeUnload: changed || photoPending,
+    shouldBlockFn: () =>
+      !window.confirm(
+        'Descartar alterações não salvas do perfil ou a seleção de foto?',
+      ),
+  })
+  const refreshProfile = (value: PublicProfile) => {
+    queryClient.setQueryData(profileKey, value)
+    void invalidateIdentityImages(queryClient)
+  }
   const save = useMutation({
-    mutationFn: () =>
-      updatePublicProfile(
-        studentId!,
-        publicProfileUpdateInput(form!),
-        auth.getAccessToken,
-      ),
+    mutationFn: (body: Pick<PublicProfileUpdate, 'displayName' | 'bio'>) =>
+      updatePublicProfile(studentId!, body, auth.getAccessToken),
+    onMutate: () => queryClient.cancelQueries({ queryKey: profileKey }),
     onSuccess: (value) => {
-      setForm(value)
-      queryClient.setQueryData(
-        privateQueryKeys.studentSocialProfile(sessionSubject, studentId),
-        value,
-      )
-      void queryClient.invalidateQueries({
-        queryKey: privateQueryKeys.studentSocial(sessionSubject, studentId),
-      })
+      setDraft(undefined)
+      refreshProfile(value)
     },
   })
-  const changeVisibility = useMutation({
-    mutationFn: (enabled: boolean) =>
-      updatePublicProfile(
-        studentId!,
-        { ...publicProfileUpdateInput(form!), enabled },
-        auth.getAccessToken,
-      ),
+  const privacy = useMutation({
+    mutationFn: (
+      body: Pick<PublicProfileUpdate, 'enabled' | 'currentCoursesVisibility'>,
+    ) => updatePublicProfile(studentId!, body, auth.getAccessToken),
+    onMutate: () => queryClient.cancelQueries({ queryKey: profileKey }),
     onSuccess: (value) => {
-      setForm(value)
+      refreshProfile(value)
       setVisibilityDialogOpen(false)
-      queryClient.setQueryData(
-        privateQueryKeys.studentSocialProfile(sessionSubject, studentId),
-        value,
-      )
-      void queryClient.invalidateQueries({
-        queryKey: privateQueryKeys.studentSocial(sessionSubject, studentId),
-      })
     },
   })
+  const refreshInterests = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: interestsKey }),
+      queryClient.invalidateQueries({
+        queryKey: privateQueryKeys.studentSocial(sessionSubject, studentId),
+      }),
+    ])
+  }
   const removeInterest = useMutation({
     mutationFn: (tagId: number) =>
       deleteStudentTagInterest(studentId!, tagId, auth.getAccessToken),
-    onSuccess: () =>
-      void queryClient.invalidateQueries({
-        queryKey: privateQueryKeys.studentTagInterests(
-          sessionSubject,
-          studentId,
-        ),
-      }),
+    onSuccess: async () => {
+      setInterestFeedback('Interesse removido.')
+      await refreshInterests()
+    },
   })
   const addInterest = useMutation({
     mutationFn: (tagId: number) =>
       putStudentTagInterest(studentId!, tagId, auth.getAccessToken),
-    onSuccess: () => {
+    onSuccess: async () => {
       setNewInterestId('')
-      void queryClient.invalidateQueries({
-        queryKey: privateQueryKeys.studentTagInterests(
-          sessionSubject,
-          studentId,
-        ),
-      })
+      setInterestFeedback('Interesse adicionado.')
+      await refreshInterests()
     },
   })
-  if (studentQuery.isLoading || (studentId && profileQuery.isLoading))
+  if (studentQuery.isLoading || (studentId && profileQuery.isPending))
     return (
       <PageContainer>
         <LoadingState label="Carregando seu perfil" />
@@ -142,224 +168,314 @@ export function ProfilePage() {
         />
       </PageContainer>
     )
-  const changed = hasPublicProfileChanges(form, profileQuery.data)
+  if (!profile)
+    return (
+      <EmptyState
+        title="Não foi possível carregar seu perfil"
+        description="Tente carregar suas informações novamente."
+        action={{
+          label: 'Tentar novamente',
+          onClick: () => void profileQuery.refetch(),
+        }}
+      />
+    )
+  const saving = save.isPending || privacy.isPending
+  const editingInterests = addInterest.isPending || removeInterest.isPending
   const selectedInterestIds = new Set(
     interestsQuery.data?.map((interest) => interest.id),
   )
   const availableTags = (tagsQuery.data ?? [])
     .filter((tag) => !selectedInterestIds.has(tag.id))
-    .sort((left, right) => left.name.localeCompare(right.name, 'pt-BR'))
-  return form ? (
-    <div className="grid gap-8">
-      <Card variant="flat" className="border-2 border-border bg-card/80">
-        <CardHeader>
-          <CardTitle>Foto do perfil</CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Sua foto acompanha a visibilidade do perfil público.
-          </p>
-        </CardHeader>
-        <CardContent>
-          <MediaEditor
-            label="Avatar do estudante"
-            target={{ kind: 'studentAvatar', studentId }}
-            mediaId={form.avatarMediaId}
-            preset="avatarLarge"
-            access={form.enabled ? 'public' : 'private'}
-            onChanged={() => {
-              void queryClient.invalidateQueries({
-                queryKey: privateQueryKeys.studentSocial(sessionSubject, studentId),
-              })
-            }}
-          />
-        </CardContent>
-      </Card>
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.35fr)_minmax(18rem,0.65fr)]">
-        <Card variant="flat" className="border-2 border-border bg-card/80">
-          <CardHeader>
-            <CardTitle>Dados públicos</CardTitle>
+    .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
+  const courseVisibility =
+    privacy.isPending && privacy.variables.currentCoursesVisibility
+      ? privacy.variables.currentCoursesVisibility
+      : profile.currentCoursesVisibility
+  const chooseInterest = (value: string) => {
+    setNewInterestId(value)
+    if (
+      !value ||
+      editingInterests ||
+      !availableTags.some((tag) => tag.id === Number(value))
+    )
+      return
+    setInterestFeedback('')
+    removeInterest.reset()
+    addInterest.mutate(Number(value))
+  }
+  return (
+    <div className="space-y-6">
+      {profileQuery.isError && (
+        <p role="alert" className="text-sm text-destructive">
+          Não foi possível atualizar os dados do perfil. Seu rascunho foi
+          mantido.{' '}
+          <button
+            type="button"
+            className="pomi-focus rounded-sm underline"
+            onClick={() => void profileQuery.refetch()}
+          >
+            Tentar novamente
+          </button>
+        </p>
+      )}
+      <div className="grid min-w-0 items-start gap-5 xl:grid-cols-[minmax(0,1.7fr)_minmax(0,1fr)]">
+        <Card
+          variant="flat"
+          className="min-w-0 border border-border/35 bg-card/60"
+        >
+          <CardHeader className="p-5 pb-4">
+            <CardTitle>Identidade pública</CardTitle>
             <p className="text-sm text-muted-foreground">
-              As informações que outros estudantes verão.
+              Como você se apresenta à comunidade.
             </p>
           </CardHeader>
-          <CardContent className="grid gap-5">
-            <label className="grid gap-1.5 text-sm font-bold">
-              Nome público
-              <Input
-                value={form.displayName}
-                onChange={(event) =>
-                  setForm({ ...form, displayName: event.target.value })
-                }
-              />
-            </label>
-            <label className="grid gap-1.5 text-sm font-bold">
-              Bio
-              <textarea
-                className="pomi-focus min-h-28 rounded-md border-2 border-input bg-background p-3 font-medium"
-                maxLength={280}
-                value={form.bio ?? ''}
-                onChange={(event) =>
-                  setForm({ ...form, bio: event.target.value || null })
-                }
-              />
-              <span className="text-xs font-normal text-muted-foreground">
-                {form.bio?.length ?? 0}/280 caracteres
-              </span>
-            </label>
+          <CardContent className="space-y-5 px-5 pb-5 pt-0">
+            <MediaEditor
+              label="Foto do perfil"
+              variant="profile"
+              target={{ kind: 'studentAvatar', studentId }}
+              mediaId={profile.avatarMediaId}
+              preset="avatarLarge"
+              access="private"
+              onPendingChange={setPhotoPending}
+              onChanged={() =>
+                void queryClient.invalidateQueries({ queryKey: profileKey })
+              }
+            />
+            <form
+              className="space-y-4 border-t border-border/25 pt-4"
+              onSubmit={(event) => {
+                event.preventDefault()
+                if (changed && valid && !saving)
+                  save.mutate({
+                    displayName: displayName.trim(),
+                    bio: bio?.trim() || null,
+                  })
+              }}
+            >
+              <fieldset disabled={saving} className="min-w-0 space-y-4">
+                <label className="grid gap-1.5 text-sm font-bold">
+                  Nome público
+                  <Input
+                    required
+                    maxLength={80}
+                    autoComplete="nickname"
+                    value={displayName}
+                    onChange={(event) => {
+                      save.reset()
+                      setDraft({ scope, displayName: event.target.value, bio })
+                    }}
+                  />
+                </label>
+                <label className="grid gap-1.5 text-sm font-bold">
+                  Bio
+                  <textarea
+                    rows={3}
+                    className="pomi-focus min-h-20 w-full resize-y rounded-md border-2 border-input bg-background p-3 font-medium"
+                    maxLength={280}
+                    value={bio ?? ''}
+                    onChange={(event) => {
+                      save.reset()
+                      setDraft({
+                        scope,
+                        displayName,
+                        bio: event.target.value || null,
+                      })
+                    }}
+                  />
+                  <span className="text-xs font-normal text-muted-foreground">
+                    {bio?.length ?? 0}/280 caracteres
+                  </span>
+                </label>
+              </fieldset>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p role="status" className="text-xs text-muted-foreground">
+                  {save.isPending
+                    ? 'Salvando nome e bio...'
+                    : changed
+                      ? 'Nome e bio têm alterações não salvas.'
+                      : save.isSuccess
+                        ? 'Nome e bio salvos.'
+                        : 'Salvar alterações atualiza somente nome e bio.'}
+                </p>
+                <Button type="submit" disabled={saving || !changed || !valid}>
+                  {save.isPending ? 'Salvando...' : 'Salvar alterações'}
+                </Button>
+              </div>
+              {changed && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={saving}
+                  onClick={() => {
+                    setDraft(undefined)
+                    save.reset()
+                  }}
+                >
+                  Descartar alterações
+                </Button>
+              )}
+              {save.isError && (
+                <p role="alert" className="text-sm text-destructive">
+                  Não foi possível salvar nome e bio. Suas alterações foram
+                  mantidas; tente novamente.
+                </p>
+              )}
+            </form>
           </CardContent>
         </Card>
-        <Card variant="flat" className="border-2 border-border bg-card/80">
-          <CardHeader>
-            <CardTitle>Visibilidade</CardTitle>
+        <Card
+          variant="flat"
+          className="min-w-0 border border-border/35 bg-card/60"
+        >
+          <CardHeader className="p-5 pb-4">
+            <CardTitle>Privacidade</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Controle quem pode encontrar você e ver suas disciplinas.
+              As mudanças são salvas separadamente de nome e bio.
             </p>
           </CardHeader>
-          <CardContent className="grid gap-5">
-            <div className="rounded-md bg-muted/60 p-4">
-              <div className="flex items-start gap-3">
-                {form.enabled ? (
-                  <Eye className="mt-0.5 size-5 text-primary" />
+          <CardContent className="space-y-5 px-5 pb-5 pt-0">
+            <div>
+              <p className="flex items-center gap-2 font-bold">
+                {profile.enabled ? (
+                  <Eye aria-hidden="true" className="size-4" />
                 ) : (
-                  <EyeOff className="mt-0.5 size-5 text-muted-foreground" />
+                  <EyeOff aria-hidden="true" className="size-4" />
                 )}
-                <div>
-                  <p className="font-extrabold">
-                    {form.enabled ? 'Perfil público' : 'Perfil privado'}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {form.enabled
-                      ? 'Outros estudantes podem encontrar seu perfil.'
-                      : 'Seu perfil não aparece na lista de pessoas.'}
-                  </p>
-                </div>
-              </div>
+                {profile.enabled ? 'Perfil público' : 'Perfil não público'}
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                {profile.enabled
+                  ? 'Estudantes autenticados podem encontrar seu perfil e ver sua foto, nome, bio e vínculo acadêmico.'
+                  : 'Seu perfil não aparece na lista de pessoas e não pode ser aberto por outros estudantes. Você continua com acesso às suas informações.'}
+              </p>
               <Button
-                className="mt-4 w-full"
-                variant={form.enabled ? 'outline' : 'default'}
-                disabled={changeVisibility.isPending}
+                className="mt-3 max-w-full whitespace-normal"
+                variant="outline"
+                size="sm"
+                disabled={saving}
                 onClick={() => {
-                  setVisibilityTarget(!form.enabled)
+                  privacy.reset()
                   setVisibilityDialogOpen(true)
                 }}
               >
-                {form.enabled
+                {profile.enabled
                   ? 'Desativar perfil público'
                   : 'Tornar perfil público'}
               </Button>
             </div>
-            <label className="grid gap-1.5 text-sm font-bold">
-              Compartilhar disciplinas cursando
-              <select
-                className="pomi-focus h-10 rounded-md border-2 border-input bg-background px-3 font-medium"
-                value={form.currentCoursesVisibility}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    currentCoursesVisibility: event.target
-                      .value as PublicProfile['currentCoursesVisibility'],
-                  })
-                }
+            <div className="space-y-2 border-t border-border/25 pt-4">
+              <label className="grid gap-1.5 text-sm font-bold">
+                Compartilhar disciplinas cursando
+                <select
+                  aria-describedby="course-visibility-help"
+                  className="pomi-focus h-10 min-w-0 w-full rounded-md border-2 border-input bg-background px-3 font-medium"
+                  value={courseVisibility}
+                  disabled={saving}
+                  onChange={(event) =>
+                    privacy.mutate({
+                      currentCoursesVisibility: event.target
+                        .value as PublicProfile['currentCoursesVisibility'],
+                    })
+                  }
+                >
+                  <option value="PRIVATE">Privado</option>
+                  <option value="FRIENDS">Amigos</option>
+                  <option value="PUBLIC">Público</option>
+                </select>
+              </label>
+              <p
+                id="course-visibility-help"
+                className="text-xs leading-relaxed text-muted-foreground"
               >
-                <option value="PRIVATE">Privado</option>
-                <option value="FRIENDS">Amigos</option>
-                <option value="PUBLIC">Público</option>
-              </select>
-            </label>
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              Curso, modalidade e ano de ingresso aparecem automaticamente em
-              perfis públicos.
+                {courseVisibilityHelp[courseVisibility]}
+              </p>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                Curso, modalidade e ano de ingresso seguem a visibilidade do
+                perfil e não são alterados por este controle.
+              </p>
+              {!profile.enabled && (
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  A preferência é mantida para quando o perfil voltar a ser
+                  público. Com o perfil desativado, ela não libera seus horários
+                  para outras pessoas.
+                </p>
+              )}
+            </div>
+            <p role="status" className="text-xs text-muted-foreground">
+              {privacy.isPending
+                ? 'Salvando privacidade...'
+                : privacy.isSuccess
+                  ? 'Privacidade atualizada.'
+                  : 'O público das disciplinas é salvo ao selecionar. A visibilidade do perfil pede confirmação.'}
             </p>
+            {privacy.isError && !visibilityDialogOpen && (
+              <p role="alert" className="text-sm text-destructive">
+                Não foi possível atualizar a privacidade. A configuração
+                anterior foi mantida.
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          disabled={save.isPending || !changed}
-          onClick={() => save.mutate()}
-        >
-          Salvar alterações
-        </Button>
-        <Button
-          variant="outline"
-          onClick={() => void navigator.clipboard.writeText(form.publicId)}
-        >
-          <Copy /> Copiar código público
-        </Button>
-      </div>
-      <Card variant="flat" className="border-2 border-border bg-card/80">
-        <CardHeader>
-          <CardTitle className="flex flex-wrap items-center justify-between gap-3">
-            <span className="flex items-center gap-2">
-              <Tags className="size-5" /> Interesses
-            </span>
+      <Card
+        variant="flat"
+        className="min-w-0 border border-border/35 bg-card/60"
+      >
+        <CardHeader className="p-5 pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <CardTitle className="flex items-center gap-2">
+              <Tags aria-hidden="true" className="size-5" /> Interesses
+            </CardTitle>
             <Link
               to="/taxonomia"
-              className="pomi-focus text-sm font-bold text-primary hover:underline"
+              className="pomi-focus rounded-sm text-sm font-bold text-primary hover:underline"
             >
-              Gerenciar na taxonomia
+              Explorar assuntos
             </Link>
-          </CardTitle>
+          </div>
           <p className="text-sm text-muted-foreground">
-            Assuntos que ajudam a personalizar sua experiência no POMI.
+            Adições e remoções são salvas imediatamente.
           </p>
         </CardHeader>
-        <CardContent>
-          <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end">
-            <label className="grid min-w-0 flex-1 gap-1 text-sm font-bold">
-              Adicionar interesse
-              <AutocompleteSelect
-                ariaLabel="Novo interesse"
-                value={newInterestId}
-                options={availableTags.map((tag) => ({
-                  value: String(tag.id),
-                  label: tag.name,
-                }))}
-                onValueChange={setNewInterestId}
-                disabled={
-                  interestsQuery.isLoading ||
-                  tagsQuery.isLoading ||
-                  availableTags.length === 0
-                }
-                placeholder="Digite para buscar um assunto"
-              />
-            </label>
-            <Button
-              disabled={!newInterestId || addInterest.isPending}
-              onClick={() => addInterest.mutate(Number(newInterestId))}
-            >
-              Adicionar interesse
-            </Button>
-          </div>
-          {tagsQuery.isError && (
-            <p className="mb-4 text-sm text-destructive">
-              Não foi possível carregar os assuntos disponíveis.
+        <CardContent className="space-y-4 px-5 pb-5 pt-0">
+          {interestsQuery.isPending ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              Carregando interesses...
             </p>
-          )}
-          {!tagsQuery.isLoading &&
-            !tagsQuery.isError &&
-            availableTags.length === 0 && (
-              <p className="mb-4 text-sm text-muted-foreground">
-                Todos os assuntos disponíveis já foram adicionados.
+          ) : interestsQuery.isError ? (
+            <div>
+              <p role="alert" className="text-sm text-destructive">
+                Não foi possível carregar seus interesses.
               </p>
-            )}
-          {interestsQuery.isLoading ? (
-            <LoadingState label="Carregando interesses" />
-          ) : interestsQuery.data?.length ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => void interestsQuery.refetch()}
+              >
+                Tentar novamente
+              </Button>
+            </div>
+          ) : interestsQuery.data.length ? (
             <ul className="flex flex-wrap gap-2">
               {interestsQuery.data.map((interest) => (
                 <li
                   key={interest.id}
-                  className="flex items-center gap-1 rounded-md border-2 border-border bg-muted px-3 py-2 text-sm font-bold"
+                  className="flex max-w-full items-center gap-1 rounded-full bg-muted py-1 pl-3 pr-1 text-sm font-semibold"
                 >
-                  <span>{interest.name}</span>
+                  <span className="min-w-0 break-words">{interest.name}</span>
                   <button
                     type="button"
-                    className="pomi-focus ml-1 rounded-sm p-1 text-muted-foreground hover:bg-background hover:text-destructive"
+                    className="pomi-focus grid size-8 shrink-0 place-items-center rounded-full text-muted-foreground hover:bg-background hover:text-destructive"
                     aria-label={`Remover interesse em ${interest.name}`}
-                    disabled={removeInterest.isPending}
-                    onClick={() => removeInterest.mutate(interest.id)}
+                    disabled={editingInterests}
+                    onClick={() => {
+                      setInterestFeedback('')
+                      addInterest.reset()
+                      removeInterest.mutate(interest.id)
+                    }}
                   >
-                    <Trash2 className="size-4" />
+                    <Trash2 aria-hidden="true" className="size-4" />
                   </button>
                 </li>
               ))}
@@ -369,42 +485,129 @@ export function ProfilePage() {
               Você ainda não adicionou nenhum interesse.
             </p>
           )}
+          <div className="max-w-lg space-y-2">
+            <p className="text-sm font-bold">Adicionar interesse</p>
+            <AutocompleteSelect
+              ariaLabel="Novo interesse"
+              fitContainer
+              value={newInterestId}
+              options={availableTags.map((tag) => ({
+                value: String(tag.id),
+                label: tag.name,
+              }))}
+              onValueChange={chooseInterest}
+              disabled={
+                interestsQuery.isPending ||
+                interestsQuery.isError ||
+                tagsQuery.isPending ||
+                tagsQuery.isError ||
+                !availableTags.length ||
+                editingInterests
+              }
+              placeholder="Digite para buscar um assunto"
+            />
+            <p className="text-xs text-muted-foreground">
+              Selecione um resultado para adicioná-lo ao perfil.
+            </p>
+            {tagsQuery.isPending && (
+              <p role="status" className="text-sm text-muted-foreground">
+                Carregando assuntos...
+              </p>
+            )}
+            {tagsQuery.isError && (
+              <p role="alert" className="text-sm text-destructive">
+                Não foi possível carregar os assuntos disponíveis.{' '}
+                <button
+                  type="button"
+                  className="pomi-focus rounded-sm underline"
+                  onClick={() => void tagsQuery.refetch()}
+                >
+                  Tentar novamente
+                </button>
+              </p>
+            )}
+            {!tagsQuery.isPending &&
+              !tagsQuery.isError &&
+              !interestsQuery.isPending &&
+              !interestsQuery.isError &&
+              !availableTags.length && (
+                <p className="text-sm text-muted-foreground">
+                  {tagsQuery.data.length
+                    ? 'Todos os assuntos disponíveis já foram adicionados.'
+                    : 'Nenhum assunto disponível no momento.'}
+                </p>
+              )}
+          </div>
+          <p role="status" className="text-sm text-muted-foreground">
+            {editingInterests ? 'Atualizando interesses...' : interestFeedback}
+          </p>
+          {addInterest.isError && (
+            <div role="alert" className="space-y-2 text-sm text-destructive">
+              <p>Não foi possível adicionar o interesse. Tente novamente.</p>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!newInterestId || editingInterests}
+                onClick={() => chooseInterest(newInterestId)}
+              >
+                Tentar adicionar novamente
+              </Button>
+            </div>
+          )}
+          {removeInterest.isError && (
+            <p role="alert" className="text-sm text-destructive">
+              Não foi possível remover o interesse. Ele foi mantido no perfil.
+            </p>
+          )}
         </CardContent>
       </Card>
       <Dialog
         open={visibilityDialogOpen}
-        onOpenChange={setVisibilityDialogOpen}
+        onOpenChange={(open) => {
+          if (!privacy.isPending) setVisibilityDialogOpen(open)
+        }}
       >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {visibilityTarget
-                ? 'Tornar seu perfil público?'
-                : 'Desativar seu perfil público?'}
+              {profile.enabled
+                ? 'Desativar seu perfil público?'
+                : 'Tornar seu perfil público?'}
             </DialogTitle>
             <DialogDescription>
-              {visibilityTarget
-                ? 'Seu nome, curso, modalidade, ano de ingresso e bio poderão ser encontrados por outros estudantes.'
-                : 'Seu perfil deixará de aparecer na lista de pessoas. Você poderá ativá-lo novamente quando quiser.'}
+              {profile.enabled
+                ? 'Seu perfil deixará de aparecer na lista de pessoas. Outras pessoas deixarão de acessar seus dados públicos e horários. Suas preferências serão preservadas.'
+                : 'Estudantes autenticados poderão encontrar seu nome, foto, curso, modalidade, ano de ingresso e bio. As disciplinas seguirão o público configurado nesta página.'}
             </DialogDescription>
           </DialogHeader>
+          {privacy.isError && (
+            <p role="alert" className="text-sm text-destructive">
+              Não foi possível alterar a visibilidade. Nenhuma mudança foi
+              salva; tente novamente.
+            </p>
+          )}
           <DialogFooter>
             <Button
               variant="outline"
+              disabled={privacy.isPending}
               onClick={() => setVisibilityDialogOpen(false)}
             >
               Cancelar
             </Button>
             <Button
-              variant={visibilityTarget ? 'default' : 'destructive'}
-              disabled={changeVisibility.isPending}
-              onClick={() => changeVisibility.mutate(visibilityTarget)}
+              variant={profile.enabled ? 'destructive' : 'default'}
+              disabled={saving}
+              onClick={() => privacy.mutate({ enabled: !profile.enabled })}
             >
-              {visibilityTarget ? 'Tornar público' : 'Desativar perfil'}
+              {privacy.isPending
+                ? 'Salvando...'
+                : profile.enabled
+                  ? 'Desativar perfil'
+                  : 'Tornar público'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  ) : null
+  )
 }

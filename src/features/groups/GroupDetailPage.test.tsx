@@ -58,6 +58,7 @@ describe('GroupDetailPage', () => {
     mocks.get.mockReset().mockResolvedValue({
       id: 42,
       name: 'Coletivo Cultural',
+      avatarMediaId: 'group-avatar',
       description: 'Arte no campus',
       contacts: [
         { id: 1, type: 'email', label: null, value: 'grupo@example.org' },
@@ -84,6 +85,9 @@ describe('GroupDetailPage', () => {
   it('shows public contacts, links, event and the correct private-member empty state', async () => {
     renderPage()
     expect(await screen.findByText('Coletivo Cultural')).toBeTruthy()
+    expect(
+      document.querySelector('img[src$="/media/group-avatar/avatarLarge"]'),
+    ).toBeTruthy()
     expect(screen.getByText(/grupo@example.org/)).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Site' })).toBeTruthy()
     expect(await screen.findByRole('link', { name: 'Oficina' })).toBeTruthy()
@@ -131,6 +135,7 @@ describe('GroupDetailPage', () => {
         id: 8,
         groupId: 42,
         displayName: 'Ana',
+        avatarMediaId: 'member-avatar',
         profilePublicId: 'a375fdb0-45d9-4a79-8415-89fcb64157b6',
         positions: [],
       },
@@ -144,6 +149,9 @@ describe('GroupDetailPage', () => {
     ])
     renderPage()
     const link = await screen.findByRole('link', { name: 'Ana' })
+    expect(link.querySelector('img')?.getAttribute('src')).toContain(
+      '/media/member-avatar/avatarSmall',
+    )
     expect(link.getAttribute('href')).toBe(
       '/perfis/a375fdb0-45d9-4a79-8415-89fcb64157b6',
     )

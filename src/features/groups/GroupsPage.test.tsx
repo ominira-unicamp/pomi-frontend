@@ -35,6 +35,7 @@ describe('GroupsPage', () => {
       {
         id: 42,
         name: 'Coletivo Cultural',
+        avatarMediaId: 'group-avatar',
         description: 'Arte e cultura no campus',
         tags: [{ id: 3, name: 'Cultura', categoryId: 1 }],
       },
@@ -46,6 +47,9 @@ describe('GroupsPage', () => {
     renderPage()
     expect(await screen.findByText('Coletivo Cultural')).toBeTruthy()
     expect(screen.getByText('Arte e cultura no campus')).toBeTruthy()
+    expect(
+      document.querySelector('img[src$="/media/group-avatar/avatarSmall"]'),
+    ).toBeTruthy()
     expect(screen.getByText('Grupo sem descrição')).toBeTruthy()
     fireEvent.change(screen.getByRole('textbox', { name: 'Buscar grupos' }), {
       target: { value: 'Cultura' },

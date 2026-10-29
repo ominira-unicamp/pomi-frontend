@@ -96,6 +96,7 @@ vi.mock('@/features/friends/studentSocialApi', () => ({
   searchPeople: mocks.searchPeople,
 }))
 vi.mock('@/api/client', () => ({
+  appApiUrl: 'http://app.test',
   pomiSdk: { app: { tags: { listAll: mocks.tags } } },
 }))
 
@@ -115,6 +116,7 @@ const member = {
   groupId: 42,
   studentId: 15,
   studentName: 'Ana',
+  avatarMediaId: 'member-avatar',
   joinedAt: '2026-10-01T12:00:00Z',
   leftAt: null,
   isPublic: false,
@@ -128,6 +130,7 @@ const sentInvitation = {
   recipientStudentId: 15,
   recipientPublicId: 'person-2',
   recipientName: 'Bia',
+  recipientAvatarMediaId: 'invited-avatar',
   inviterStudentId: 7,
   status: 'PENDING',
   createdAt: '2026-10-01T00:00:00.000Z',
@@ -369,6 +372,9 @@ describe('people and access management', () => {
     const peoplePage = renderPage(<GroupPeopleManagementPage />)
     expect(await screen.findByText('Convites enviados')).toBeTruthy()
     expect(await screen.findByText('Bia')).toBeTruthy()
+    expect(
+      document.querySelector('img[src$="/media/invited-avatar/avatarSmall"]'),
+    ).toBeTruthy()
     expect(screen.getByText(/Pendente · Enviado em/)).toBeTruthy()
 
     peoplePage.unmount()
@@ -392,6 +398,9 @@ describe('people and access management', () => {
     mocks.context.own.permissions = ['ROLE_MANAGE']
     const view = renderPage(<GroupPeopleManagementPage />)
     expect(await screen.findByText('Ana')).toBeTruthy()
+    expect(
+      document.querySelector('img[src$="/media/member-avatar/avatarSmall"]'),
+    ).toBeTruthy()
     expect(screen.queryByRole('link', { name: 'Convidar pessoa' })).toBeNull()
     view.rerender(
       <QueryClientProvider

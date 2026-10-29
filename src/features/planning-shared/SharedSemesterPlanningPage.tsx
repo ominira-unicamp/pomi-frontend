@@ -8,6 +8,7 @@ import {
   getSharedPeriodPlanningForStudent,
 } from './data/sharedPeriodPlanningApi'
 import type { WeeklyScheduleMeeting } from '@/features/student/components/StudentWeeklySchedule'
+import { PersonAvatar } from '@/features/media/IdentityImages'
 import { StudentWeeklySchedule } from '@/features/student/components/StudentWeeklySchedule'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { Button } from '@/components/ui/button'
@@ -174,9 +175,12 @@ export function SharedSemesterPlanningPage({ shareId }: { shareId: string }) {
         <Card variant="flat" className="bg-card/80">
           <CardContent className="grid gap-5 p-6 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
             <div className="flex items-center gap-4">
-              <span className="grid size-14 shrink-0 place-items-center rounded-full bg-primary text-xl font-black text-primary-foreground">
-                {planning.owner?.displayName.slice(0, 1).toUpperCase() ?? 'P'}
-              </span>
+              <PersonAvatar
+                mediaId={planning.owner?.avatarMediaId}
+                name={
+                  planning.owner?.displayName ?? 'Planejamento compartilhado'
+                }
+              />
               <div className="min-w-0">
                 <p className="text-xs font-black tracking-[0.14em] text-primary uppercase">
                   {planning.owner ? 'Autor' : 'Planejamento compartilhado'}

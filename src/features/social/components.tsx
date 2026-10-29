@@ -6,28 +6,32 @@ import type {
   PublicPerson,
 } from '@/features/friends/studentSocialApi'
 import type { RelationshipState } from './types'
+import { PersonAvatar } from '@/features/media/IdentityImages'
 import { Button } from '@/components/ui/button'
 
 export function PersonSummary({ person }: { person: PublicPerson }) {
   return (
-    <div className="min-w-0">
-      <p className="font-extrabold">{person.displayName}</p>
-      {person.bio && (
-        <p className="line-clamp-2 text-sm text-muted-foreground">
-          {person.bio}
+    <div className="flex min-w-0 items-center gap-3">
+      <PersonAvatar mediaId={person.avatarMediaId} name={person.displayName} />
+      <div className="min-w-0">
+        <p className="font-extrabold">{person.displayName}</p>
+        {person.bio && (
+          <p className="line-clamp-2 text-sm text-muted-foreground">
+            {person.bio}
+          </p>
+        )}
+        <p className="text-xs text-muted-foreground">
+          {[
+            person.program?.name,
+            person.specialization
+              ? `${person.specialization.code} · ${person.specialization.name}`
+              : null,
+            person.entryYear,
+          ]
+            .filter(Boolean)
+            .join(' · ')}
         </p>
-      )}
-      <p className="text-xs text-muted-foreground">
-        {[
-          person.program?.name,
-          person.specialization
-            ? `${person.specialization.code} · ${person.specialization.name}`
-            : null,
-          person.entryYear,
-        ]
-          .filter(Boolean)
-          .join(' · ')}
-      </p>
+      </div>
     </div>
   )
 }

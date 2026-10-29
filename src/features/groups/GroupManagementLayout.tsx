@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useRef } from 'react'
 import { groupApi } from './data/groupApi'
 import { canOrganizeEvents } from './groupNavigation'
 import type { Group, OwnGroupMembership } from '@ominira/pomi-sdk/generated/app'
+import { GroupAvatar } from '@/features/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
 import {
@@ -167,7 +168,11 @@ export function GroupManagementLayout({ groupId }: { groupId: number }) {
             <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
               Espaço de trabalho
             </p>
-            <h1 className="text-xl font-extrabold sm:text-2xl">
+            <h1 className="flex items-center gap-3 text-xl font-extrabold sm:text-2xl">
+              <GroupAvatar
+                mediaId={group.data.avatarMediaId}
+                name={group.data.name}
+              />
               {group.data.name}
             </h1>
           </div>

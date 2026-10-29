@@ -12,6 +12,8 @@ export function MediaImage({
   alt,
   className,
   fallback,
+  width,
+  height,
 }: {
   mediaId: string | null | undefined
   preset: MediaPreset
@@ -19,6 +21,8 @@ export function MediaImage({
   alt: string
   className?: string
   fallback: ReactNode
+  width?: number
+  height?: number
 }) {
   const auth = useOptionalAuth()
   const requestKey = `${auth.sessionSubject ?? ''}:${mediaId ?? ''}:${preset}:${access}`
@@ -81,6 +85,9 @@ export function MediaImage({
     <img
       src={src}
       alt={alt}
+      width={width}
+      height={height}
+      loading="lazy"
       className={className}
       onError={() => setFailedImage({ key: requestKey, src })}
     />

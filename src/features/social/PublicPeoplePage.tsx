@@ -126,10 +126,7 @@ export function PublicPeoplePage() {
             )
             return (
               <Card key={person.publicId} variant="flat" className="h-full">
-                <CardContent className="grid h-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 p-4">
-                  <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary text-lg font-black text-primary-foreground">
-                    {person.displayName.slice(0, 1).toUpperCase()}
-                  </span>
+                <CardContent className="grid h-full grid-cols-[minmax(0,1fr)_auto] items-center gap-3 p-4">
                   <PersonLink person={person} />
                   <RelationshipAction
                     state={state}

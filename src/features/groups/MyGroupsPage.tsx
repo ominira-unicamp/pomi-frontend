@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { groupApi } from './data/groupApi'
 import { canOrganizeEvents, groupWorkspaceDestination } from './groupNavigation'
 import { formatGroupDate } from './presentation'
+import { GroupAvatar } from '@/features/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
 import {
@@ -87,8 +88,8 @@ export function MyGroupsPage() {
       </PageContainer>
     )
 
-  const names = new Map(
-    groups.data?.map((group) => [group.id, group.name]) ?? [],
+  const groupById = new Map(
+    groups.data?.map((group) => [group.id, group]) ?? [],
   )
   const pending = (invitations.data ?? []).filter(
     (invite) =>
@@ -102,7 +103,7 @@ export function MyGroupsPage() {
   )
   const active = (memberships.data ?? []).filter((item) => !item.leftAt)
   const history = (memberships.data ?? []).filter((item) => item.leftAt)
-  const label = (id: number) => names.get(id) ?? `Grupo #${id}`
+  const label = (id: number) => groupById.get(id)?.name ?? `Grupo #${id}`
 
   return (
     <PageContainer>
@@ -166,7 +167,14 @@ export function MyGroupsPage() {
                     >
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <h3 className="font-extrabold">
+                          <h3 className="flex items-center gap-3 font-extrabold">
+                            <GroupAvatar
+                              mediaId={
+                                groupById.get(invite.groupId)?.avatarMediaId
+                              }
+                              name={label(invite.groupId)}
+                              size="small"
+                            />{' '}
                             {label(invite.groupId)}
                           </h3>
                           <p className="mt-1 text-sm text-muted-foreground">
@@ -278,7 +286,12 @@ export function MyGroupsPage() {
                 key={item.id}
                 className="flex min-w-0 flex-col rounded-md border-2 border-strong-border bg-card p-5"
               >
-                <h3 className="text-xl font-extrabold leading-tight">
+                <h3 className="flex items-center gap-3 text-xl font-extrabold leading-tight">
+                  <GroupAvatar
+                    mediaId={groupById.get(item.groupId)?.avatarMediaId}
+                    name={label(item.groupId)}
+                    size="small"
+                  />{' '}
                   {label(item.groupId)}
                 </h3>
                 <p className="mt-2 text-sm text-muted-foreground">
@@ -337,8 +350,17 @@ export function MyGroupsPage() {
           </h2>
           <ul className="space-y-2 text-sm text-muted-foreground">
             {history.map((item) => (
-              <li key={`member-${item.id}`}>
-                Vínculo encerrado · {label(item.groupId)}
+              <li
+                key={`member-${item.id}`}
+                className="flex flex-wrap items-center gap-2"
+              >
+                Vínculo encerrado ·{' '}
+                <GroupAvatar
+                  mediaId={groupById.get(item.groupId)?.avatarMediaId}
+                  name={label(item.groupId)}
+                  size="small"
+                />{' '}
+                {label(item.groupId)}
               </li>
             ))}
             {pastInvitations.map((invite) => (
@@ -353,7 +375,13 @@ export function MyGroupsPage() {
                       : invite.status === 'CANCELLED'
                         ? 'cancelado'
                         : 'expirado'}{' '}
-                · {label(invite.groupId)}
+                ·{' '}
+                <GroupAvatar
+                  mediaId={groupById.get(invite.groupId)?.avatarMediaId}
+                  name={label(invite.groupId)}
+                  size="small"
+                />{' '}
+                {label(invite.groupId)}
               </li>
             ))}
           </ul>

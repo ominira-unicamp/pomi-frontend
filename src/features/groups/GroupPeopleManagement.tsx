@@ -12,6 +12,7 @@ import type {
   ManagedGroupInvitation,
   ManagedGroupMembership,
 } from '@ominira/pomi-sdk/generated/app'
+import { PersonAvatar } from '@/features/media/IdentityImages'
 import { ApiError } from '@/api/errors'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { ErrorState, LoadingState } from '@/components/PageLayout'
@@ -115,7 +116,14 @@ function SentInvitations({
           <ul className="divide-y divide-border rounded-md border border-border">
             {[...pending, ...history].map((invitation) => (
               <li key={invitation.id} className="p-4">
-                <p className="font-bold">{invitation.recipientName}</p>
+                <p className="flex items-center gap-3 font-bold">
+                  <PersonAvatar
+                    mediaId={invitation.recipientAvatarMediaId}
+                    name={invitation.recipientName}
+                    size="small"
+                  />
+                  {invitation.recipientName}
+                </p>
                 <p className="text-sm text-muted-foreground">
                   {invitationStatus(invitation)} · Enviado em{' '}
                   {formatGroupDate(invitation.createdAt)}
@@ -182,7 +190,14 @@ export function GroupPeopleManagementPage() {
                   className="flex flex-wrap items-center justify-between gap-3 p-4"
                 >
                   <div>
-                    <p className="font-bold">{member.studentName}</p>
+                    <p className="flex items-center gap-3 font-bold">
+                      <PersonAvatar
+                        mediaId={member.avatarMediaId}
+                        name={member.studentName}
+                        size="small"
+                      />
+                      {member.studentName}
+                    </p>
                     {member.positions.length > 0 && (
                       <p className="text-sm text-muted-foreground">
                         {member.positions
@@ -228,6 +243,11 @@ export function GroupPeopleManagementPage() {
                       }}
                       className="pomi-focus text-sm font-bold text-primary hover:underline"
                     >
+                      <PersonAvatar
+                        mediaId={member.avatarMediaId}
+                        name={member.studentName}
+                        size="small"
+                      />{' '}
                       {member.studentName} · Vínculo encerrado
                     </Link>
                   </li>
@@ -249,6 +269,7 @@ export function GroupInvitePage() {
   const [selected, setSelected] = useState<{
     publicId: string
     displayName: string
+    avatarMediaId: string | null
   }>()
   const people = useQuery({
     queryKey: [
@@ -358,7 +379,14 @@ export function GroupInvitePage() {
               key={person.publicId}
               className="flex items-center justify-between gap-3 p-3"
             >
-              <span className="font-semibold">{person.displayName}</span>
+              <span className="flex items-center gap-3 font-semibold">
+                <PersonAvatar
+                  mediaId={person.avatarMediaId}
+                  name={person.displayName}
+                  size="small"
+                />
+                {person.displayName}
+              </span>
               {pendingRecipients.has(person.publicId) && (
                 <span className="text-sm text-muted-foreground">
                   Convite pendente
@@ -381,6 +409,7 @@ export function GroupInvitePage() {
                   setSelected({
                     publicId: person.publicId,
                     displayName: person.displayName,
+                    avatarMediaId: person.avatarMediaId,
                   })
                   if (selected?.publicId !== person.publicId) invite.reset()
                 }}
@@ -396,6 +425,10 @@ export function GroupInvitePage() {
       {selected && (
         <div className="space-y-3 rounded-md border border-border p-4">
           <p>
+            <PersonAvatar
+              mediaId={selected.avatarMediaId}
+              name={selected.displayName}
+            />{' '}
             Convidar <strong>{selected.displayName}</strong>?
           </p>
           <Button
@@ -611,7 +644,13 @@ export function GroupMemberDetailPage({
         ← Pessoas e convites
       </Link>
       <div>
-        <h2 className="text-2xl font-extrabold">{member.studentName}</h2>
+        <h2 className="flex items-center gap-3 text-2xl font-extrabold">
+          <PersonAvatar
+            mediaId={member.avatarMediaId}
+            name={member.studentName}
+          />
+          {member.studentName}
+        </h2>
         <p className="text-sm text-muted-foreground">
           {member.leftAt
             ? `Vínculo encerrado em ${formatGroupDate(member.leftAt)}`

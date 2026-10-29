@@ -31,7 +31,7 @@ export function PageHeader({
   className,
 }: {
   eyebrow?: string
-  title: string
+  title: ReactNode
   description?: string
   actions?: ReactNode
   compact?: boolean

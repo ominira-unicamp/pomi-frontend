@@ -1,5 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { MediaEditor } from './MediaEditor'
@@ -10,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   getAccessToken: vi.fn().mockResolvedValue('token'),
   uploadMedia: vi.fn(),
   removeMedia: vi.fn(),
+  pending: vi.fn(),
 }))
 
 vi.mock('@/auth/AuthProvider', () => ({
@@ -25,10 +33,12 @@ vi.mock('./mediaApi', () => ({
   removeMedia: mocks.removeMedia,
 }))
 
-function editor() {
+function editor(variant?: 'profile') {
   return (
     <MediaEditor
       label="Avatar do estudante"
+      variant={variant}
+      onPendingChange={mocks.pending}
       target={{ kind: 'studentAvatar', studentId: 7 }}
       mediaId={null}
       preset="avatarSmall"
@@ -37,11 +47,15 @@ function editor() {
   )
 }
 
-function renderEditor() {
+function renderEditor(variant?: 'profile') {
   const client = new QueryClient({
     defaultOptions: { mutations: { retry: false } },
   })
-  return render(<QueryClientProvider client={client}>{editor()}</QueryClientProvider>)
+  return render(
+    <QueryClientProvider client={client}>
+      {editor(variant)}
+    </QueryClientProvider>,
+  )
 }
 
 afterEach(() => {
@@ -53,8 +67,77 @@ afterEach(() => {
 })
 
 describe('media editor', () => {
+  it('opens the native selector from Alterar foto and saves a preview separately', async () => {
+    vi.stubGlobal(
+      'URL',
+      class extends URL {
+        static createObjectURL = () => 'blob:photo'
+        static revokeObjectURL = vi.fn()
+      },
+    )
+    mocks.uploadMedia.mockResolvedValue({ mediaId: 'new-photo' })
+    renderEditor('profile')
+    const input = screen.getByLabelText('Escolher imagem')
+    const click = vi.spyOn(input, 'click')
+    fireEvent.click(screen.getByRole('button', { name: 'Alterar foto' }))
+    expect(click).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('button', { name: 'Enviar foto' })).toBeNull()
+    fireEvent.change(input, {
+      target: {
+        files: [new File(['image'], 'photo.png', { type: 'image/png' })],
+      },
+    })
+    expect(
+      await screen.findByAltText('Prévia de avatar do estudante'),
+    ).toBeTruthy()
+    await waitFor(() => expect(mocks.pending).toHaveBeenLastCalledWith(true))
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar foto' }))
+    expect(await screen.findByText('Foto atualizada.')).toBeTruthy()
+    await waitFor(() => expect(mocks.pending).toHaveBeenLastCalledWith(false))
+    expect(screen.queryByAltText('Prévia de avatar do estudante')).toBeNull()
+  })
+
+  it('removes the saved photo independently and refreshes the profile', async () => {
+    const changed = vi.fn()
+    mocks.removeMedia.mockResolvedValue(undefined)
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <MediaEditor
+          label="Foto do perfil"
+          variant="profile"
+          target={{ kind: 'studentAvatar', studentId: 7 }}
+          mediaId="saved-photo"
+          preset="avatarSmall"
+          onChanged={changed}
+        />
+      </QueryClientProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Remover foto' }))
+    expect(await screen.findByText('Foto removida.')).toBeTruthy()
+    expect(mocks.removeMedia).toHaveBeenCalledWith(
+      { kind: 'studentAvatar', studentId: 7 },
+      mocks.getAccessToken,
+    )
+    expect(changed).toHaveBeenCalledOnce()
+  })
+
+  it('rejects unsupported files before upload in the compact editor', async () => {
+    renderEditor('profile')
+    fireEvent.change(screen.getByLabelText('Escolher imagem'), {
+      target: {
+        files: [new File(['text'], 'photo.svg', { type: 'image/svg+xml' })],
+      },
+    })
+    expect(await screen.findByRole('alert')).toBeTruthy()
+    expect(mocks.uploadMedia).not.toHaveBeenCalled()
+    expect(screen.queryByRole('button', { name: 'Enviar foto' })).toBeNull()
+  })
+
   it('revokes local previews on cancel and unmount', async () => {
-    const create = vi.fn().mockReturnValueOnce('blob:preview-one').mockReturnValueOnce('blob:preview-two')
+    const create = vi
+      .fn()
+      .mockReturnValueOnce('blob:preview-one')
+      .mockReturnValueOnce('blob:preview-two')
     const revoke = vi.fn()
     vi.stubGlobal(
       'URL',
@@ -90,7 +173,9 @@ describe('media editor', () => {
     mocks.uploadMedia.mockImplementation(() => new Promise(() => {}))
     const view = renderEditor()
     fireEvent.change(screen.getByLabelText('Escolher imagem'), {
-      target: { files: [new File(['image'], 'avatar.png', { type: 'image/png' })] },
+      target: {
+        files: [new File(['image'], 'avatar.png', { type: 'image/png' })],
+      },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Enviar imagem' }))
     await waitFor(() => expect(mocks.uploadMedia).toHaveBeenCalledTimes(1))
@@ -119,7 +204,9 @@ describe('media editor', () => {
     mocks.uploadMedia.mockRejectedValue(new ApiError(422))
     renderEditor()
     fireEvent.change(screen.getByLabelText('Escolher imagem'), {
-      target: { files: [new File(['image'], 'avatar.png', { type: 'image/png' })] },
+      target: {
+        files: [new File(['image'], 'avatar.png', { type: 'image/png' })],
+      },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Enviar imagem' }))
     expect((await screen.findByRole('alert')).textContent).toContain(

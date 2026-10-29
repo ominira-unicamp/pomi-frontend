@@ -1,5 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
-import { Link, Navigate, useNavigate } from '@tanstack/react-router'
+import { Navigate, useNavigate } from '@tanstack/react-router'
 
 import { groupApi } from './data/groupApi'
 import { ProfileEditor } from './GroupProfileEditor'
@@ -66,13 +66,6 @@ export function GroupProfileManagementPage() {
         <p className="mt-2 text-sm text-muted-foreground">
           O que você salvar aqui aparece no perfil público do grupo.
         </p>
-        <Link
-          to="/grupos/$groupId"
-          params={{ groupId: String(group.id) }}
-          className="pomi-focus mt-3 inline-block text-sm font-bold text-primary hover:underline"
-        >
-          Ver perfil público
-        </Link>
       </div>
       <ProfileEditor
         group={group}

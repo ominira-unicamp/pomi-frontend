@@ -4,6 +4,7 @@ import { ArrowRight, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { groupApi } from './data/groupApi'
+import { GroupAvatar } from '@/features/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
   EmptyState,
@@ -116,29 +117,45 @@ export function GroupsPage({
             {visibleGroups.length}{' '}
             {visibleGroups.length === 1 ? 'grupo' : 'grupos'}
           </p>
-          <ul className="grid items-start gap-4 md:grid-cols-2">
+          <ul className="grid gap-4 md:grid-cols-2">
             {visibleGroups.map((group) => (
               <li
                 key={group.id}
-                className="min-w-0 rounded-md border-2 border-strong-border bg-card p-5 md:only:col-span-2"
+                className="min-w-0 rounded-md border-2 border-strong-border bg-card p-3 md:only:col-span-2"
               >
                 <article className="flex flex-col">
-                  <h2 className="text-xl font-extrabold leading-tight">
+                  <div className="flex items-center gap-3">
+                    <h2 className="min-w-0 flex-1 text-xl font-extrabold leading-tight">
+                      <Link
+                        to="/grupos/$groupId"
+                        params={{ groupId: String(group.id) }}
+                        className="pomi-focus flex items-center gap-3 hover:text-primary"
+                      >
+                        <GroupAvatar
+                          mediaId={group.avatarMediaId}
+                          name={group.name}
+                        />
+                        <span className="min-w-0 break-words">
+                          {group.name}
+                        </span>
+                      </Link>
+                    </h2>
                     <Link
                       to="/grupos/$groupId"
                       params={{ groupId: String(group.id) }}
-                      className="pomi-focus hover:text-primary"
+                      className="pomi-focus inline-flex shrink-0 items-center gap-2 text-sm font-bold text-primary hover:underline"
                     >
-                      {group.name}
+                      Conhecer grupo{' '}
+                      <ArrowRight aria-hidden="true" className="size-4" />
                     </Link>
-                  </h2>
+                  </div>
                   {group.description && (
-                    <p className="mt-3 line-clamp-3 max-w-2xl text-sm text-muted-foreground">
+                    <p className="mt-2 line-clamp-3 max-w-2xl text-sm text-muted-foreground">
                       {group.description}
                     </p>
                   )}
                   {group.tags.length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
+                    <div className="mt-2 flex flex-wrap gap-2">
                       {group.tags.map((tag) => (
                         <span
                           key={tag.id}
@@ -149,14 +166,6 @@ export function GroupsPage({
                       ))}
                     </div>
                   )}
-                  <Link
-                    to="/grupos/$groupId"
-                    params={{ groupId: String(group.id) }}
-                    className="pomi-focus mt-5 inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline"
-                  >
-                    Conhecer grupo{' '}
-                    <ArrowRight aria-hidden="true" className="size-4" />
-                  </Link>
                 </article>
               </li>
             ))}

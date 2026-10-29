@@ -3,11 +3,10 @@ import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 
 import {
-
   catalogProgramVariantForSelection,
-  suggestionLabel
+  suggestionLabel,
 } from '@pomi/planner-domain/curriculum'
-import type {CatalogProgramId} from '@pomi/planner-domain/curriculum';
+import type { CatalogProgramId } from '@pomi/planner-domain/curriculum'
 import type { InitialAcademicSelection } from '@/features/planning-shared/components/InitialAcademicSelectionFields'
 import type { SemesterDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
 import type { SemesterPlanningDocument } from '@pomi/planner-domain/semester'
@@ -138,7 +137,12 @@ export function SemesterPlanCreationPage() {
   const validFirstStep = Boolean(name.trim() && studyPeriodId)
   const validGuideStep =
     guideMode === 'none' ||
-    (guideMode === 'program' && Boolean(selection.catalogProgramId)) ||
+    (guideMode === 'program' &&
+      Boolean(
+        selection.catalogProgramId &&
+        selection.catalogProgramVariantId &&
+        selection.languageId,
+      )) ||
     (guideMode === 'curriculum' &&
       (curriculumSource === 'saved'
         ? Boolean(curriculumId)
@@ -194,7 +198,7 @@ export function SemesterPlanCreationPage() {
   const document = generatedDocument
 
   async function submit() {
-    if (!document.studyPeriodId) return
+    if (!validFirstStep || !validGuideStep || !document.studyPeriodId) return
     setSubmitting(true)
     setError(undefined)
     try {
@@ -227,7 +231,8 @@ export function SemesterPlanCreationPage() {
         to: '/planejamentos-de-semestre/$planejamentoId',
         params: { planejamentoId: String(created.id) },
       })
-    } catch {
+    } catch (creationError) {
+      console.error('[semester-planner] create failed', creationError)
       setError(
         'Não foi possível criar o planejamento. Suas escolhas foram mantidas para uma nova tentativa.',
       )
@@ -443,6 +448,16 @@ export function SemesterPlanCreationPage() {
                   value={selection}
                   onChange={setSelection}
                 />
+                {!validGuideStep && (
+                  <p
+                    role="status"
+                    className="mt-4 text-sm text-muted-foreground"
+                  >
+                    Para usar o guia por programa, selecione catálogo, programa,
+                    modalidade e língua. Se essas opções não estiverem
+                    disponíveis, escolha outro programa ou use o guia Nenhum.
+                  </p>
+                )}
               </div>
             )}
           </div>

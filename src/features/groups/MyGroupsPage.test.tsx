@@ -76,10 +76,14 @@ describe('personal group participation', () => {
     mocks.student.studentId = 7
     mocks.list
       .mockReset()
-      .mockResolvedValue([{ id: 42, name: 'Coletivo Cultural' }])
-    mocks.get
-      .mockReset()
-      .mockResolvedValue({ id: 42, name: 'Coletivo Cultural' })
+      .mockResolvedValue([
+        { id: 42, name: 'Coletivo Cultural', avatarMediaId: 'group-avatar' },
+      ])
+    mocks.get.mockReset().mockResolvedValue({
+      id: 42,
+      name: 'Coletivo Cultural',
+      avatarMediaId: 'group-avatar',
+    })
     mocks.ownMemberships.mockReset().mockResolvedValue([])
     mocks.invitations.mockReset().mockResolvedValue([])
     mocks.accept.mockReset().mockResolvedValue(membership)
@@ -105,6 +109,9 @@ describe('personal group participation', () => {
         { name: 'Conhecer grupo' },
         { timeout: 5000 },
       ),
+    ).toBeTruthy()
+    expect(
+      document.querySelector('img[src$="/media/group-avatar/avatarSmall"]'),
     ).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Aceitar convite' }))
     await waitFor(() =>
@@ -201,11 +208,13 @@ describe('personal group participation', () => {
       await screen.findByText('Não foi possível carregar os nomes dos grupos.'),
     ).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Ver grupo' })).toBeTruthy()
-    expect(screen.getByRole('button', { name: 'Tentar novamente' })).toBeTruthy()
+    expect(
+      screen.getByRole('button', { name: 'Tentar novamente' }),
+    ).toBeTruthy()
   })
   it('offers a direct event workspace link for each authorized group', async () => {
     mocks.list.mockResolvedValue([
-      { id: 42, name: 'Coletivo Cultural' },
+      { id: 42, name: 'Coletivo Cultural', avatarMediaId: 'group-avatar' },
       { id: 43, name: 'Centro Acadêmico' },
     ])
     mocks.ownMemberships.mockResolvedValue([
@@ -233,7 +242,7 @@ describe('personal group participation', () => {
       { ...membership, id: 10, groupId: 43, permissions: [] },
     ])
     mocks.list.mockResolvedValue([
-      { id: 42, name: 'Coletivo Cultural' },
+      { id: 42, name: 'Coletivo Cultural', avatarMediaId: 'group-avatar' },
       { id: 43, name: 'Centro Acadêmico' },
     ])
     renderPage(<MyGroupsPage />)

@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react'
 import { groupApi } from './data/groupApi'
 import { canOrganizeEvents, groupWorkspaceDestination } from './groupNavigation'
 import { formatEventDate, permissionLabels } from './presentation'
+import { GroupAvatar } from '@/features/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
 import {
@@ -125,7 +126,18 @@ export function MyGroupMembershipPage({ groupId }: { groupId: number }) {
       </Link>
       <PageHeader
         eyebrow="Minha participação"
-        title={group.data?.name ?? `Grupo #${groupId}`}
+        title={
+          <span className="flex items-center gap-4">
+            <GroupAvatar
+              mediaId={group.data?.avatarMediaId}
+              name={group.data?.name ?? `Grupo #${groupId}`}
+              size="large"
+            />
+            <span className="min-w-0 break-words">
+              {group.data?.name ?? `Grupo #${groupId}`}
+            </span>
+          </span>
+        }
         description={
           own.leftAt
             ? 'Seu vínculo com este grupo foi encerrado.'

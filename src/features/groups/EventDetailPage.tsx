@@ -4,6 +4,7 @@ import { ArrowLeft, CalendarDays, MapPin } from 'lucide-react'
 
 import { groupApi } from './data/groupApi'
 import { formatEventDate } from './presentation'
+import { GroupAvatar } from '@/features/media/IdentityImages'
 import {
   ErrorState,
   LoadingState,
@@ -116,7 +117,11 @@ export function EventDetailPage({ eventId }: { eventId: number }) {
         </div>
         <aside className="space-y-3 rounded-md border border-border p-5">
           <h2 className="text-lg font-extrabold">Organizado por</h2>
-          <p className="font-bold">
+          <p className="flex items-center gap-3 font-bold">
+            <GroupAvatar
+              mediaId={group.data?.avatarMediaId}
+              name={group.data?.name ?? `Grupo #${value.groupId}`}
+            />
             {group.data?.name ?? `Grupo #${value.groupId}`}
           </p>
           {group.isError && (

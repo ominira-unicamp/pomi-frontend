@@ -60,8 +60,14 @@ describe('event discovery', () => {
     mocks.getEvent.mockReset().mockResolvedValue(event)
     mocks.list
       .mockReset()
-      .mockResolvedValue([{ id: 4, name: 'Grupo Cultural' }])
-    mocks.get.mockReset().mockResolvedValue({ id: 4, name: 'Grupo Cultural' })
+      .mockResolvedValue([
+        { id: 4, name: 'Grupo Cultural', avatarMediaId: 'organizer-avatar' },
+      ])
+    mocks.get.mockReset().mockResolvedValue({
+      id: 4,
+      name: 'Grupo Cultural',
+      avatarMediaId: 'organizer-avatar',
+    })
   })
   it('shows upcoming events first and links to the event and its organizer', async () => {
     renderPage(<EventsPage />)
@@ -72,9 +78,12 @@ describe('event discovery', () => {
         { timeout: 5000 },
       ),
     ).toBeTruthy()
-    expect(
-      await screen.findByRole('link', { name: 'Grupo Cultural' }),
-    ).toBeTruthy()
+    const organizer = await screen.findByRole('link', {
+      name: 'Grupo Cultural',
+    })
+    expect(organizer.querySelector('img')?.getAttribute('src')).toContain(
+      '/media/organizer-avatar/avatarSmall',
+    )
     expect(
       screen
         .getByRole('button', { name: 'Próximos' })

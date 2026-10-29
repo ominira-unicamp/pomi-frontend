@@ -5,6 +5,7 @@ import { useState } from 'react'
 
 import { groupApi } from './data/groupApi'
 import type { GroupEvent } from '@ominira/pomi-sdk/generated/app'
+import { GroupAvatar } from '@/features/media/IdentityImages'
 import {
   EmptyState,
   ErrorState,
@@ -47,9 +48,11 @@ function eventTime(event: GroupEvent) {
 function EventAgendaItem({
   event,
   groupName,
+  groupAvatarMediaId,
 }: {
   event: GroupEvent
   groupName?: string
+  groupAvatarMediaId?: string | null
 }) {
   const start = event.startsAt ? new Date(event.startsAt) : null
   return (
@@ -92,8 +95,13 @@ function EventAgendaItem({
           <Link
             to="/grupos/$groupId"
             params={{ groupId: String(event.groupId) }}
-            className="pomi-focus font-bold text-primary hover:underline"
+            className="pomi-focus inline-flex items-center gap-2 font-bold text-primary hover:underline"
           >
+            <GroupAvatar
+              mediaId={groupAvatarMediaId}
+              name={groupName ?? 'Grupo'}
+              size="small"
+            />{' '}
             {groupName ?? 'Conhecer grupo organizador'}
           </Link>
           <Link
@@ -132,8 +140,8 @@ export function EventsPage({
     queryKey: ['public', 'groups'],
     queryFn: groupApi.list,
   })
-  const groupNames = new Map(
-    groups.data?.map((group) => [group.id, group.name]) ?? [],
+  const groupById = new Map(
+    groups.data?.map((group) => [group.id, group]) ?? [],
   )
   const now = Date.now()
   const upcoming = (events.data ?? [])
@@ -271,7 +279,10 @@ export function EventsPage({
                   <li key={event.id}>
                     <EventAgendaItem
                       event={event}
-                      groupName={groupNames.get(event.groupId)}
+                      groupName={groupById.get(event.groupId)?.name}
+                      groupAvatarMediaId={
+                        groupById.get(event.groupId)?.avatarMediaId
+                      }
                     />
                   </li>
                 ))}

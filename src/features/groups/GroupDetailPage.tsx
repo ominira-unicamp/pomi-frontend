@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { ArrowLeft, ExternalLink, Mail, Users } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Mail } from 'lucide-react'
 
 import { groupApi } from './data/groupApi'
 import { canOrganizeEvents } from './groupNavigation'
@@ -14,7 +14,7 @@ import {
 } from '@/components/PageLayout'
 import { buttonVariants } from '@/components/ui/button'
 import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
-import { MediaImage } from '@/features/media/MediaImage'
+import { GroupAvatar, PersonAvatar } from '@/features/media/IdentityImages'
 
 export function GroupDetailPage({ groupId }: { groupId: number }) {
   const auth = useOptionalAuth()
@@ -87,7 +87,16 @@ export function GroupDetailPage({ groupId }: { groupId: number }) {
       </Link>
       <PageHeader
         eyebrow="Comunidade · Grupo"
-        title={value.name}
+        title={
+          <span className="flex items-center gap-4">
+            <GroupAvatar
+              mediaId={value.avatarMediaId}
+              name={value.name}
+              size="large"
+            />
+            <span className="min-w-0 break-words">{value.name}</span>
+          </span>
+        }
         description={
           value.description ||
           'Conheça as atividades e os contatos deste grupo.'
@@ -115,28 +124,6 @@ export function GroupDetailPage({ groupId }: { groupId: number }) {
           )
         }
       />
-      {(value.bannerMediaId || value.avatarMediaId) && (
-        <div className="mb-8 flex items-center gap-4">
-          {value.avatarMediaId && (
-            <MediaImage
-              mediaId={value.avatarMediaId}
-              preset="avatarLarge"
-              alt={`Avatar do grupo ${value.name}`}
-              className="size-20 shrink-0 rounded-md object-cover"
-              fallback={null}
-            />
-          )}
-          {value.bannerMediaId && (
-            <MediaImage
-              mediaId={value.bannerMediaId}
-              preset="banner"
-              alt={`Banner do grupo ${value.name}`}
-              className="h-28 min-w-0 flex-1 rounded-md object-cover sm:h-36"
-              fallback={null}
-            />
-          )}
-        </div>
-      )}
       {value.tags.length > 0 && (
         <div
           className="mb-8 flex flex-wrap gap-2"
@@ -242,12 +229,20 @@ export function GroupDetailPage({ groupId }: { groupId: number }) {
                         params={{ publicId: member.profilePublicId }}
                         className="pomi-focus inline-flex items-center gap-2 font-bold text-primary hover:underline"
                       >
-                        <Users aria-hidden="true" className="size-4" />
+                        <PersonAvatar
+                          mediaId={member.avatarMediaId}
+                          name={member.displayName}
+                          size="small"
+                        />
                         {member.displayName}
                       </Link>
                     ) : (
                       <p className="flex items-center gap-2 font-bold">
-                        <Users aria-hidden="true" className="size-4" />
+                        <PersonAvatar
+                          mediaId={member.avatarMediaId}
+                          name={member.displayName}
+                          size="small"
+                        />
                         {member.displayName}
                       </p>
                     )}

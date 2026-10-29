@@ -7,6 +7,7 @@ import { Failure } from './EditorFeedback'
 import { useGroupManagement } from './GroupManagementLayout'
 import { permissionLabels } from './presentation'
 import type { GroupRole } from '@ominira/pomi-sdk/generated/app'
+import { PersonAvatar } from '@/features/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { ErrorState, LoadingState } from '@/components/PageLayout'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -138,7 +139,14 @@ export function GroupAccessManagementPage() {
                   className="flex flex-wrap items-center justify-between gap-3 p-4"
                 >
                   <div>
-                    <p className="font-bold">{member.studentName}</p>
+                    <p className="flex items-center gap-3 font-bold">
+                      <PersonAvatar
+                        mediaId={member.avatarMediaId}
+                        name={member.studentName}
+                        size="small"
+                      />
+                      {member.studentName}
+                    </p>
                     <p className="text-sm text-muted-foreground">
                       {member.roles.map((role) => role.name).join(', ') ||
                         'Sem função de gestão'}
@@ -427,7 +435,11 @@ export function GroupRoleAssignmentPage({
       >
         ← Acessos e permissões
       </Link>
-      <h2 className="text-2xl font-extrabold">
+      <h2 className="flex items-center gap-3 text-2xl font-extrabold">
+        <PersonAvatar
+          mediaId={member.avatarMediaId}
+          name={member.studentName}
+        />
         Funções de {member.studentName}
       </h2>
       <p className="text-sm text-muted-foreground">
