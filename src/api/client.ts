@@ -10,7 +10,7 @@ if (import.meta.env.PROD && (!configuredDataApiUrl || !configuredAppApiUrl)) {
 }
 
 const dataApiUrl = configuredDataApiUrl || 'http://localhost:3000'
-const appApiUrl = configuredAppApiUrl || 'http://localhost:3001'
+export const appApiUrl = configuredAppApiUrl || 'http://localhost:3001'
 
 export const pomiSdk = createPomiSdk({ dataApiUrl, appApiUrl })
 export function docsUrl() {

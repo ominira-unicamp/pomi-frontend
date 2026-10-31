@@ -40,3 +40,47 @@ npm run build
 ```
 
 O build executa Vite e TypeScript. A validação visual responsiva é feita em navegador real sobre o servidor local.
+
+## Imagens de identidade
+
+Avatares aparecem nos perfis, no menu da conta e nas listas e painéis de pessoas,
+grupos, membros, convites, eventos e autoria de planejamentos. Os componentes de mídia usam as
+variantes da App API e mostram iniciais quando não há imagem ou a leitura falha.
+
+O menu da conta compartilha a consulta de perfil social com a edição. Fotos
+privadas são lidas com Bearer, usam Blob URL temporária e são removidas da tela
+na troca de sessão. As mutações de imagem invalidam as consultas de identidade
+para atualizar as demais telas. A exibição não adiciona ampliação ao clicar.
+
+## Perfil de pessoas
+
+O perfil reúne avatar, nome, biografia e vínculo acadêmico no cabeçalho. Grupos
+públicos e interesses aparecem em seções compactas, seguidos pela agenda e pelos
+planejamentos autorizados. O menu Amigos oferece remoção com confirmação.
+
+As participações formam uma lista vertical sem cards: nome e avatar de 40 px,
+com cargos e períodos publicados em `positions`. Sem cargos, `joinedAt` fornece
+a data de entrada; sem metadados, aparece somente a identidade do grupo. Papéis
+e permissões de gestão não são usados. Interesses permanecem links vermelhos
+para disciplinas filtradas pela tag. As divisórias usam contraste reduzido.
+
+A agenda é delimitada por divisórias discretas e mantém a grade semanal existente,
+com rolagem horizontal quando a largura disponível é menor que a grade.
+
+A API atual não distingue agenda oculta de ausência de horários, por isso o
+estado vazio informa apenas que não há horários compartilhados disponíveis.
+
+### Edição de Meu perfil
+
+A aba Informações reúne foto, nome e bio em Identidade pública, com Privacidade
+na coluna lateral quando houver espaço e Interesses abaixo. O botão Salvar
+alterações envia somente nome e bio; limites de 80 e 280 caracteres seguem o
+contrato existente. Rascunhos sobrevivem às atualizações de foto, privacidade e
+interesses, e a navegação avisa antes de descartar alterações pendentes.
+
+A foto mantém seleção, prévia, cancelamento e envio separados. Privacidade usa
+PATCHs independentes: o público das disciplinas salva ao selecionar e a
+visibilidade do perfil mantém confirmação. As disciplinas incluem turmas,
+horários e salas; curso, modalidade e ingresso seguem a visibilidade do perfil.
+Interesses são adicionados ao selecionar uma sugestão e removidos pelo controle
+do chip. O código público fica junto de Visualizar perfil no cabeçalho.

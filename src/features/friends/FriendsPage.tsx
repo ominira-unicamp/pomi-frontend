@@ -7,6 +7,7 @@ import type {
   PublicPerson,
   PublicProfile,
 } from '@/features/friends/studentSocialApi'
+import { PersonAvatar } from '@/features/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
   EmptyState,
@@ -33,16 +34,19 @@ import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 function PersonDetails({ person }: { person: PublicPerson }) {
   return (
-    <div className="min-w-0">
-      <p className="font-extrabold">{person.displayName}</p>
-      {person.bio && (
-        <p className="text-sm text-muted-foreground">{person.bio}</p>
-      )}
-      <p className="text-xs text-muted-foreground">
-        {[person.program?.name, person.specialization?.name, person.entryYear]
-          .filter(Boolean)
-          .join(' · ')}
-      </p>
+    <div className="flex min-w-0 items-center gap-3">
+      <PersonAvatar mediaId={person.avatarMediaId} name={person.displayName} />
+      <div className="min-w-0">
+        <p className="font-extrabold">{person.displayName}</p>
+        {person.bio && (
+          <p className="text-sm text-muted-foreground">{person.bio}</p>
+        )}
+        <p className="text-xs text-muted-foreground">
+          {[person.program?.name, person.specialization?.name, person.entryYear]
+            .filter(Boolean)
+            .join(' · ')}
+        </p>
+      </div>
     </div>
   )
 }

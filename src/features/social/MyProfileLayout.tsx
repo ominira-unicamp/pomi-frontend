@@ -1,6 +1,6 @@
 import { Link, Outlet } from '@tanstack/react-router'
-import { Bell, Eye, UserRound, Users } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
+import { Bell, Copy, Eye, UserRound, Users } from 'lucide-react'
+import { useMutation, useQuery } from '@tanstack/react-query'
 
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
@@ -13,6 +13,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { getPublicProfile } from '@/features/friends/studentSocialApi'
 import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
+import { PersonAvatar } from '@/features/media/IdentityImages'
 
 const tabs = [
   { to: '/perfil', label: 'Informações', icon: UserRound, exact: true },
@@ -33,18 +34,46 @@ export function MyProfileLayout() {
     queryFn: () => getPublicProfile(studentId!, auth.getAccessToken),
     enabled: Boolean(studentId),
   })
-  const profileAction = profileQuery.data?.publicId ? (
-    <Link
-      to="/perfis/$publicId"
-      params={{ publicId: profileQuery.data.publicId }}
-      className={buttonVariants({ variant: 'outline', size: 'sm' })}
-    >
-      <Eye /> Visualizar perfil
-    </Link>
-  ) : (
-    <Button variant="outline" size="sm" disabled>
-      <Eye /> Visualizar perfil
-    </Button>
+  const copyCode = useMutation({
+    mutationFn: () =>
+      navigator.clipboard.writeText(profileQuery.data!.publicId),
+  })
+  const profileAction = (
+    <div className="flex flex-wrap items-center gap-2">
+      {profileQuery.data?.publicId ? (
+        <Link
+          to="/perfis/$publicId"
+          params={{ publicId: profileQuery.data.publicId }}
+          className={buttonVariants({ variant: 'outline', size: 'sm' })}
+        >
+          <Eye /> Visualizar perfil
+        </Link>
+      ) : (
+        <Button variant="outline" size="sm" disabled>
+          <Eye /> Visualizar perfil
+        </Button>
+      )}
+      {profileQuery.data?.publicId && (
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={copyCode.isPending}
+          onClick={() => copyCode.mutate()}
+        >
+          <Copy aria-hidden="true" /> Copiar código público
+        </Button>
+      )}
+      {copyCode.isSuccess && (
+        <p role="status" className="w-full text-xs text-muted-foreground">
+          Código público copiado.
+        </p>
+      )}
+      {copyCode.isError && (
+        <p role="alert" className="w-full text-xs text-destructive">
+          Não foi possível copiar o código. Tente novamente.
+        </p>
+      )}
+    </div>
   )
   if (!auth.initialized)
     return (
@@ -70,13 +99,24 @@ export function MyProfileLayout() {
   return (
     <PageContainer>
       <PageHeader
+        compact
         eyebrow="Comunidade"
-        title="Meu perfil"
+        title={
+          <span className="flex items-center gap-4">
+            <PersonAvatar
+              mediaId={profileQuery.data?.avatarMediaId}
+              name={profileQuery.data?.displayName ?? 'Meu perfil'}
+              access="private"
+              size="compact"
+            />
+            <span>Meu perfil</span>
+          </span>
+        }
         description="Gerencie suas informações públicas e conexões no POMI."
         actions={profileAction}
       />
       <nav aria-label="Seções do seu perfil" className="mb-6">
-        <div className="grid w-full grid-cols-1 border-b-2 border-strong-border sm:grid-cols-3">
+        <div className="grid w-full grid-cols-3 border-b border-border/40">
           {tabs.map((tab) => {
             const { to, label, icon: Icon } = tab
             const exact = 'exact' in tab && tab.exact
@@ -89,9 +129,9 @@ export function MyProfileLayout() {
                   'aria-current': 'page',
                   'data-state': 'active',
                 }}
-                className="pomi-focus -mb-0.5 inline-flex min-h-11 items-center justify-center gap-2 border-b-4 border-transparent px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground aria-[current=page]:border-primary aria-[current=page]:text-foreground"
+                className="pomi-focus -mb-0.5 inline-flex min-h-11 items-center justify-center gap-2 border-b-4 border-transparent px-1 text-xs sm:px-3 sm:text-sm font-bold text-muted-foreground transition-colors hover:bg-muted/60 hover:text-foreground aria-[current=page]:border-primary aria-[current=page]:text-foreground"
               >
-                <Icon className="size-4" />
+                <Icon aria-hidden="true" className="hidden size-4 sm:block" />
                 {label}
               </Link>
             )

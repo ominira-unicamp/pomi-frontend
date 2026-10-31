@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import {
   Outlet,
@@ -25,6 +26,7 @@ const authState = {
 
 vi.mock('@/auth/AuthProvider', () => ({
   useAuth: () => authState,
+  useOptionalAuth: () => authState,
 }))
 
 function renderShell(initialEntry = '/') {
@@ -45,6 +47,11 @@ function renderShell(initialEntry = '/') {
     path: '/sobre',
     component: () => <h1>Sobre</h1>,
   })
+  const myGroupsRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/meus-grupos',
+    component: () => <h1>Meus grupos</h1>,
+  })
   const publicProfileRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/perfis/$publicId',
@@ -64,6 +71,7 @@ function renderShell(initialEntry = '/') {
     routeTree: rootRoute.addChildren([
       indexRoute,
       aboutRoute,
+      myGroupsRoute,
       publicProfileRoute,
       curriculumPlanningRoute,
       semesterPlanningRoute,
@@ -72,9 +80,15 @@ function renderShell(initialEntry = '/') {
   })
 
   return render(
-    <ThemeProvider>
-      <RouterProvider router={router} />
-    </ThemeProvider>,
+    <QueryClientProvider
+      client={
+        new QueryClient({ defaultOptions: { queries: { retry: false } } })
+      }
+    >
+      <ThemeProvider>
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </QueryClientProvider>,
   )
 }
 
@@ -82,6 +96,7 @@ describe('AppShell', () => {
   beforeEach(() => {
     login.mockReset()
     logout.mockReset()
+    authState.isAuthenticated = false
     window.localStorage.removeItem('pomi.sidebar.collapsed')
   })
 
@@ -173,6 +188,27 @@ describe('AppShell', () => {
     const profileLink = await screen.findByRole('link', { name: 'Meu perfil' })
 
     expect(profileLink.querySelector('.lucide-lock-keyhole')).toBeTruthy()
+  })
+
+  it('puts the personal groups destination in the account menu', async () => {
+    authState.isAuthenticated = true
+    renderShell('/meus-grupos')
+    expect(
+      within(
+        await screen.findByRole('navigation', { name: 'Navegação principal' }),
+      )
+        .getByRole('link', { name: 'Grupos' })
+        .getAttribute('aria-current'),
+    ).toBeNull()
+    fireEvent.pointerDown(
+      await screen.findByRole('button', { name: 'Abrir menu de Conta POMI' }),
+      { button: 0, ctrlKey: false },
+    )
+    const ownGroups = await screen.findByRole('menuitem', {
+      name: 'Meus grupos',
+    })
+    expect(ownGroups.getAttribute('href')).toBe('/meus-grupos')
+    expect(ownGroups.getAttribute('aria-current')).toBe('page')
   })
 
   it('marks only the contextual primary destination as active', async () => {

@@ -20,6 +20,7 @@ function CurriculumPlanningLayout() {
 
   return (
     <CurriculumPlannerProvider
+      key={params.planejamentoId ?? pathname}
       routeCurriculumId={params.planejamentoId}
       routeShowsSelection={routeShowsSelection}
     >

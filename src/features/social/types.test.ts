@@ -9,6 +9,7 @@ import type {
 const person: PublicPerson = {
   publicId: 'a375fdb0-45d9-4a79-8415-89fcb64157b6',
   displayName: 'Ada',
+  avatarMediaId: null,
   bio: null,
   interests: [],
   currentCourses: [],

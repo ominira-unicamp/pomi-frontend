@@ -85,6 +85,7 @@ describe('student social API', () => {
       publicProfileUpdateInput({
         publicId: 'a375fdb0-45d9-4a79-8415-89fcb64157b6',
         displayName: 'Ada',
+        avatarMediaId: null,
         bio: 'Olá',
         interests: [],
         currentCourses: [],
@@ -106,6 +107,7 @@ describe('student social API', () => {
     const profile = {
       publicId: 'a375fdb0-45d9-4a79-8415-89fcb64157b6',
       displayName: 'Ada',
+      avatarMediaId: null,
       bio: null,
       interests: [],
       currentCourses: [],

@@ -7,6 +7,7 @@ type AutocompleteSelectProps = Readonly<{
   ariaLabel: string
   disabled?: boolean
   emptyLabel?: string
+  fitContainer?: boolean
   onValueChange: (value: string) => void
   options: ReadonlyArray<AutocompleteOption>
   placeholder?: string
@@ -29,6 +30,7 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
   ariaLabel,
   disabled,
   emptyLabel,
+  fitContainer = false,
   onValueChange,
   options,
   placeholder,
@@ -139,7 +141,7 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
           ref={listRef}
           id={listId}
           label={`Opções de ${ariaLabel}`}
-          className={`${insideDialog ? 'relative w-full' : 'absolute w-max min-w-full'} z-50 mt-1 overflow-y-auto rounded-md border-2 border-strong-border bg-popover p-1 text-popover-foreground shadow-lg`}
+          className={`${insideDialog ? 'relative w-full' : fitContainer ? 'absolute w-full' : 'absolute w-max min-w-full'} z-50 mt-1 overflow-y-auto rounded-md border-2 border-strong-border bg-popover p-1 text-popover-foreground shadow-lg`}
           style={{
             height: Math.min(
               viewportHeight + listChromeHeight,
@@ -170,7 +172,8 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
               <Command.Item
                 key={option.value}
                 value={option.value}
-                className="pomi-focus absolute h-10 w-full whitespace-nowrap rounded-sm px-3 py-2 text-left text-sm font-semibold hover:bg-accent data-[selected=true]:bg-accent"
+                title={fitContainer ? option.label : undefined}
+                className={`${fitContainer ? 'truncate' : ''} pomi-focus absolute h-10 w-full whitespace-nowrap rounded-sm px-3 py-2 text-left text-sm font-semibold hover:bg-accent data-[selected=true]:bg-accent`}
                 style={{ top: (firstOptionIndex + index) * optionHeight }}
                 onMouseDown={(event) => event.preventDefault()}
                 onSelect={() => select(option)}
