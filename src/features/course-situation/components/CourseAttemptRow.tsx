@@ -1,12 +1,21 @@
-import { CalendarDays, Pencil, Trash2 } from 'lucide-react'
+import { CalendarDays, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 
+import { Link } from '@tanstack/react-router'
 import { labelForStatus } from '../model/model'
 import type { ProfessorEvaluationTarget } from '@/features/student/components/ProfessorEvaluationDialog'
 import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
+import { scheduleCourseColor } from '@/features/student/components/StudentWeeklySchedule'
+import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
 import { ActionBar } from '@/components/patterns/ActionBar'
 import { Badge } from '@/components/patterns/Badge'
 import { DataRow } from '@/components/patterns/DataList'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 function statusVariant(status: StudentCourseAttempt['status']) {
   if (
@@ -37,12 +46,26 @@ export function CourseAttemptRow({
   onRemove: (attemptId: number) => void
 }) {
   return (
-    <DataRow className="rounded-md border border-strong-border p-3 first:pt-3 last:pb-3">
+    <DataRow className="py-4 first:pt-4 last:pb-4">
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
-          <p className="font-bold">
+          {attempt.status === 'ENROLLED' && (
+            <span
+              aria-hidden
+              className={`size-3 shrink-0 rounded-sm border-2 ${scheduleCourseColor(attempt.course.code)}`}
+            />
+          )}
+          <Link
+            className="pomi-focus font-bold hover:text-primary"
+            to="/disciplinas/$courseId"
+            params={{ courseId: String(attempt.courseId) }}
+            search={{
+              catalogYear:
+                attempt.studyPeriod?.year ?? new Date().getFullYear(),
+            }}
+          >
             {attempt.course.code} — {attempt.course.name}
-          </p>
+          </Link>
           <Badge variant={statusVariant(attempt.status)}>
             {labelForStatus(attempt.status)}
           </Badge>
@@ -90,22 +113,28 @@ export function CourseAttemptRow({
               Avaliar {professor.name}
             </Button>
           ))}
-        <Button
-          className="flex-1 sm:flex-none"
-          size="sm"
-          variant="outline"
-          onClick={() => onEdit(attempt)}
-        >
-          <Pencil /> Editar
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          className="flex-1 text-destructive sm:flex-none"
-          onClick={() => onRemove(attempt.id)}
-        >
-          <Trash2 /> Remover
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={`Ações de ${attempt.course.code}, ${attempt.studyPeriod ? studyPeriodLabel(attempt.studyPeriod) : 'período não informado'}`}
+            >
+              <MoreHorizontal />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => onEdit(attempt)}>
+              <Pencil /> Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onSelect={() => onRemove(attempt.id)}
+            >
+              <Trash2 /> Remover
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </ActionBar>
     </DataRow>
   )

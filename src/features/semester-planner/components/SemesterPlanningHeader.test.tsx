@@ -46,7 +46,7 @@ describe('SemesterPlanningHeader', () => {
   it('orders periods from most recent and allows changing an unlocked period', () => {
     const { onPeriodChange } = renderHeader()
     const period = screen.getByLabelText('Período letivo')
-    expect(period.querySelectorAll('option')[0].textContent).toBe('2026s1')
+    expect(period.querySelectorAll('option')[0].textContent).toBe('2026 · 1º semestre')
     fireEvent.change(period, { target: { value: '1' } })
     expect(onPeriodChange).toHaveBeenCalledWith(1)
   })
@@ -54,7 +54,7 @@ describe('SemesterPlanningHeader', () => {
   it('renders a locked period without an editable field', () => {
     renderHeader(true)
     expect(screen.queryByLabelText('Período letivo')).toBeNull()
-    expect(screen.getByText('2026s1')).toBeTruthy()
+    expect(screen.getByText('2026 · 1º semestre')).toBeTruthy()
   })
 
   it('does not offer file import or export actions', () => {

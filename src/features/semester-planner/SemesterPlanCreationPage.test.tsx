@@ -83,7 +83,7 @@ async function openProgramGuide() {
     name: 'Período letivo do planejamento',
   })
   fireEvent.focus(period)
-  fireEvent.click(await screen.findByText('2027s1'))
+  fireEvent.click(await screen.findByText('2027 · 1º semestre'))
   fireEvent.click(screen.getByRole('button', { name: 'Continuar' }))
   fireEvent.click(screen.getByRole('button', { name: /^Programa/ }))
 }

@@ -6,6 +6,10 @@
 
 :root {
   color-scheme: light;
+  --schedule-1: #c6dbe0;
+  --schedule-2: #d3d8b7;
+  --schedule-3: #d8cde1;
+  --schedule-foreground: #202020;
   --background: #f7f3ed;
   --foreground: #202020;
   --card: #fffdf9;
@@ -70,6 +74,10 @@
 }
 
 @theme inline {
+  --color-schedule-1: var(--schedule-1);
+  --color-schedule-2: var(--schedule-2);
+  --color-schedule-3: var(--schedule-3);
+  --color-schedule-foreground: var(--schedule-foreground);
   --font-sans: 'Outfit Variable', 'Segoe UI', sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -1,8 +1,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-
 import { CourseSituationPage } from './CourseSituationPage'
+import type { ReactNode } from 'react'
+
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({ children }: { children: ReactNode }) => <a>{children}</a>,
+}))
 
 const {
   listStudentCourseAttempts,
@@ -169,19 +173,18 @@ describe('CourseSituationPage', () => {
     expect(screen.getByText('Disciplinas cursando')).toBeTruthy()
     expect(screen.queryByText('Curso e ingresso')).toBeNull()
 
-    fireEvent.mouseDown(screen.getByRole('tab', { name: /Curso/ }), {
-      button: 0,
-      ctrlKey: false,
-    })
+    expect(screen.queryByRole('tab', { name: 'Curso' })).toBeNull()
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Editar vínculo acadêmico' }),
+    )
     expect(await screen.findByText('Curso e ingresso')).toBeTruthy()
-    expect(screen.getByText('Escolha seu programa')).toBeTruthy()
-    expect(screen.queryByText('MC102 — Algoritmos')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar' }))
 
     fireEvent.mouseDown(screen.getByRole('tab', { name: /Histórico/ }), {
       button: 0,
       ctrlKey: false,
     })
-    expect(await screen.findByText('2025s2')).toBeTruthy()
+    expect(await screen.findByText('2025 · 2º semestre')).toBeTruthy()
     expect(screen.getByText('MA111 — Cálculo I')).toBeTruthy()
   })
 
@@ -219,8 +222,8 @@ describe('CourseSituationPage', () => {
       ctrlKey: false,
     })
 
-    const newest = await screen.findByText('2026s1')
-    const oldest = screen.getByText('2025s2')
+    const newest = await screen.findByText('2026 · 1º semestre')
+    const oldest = screen.getByText('2025 · 2º semestre')
     expect(
       newest.compareDocumentPosition(oldest) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
@@ -231,7 +234,7 @@ describe('CourseSituationPage', () => {
     await screen.findByText('MC102 — Algoritmos')
 
     fireEvent.click(
-      screen.getByRole('button', { name: 'Adicionar disciplina' }),
+      screen.getByRole('button', { name: 'Adicionar disciplina cursando' }),
     )
 
     const dialog = screen.getByRole('dialog')
@@ -252,7 +255,11 @@ describe('CourseSituationPage', () => {
     renderPage()
     await screen.findByText('MC102 — Algoritmos')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Editar' }))
+    fireEvent.pointerDown(
+      screen.getAllByRole('button', { name: /Ações de/ })[0],
+      { button: 0, ctrlKey: false },
+    )
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Editar' }))
 
     expect(await screen.findByText('Editar tentativa')).toBeTruthy()
     expect(document.activeElement).not.toBe(
@@ -264,12 +271,14 @@ describe('CourseSituationPage', () => {
     renderPage()
     await screen.findByText('MC102 — Algoritmos')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Remover' }))
+    fireEvent.pointerDown(
+      screen.getAllByRole('button', { name: /Ações de/ })[0],
+      { button: 0, ctrlKey: false },
+    )
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Remover' }))
 
     expect(await screen.findByRole('dialog')).toBeTruthy()
-    expect(
-      screen.getByText(/A tentativa de Algoritmos será removida/),
-    ).toBeTruthy()
+    expect(screen.getByText(/A tentativa de MC102 — Algoritmos/)).toBeTruthy()
     expect(deleteStudentCourseAttempt).not.toHaveBeenCalled()
 
     fireEvent.click(screen.getByRole('button', { name: 'Remover disciplina' }))
@@ -281,6 +290,7 @@ describe('CourseSituationPage', () => {
         authState.getAccessToken,
       ),
     )
+    expect(await screen.findByText('Tentativa removida.')).toBeTruthy()
   })
 
   it('offers an evaluation for a professor from a completed class', async () => {
@@ -321,7 +331,11 @@ describe('CourseSituationPage', () => {
     renderPage()
     await screen.findByText('MC102 — Algoritmos')
 
-    fireEvent.click(screen.getByRole('button', { name: 'Editar' }))
+    fireEvent.pointerDown(
+      screen.getAllByRole('button', { name: /Ações de/ })[0],
+      { button: 0, ctrlKey: false },
+    )
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'Editar' }))
 
     const period = await screen.findByRole('combobox', {
       name: 'Período letivo',
@@ -459,7 +473,9 @@ describe('CourseSituationPage', () => {
       name: 'Período da agenda',
     })
     fireEvent.focus(periodSelect)
-    fireEvent.click(await screen.findByRole('option', { name: '2025s2' }))
+    fireEvent.click(
+      await screen.findByRole('option', { name: '2025 · 2º semestre' }),
+    )
 
     await waitFor(() =>
       expect(listClassSchedulesByStudyPeriod).toHaveBeenCalledWith(19),
@@ -498,7 +514,7 @@ describe('CourseSituationPage', () => {
     renderPage()
     await screen.findByText('MC102 — Algoritmos')
     fireEvent.click(
-      screen.getByRole('button', { name: 'Adicionar disciplina' }),
+      screen.getByRole('button', { name: 'Adicionar disciplina cursando' }),
     )
 
     const evaluationMode = screen.getByRole('combobox', {

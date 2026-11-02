@@ -28,11 +28,13 @@ function ScheduleState({
   loading,
   error,
   meetings,
+  onOpenMeeting,
 }: {
   periodSelected: boolean
   loading: boolean
   error: boolean
   meetings: ReadonlyArray<StudentClassSchedule>
+  onOpenMeeting: (classId?: number) => void
 }) {
   if (!periodSelected)
     return (
@@ -70,7 +72,13 @@ function ScheduleState({
         </AlertDescription>
       </Alert>
     )
-  if (meetings.length) return <StudentWeeklySchedule meetings={meetings} />
+  if (meetings.length)
+    return (
+      <StudentWeeklySchedule
+        meetings={meetings}
+        onOpenMeeting={(meeting) => onOpenMeeting(meeting.classId)}
+      />
+    )
   return (
     <Card
       variant="flat"
@@ -129,6 +137,11 @@ export function EnrolledCoursesSection({
       />
     )
 
+  const displayedAttempts = attempts.filter(
+    (attempt) =>
+      !attempt.studyPeriodId ||
+      String(attempt.studyPeriodId) === selectedPeriodId,
+  )
   return (
     <div className="space-y-8">
       <Section aria-labelledby="student-schedule-title">
@@ -141,7 +154,13 @@ export function EnrolledCoursesSection({
               <CalendarDays className="size-5 text-primary" /> Agenda das aulas
             </SectionTitle>
             <SectionDescription>
-              Horários das turmas vinculadas às disciplinas cursando.
+              {displayedAttempts.length}{' '}
+              {displayedAttempts.length === 1 ? 'disciplina' : 'disciplinas'} ·{' '}
+              {displayedAttempts.reduce(
+                (total, attempt) => total + attempt.course.credits,
+                0,
+              )}{' '}
+              créditos. Horários das turmas vinculadas ao período selecionado.
             </SectionDescription>
           </div>
           {periods.length > 1 ? (
@@ -183,6 +202,12 @@ export function EnrolledCoursesSection({
             loading={scheduleLoading}
             error={scheduleError}
             meetings={meetings}
+            onOpenMeeting={(classId) => {
+              const attempt = displayedAttempts.find(
+                (item) => item.classId === classId,
+              )
+              if (attempt) onOpenAbsences(attempt.id)
+            }}
           />
         </SectionContent>
       </Section>
@@ -191,8 +216,8 @@ export function EnrolledCoursesSection({
           Disciplinas cursando
         </SectionTitle>
         <SectionContent>
-          <DataList className="space-y-2 divide-y-0">
-            {attempts.map((attempt) => (
+          <DataList>
+            {displayedAttempts.map((attempt) => (
               <CourseAttemptRow
                 key={attempt.id}
                 attempt={attempt}

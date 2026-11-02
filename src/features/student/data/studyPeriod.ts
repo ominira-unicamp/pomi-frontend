@@ -20,7 +20,13 @@ export function studyPeriodCode(period: StudyPeriodReference) {
 }
 
 export function studyPeriodLabel(period: StudyPeriodReference) {
-  return studyPeriodCode(period)
+  const labels: Record<StudyPeriodYearPeriod, string> = {
+    FIRST_SEMESTER: '1º semestre',
+    SECOND_SEMESTER: '2º semestre',
+    SUMMER: 'Verão',
+    WINTER: 'Inverno',
+  }
+  return `${period.year} · ${labels[period.yearPeriod]}`
 }
 
 export function studyPeriodFromCode(code: string): StudyPeriodReference | null {

@@ -96,7 +96,11 @@ function lambdaResponseToParseResult(
   // Build a map from "year:yearPeriod" → semester (mutable during build)
   const semesterMap = new Map<
     string,
-    { year: number; yearPeriod: 'FIRST_SEMESTER' | 'SECOND_SEMESTER'; courses: Array<ImportCourse> }
+    {
+      year: number
+      yearPeriod: 'FIRST_SEMESTER' | 'SECOND_SEMESTER'
+      courses: Array<ImportCourse>
+    }
   >()
 
   // Process currently enrolled subjects (gradeHoraria) — add as ENROLLED
@@ -187,6 +191,8 @@ export function LambdaHistoryImportDialog({
     if (loading) return
     if (!nextOpen) {
       setError(undefined)
+      setUsername('')
+      setPassword('')
     }
     onOpenChange(nextOpen)
   }
@@ -232,7 +238,7 @@ export function LambdaHistoryImportDialog({
       open={open}
       onOpenChange={handleClose}
       title="Importar via DAC"
-      description="Informe seu usuário e senha da DAC para buscar automaticamente seu histórico escolar. (Utilize com cautela, funcionalidade em beta)"
+      description="Consulta experimental: seu usuário e senha da DAC são enviados ao serviço de consulta para obter o histórico. As credenciais ficam nesta sessão até concluir ou fechar. Revise os registros antes de confirmar a importação."
     >
       <div className="space-y-4 pt-2">
         <div className="space-y-2">

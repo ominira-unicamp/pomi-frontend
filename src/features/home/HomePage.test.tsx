@@ -431,7 +431,7 @@ describe('HomePage', () => {
     expect(await screen.findByText('Olá, Ana')).toBeTruthy()
     expect(await screen.findByText('Agenda')).toBeTruthy()
     expect(
-      screen.getByText('Você não possui disciplinas cursando em 2026s2.'),
+      screen.getByText('Você não possui disciplinas cursando em 2026 · 2º semestre.'),
     ).toBeTruthy()
     expect(
       await screen.findByText('Cardápio não disponível para esta data.'),

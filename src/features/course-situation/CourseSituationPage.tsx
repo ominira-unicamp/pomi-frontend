@@ -2,22 +2,28 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { BookOpenCheck, Check, LogIn, Plus } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
+import { AcademicProfileSummary } from './components/AcademicProfileSummary'
 import type { CourseProfileValues } from '@/features/student/components/CourseProfilePanel'
 import type { ProfessorEvaluationTarget } from '@/features/student/components/ProfessorEvaluationDialog'
 import type { CourseAttemptFormState } from '@/features/course-situation/components/CourseAttemptDialog'
 import type {
   StudentCourseAttempt,
   StudentCourseAttemptStatus,
+  StudentHistoryImport,
   StudentHistoryImportSummary,
 } from '@/features/student/data/studentApi'
 import type { StudyPeriodYearPeriod } from '@/features/student/data/studyPeriod'
 import type { StudentHistoryParseResult } from '@/features/student/historyImport/studentHistoryParser'
 import {
+  ErrorState,
   LoadingState,
   PageContainer,
   PageHeader,
 } from '@/components/PageLayout'
 import { Button } from '@/components/ui/button'
+import { ResponsiveDialog } from '@/components/patterns/ResponsiveDialog'
+import { InlineMessage } from '@/components/patterns/InlineMessage'
+import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
 import { Card } from '@/components/ui/card'
 import {
   Dialog,
@@ -59,7 +65,7 @@ import {
 import { mostRecentStudyPeriodsFirst } from '@/features/student/data/studyPeriodOrdering'
 import { parseStudentHistoryPdf } from '@/features/student/historyImport/studentHistoryParser'
 
-type SituationTab = 'course' | 'enrolled' | 'history'
+type SituationTab = 'enrolled' | 'history'
 
 function TabCount({ value }: { value: number }) {
   return (
@@ -80,14 +86,18 @@ const emptyAttemptForm: CourseAttemptFormState = {
 
 export function CourseSituationPage() {
   const queryClient = useQueryClient()
+  const [profileEditing, setProfileEditing] = useState(false)
+  const [profileSaved, setProfileSaved] = useState(false)
   const [activeTab, setActiveTab] = useState<SituationTab>('enrolled')
   const [selectedSchedulePeriodId, setSelectedSchedulePeriodId] = useState('')
   const [attemptDialogOpen, setAttemptDialogOpen] = useState(false)
   const [attemptForm, setAttemptFormState] =
     useState<CourseAttemptFormState>(emptyAttemptForm)
+  const [attemptFeedback, setAttemptFeedback] = useState<string>()
   const [attemptError, setAttemptError] = useState<string>()
   const [attemptSaving, setAttemptSaving] = useState(false)
   const [removalAttemptId, setRemovalAttemptId] = useState<number>()
+  const [removalError, setRemovalError] = useState<string>()
   const [removalInProgress, setRemovalInProgress] = useState(false)
   const [absenceAttemptId, setAbsenceAttemptId] = useState<number>()
   const [evaluationTarget, setEvaluationTarget] =
@@ -210,6 +220,9 @@ export function CourseSituationPage() {
     auth.getAccessToken,
     enrolledAttempts.length > 0,
   )
+  const removalAttempt = attempts.find(
+    (attempt) => attempt.id === removalAttemptId,
+  )
   const absenceAttempt = attempts.find(
     (attempt) => attempt.id === absenceAttemptId,
   )
@@ -226,11 +239,13 @@ export function CourseSituationPage() {
   }
 
   function openNewAttempt(initialStatus?: StudentCourseAttemptStatus) {
+    setAttemptFeedback(undefined)
     setAttemptForm({ ...emptyAttemptForm, status: initialStatus ?? '' })
     setAttemptDialogOpen(true)
   }
 
   function openEdit(attempt: StudentCourseAttempt) {
+    setAttemptFeedback(undefined)
     setAttemptForm({
       editingAttemptId: attempt.id,
       courseId: String(attempt.courseId),
@@ -276,6 +291,7 @@ export function CourseSituationPage() {
       await queryClient.invalidateQueries({
         queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
       })
+      setAttemptFeedback('Tentativa salva.')
       setActiveTab(status === 'ENROLLED' ? 'enrolled' : 'history')
       setAttemptDialogOpen(false)
       setAttemptForm(emptyAttemptForm)
@@ -291,6 +307,8 @@ export function CourseSituationPage() {
   async function confirmRemoveAttempt() {
     if (!studentId || removalAttemptId === undefined || removalInProgress)
       return
+    setAttemptFeedback(undefined)
+    setRemovalError(undefined)
     setRemovalInProgress(true)
     try {
       await deleteStudentCourseAttempt(
@@ -302,6 +320,9 @@ export function CourseSituationPage() {
         queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
       })
       setRemovalAttemptId(undefined)
+      setAttemptFeedback('Tentativa removida.')
+    } catch {
+      setRemovalError('Não foi possível remover a tentativa. Tente novamente.')
     } finally {
       setRemovalInProgress(false)
     }
@@ -313,6 +334,8 @@ export function CourseSituationPage() {
     await queryClient.invalidateQueries({
       queryKey: privateQueryKeys.studentProfile(sessionSubject, studentId),
     })
+    setProfileEditing(false)
+    setProfileSaved(true)
   }
 
   async function parseHistoryFile(file: File) {
@@ -333,17 +356,13 @@ export function CourseSituationPage() {
     }
   }
 
-  async function confirmHistoryImport() {
+  async function confirmHistoryImport(value: StudentHistoryImport) {
     if (!studentId || !pendingHistoryImport || historyImporting) return
     setHistoryImporting(true)
     setHistoryImportError(undefined)
     try {
       setHistoryImportSummary(
-        await importStudentHistory(
-          studentId,
-          pendingHistoryImport.value,
-          auth.getAccessToken,
-        ),
+        await importStudentHistory(studentId, value, auth.getAccessToken),
       )
       setPendingHistoryImport(undefined)
       await queryClient.invalidateQueries({
@@ -439,35 +458,52 @@ export function CourseSituationPage() {
         title="Situação do curso"
         description={
           profileQuery.data
-            ? `${profileQuery.data.name} · acompanhe suas tentativas por período.`
+            ? `${profileQuery.data.name} · acompanhe suas disciplinas e seu histórico acadêmico.`
             : undefined
         }
         actions={
-          <Button onClick={() => openNewAttempt()}>
-            <Plus /> Adicionar disciplina
+          <Button
+            onClick={() =>
+              openNewAttempt(activeTab === 'enrolled' ? 'ENROLLED' : undefined)
+            }
+          >
+            <Plus />{' '}
+            {activeTab === 'enrolled'
+              ? 'Adicionar disciplina cursando'
+              : 'Adicionar tentativa ao histórico'}
           </Button>
         }
       />
-      <Tabs
-        value={activeTab}
-        onValueChange={(value) => setActiveTab(value as SituationTab)}
+      {profileQuery.isError && (
+        <InlineMessage variant="error">
+          Não foi possível carregar o vínculo acadêmico.{' '}
+          <Button variant="outline" onClick={() => void profileQuery.refetch()}>
+            Tentar novamente
+          </Button>
+        </InlineMessage>
+      )}
+      {staticQuery.isError && (
+        <InlineMessage variant="error">
+          Não foi possível consultar o catálogo.{' '}
+          <Button variant="outline" onClick={() => void staticQuery.refetch()}>
+            Tentar novamente
+          </Button>
+        </InlineMessage>
+      )}
+      <AcademicProfileSummary
+        profile={profileQuery.data}
+        data={staticQuery.data}
+        loading={staticQuery.isPending || profileQuery.isPending}
+        editDisabled={staticQuery.isError || profileQuery.isError}
+        onEdit={() => {
+          setProfileSaved(false)
+          setProfileEditing(true)
+        }}
       >
-        <TabsList aria-label="Seções da situação do curso">
-          <TabsTrigger value="course">Curso</TabsTrigger>
-          <TabsTrigger value="enrolled">
-            Cursando <TabCount value={enrolledAttempts.length} />
-          </TabsTrigger>
-          <TabsTrigger value="history">
-            Histórico{' '}
-            <TabCount value={attempts.length - enrolledAttempts.length} />
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="course">
-          <CourseProfilePanel
-            profile={profileQuery.data}
-            catalogPrograms={staticQuery.data?.catalogPrograms ?? []}
-            onSave={saveProfile}
-          />
+        <details className="mt-4">
+          <summary className="pomi-focus min-h-11 cursor-pointer py-3 text-sm font-bold">
+            Consultar currículo do programa
+          </summary>
           <StudentProgramCurriculum
             key={`${profileQuery.data?.catalogId}-${profileQuery.data?.programId}-${profileQuery.data?.specializationId}`}
             profile={profileQuery.data}
@@ -478,54 +514,129 @@ export function CourseSituationPage() {
             attempts={attempts}
             attemptsLoading={attemptsQuery.isPending}
           />
-        </TabsContent>
+        </details>
+      </AcademicProfileSummary>
+      {profileSaved && (
+        <InlineMessage className="mb-5" variant="success">
+          Informações do curso salvas.
+        </InlineMessage>
+      )}
+      <ResponsiveDialog
+        open={profileEditing}
+        onOpenChange={setProfileEditing}
+        title="Editar curso e ingresso"
+      >
+        <CourseProfilePanel
+          profile={profileQuery.data}
+          catalogPrograms={staticQuery.data?.catalogPrograms ?? []}
+          onSave={saveProfile}
+          onCancel={() => setProfileEditing(false)}
+        />
+      </ResponsiveDialog>
+      {attemptFeedback && (
+        <InlineMessage className="mb-5" variant="success">
+          {attemptFeedback}
+        </InlineMessage>
+      )}
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => setActiveTab(value as SituationTab)}
+      >
+        <TabsList aria-label="Seções da situação do curso">
+          <TabsTrigger value="enrolled">
+            Cursando <TabCount value={enrolledAttempts.length} />
+          </TabsTrigger>
+          <TabsTrigger value="history">
+            Histórico{' '}
+            <TabCount value={attempts.length - enrolledAttempts.length} />
+          </TabsTrigger>
+        </TabsList>
         <TabsContent value="enrolled">
-          <EnrolledCoursesSection
-            attempts={enrolledAttempts}
-            periods={enrolledPeriods}
-            selectedPeriodId={selectedSchedulePeriodId}
-            meetings={scheduleMeetings}
-            scheduleLoading={scheduleQuery.isLoading}
-            scheduleError={scheduleQuery.isError}
-            attemptsOutsideSchedule={attemptsOutsideSchedule}
-            absenceCount={absenceCount}
-            onPeriodChange={setSelectedSchedulePeriodId}
-            onNewAttempt={() => openNewAttempt('ENROLLED')}
-            onOpenAbsences={setAbsenceAttemptId}
-            onEvaluate={setEvaluationTarget}
-            onEdit={openEdit}
-            onRemove={setRemovalAttemptId}
-          />
+          {attemptsQuery.isPending ? (
+            <LoadingState label="Carregando disciplinas cursando" />
+          ) : attemptsQuery.isError ? (
+            <ErrorState
+              title="Não foi possível carregar as disciplinas"
+              description="Tente novamente para consultar suas disciplinas cursando."
+              action={{
+                label: 'Tentar novamente',
+                onClick: () => void attemptsQuery.refetch(),
+              }}
+            />
+          ) : (
+            <EnrolledCoursesSection
+              attempts={enrolledAttempts}
+              periods={enrolledPeriods}
+              selectedPeriodId={selectedSchedulePeriodId}
+              meetings={scheduleMeetings}
+              scheduleLoading={scheduleQuery.isLoading}
+              scheduleError={scheduleQuery.isError}
+              attemptsOutsideSchedule={attemptsOutsideSchedule}
+              absenceCount={absenceCount}
+              onPeriodChange={setSelectedSchedulePeriodId}
+              onNewAttempt={() => openNewAttempt('ENROLLED')}
+              onOpenAbsences={setAbsenceAttemptId}
+              onEvaluate={setEvaluationTarget}
+              onEdit={openEdit}
+              onRemove={(id) => {
+                setRemovalError(undefined)
+                setRemovalAttemptId(id)
+              }}
+            />
+          )}
         </TabsContent>
         <TabsContent value="history">
-          <CourseHistorySection
-            groups={historyGroups}
-            fileInputRef={historyFileInput}
-            importing={historyImporting}
-            importError={historyImportError}
-            importSummary={historyImportSummary}
-            absenceCount={absenceCount}
-            onFileChange={(event) => {
-              const file = event.target.files?.[0]
-              event.target.value = ''
-              if (file) void parseHistoryFile(file)
-            }}
-            onNewAttempt={() => openNewAttempt()}
-            onOpenAbsences={setAbsenceAttemptId}
-            onEvaluate={setEvaluationTarget}
-            onEdit={openEdit}
-            onRemove={setRemovalAttemptId}
-            onLambdaImport={() => setLambdaImportOpen(true)}
-          />
+          {attemptsQuery.isPending ? (
+            <LoadingState label="Carregando histórico" />
+          ) : attemptsQuery.isError ? (
+            <ErrorState
+              title="Não foi possível carregar o histórico"
+              description="Tente novamente para consultar suas tentativas anteriores."
+              action={{
+                label: 'Tentar novamente',
+                onClick: () => void attemptsQuery.refetch(),
+              }}
+            />
+          ) : (
+            <CourseHistorySection
+              groups={historyGroups}
+              fileInputRef={historyFileInput}
+              importing={historyImporting}
+              importError={historyImportError}
+              importSummary={historyImportSummary}
+              absenceCount={absenceCount}
+              onFileChange={(event) => {
+                const file = event.target.files?.[0]
+                event.target.value = ''
+                if (file) void parseHistoryFile(file)
+              }}
+              onNewAttempt={() => openNewAttempt()}
+              onOpenAbsences={setAbsenceAttemptId}
+              onEvaluate={setEvaluationTarget}
+              onEdit={openEdit}
+              onRemove={(id) => {
+                setRemovalError(undefined)
+                setRemovalAttemptId(id)
+              }}
+              onLambdaImport={() => setLambdaImportOpen(true)}
+            />
+          )}
         </TabsContent>
       </Tabs>
       <HistoryImportDialog
+        key={
+          pendingHistoryImport
+            ? JSON.stringify(pendingHistoryImport.value)
+            : 'empty'
+        }
+        attempts={attempts}
+        error={historyImportError}
         value={pendingHistoryImport}
         importing={historyImporting}
         onOpenChange={(open) => {
           if (!open && !historyImporting) setPendingHistoryImport(undefined)
         }}
-        onConfirm={() => void confirmHistoryImport()}
+        onConfirm={(value) => void confirmHistoryImport(value)}
       />
       <LambdaHistoryImportDialog
         open={lambdaImportOpen}
@@ -546,9 +657,12 @@ export function CourseSituationPage() {
             <DialogDescription>
               {removalAttemptId === undefined
                 ? 'A tentativa selecionada será removida.'
-                : `A tentativa de ${attempts.find((attempt) => attempt.id === removalAttemptId)?.course.name ?? 'disciplina'} será removida do seu histórico.`}
+                : `A tentativa de ${removalAttempt?.course.code ?? ''} — ${removalAttempt?.course.name ?? 'disciplina'}, ${removalAttempt?.studyPeriod ? studyPeriodLabel(removalAttempt.studyPeriod) : 'período não informado'}, será removida do seu histórico.`}
             </DialogDescription>
           </DialogHeader>
+          {removalError && (
+            <InlineMessage variant="error">{removalError}</InlineMessage>
+          )}
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline" disabled={removalInProgress}>

@@ -42,8 +42,8 @@ describe('course situation model', () => {
     ])
 
     expect(groups.map((group) => group.label)).toEqual([
-      '2026s1',
-      '2025s2',
+      '2026 · 1º semestre',
+      '2025 · 2º semestre',
       'Período não informado',
     ])
     expect(groups[1].attempts).toHaveLength(2)

@@ -22,10 +22,12 @@ export function CourseProfilePanel({
   profile,
   catalogPrograms,
   onSave,
+  onCancel,
 }: {
   profile?: StudentProfile
   catalogPrograms: ReadonlyArray<CatalogProgramOption>
   onSave: (value: CourseProfileValues) => Promise<void>
+  onCancel?: () => void
 }) {
   const [catalogId, setCatalogId] = useState('')
   const [programId, setProgramId] = useState('')
@@ -155,6 +157,7 @@ export function CourseProfilePanel({
         <p className="font-extrabold">Curso e ingresso</p>
         <p className="mt-1 text-sm text-muted-foreground">
           Estas informações preenchem automaticamente os novos planejamentos.
+          Planejamentos existentes e tentativas do histórico não são alterados.
         </p>
       </CardContent>
       <CardContent className="border-t-2 border-strong-border p-4">
@@ -252,7 +255,12 @@ export function CourseProfilePanel({
             Não foi possível salvar as informações do curso.
           </InlineMessage>
         )}
-        <div className="mt-5 flex justify-end">
+        <div className="mt-5 flex justify-end gap-2">
+          {onCancel && (
+            <Button variant="outline" disabled={saving} onClick={onCancel}>
+              Cancelar
+            </Button>
+          )}
           <Button
             disabled={!hasChanges || !entryYearValid || saving}
             onClick={() => void save()}

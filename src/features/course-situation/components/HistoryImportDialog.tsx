@@ -1,12 +1,21 @@
+import { useState } from 'react'
 import { AlertCircle } from 'lucide-react'
 
+import {
+  historyImportPreview,
+  selectedHistoryImport,
+} from '../model/historyImportPreview'
 import { labelForStatus } from '../model/model'
-import type { StudentHistoryParseResult } from '@/features/student/historyImport/studentHistoryParser'
+import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
+import type {
+  StudentHistoryImport,
+  StudentHistoryParseResult,
+} from '@/features/student/historyImport/studentHistoryParser'
+import { Checkbox } from '@/components/ui/checkbox'
 import { ActionBar } from '@/components/patterns/ActionBar'
 import { DataList, DataRow } from '@/components/patterns/DataList'
 import { InlineMessage } from '@/components/patterns/InlineMessage'
 import { ResponsiveDialog } from '@/components/patterns/ResponsiveDialog'
-import { Section, SectionTitle } from '@/components/patterns/Section'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
@@ -16,12 +25,30 @@ export function HistoryImportDialog({
   importing,
   onOpenChange,
   onConfirm,
+  attempts,
+  error,
 }: {
   value?: StudentHistoryParseResult
   importing: boolean
   onOpenChange: (open: boolean) => void
-  onConfirm: () => void
+  onConfirm: (value: StudentHistoryImport) => void
+  attempts: ReadonlyArray<StudentCourseAttempt>
+  error?: string
 }) {
+  const [selection, setSelection] = useState<ReadonlySet<string>>()
+  const entries = value ? historyImportPreview(value.value, attempts) : []
+  const selected =
+    selection ??
+    new Set(
+      entries.filter((entry) => entry.kind === 'new').map((entry) => entry.key),
+    )
+  const labels = {
+    new: 'Nova tentativa',
+    unchanged: 'Já registrada — não será enviada',
+    conflict: 'Divergência — escolha se deseja atualizar',
+    ambiguous: 'Várias tentativas neste período — revise manualmente',
+    duplicate: 'Repetida no arquivo — não será enviada',
+  }
   return (
     <ResponsiveDialog
       open={Boolean(value)}
@@ -35,53 +62,69 @@ export function HistoryImportDialog({
             RA encontrado: <strong>{value.value.student.ra}</strong>
           </p>
           <InlineMessage>
-            {value.value.semesters.length}{' '}
-            {value.value.semesters.length === 1 ? 'semestre' : 'semestres'} e{' '}
-            {value.value.semesters.reduce(
-              (total, semester) => total + semester.courses.length,
-              0,
-            )}{' '}
-            disciplinas encontradas. Disciplinas já registradas poderão ser
-            atualizadas.
+            {entries.filter((entry) => entry.kind === 'new').length} novas
+            tentativas,{' '}
+            {entries.filter((entry) => entry.kind === 'unchanged').length} já
+            registradas e{' '}
+            {entries.filter((entry) => entry.kind === 'conflict').length}{' '}
+            divergências. Novas tentativas são selecionadas inicialmente.
+            Atualizar uma divergência substitui situação, nota e, quando
+            informada, turma da tentativa existente. Os demais registros
+            permanecem como estão.
           </InlineMessage>
-          <div className="max-h-72 space-y-4 overflow-y-auto rounded-md border-2 border-strong-border p-3">
-            {value.value.semesters.map((semester) => (
-              <Section
-                key={`${semester.year}:${semester.yearPeriod}`}
-                aria-labelledby={`history-import-${semester.year}-${semester.yearPeriod}`}
-              >
-                <SectionTitle
-                  id={`history-import-${semester.year}-${semester.yearPeriod}`}
-                  className="mb-2 text-base"
-                >
-                  {studyPeriodLabel(semester)}
-                </SectionTitle>
-                <DataList>
-                  {semester.courses.map((course) => (
-                    <DataRow
-                      key={`${semester.year}:${semester.yearPeriod}:${course.code}`}
-                      className="rounded-md bg-secondary/60 px-3"
-                    >
-                      <div>
-                        <p className="font-bold">
-                          {course.code} — {course.name}
-                        </p>
+          <div className="max-h-80 overflow-y-auto rounded-md border-2 border-strong-border p-3">
+            <DataList>
+              {entries.map((entry, index) => (
+                <DataRow key={`${entry.key}-${index}`}>
+                  <div className="flex min-w-0 items-start gap-3">
+                    <Checkbox
+                      aria-label={`Importar ${entry.course.code}, ${studyPeriodLabel(entry.semester)}`}
+                      checked={
+                        entry.kind !== 'duplicate' && selected.has(entry.key)
+                      }
+                      disabled={
+                        importing || !['new', 'conflict'].includes(entry.kind)
+                      }
+                      onCheckedChange={(checked) =>
+                        setSelection((current) => {
+                          const next = new Set(current ?? selected)
+                          if (checked) next.add(entry.key)
+                          else next.delete(entry.key)
+                          return next
+                        })
+                      }
+                    />
+                    <div className="min-w-0">
+                      <p className="font-bold">
+                        {entry.course.code} — {entry.course.name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {studyPeriodLabel(entry.semester)} ·{' '}
+                        {labelForStatus(entry.course.status)}
+                        {entry.course.grade !== null
+                          ? ` · Nota ${entry.course.grade}`
+                          : ''}
+                      </p>
+                      <p className="text-sm">{labels[entry.kind]}</p>
+                      {entry.kind === 'conflict' && (
                         <p className="text-sm text-muted-foreground">
-                          {labelForStatus(course.status)}
-                          {course.grade !== null
-                            ? ` · Nota ${course.grade}`
+                          Registro atual:{' '}
+                          {labelForStatus(entry.existing[0].status)}
+                          {entry.existing[0].grade !== null
+                            ? ` · Nota ${entry.existing[0].grade}`
                             : ''}
-                          {course.credits !== null
-                            ? ` · ${course.credits} créditos`
+                          {entry.existing[0].class
+                            ? ` · Turma ${entry.existing[0].class.code}`
                             : ''}
                         </p>
-                      </div>
-                    </DataRow>
-                  ))}
-                </DataList>
-              </Section>
-            ))}
+                      )}
+                    </div>
+                  </div>
+                </DataRow>
+              ))}
+            </DataList>
           </div>
+          {error && <InlineMessage variant="error">{error}</InlineMessage>}
           {value.warnings.length > 0 && (
             <Alert>
               <AlertCircle />
@@ -105,7 +148,12 @@ export function HistoryImportDialog({
             >
               Cancelar
             </Button>
-            <Button disabled={importing} onClick={onConfirm}>
+            <Button
+              disabled={importing || !selected.size}
+              onClick={() =>
+                onConfirm(selectedHistoryImport(value.value, selected))
+              }
+            >
               {importing ? 'Salvando…' : 'Confirmar e salvar'}
             </Button>
           </ActionBar>

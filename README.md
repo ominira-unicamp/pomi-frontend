@@ -141,8 +141,9 @@ como a busca de disciplinas e as telas de pessoas. A seção “Sobre as tags”
 
 ## Programa na situação do curso
 
-Em `/situacao-do-curso`, a aba **Curso** reúne a seleção de curso e ingresso e as
-informações curriculares do programa salvo: currículo pleno, proposta de currículo,
+Em `/situacao-do-curso`, o resumo de **Vínculo acadêmico** fica acima de
+**Cursando** e **Histórico**. **Editar vínculo acadêmico** abre os campos de curso
+e ingresso; **Consultar currículo do programa** expande as informações do programa salvo: currículo pleno, proposta de currículo,
 árvore de dependências e detalhes das disciplinas, com a mesma apresentação de
 `/cursos`. A consulta respeita o catálogo e a modalidade do perfil; salvar outra
 seleção atualiza o programa exibido. O controle **Concluídas** destaca as
@@ -151,3 +152,18 @@ disciplinas aprovadas no histórico.
 Se o programa ainda não foi definido ou não estiver disponível no catálogo salvo,
 a tela orienta a revisar a seleção. Sem modalidade, o núcleo comum permanece
 disponível e a tela orienta a escolher a modalidade para consultar seus requisitos.
+
+O histórico usa períodos expansíveis, busca por código ou nome sem distinção de
+acentos e filtro por resultado. A busca alcança períodos recolhidos. A ação de
+adicionar segue a aba ativa; edição e remoção de uma tentativa ficam no seu menu,
+e a confirmação de remoção identifica disciplina e período.
+
+**Importar histórico** reúne PDF da DAC (interpretado no navegador) e consulta
+experimental via DAC. A prévia distingue novas tentativas, registros já existentes
+e divergências. Somente registros selecionados são enviados; atualizar uma
+divergência exige seleção explícita. Correspondências ambíguas exigem revisão
+manual. As validações finais e o resultado por registro continuam no servidor.
+
+A agenda usa grade em desktop e lista por dia no mobile. Ambas abrem **Aulas e
+faltas**, com a mesma operação usada na Página inicial. Os períodos exibidos
+usam o formato `2026 · 2º semestre`; códigos internos como `2026s2` são preservados.
