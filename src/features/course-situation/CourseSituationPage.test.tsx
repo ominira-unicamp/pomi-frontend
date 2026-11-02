@@ -174,6 +174,7 @@ describe('CourseSituationPage', () => {
       ctrlKey: false,
     })
     expect(await screen.findByText('Curso e ingresso')).toBeTruthy()
+    expect(screen.getByText('Escolha seu programa')).toBeTruthy()
     expect(screen.queryByText('MC102 — Algoritmos')).toBeNull()
 
     fireEvent.mouseDown(screen.getByRole('tab', { name: /Histórico/ }), {

@@ -7,7 +7,14 @@ import {
   MessageSquareWarning,
   Network,
 } from 'lucide-react'
-import { Fragment, useEffect, useMemo, useState } from 'react'
+import {
+  Fragment,
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 
 import {
   catalogProgramVariantForSelection,
@@ -19,7 +26,9 @@ import {
   catalogProgramTreeCourseIds,
 } from './CatalogProgramDependencyTree'
 import type {
+  CatalogProgramOption,
   CatalogProgramVariantId,
+  CatalogProgramVariantOption,
   Course,
   CourseId,
   CourseRequirement,
@@ -28,7 +37,7 @@ import type {
   CurriculumPlannerStaticData,
   CurriculumSuggestion,
 } from '@pomi/planner-domain/curriculum'
-import type { KeyboardEvent } from 'react'
+import type { KeyboardEvent, ReactNode } from 'react'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
   EmptyState,
@@ -71,8 +80,6 @@ export type CatalogProgramNavigationOptions = Readonly<{
   resetScroll?: boolean
 }>
 
-const currentCatalogYear = new Date().getFullYear()
-
 export function CatalogProgramPage({
   search,
   onSearchChange,
@@ -84,7 +91,6 @@ export function CatalogProgramPage({
   ) => void
 }) {
   const auth = useOptionalAuth()
-  const { openFeedback } = useFeedbackReport()
   const { profileQuery, studentId } = useStudentProfile()
   const [markCompleted, setMarkCompleted] = useState(false)
   const attemptsQuery = useQuery({
@@ -115,7 +121,6 @@ export function CatalogProgramPage({
     staleTime: Infinity,
   })
   const staticData = catalogQuery.data
-  const [selectedCourse, setSelectedCourse] = useState<Course>()
 
   useEffect(() => {
     const profile = profileQuery.data
@@ -179,46 +184,6 @@ export function CatalogProgramPage({
         (variant) => Number(variant.id) === search.catalogProgramVariantId,
       ) ?? catalogProgramVariantForSelection(selectedProgram))
     : undefined
-  const suggestionsQuery = useQuery({
-    queryKey: publicQueryKeys.curriculumSuggestions(
-      selectedProgram?.id ?? 'none',
-    ),
-    queryFn: () => loadCurriculumSuggestions(selectedProgram!.id),
-    enabled: Boolean(selectedProgram),
-    staleTime: Infinity,
-  })
-  const prerequisitesQuery = useQuery({
-    queryKey: publicQueryKeys.curriculumPrerequisites(
-      selectedProgram?.catalog.year ?? currentCatalogYear,
-    ),
-    queryFn: () => loadCatalogPrerequisites(selectedProgram!.catalog.year),
-    enabled: Boolean(selectedProgram),
-    staleTime: Infinity,
-  })
-  const connectedCourseIds = useMemo(() => {
-    const courseIds = new Set<string>()
-    if (!selectedProgram) return courseIds
-    const eligibleCourseIds = catalogProgramTreeCourseIds(
-      selectedProgram,
-      selectedVariant,
-      true,
-    )
-    for (const rule of prerequisitesQuery.data?.rules ?? []) {
-      if (!eligibleCourseIds.has(rule.courseId)) continue
-      for (const alternative of rule.alternatives) {
-        for (const item of alternative.allOf) {
-          if (
-            item.target.type !== 'course' ||
-            !eligibleCourseIds.has(item.target.courseId)
-          )
-            continue
-          courseIds.add(String(rule.courseId))
-          courseIds.add(String(item.target.courseId))
-        }
-      }
-    }
-    return courseIds
-  }, [prerequisitesQuery.data, selectedProgram, selectedVariant])
 
   const updateSearch = (
     change: Partial<CatalogProgramSearch>,
@@ -377,136 +342,221 @@ export function CatalogProgramPage({
           description="Selecione um catálogo e um programa para consultar suas informações curriculares."
         />
       ) : (
-        <>
-          <PageHeader
-            compact
-            title={`${selectedProgram.program.code} — ${selectedProgram.program.name}`}
-            description={`Catálogo ${selectedProgram.catalog.year}`}
-            actions={
-              <Button
-                variant="outline"
-                onClick={() =>
-                  openFeedback({
-                    kind: 'DATA_ISSUE',
-                    target: {
-                      type: 'ACADEMIC_RESOURCE',
-                      academicResource: {
-                        type: 'CATALOG_PROGRAM',
-                        id: Number(selectedProgram.id),
-                      },
-                    },
-                    title: `Informação do catálogo ${selectedProgram.catalog.year} — ${selectedProgram.program.code}`,
-                  })
-                }
-              >
-                <MessageSquareWarning /> Reportar dado incorreto do catálogo
-              </Button>
-            }
-          />
-          <Tabs
-            value={search.tab}
-            onValueChange={(value) =>
-              updateSearch(
-                { tab: value as CatalogProgramTab },
-                { resetScroll: false },
-              )
-            }
-          >
-            <TabsList aria-label="Informações curriculares do curso">
-              <TabsTrigger value="full">Currículo pleno</TabsTrigger>
-              <TabsTrigger value="proposal">Proposta de currículo</TabsTrigger>
-              <TabsTrigger value="dependencies">
-                Árvore de dependências
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="full">
-              <FullCurriculum
-                program={selectedProgram}
-                courses={staticData.courses}
-                variant={selectedVariant}
-                onOpenCourseDetails={setSelectedCourse}
-                completedCourseIds={completedCourseIds}
-                markCompleted={markCompleted}
-                connectedCourseIds={connectedCourseIds}
-                onOpenDependencyTree={(courseId) =>
-                  updateSearch(
-                    {
-                      tab: 'dependencies',
-                      dependencyCourseId: Number(courseId),
-                    },
-                    { resetScroll: false },
-                  )
-                }
-              />
-            </TabsContent>
-            <TabsContent value="proposal">
-              <CurriculumProposal
-                suggestions={suggestionsQuery.data ?? []}
-                catalogProgramVariantId={selectedVariant?.id}
-                isLoading={suggestionsQuery.isLoading}
-                isError={suggestionsQuery.isError}
-                onRetry={() => void suggestionsQuery.refetch()}
-                onOpenCourseDetails={setSelectedCourse}
-                completedCourseIds={completedCourseIds}
-                markCompleted={markCompleted}
-                connectedCourseIds={connectedCourseIds}
-                onOpenDependencyTree={(courseId) =>
-                  updateSearch(
-                    {
-                      tab: 'dependencies',
-                      dependencyCourseId: Number(courseId),
-                    },
-                    { resetScroll: false },
-                  )
-                }
-              />
-            </TabsContent>
-            <TabsContent value="dependencies">
-              {prerequisitesQuery.isLoading && (
-                <LoadingState label="Carregando árvore de dependências" />
-              )}
-              {prerequisitesQuery.isError && (
-                <ErrorState
-                  title="Não foi possível carregar a árvore"
-                  description="Tente novamente para consultar as relações entre as disciplinas."
-                  action={{
-                    label: 'Tentar novamente',
-                    onClick: () => void prerequisitesQuery.refetch(),
-                  }}
-                />
-              )}
-              {prerequisitesQuery.data && (
-                <CatalogProgramDependencyTree
-                  key={search.dependencyCourseId ?? 'all'}
-                  program={selectedProgram}
-                  variant={selectedVariant}
-                  courses={staticData.courses}
-                  rules={prerequisitesQuery.data.rules}
-                  completedCourseIds={completedCourseIds}
-                  focusedCourseId={
-                    search.dependencyCourseId
-                      ? (String(search.dependencyCourseId) as CourseId)
-                      : undefined
-                  }
-                  onOpenCourseDetails={setSelectedCourse}
-                />
-              )}
-            </TabsContent>
-          </Tabs>
-          <CatalogProgramCourseDialog
-            course={selectedCourse}
-            catalogYear={currentCatalogYear}
-            onOpenChange={(open) => {
-              if (!open) setSelectedCourse(undefined)
-            }}
-          />
-        </>
+        <CatalogProgramDetails
+          program={selectedProgram}
+          variant={selectedVariant}
+          courses={staticData.courses}
+          completedCourseIds={completedCourseIds}
+          markCompleted={markCompleted}
+          search={search}
+          onSearchChange={(next, options) => updateSearch(next, options)}
+        />
       )}
     </PageContainer>
   )
 }
 
-function CompletedCoursesToggle({
+const CatalogProgramYearContext = createContext(new Date().getFullYear())
+
+export type CatalogProgramDetailsSearch = Pick<
+  CatalogProgramSearch,
+  'tab' | 'dependencyCourseId'
+>
+
+export function CatalogProgramDetails({
+  program: selectedProgram,
+  variant: selectedVariant,
+  courses,
+  completedCourseIds,
+  markCompleted = false,
+  search,
+  onSearchChange,
+  actions,
+}: {
+  program: CatalogProgramOption
+  variant?: CatalogProgramVariantOption
+  courses: ReadonlyArray<Course>
+  completedCourseIds: ReadonlySet<number>
+  markCompleted?: boolean
+  search: CatalogProgramDetailsSearch
+  onSearchChange: (
+    search: CatalogProgramDetailsSearch,
+    options?: CatalogProgramNavigationOptions,
+  ) => void
+  actions?: ReactNode
+}) {
+  const { openFeedback } = useFeedbackReport()
+  const [selectedCourse, setSelectedCourse] = useState<Course>()
+  const suggestionsQuery = useQuery({
+    queryKey: publicQueryKeys.curriculumSuggestions(selectedProgram.id),
+    queryFn: () => loadCurriculumSuggestions(selectedProgram.id),
+    staleTime: Infinity,
+  })
+  const prerequisitesQuery = useQuery({
+    queryKey: publicQueryKeys.curriculumPrerequisites(
+      selectedProgram.catalog.year,
+    ),
+    queryFn: () => loadCatalogPrerequisites(selectedProgram.catalog.year),
+    staleTime: Infinity,
+  })
+  const connectedCourseIds = useMemo(() => {
+    const courseIds = new Set<string>()
+    const eligibleCourseIds = catalogProgramTreeCourseIds(
+      selectedProgram,
+      selectedVariant,
+      true,
+    )
+    for (const rule of prerequisitesQuery.data?.rules ?? []) {
+      if (!eligibleCourseIds.has(rule.courseId)) continue
+      for (const alternative of rule.alternatives) {
+        for (const item of alternative.allOf) {
+          if (
+            item.target.type !== 'course' ||
+            !eligibleCourseIds.has(item.target.courseId)
+          )
+            continue
+          courseIds.add(String(rule.courseId))
+          courseIds.add(String(item.target.courseId))
+        }
+      }
+    }
+    return courseIds
+  }, [prerequisitesQuery.data, selectedProgram, selectedVariant])
+
+  const updateSearch = (
+    change: Partial<CatalogProgramDetailsSearch>,
+    options?: CatalogProgramNavigationOptions,
+  ) => onSearchChange({ ...search, ...change }, options)
+  return (
+    <CatalogProgramYearContext.Provider value={selectedProgram.catalog.year}>
+      <PageHeader
+        compact
+        title={`${selectedProgram.program.code} — ${selectedProgram.program.name}`}
+        description={`Catálogo ${selectedProgram.catalog.year}`}
+        actions={
+          <>
+            {actions}
+            <Button
+              variant="outline"
+              onClick={() =>
+                openFeedback({
+                  kind: 'DATA_ISSUE',
+                  target: {
+                    type: 'ACADEMIC_RESOURCE',
+                    academicResource: {
+                      type: 'CATALOG_PROGRAM',
+                      id: Number(selectedProgram.id),
+                    },
+                  },
+                  title: `Informação do catálogo ${selectedProgram.catalog.year} — ${selectedProgram.program.code}`,
+                })
+              }
+            >
+              <MessageSquareWarning /> Reportar dado incorreto do catálogo
+            </Button>
+          </>
+        }
+      />
+      <Tabs
+        value={search.tab}
+        onValueChange={(value) =>
+          updateSearch(
+            { tab: value as CatalogProgramTab },
+            { resetScroll: false },
+          )
+        }
+      >
+        <TabsList aria-label="Informações curriculares do curso">
+          <TabsTrigger value="full">Currículo pleno</TabsTrigger>
+          <TabsTrigger value="proposal">Proposta de currículo</TabsTrigger>
+          <TabsTrigger value="dependencies">Árvore de dependências</TabsTrigger>
+        </TabsList>
+        <TabsContent value="full">
+          <FullCurriculum
+            program={selectedProgram}
+            courses={courses}
+            variant={selectedVariant}
+            onOpenCourseDetails={setSelectedCourse}
+            completedCourseIds={completedCourseIds}
+            markCompleted={markCompleted}
+            connectedCourseIds={connectedCourseIds}
+            onOpenDependencyTree={(courseId) =>
+              updateSearch(
+                {
+                  tab: 'dependencies',
+                  dependencyCourseId: Number(courseId),
+                },
+                { resetScroll: false },
+              )
+            }
+          />
+        </TabsContent>
+        <TabsContent value="proposal">
+          <CurriculumProposal
+            suggestions={suggestionsQuery.data ?? []}
+            catalogProgramVariantId={selectedVariant?.id}
+            isLoading={suggestionsQuery.isLoading}
+            isError={suggestionsQuery.isError}
+            onRetry={() => void suggestionsQuery.refetch()}
+            onOpenCourseDetails={setSelectedCourse}
+            completedCourseIds={completedCourseIds}
+            markCompleted={markCompleted}
+            connectedCourseIds={connectedCourseIds}
+            onOpenDependencyTree={(courseId) =>
+              updateSearch(
+                {
+                  tab: 'dependencies',
+                  dependencyCourseId: Number(courseId),
+                },
+                { resetScroll: false },
+              )
+            }
+          />
+        </TabsContent>
+        <TabsContent value="dependencies">
+          {prerequisitesQuery.isLoading && (
+            <LoadingState label="Carregando árvore de dependências" />
+          )}
+          {prerequisitesQuery.isError && (
+            <ErrorState
+              title="Não foi possível carregar a árvore"
+              description="Tente novamente para consultar as relações entre as disciplinas."
+              action={{
+                label: 'Tentar novamente',
+                onClick: () => void prerequisitesQuery.refetch(),
+              }}
+            />
+          )}
+          {prerequisitesQuery.data && (
+            <CatalogProgramDependencyTree
+              key={search.dependencyCourseId ?? 'all'}
+              program={selectedProgram}
+              variant={selectedVariant}
+              courses={courses}
+              rules={prerequisitesQuery.data.rules}
+              completedCourseIds={completedCourseIds}
+              focusedCourseId={
+                search.dependencyCourseId
+                  ? (String(search.dependencyCourseId) as CourseId)
+                  : undefined
+              }
+              onOpenCourseDetails={setSelectedCourse}
+            />
+          )}
+        </TabsContent>
+      </Tabs>
+      <CatalogProgramCourseDialog
+        course={selectedCourse}
+        catalogYear={selectedProgram.catalog.year}
+        onOpenChange={(open) => {
+          if (!open) setSelectedCourse(undefined)
+        }}
+      />
+    </CatalogProgramYearContext.Provider>
+  )
+}
+
+export function CompletedCoursesToggle({
   checked,
   disabled,
   onClick,
@@ -825,6 +875,7 @@ function RequirementRow({
   connectedCourseIds: ReadonlySet<string>
   onOpenDependencyTree: (courseId: CourseId) => void
 }) {
+  const catalogYear = useContext(CatalogProgramYearContext)
   const [expanded, setExpanded] = useState(false)
   const row = requirementRow(requirement.selector, courses)
   const course = row.courseId
@@ -878,7 +929,7 @@ function RequirementRow({
               className="text-primary underline-offset-4 hover:underline"
               to="/disciplinas/$courseId"
               params={{ courseId: row.courseId }}
-              search={{ catalogYear: currentCatalogYear }}
+              search={{ catalogYear }}
               onClick={(event) => event.stopPropagation()}
             >
               {row.code}
@@ -946,6 +997,7 @@ function PrefixCourses({
   connectedCourseIds: ReadonlySet<string>
   onOpenDependencyTree: (courseId: CourseId) => void
 }) {
+  const catalogYear = useContext(CatalogProgramYearContext)
   const [page, setPage] = useState(1)
   const matchingCourses = courses.filter((course) =>
     course.code.toUpperCase().startsWith(prefix),
@@ -1009,7 +1061,7 @@ function PrefixCourses({
                     className="text-primary underline-offset-4 hover:underline"
                     to="/disciplinas/$courseId"
                     params={{ courseId: String(course.id) }}
-                    search={{ catalogYear: currentCatalogYear }}
+                    search={{ catalogYear }}
                     onClick={(event) => event.stopPropagation()}
                   >
                     {course.code}
@@ -1113,6 +1165,7 @@ function CurriculumProposal({
   connectedCourseIds: ReadonlySet<string>
   onOpenDependencyTree: (courseId: CourseId) => void
 }) {
+  const catalogYear = useContext(CatalogProgramYearContext)
   if (isLoading)
     return <LoadingState label="Carregando proposta de currículo" />
   if (isError) {
@@ -1210,7 +1263,7 @@ function CurriculumProposal({
                                 className="text-primary underline-offset-4 hover:underline"
                                 to="/disciplinas/$courseId"
                                 params={{ courseId: String(course.id) }}
-                                search={{ catalogYear: currentCatalogYear }}
+                                search={{ catalogYear }}
                                 onClick={(event) => event.stopPropagation()}
                               >
                                 {course.code}

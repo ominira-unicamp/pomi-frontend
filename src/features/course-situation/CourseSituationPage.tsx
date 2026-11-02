@@ -40,6 +40,7 @@ import { ProfessorEvaluationDialog } from '@/features/student/components/Profess
 import { CourseAttemptDialog } from '@/features/course-situation/components/CourseAttemptDialog'
 import { CourseHistorySection } from '@/features/course-situation/components/CourseHistorySection'
 import { EnrolledCoursesSection } from '@/features/course-situation/components/EnrolledCoursesSection'
+import { StudentProgramCurriculum } from '@/features/course-situation/components/StudentProgramCurriculum'
 import { HistoryImportDialog } from '@/features/course-situation/components/HistoryImportDialog'
 import { LambdaHistoryImportDialog } from '@/features/course-situation/components/LambdaHistoryImportDialog'
 import {
@@ -466,6 +467,16 @@ export function CourseSituationPage() {
             profile={profileQuery.data}
             catalogPrograms={staticQuery.data?.catalogPrograms ?? []}
             onSave={saveProfile}
+          />
+          <StudentProgramCurriculum
+            key={`${profileQuery.data?.catalogId}-${profileQuery.data?.programId}-${profileQuery.data?.specializationId}`}
+            profile={profileQuery.data}
+            data={staticQuery.data}
+            isLoading={staticQuery.isPending}
+            isError={staticQuery.isError}
+            onRetry={() => void staticQuery.refetch()}
+            attempts={attempts}
+            attemptsLoading={attemptsQuery.isPending}
           />
         </TabsContent>
         <TabsContent value="enrolled">

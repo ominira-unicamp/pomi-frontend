@@ -138,3 +138,16 @@ quando categoria ou pai muda. A revisão visual e as evidências estão em
 
 Exploração e organização da taxonomia usam a largura padrão (`PageContainer`),
 como a busca de disciplinas e as telas de pessoas. A seção “Sobre as tags” foi removida.
+
+## Programa na situação do curso
+
+Em `/situacao-do-curso`, a aba **Curso** reúne a seleção de curso e ingresso e as
+informações curriculares do programa salvo: currículo pleno, proposta de currículo,
+árvore de dependências e detalhes das disciplinas, com a mesma apresentação de
+`/cursos`. A consulta respeita o catálogo e a modalidade do perfil; salvar outra
+seleção atualiza o programa exibido. O controle **Concluídas** destaca as
+disciplinas aprovadas no histórico.
+
+Se o programa ainda não foi definido ou não estiver disponível no catálogo salvo,
+a tela orienta a revisar a seleção. Sem modalidade, o núcleo comum permanece
+disponível e a tela orienta a escolher a modalidade para consultar seus requisitos.

@@ -593,7 +593,7 @@ describe('CatalogProgramPage', () => {
     ).toBeTruthy()
     expect(getCatalogCourseDetails).toHaveBeenCalledWith(
       1,
-      new Date().getFullYear(),
+      2026,
     )
   })
 
