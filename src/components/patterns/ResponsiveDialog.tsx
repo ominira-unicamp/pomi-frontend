@@ -30,6 +30,7 @@ type ResponsiveDialogProps = Readonly<{
   sheetContentClassName?: string
   bodyClassName?: string
   onOpenAutoFocus?: ComponentProps<typeof DialogContent>['onOpenAutoFocus']
+  onCloseAutoFocus?: ComponentProps<typeof DialogContent>['onCloseAutoFocus']
 }>
 
 export function ResponsiveDialog({
@@ -43,6 +44,7 @@ export function ResponsiveDialog({
   sheetContentClassName,
   bodyClassName,
   onOpenAutoFocus,
+  onCloseAutoFocus,
 }: ResponsiveDialogProps) {
   const desktop = useDesktopLayout()
 
@@ -53,6 +55,7 @@ export function ResponsiveDialog({
         <DialogContent
           className={dialogContentClassName}
           onOpenAutoFocus={onOpenAutoFocus}
+          onCloseAutoFocus={onCloseAutoFocus}
         >
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
@@ -78,6 +81,7 @@ export function ResponsiveDialog({
           sheetContentClassName,
         )}
         onOpenAutoFocus={onOpenAutoFocus}
+        onCloseAutoFocus={onCloseAutoFocus}
       >
         <SheetHeader className="border-b-2 border-strong-border pr-12">
           <SheetTitle>{title}</SheetTitle>

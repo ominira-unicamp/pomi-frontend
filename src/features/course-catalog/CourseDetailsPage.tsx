@@ -13,6 +13,7 @@ import type {
   RelatedCourse,
   Tag,
 } from '@/features/course-catalog/data/courseCatalogApi'
+import { invalidateTagConsumers } from '@/features/tag-taxonomy/data/tagTaxonomyQueries'
 import { ContextBackLink } from '@/components/ContextBackLink'
 import { CatalogProgramCourseDialog } from '@/features/catalog-program/CatalogProgramCourseDialog'
 import { loadCurriculumCatalog } from '@/catalog/data/curriculumCatalogApi'
@@ -157,9 +158,7 @@ export function CourseDetailsPage({
       return deleteCourseTag(courseId, input.tagId, auth.getAccessToken)
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: ['public', 'course-catalog', 'course-tags', courseId],
-      })
+      await invalidateTagConsumers(queryClient)
     },
   })
 
@@ -397,7 +396,14 @@ function TagsSection({
                 key={tag.id}
                 className="inline-flex items-center gap-1 rounded-sm border-2 border-border bg-muted px-2 py-1 text-sm font-bold"
               >
-                {tag.name}
+                <Link
+                  to="/taxonomia/tags/$tagId"
+                  params={{ tagId: String(tag.id) }}
+                  search={{}}
+                  className="hover:underline"
+                >
+                  {tag.name}
+                </Link>
                 {authenticated && (
                   <button
                     type="button"

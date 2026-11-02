@@ -90,4 +90,23 @@ describe('shared interface patterns', () => {
     expect(onEdit).toHaveBeenCalledWith('prefix')
     expect(onRemove).toHaveBeenCalledWith('prefix')
   })
+  it('removes and clears a read-only filter summary without an edit action', () => {
+    const onRemove = vi.fn()
+    const onClear = vi.fn()
+    render(
+      <AppliedFilters
+        items={[{ key: 'q', label: 'Busca', summary: 'álgebra' }]}
+        onRemove={onRemove}
+        onClear={onClear}
+        clearLabel="Limpar filtros"
+      />,
+    )
+    expect(screen.queryByRole('button', { name: /Editar filtro/ })).toBeNull()
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Remover filtro Busca' }),
+    )
+    expect(onRemove).toHaveBeenCalledWith('q')
+    fireEvent.click(screen.getByRole('button', { name: 'Limpar filtros' }))
+    expect(onClear).toHaveBeenCalledOnce()
+  })
 })

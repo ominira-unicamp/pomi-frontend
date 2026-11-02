@@ -38,3 +38,9 @@ export const updateTag = (
 ) => pomiSdk.app.tags.update(tagId, input, { getAccessToken })
 export const deleteTag = (tagId: number, getAccessToken: GetAccessToken) =>
   pomiSdk.app.tags.delete(tagId, { getAccessToken })
+
+export const getTag = (tagId: number) => pomiSdk.app.tags.get(tagId)
+export const listTagCoursesPage = (tagId: number, page: number) =>
+  pomiSdk.app.courseTags.listCoursesForTag(tagId, { page, pageSize: 20 })
+export const getCategory = (categoryId: number) =>
+  pomiSdk.app.categories.get(categoryId)

@@ -28,13 +28,15 @@ export function AppliedFilters<TKey extends string>({
   onAdd,
   onClear,
   className,
+  clearLabel = 'Limpar todos',
 }: {
   items: ReadonlyArray<AppliedFilterItem<TKey>>
-  onEdit: (key: TKey) => void
+  onEdit?: (key: TKey) => void
   onRemove: (key: TKey) => void
   onAdd?: () => void
   onClear?: () => void
   className?: string
+  clearLabel?: string
 }) {
   if (!items.length && !onAdd) return null
 
@@ -45,16 +47,23 @@ export function AppliedFilters<TKey extends string>({
           key={item.key}
           className="inline-flex min-h-10 max-w-full items-stretch overflow-hidden rounded-md border-2 border-strong-border bg-card text-sm shadow-[2px_2px_0_var(--strong-border)]"
         >
-          <button
-            type="button"
-            className="pomi-focus flex min-w-0 items-center gap-1.5 px-3 py-1.5 text-left font-semibold hover:bg-muted"
-            aria-label={`Editar filtro ${item.label}: ${item.summary}`}
-            onClick={() => onEdit(item.key)}
-          >
-            <span className="shrink-0 font-extrabold">{item.label}:</span>
-            <span className="truncate">{item.summary}</span>
-            <Pencil className="size-3.5 shrink-0 text-muted-foreground" />
-          </button>
+          {onEdit ? (
+            <button
+              type="button"
+              className="pomi-focus flex min-w-0 items-center gap-1.5 px-3 py-1.5 text-left font-semibold hover:bg-muted"
+              aria-label={`Editar filtro ${item.label}: ${item.summary}`}
+              onClick={() => onEdit(item.key)}
+            >
+              <span className="shrink-0 font-extrabold">{item.label}:</span>
+              <span className="truncate">{item.summary}</span>
+              <Pencil className="size-3.5 shrink-0 text-muted-foreground" />
+            </button>
+          ) : (
+            <span className="flex min-w-0 items-center gap-1.5 px-3 py-1.5 font-semibold">
+              <span className="shrink-0 font-extrabold">{item.label}:</span>
+              <span className="truncate">{item.summary}</span>
+            </span>
+          )}
           {item.removable !== false && (
             <button
               type="button"
@@ -72,9 +81,9 @@ export function AppliedFilters<TKey extends string>({
           <Plus /> Mais filtros
         </Button>
       )}
-      {items.length > 1 && onClear && (
+      {items.length > (onEdit ? 1 : 0) && onClear && (
         <Button type="button" variant="ghost" onClick={onClear}>
-          Limpar todos
+          {clearLabel}
         </Button>
       )}
     </div>

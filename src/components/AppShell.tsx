@@ -201,7 +201,7 @@ const navigationGroups: ReadonlyArray<
     label: 'Recursos',
     items: [
       {
-        label: 'Taxonomia',
+        label: 'Tags',
         to: '/taxonomia',
         icon: Tags,
         matches: ['/taxonomia'],
