@@ -44,9 +44,7 @@ describe('tag taxonomy API', () => {
         ),
       )
       .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({ data: [second], links: { next: null } }),
-        ),
+        new Response(JSON.stringify({ data: [second], links: { next: null } })),
       )
 
     await expect(listRelatedCourses(8)).resolves.toEqual([first, second])

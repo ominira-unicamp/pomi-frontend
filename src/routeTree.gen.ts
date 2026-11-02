@@ -25,6 +25,7 @@ import { Route as DisciplinasRouteImport } from './routes/disciplinas'
 import { Route as CursosRouteImport } from './routes/cursos'
 import { Route as DesignSystemRouteImport } from './routes/[_]design-system'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as TaxonomiaIndexRouteImport } from './routes/taxonomia.index'
 import { Route as PlanejamentosDeSemestreIndexRouteImport } from './routes/planejamentos-de-semestre.index'
 import { Route as PlanejamentosDeCurriculoIndexRouteImport } from './routes/planejamentos-de-curriculo.index'
 import { Route as PerfilIndexRouteImport } from './routes/perfil.index'
@@ -33,6 +34,7 @@ import { Route as GruposIndexRouteImport } from './routes/grupos.index'
 import { Route as EventosIndexRouteImport } from './routes/eventos.index'
 import { Route as DisciplinasIndexRouteImport } from './routes/disciplinas.index'
 import { Route as CursosIndexRouteImport } from './routes/cursos.index'
+import { Route as TaxonomiaOrganizarRouteImport } from './routes/taxonomia.organizar'
 import { Route as PlanejamentosDeSemestreNovoRouteImport } from './routes/planejamentos-de-semestre.novo'
 import { Route as PlanejamentosDeSemestrePlanejamentoIdRouteImport } from './routes/planejamentos-de-semestre.$planejamentoId'
 import { Route as PlanejamentosDeCurriculoNovoRouteImport } from './routes/planejamentos-de-curriculo.novo'
@@ -46,6 +48,7 @@ import { Route as GruposGroupIdRouteImport } from './routes/grupos.$groupId'
 import { Route as EventosEventIdRouteImport } from './routes/eventos.$eventId'
 import { Route as EditaisDeIntercambioConfiguracoesRouteImport } from './routes/editais-de-intercambio_.configuracoes'
 import { Route as DisciplinasCourseIdRouteImport } from './routes/disciplinas.$courseId'
+import { Route as TaxonomiaTagsTagIdRouteImport } from './routes/taxonomia.tags.$tagId'
 import { Route as PlanejamentosDeSemestreCompartilhadoShareIdRouteImport } from './routes/planejamentos-de-semestre.compartilhado.$shareId'
 import { Route as GruposGroupIdGerenciarRouteImport } from './routes/grupos.$groupId_.gerenciar'
 import { Route as GruposGroupIdGerenciarIndexRouteImport } from './routes/grupos.$groupId_.gerenciar.index'
@@ -143,6 +146,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TaxonomiaIndexRoute = TaxonomiaIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => TaxonomiaRoute,
+} as any)
 const PlanejamentosDeSemestreIndexRoute =
   PlanejamentosDeSemestreIndexRouteImport.update({
     id: '/planejamentos-de-semestre/',
@@ -184,6 +192,11 @@ const CursosIndexRoute = CursosIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => CursosRoute,
+} as any)
+const TaxonomiaOrganizarRoute = TaxonomiaOrganizarRouteImport.update({
+  id: '/organizar',
+  path: '/organizar',
+  getParentRoute: () => TaxonomiaRoute,
 } as any)
 const PlanejamentosDeSemestreNovoRoute =
   PlanejamentosDeSemestreNovoRouteImport.update({
@@ -254,6 +267,11 @@ const DisciplinasCourseIdRoute = DisciplinasCourseIdRouteImport.update({
   id: '/$courseId',
   path: '/$courseId',
   getParentRoute: () => DisciplinasRoute,
+} as any)
+const TaxonomiaTagsTagIdRoute = TaxonomiaTagsTagIdRouteImport.update({
+  id: '/tags/$tagId',
+  path: '/tags/$tagId',
+  getParentRoute: () => TaxonomiaRoute,
 } as any)
 const PlanejamentosDeSemestreCompartilhadoShareIdRoute =
   PlanejamentosDeSemestreCompartilhadoShareIdRouteImport.update({
@@ -361,7 +379,7 @@ export interface FileRoutesByFullPath {
   '/privacidade': typeof PrivacidadeRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
-  '/taxonomia': typeof TaxonomiaRoute
+  '/taxonomia': typeof TaxonomiaRouteWithChildren
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
   '/eventos/$eventId': typeof EventosEventIdRoute
@@ -375,6 +393,7 @@ export interface FileRoutesByFullPath {
   '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
   '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
+  '/taxonomia/organizar': typeof TaxonomiaOrganizarRoute
   '/cursos/': typeof CursosIndexRoute
   '/disciplinas/': typeof DisciplinasIndexRoute
   '/eventos/': typeof EventosIndexRoute
@@ -383,8 +402,10 @@ export interface FileRoutesByFullPath {
   '/perfil/': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo/': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
+  '/taxonomia/': typeof TaxonomiaIndexRoute
   '/grupos/$groupId/gerenciar': typeof GruposGroupIdGerenciarRouteWithChildren
   '/planejamentos-de-semestre/compartilhado/$shareId': typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
+  '/taxonomia/tags/$tagId': typeof TaxonomiaTagsTagIdRoute
   '/grupos/$groupId/gerenciar/acessos': typeof GruposGroupIdGerenciarAcessosRoute
   '/grupos/$groupId/gerenciar/eventos': typeof GruposGroupIdGerenciarEventosRoute
   '/grupos/$groupId/gerenciar/perfil': typeof GruposGroupIdGerenciarPerfilRoute
@@ -408,7 +429,6 @@ export interface FileRoutesByTo {
   '/privacidade': typeof PrivacidadeRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
-  '/taxonomia': typeof TaxonomiaRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
   '/eventos/$eventId': typeof EventosEventIdRoute
@@ -422,6 +442,7 @@ export interface FileRoutesByTo {
   '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
   '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
+  '/taxonomia/organizar': typeof TaxonomiaOrganizarRoute
   '/cursos': typeof CursosIndexRoute
   '/disciplinas': typeof DisciplinasIndexRoute
   '/eventos': typeof EventosIndexRoute
@@ -430,7 +451,9 @@ export interface FileRoutesByTo {
   '/perfil': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre': typeof PlanejamentosDeSemestreIndexRoute
+  '/taxonomia': typeof TaxonomiaIndexRoute
   '/planejamentos-de-semestre/compartilhado/$shareId': typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
+  '/taxonomia/tags/$tagId': typeof TaxonomiaTagsTagIdRoute
   '/grupos/$groupId/gerenciar/acessos': typeof GruposGroupIdGerenciarAcessosRoute
   '/grupos/$groupId/gerenciar/eventos': typeof GruposGroupIdGerenciarEventosRoute
   '/grupos/$groupId/gerenciar/perfil': typeof GruposGroupIdGerenciarPerfilRoute
@@ -462,7 +485,7 @@ export interface FileRoutesById {
   '/privacidade': typeof PrivacidadeRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
-  '/taxonomia': typeof TaxonomiaRoute
+  '/taxonomia': typeof TaxonomiaRouteWithChildren
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio_/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
   '/eventos/$eventId': typeof EventosEventIdRoute
@@ -476,6 +499,7 @@ export interface FileRoutesById {
   '/planejamentos-de-curriculo/novo': typeof PlanejamentosDeCurriculoNovoRoute
   '/planejamentos-de-semestre/$planejamentoId': typeof PlanejamentosDeSemestrePlanejamentoIdRoute
   '/planejamentos-de-semestre/novo': typeof PlanejamentosDeSemestreNovoRoute
+  '/taxonomia/organizar': typeof TaxonomiaOrganizarRoute
   '/cursos/': typeof CursosIndexRoute
   '/disciplinas/': typeof DisciplinasIndexRoute
   '/eventos/': typeof EventosIndexRoute
@@ -484,8 +508,10 @@ export interface FileRoutesById {
   '/perfil/': typeof PerfilIndexRoute
   '/planejamentos-de-curriculo/': typeof PlanejamentosDeCurriculoIndexRoute
   '/planejamentos-de-semestre/': typeof PlanejamentosDeSemestreIndexRoute
+  '/taxonomia/': typeof TaxonomiaIndexRoute
   '/grupos/$groupId_/gerenciar': typeof GruposGroupIdGerenciarRouteWithChildren
   '/planejamentos-de-semestre/compartilhado/$shareId': typeof PlanejamentosDeSemestreCompartilhadoShareIdRoute
+  '/taxonomia/tags/$tagId': typeof TaxonomiaTagsTagIdRoute
   '/grupos/$groupId_/gerenciar/acessos': typeof GruposGroupIdGerenciarAcessosRoute
   '/grupos/$groupId_/gerenciar/eventos': typeof GruposGroupIdGerenciarEventosRoute
   '/grupos/$groupId_/gerenciar/perfil': typeof GruposGroupIdGerenciarPerfilRoute
@@ -532,6 +558,7 @@ export interface FileRouteTypes {
     | '/planejamentos-de-curriculo/novo'
     | '/planejamentos-de-semestre/$planejamentoId'
     | '/planejamentos-de-semestre/novo'
+    | '/taxonomia/organizar'
     | '/cursos/'
     | '/disciplinas/'
     | '/eventos/'
@@ -540,8 +567,10 @@ export interface FileRouteTypes {
     | '/perfil/'
     | '/planejamentos-de-curriculo/'
     | '/planejamentos-de-semestre'
+    | '/taxonomia/'
     | '/grupos/$groupId/gerenciar'
     | '/planejamentos-de-semestre/compartilhado/$shareId'
+    | '/taxonomia/tags/$tagId'
     | '/grupos/$groupId/gerenciar/acessos'
     | '/grupos/$groupId/gerenciar/eventos'
     | '/grupos/$groupId/gerenciar/perfil'
@@ -565,7 +594,6 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/situacao-do-curso'
     | '/sobre'
-    | '/taxonomia'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio/configuracoes'
     | '/eventos/$eventId'
@@ -579,6 +607,7 @@ export interface FileRouteTypes {
     | '/planejamentos-de-curriculo/novo'
     | '/planejamentos-de-semestre/$planejamentoId'
     | '/planejamentos-de-semestre/novo'
+    | '/taxonomia/organizar'
     | '/cursos'
     | '/disciplinas'
     | '/eventos'
@@ -587,7 +616,9 @@ export interface FileRouteTypes {
     | '/perfil'
     | '/planejamentos-de-curriculo'
     | '/planejamentos-de-semestre'
+    | '/taxonomia'
     | '/planejamentos-de-semestre/compartilhado/$shareId'
+    | '/taxonomia/tags/$tagId'
     | '/grupos/$groupId/gerenciar/acessos'
     | '/grupos/$groupId/gerenciar/eventos'
     | '/grupos/$groupId/gerenciar/perfil'
@@ -632,6 +663,7 @@ export interface FileRouteTypes {
     | '/planejamentos-de-curriculo/novo'
     | '/planejamentos-de-semestre/$planejamentoId'
     | '/planejamentos-de-semestre/novo'
+    | '/taxonomia/organizar'
     | '/cursos/'
     | '/disciplinas/'
     | '/eventos/'
@@ -640,8 +672,10 @@ export interface FileRouteTypes {
     | '/perfil/'
     | '/planejamentos-de-curriculo/'
     | '/planejamentos-de-semestre/'
+    | '/taxonomia/'
     | '/grupos/$groupId_/gerenciar'
     | '/planejamentos-de-semestre/compartilhado/$shareId'
+    | '/taxonomia/tags/$tagId'
     | '/grupos/$groupId_/gerenciar/acessos'
     | '/grupos/$groupId_/gerenciar/eventos'
     | '/grupos/$groupId_/gerenciar/perfil'
@@ -673,7 +707,7 @@ export interface RootRouteChildren {
   PrivacidadeRoute: typeof PrivacidadeRoute
   SituacaoDoCursoRoute: typeof SituacaoDoCursoRoute
   SobreRoute: typeof SobreRoute
-  TaxonomiaRoute: typeof TaxonomiaRoute
+  TaxonomiaRoute: typeof TaxonomiaRouteWithChildren
   EditaisDeIntercambioConfiguracoesRoute: typeof EditaisDeIntercambioConfiguracoesRoute
   PerfisPublicIdRoute: typeof PerfisPublicIdRoute
   PlanejamentosDeSemestrePlanejamentoIdRoute: typeof PlanejamentosDeSemestrePlanejamentoIdRoute
@@ -796,6 +830,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/taxonomia/': {
+      id: '/taxonomia/'
+      path: '/'
+      fullPath: '/taxonomia/'
+      preLoaderRoute: typeof TaxonomiaIndexRouteImport
+      parentRoute: typeof TaxonomiaRoute
+    }
     '/planejamentos-de-semestre/': {
       id: '/planejamentos-de-semestre/'
       path: '/planejamentos-de-semestre'
@@ -851,6 +892,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/cursos/'
       preLoaderRoute: typeof CursosIndexRouteImport
       parentRoute: typeof CursosRoute
+    }
+    '/taxonomia/organizar': {
+      id: '/taxonomia/organizar'
+      path: '/organizar'
+      fullPath: '/taxonomia/organizar'
+      preLoaderRoute: typeof TaxonomiaOrganizarRouteImport
+      parentRoute: typeof TaxonomiaRoute
     }
     '/planejamentos-de-semestre/novo': {
       id: '/planejamentos-de-semestre/novo'
@@ -942,6 +990,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/disciplinas/$courseId'
       preLoaderRoute: typeof DisciplinasCourseIdRouteImport
       parentRoute: typeof DisciplinasRoute
+    }
+    '/taxonomia/tags/$tagId': {
+      id: '/taxonomia/tags/$tagId'
+      path: '/tags/$tagId'
+      fullPath: '/taxonomia/tags/$tagId'
+      preLoaderRoute: typeof TaxonomiaTagsTagIdRouteImport
+      parentRoute: typeof TaxonomiaRoute
     }
     '/planejamentos-de-semestre/compartilhado/$shareId': {
       id: '/planejamentos-de-semestre/compartilhado/$shareId'
@@ -1200,6 +1255,22 @@ const PlanejamentosDeCurriculoRouteWithChildren =
     PlanejamentosDeCurriculoRouteChildren,
   )
 
+interface TaxonomiaRouteChildren {
+  TaxonomiaOrganizarRoute: typeof TaxonomiaOrganizarRoute
+  TaxonomiaIndexRoute: typeof TaxonomiaIndexRoute
+  TaxonomiaTagsTagIdRoute: typeof TaxonomiaTagsTagIdRoute
+}
+
+const TaxonomiaRouteChildren: TaxonomiaRouteChildren = {
+  TaxonomiaOrganizarRoute: TaxonomiaOrganizarRoute,
+  TaxonomiaIndexRoute: TaxonomiaIndexRoute,
+  TaxonomiaTagsTagIdRoute: TaxonomiaTagsTagIdRoute,
+}
+
+const TaxonomiaRouteWithChildren = TaxonomiaRoute._addFileChildren(
+  TaxonomiaRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignSystemRoute: DesignSystemRoute,
@@ -1216,7 +1287,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacidadeRoute: PrivacidadeRoute,
   SituacaoDoCursoRoute: SituacaoDoCursoRoute,
   SobreRoute: SobreRoute,
-  TaxonomiaRoute: TaxonomiaRoute,
+  TaxonomiaRoute: TaxonomiaRouteWithChildren,
   EditaisDeIntercambioConfiguracoesRoute:
     EditaisDeIntercambioConfiguracoesRoute,
   PerfisPublicIdRoute: PerfisPublicIdRoute,

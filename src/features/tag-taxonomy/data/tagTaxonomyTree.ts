@@ -1,3 +1,4 @@
+import { normalizeTagSearch } from './tagTaxonomyNavigation'
 import type { Tag } from './tagTaxonomyApi'
 
 export type TagTreeNode = Tag & {
@@ -31,7 +32,7 @@ export function filterTagTree(
   nodes: ReadonlyArray<TagTreeNode>,
   search: string,
 ): ReadonlyArray<TagTreeNode> {
-  const normalized = search.trim().toLocaleLowerCase('pt-BR')
+  const normalized = normalizeTagSearch(search)
   if (!normalized) return nodes
 
   return nodes.flatMap((node) => {
@@ -39,7 +40,7 @@ export function filterTagTree(
       node.children,
       normalized,
     )
-    const matches = node.name.toLocaleLowerCase('pt-BR').includes(normalized)
+    const matches = normalizeTagSearch(node.name).includes(normalized)
     return matches || children.length > 0 ? [{ ...node, children }] : []
   })
 }

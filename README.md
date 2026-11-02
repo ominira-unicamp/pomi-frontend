@@ -84,3 +84,57 @@ visibilidade do perfil mantém confirmação. As disciplinas incluem turmas,
 horários e salas; curso, modalidade e ingresso seguem a visibilidade do perfil.
 Interesses são adicionados ao selecionar uma sugestão e removidos pelo controle
 do chip. O código público fica junto de Visualizar perfil no cabeçalho.
+
+## Tags e taxonomia
+
+`/taxonomia` permite explorar tags por categoria, buscar sem distinção de acentos
+ou filtrar os interesses do estudante. Busca e filtros ficam na URL e acompanham
+a navegação ao detalhe e o retorno à exploração.
+
+`/taxonomia/tags/:tagId` é o endereço compartilhável de uma tag. Exibe o caminho
+na hierarquia, subtags, interesse pessoal e disciplinas paginadas. As disciplinas
+são associações diretas: selecionar uma tag pai não agrega as filhas.
+
+`/taxonomia/organizar` exige login e concentra a manutenção de categorias e tags.
+O parâmetro `tagId` abre uma tag para edição. No desktop a edição fica ao lado da
+estrutura; no celular ocupa a etapa de edição, com retorno pelo botão Cancelar.
+Alterações não salvas exigem confirmação antes de sair ou trocar o item editado.
+Renomear um termo afeta todos os seus usos. Excluir uma tag remove interesses
+associados; vínculos com subtags, disciplinas, grupos ou eventos impedem a exclusão.
+
+A exploração permite adicionar ou remover interesses diretamente nas linhas.
+O detalhe apresenta breadcrumb navegável e omite paginação quando só há uma
+página. A organização usa árvore e painel, com busca e seleção na URL; o contexto
+validado em `returnTo` permite voltar ao detalhe e aos filtros de origem.
+Voltar à estrutura no celular mantém busca, expansão, seleção e rolagem.
+
+A contribuição global permanece aberta a qualquer pessoa autenticada, conforme
+a decisão de produto de 01/11/2026. Sem perfil de estudante, a pessoa ainda pode
+contribuir; apenas o registro de interesses exige esse perfil. A interface oculta
+as entradas de manutenção de visitantes e trata recusas de autorização da API.
+
+Edições com divergência observável em relação ao servidor preservam o rascunho e
+solicitam reabertura do item. Essa comparação antes de salvar não substitui uma
+operação atômica de versionamento no backend. O plano e as evidências da entrega
+estão em [Fluxo de taxonomia](../docs/plano-melhoria-fluxo-taxonomia-pomi.md).
+
+
+A adaptação visual às referências de 01/11/2026 agrupa a exploração por categoria,
+mostra interesses por estrela e oferece chips removíveis e ordenação A–Z/Z–A
+preservada no parâmetro `order`. O detalhe e o editor usam painéis de contexto e
+resumos baseados nos campos existentes. As decisões sobre dados disponíveis e
+capturas estão em [Adaptação visual da taxonomia](../docs/plans/resultado-referencia-visual-taxonomia-pomi.md).
+
+A revisão de 02/11/2026 usa a largura comum de página e as composições
+`AppliedFilters`, `Field`, `Section`, `InlineMessage`, `Badge`, `ActionBar` e
+`ResponsiveDialog`. Criação e confirmações usam folha inferior no celular;
+descarte e exclusão preservam o rascunho até a confirmação explícita.
+Detalhes e evidências em [Alinhamento ao design system](../docs/plans/alinhamento-design-taxonomia-pomi.md).
+
+A composição compacta da taxonomia prioriza listas e edição, com expansão das subtags na própria linha e contagens nos títulos das
+seções. O editor só permite salvar mudanças e apresenta comparação de caminhos
+quando categoria ou pai muda. A revisão visual e as evidências estão em
+[Composição compacta da taxonomia](../docs/plans/composicao-compacta-taxonomia-pomi.md).
+
+Exploração e organização da taxonomia usam a largura padrão (`PageContainer`),
+como a busca de disciplinas e as telas de pessoas. A seção “Sobre as tags” foi removida.

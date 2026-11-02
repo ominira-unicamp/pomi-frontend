@@ -1,7 +1,3 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { Outlet, createFileRoute } from '@tanstack/react-router'
 
-import { TagTaxonomyPage } from '@/features/tag-taxonomy'
-
-export const Route = createFileRoute('/taxonomia')({
-  component: TagTaxonomyPage,
-})
+export const Route = createFileRoute('/taxonomia')({ component: Outlet })

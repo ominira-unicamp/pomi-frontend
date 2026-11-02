@@ -34,4 +34,7 @@ describe('tag taxonomy tree', () => {
 
     expect([...collectDescendantTagIds(tree, 2)]).toEqual([3, 4])
   })
+  it('finds accented names without accents', () => {
+    expect(filterTagTree(buildTagTree(tags, 1), 'algebra')[0]?.id).toBe(2)
+  })
 })
