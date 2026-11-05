@@ -118,7 +118,7 @@ const profile: StudentProfile = {
   languageId: null,
 }
 const attempts = [
-  { courseId: 10, status: 'APPROVED' },
+  { id: 1, courseId: 10, status: 'APPROVED', studyPeriod: null },
 ] as Array<StudentCourseAttempt>
 function renderCurriculum(
   selected: StudentProfile | undefined = profile,
@@ -149,12 +149,6 @@ function renderCurriculum(
     update: (next: Partial<typeof props>) =>
       view.rerender(wrap({ ...props, ...next })),
   }
-}
-function selectTab(name: string) {
-  fireEvent.mouseDown(screen.getByRole('tab', { name }), {
-    button: 0,
-    ctrlKey: false,
-  })
 }
 beforeEach(() => {
   vi.clearAllMocks()
@@ -190,21 +184,25 @@ beforeEach(() => {
   ])
 })
 describe('saved program curriculum', () => {
-  it('shows the saved catalog, program and specialization with the same three catalog views', async () => {
+  it('shows the same curriculum views and block tables as the catalog', async () => {
     renderCurriculum()
-    expect(
-      screen.getByRole('heading', { name: '42 — Ciência da Computação' }),
-    ).toBeTruthy()
-    expect(screen.getByText('Catálogo 2023')).toBeTruthy()
+    expect(screen.getByText(/1 de 2 disciplinas obrigatórias/)).toBeTruthy()
+    expect(screen.getByRole('tab', { name: 'Currículo pleno' })).toBeTruthy()
     expect(screen.getByText('AA — Sistemas')).toBeTruthy()
     expect(screen.queryByText('AB — Teoria')).toBeNull()
-    expect(screen.getByRole('tab', { name: 'Currículo pleno' })).toBeTruthy()
-    selectTab('Proposta de currículo')
+    expect(screen.getByText('Núcleo comum ao curso')).toBeTruthy()
+    fireEvent.mouseDown(
+      screen.getByRole('tab', { name: 'Proposta de currículo' }),
+    )
     expect(await screen.findByText('1º semestre')).toBeTruthy()
-    expect(mocks.suggestions).toHaveBeenCalledWith('101')
-    selectTab('Árvore de dependências')
-    expect(await screen.findByText('Mostrar eletivas')).toBeTruthy()
-    expect(mocks.prerequisites).toHaveBeenCalledWith(2023)
+    fireEvent.mouseDown(
+      screen.getByRole('tab', { name: 'Árvore de dependências' }),
+    )
+    expect(
+      await screen.findByText(
+        'Visualize as relações entre as disciplinas deste currículo.',
+      ),
+    ).toBeTruthy()
   })
   it('opens academic details using the selected historical catalog', async () => {
     renderCurriculum()
@@ -217,22 +215,86 @@ describe('saved program curriculum', () => {
       await screen.findByRole('dialog', { name: 'MC102 — Algoritmos' }),
     ).toBeTruthy()
     await waitFor(() => expect(mocks.details).toHaveBeenCalledWith(10, 2023))
+    expect(document.activeElement?.textContent).toBe('MC102 — Algoritmos')
     expect(screen.getByText('6 créditos · Catálogo 2023')).toBeTruthy()
   })
-  it('uses approved attempts to mark completed disciplines', () => {
+  it('marks approved courses in the shared catalog table', () => {
     renderCurriculum()
-    const toggle = screen.getByRole('switch', {
-      name: 'Mostrar disciplinas concluídas',
-    })
-    expect(toggle.getAttribute('aria-checked')).toBe('false')
-    fireEvent.click(toggle)
-    expect(toggle.getAttribute('aria-checked')).toBe('true')
     expect(screen.getByText('MC102').closest('tr')?.className).toContain(
       'line-through',
     )
     expect(screen.getByText('MC202').closest('tr')?.className).not.toContain(
       'line-through',
     )
+  })
+  it('does not present a failed personal request as an empty history and keeps the original available', () => {
+    const retry = vi.fn()
+    renderCurriculum(profile, {
+      attempts: [],
+      attemptsError: true,
+      onRetryAttempts: retry,
+    })
+    expect(
+      screen.getByText('Não foi possível consultar sua trajetória'),
+    ).toBeTruthy()
+    expect(screen.queryByText(/Nenhuma tentativa registrada/)).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }))
+    expect(retry).toHaveBeenCalledOnce()
+    expect(screen.getByText('Núcleo comum ao curso')).toBeTruthy()
+  })
+  it('explains repeated attempts in the academic detail and offers the existing history flow', async () => {
+    const onOpenHistory = vi.fn()
+    renderCurriculum(profile, {
+      onOpenHistory,
+      attempts: [
+        { id: 1, courseId: 10, status: 'FAILED_BY_GRADE', studyPeriod: null },
+        { id: 2, courseId: 10, status: 'ENROLLED', studyPeriod: null },
+      ] as Array<StudentCourseAttempt>,
+    })
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Ver informações de MC102' }),
+    )
+    expect(await screen.findByRole('dialog')).toBeTruthy()
+    expect(screen.getByText('Seus registros nesta disciplina')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Consultar histórico' }))
+    expect(onOpenHistory).toHaveBeenCalledOnce()
+    expect(onOpenHistory).toHaveBeenCalledOnce()
+  })
+  it('keeps loading separate from empty history and allows original consultation', () => {
+    const view = renderCurriculum(profile, {
+      attempts: [],
+      attemptsLoading: true,
+    })
+    expect(screen.getByText('Carregando registros da trajetória')).toBeTruthy()
+    expect(screen.queryByText(/Nenhuma tentativa registrada/)).toBeNull()
+    expect(screen.getByText('Núcleo comum ao curso')).toBeTruthy()
+    view.update({ attemptsLoading: false })
+    expect(screen.getByText(/Nenhuma tentativa registrada/)).toBeTruthy()
+  })
+  it('keeps withdrawals and failures unapproved while recognizing proficiency in the same discipline', async () => {
+    renderCurriculum(profile, {
+      attempts: [
+        { id: 1, courseId: 10, status: 'DROPPED', studyPeriod: null },
+        {
+          id: 2,
+          courseId: 10,
+          status: 'FAILED_BY_ATTENDANCE',
+          studyPeriod: null,
+        },
+        {
+          id: 3,
+          courseId: 11,
+          status: 'APPROVED_BY_PROFICIENCY',
+          studyPeriod: null,
+        },
+      ] as Array<StudentCourseAttempt>,
+    })
+    expect(screen.getByText(/1 de 2 disciplinas obrigatórias/)).toBeTruthy()
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Ver informações de MC102' }),
+    )
+    expect(await screen.findByText('Desistida')).toBeTruthy()
+    expect(screen.getByText('Reprovada por frequência')).toBeTruthy()
   })
   it('does not silently replace a missing saved catalog with another one', () => {
     renderCurriculum({ ...profile, catalogId: 999 })

@@ -142,12 +142,22 @@ como a busca de disciplinas e as telas de pessoas. A seção “Sobre as tags”
 ## Programa na situação do curso
 
 Em `/situacao-do-curso`, o resumo de **Vínculo acadêmico** fica acima de
-**Cursando** e **Histórico**. **Editar vínculo acadêmico** abre os campos de curso
-e ingresso; **Consultar currículo do programa** expande as informações do programa salvo: currículo pleno, proposta de currículo,
-árvore de dependências e detalhes das disciplinas, com a mesma apresentação de
-`/cursos`. A consulta respeita o catálogo e a modalidade do perfil; salvar outra
-seleção atualiza o programa exibido. O controle **Concluídas** destaca as
-disciplinas aprovadas no histórico.
+**Cursando**, **Histórico** e **Currículo**. **Editar vínculo acadêmico** abre os
+campos de curso e ingresso; a aba **Currículo** apresenta a consulta configurável
+do programa na própria página. As abas internas **Currículo pleno**, **Proposta
+de currículo** e **Árvore de dependências** reutilizam a composição de `/cursos`,
+com seus blocos, tabelas, detalhes e navegação por dependências. As disciplinas
+com aprovação registrada aparecem marcadas nas três visualizações. O detalhe
+acadêmico reúne as tentativas do mesmo identificador de disciplina. O atalho
+**Consultar histórico** abre a aba Histórico e posiciona o foco nela. O
+planejamento permanece em seu fluxo próprio.
+
+As contagens representam aprovações registradas em disciplinas obrigatórias
+identificadas, não integralização oficial. Equivalências, avaliação automática de
+pré-requisitos e alocação de créditos entre blocos eletivos não são calculadas.
+Opções eletivas não são pendências individuais. Histórico vazio, carregando e
+indisponível têm mensagens distintas; o currículo do catálogo continua
+consultável mesmo quando os registros pessoais não carregam.
 
 Se o programa ainda não foi definido ou não estiver disponível no catálogo salvo,
 a tela orienta a revisar a seleção. Sem modalidade, o núcleo comum permanece

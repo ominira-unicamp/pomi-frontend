@@ -65,7 +65,7 @@ import {
 import { mostRecentStudyPeriodsFirst } from '@/features/student/data/studyPeriodOrdering'
 import { parseStudentHistoryPdf } from '@/features/student/historyImport/studentHistoryParser'
 
-type SituationTab = 'enrolled' | 'history'
+type SituationTab = 'enrolled' | 'history' | 'curriculum'
 
 function TabCount({ value }: { value: number }) {
   return (
@@ -86,6 +86,7 @@ const emptyAttemptForm: CourseAttemptFormState = {
 
 export function CourseSituationPage() {
   const queryClient = useQueryClient()
+  const profileTitleRef = useRef<HTMLSpanElement>(null)
   const [profileEditing, setProfileEditing] = useState(false)
   const [profileSaved, setProfileSaved] = useState(false)
   const [activeTab, setActiveTab] = useState<SituationTab>('enrolled')
@@ -384,7 +385,7 @@ export function CourseSituationPage() {
       (absence) => absence.studentCourseAttemptId === attemptId,
     ).length
 
-  if (!auth.initialized || profileQuery.isLoading || attemptsQuery.isLoading)
+  if (!auth.initialized || profileQuery.isLoading)
     return (
       <PageContainer>
         <LoadingState label="Carregando situação do curso" />
@@ -462,16 +463,20 @@ export function CourseSituationPage() {
             : undefined
         }
         actions={
-          <Button
-            onClick={() =>
-              openNewAttempt(activeTab === 'enrolled' ? 'ENROLLED' : undefined)
-            }
-          >
-            <Plus />{' '}
-            {activeTab === 'enrolled'
-              ? 'Adicionar disciplina cursando'
-              : 'Adicionar tentativa ao histórico'}
-          </Button>
+          activeTab !== 'curriculum' ? (
+            <Button
+              onClick={() =>
+                openNewAttempt(
+                  activeTab === 'enrolled' ? 'ENROLLED' : undefined,
+                )
+              }
+            >
+              <Plus />{' '}
+              {activeTab === 'enrolled'
+                ? 'Adicionar disciplina cursando'
+                : 'Adicionar tentativa ao histórico'}
+            </Button>
+          ) : undefined
         }
       />
       {profileQuery.isError && (
@@ -499,23 +504,7 @@ export function CourseSituationPage() {
           setProfileSaved(false)
           setProfileEditing(true)
         }}
-      >
-        <details className="mt-4">
-          <summary className="pomi-focus min-h-11 cursor-pointer py-3 text-sm font-bold">
-            Consultar currículo do programa
-          </summary>
-          <StudentProgramCurriculum
-            key={`${profileQuery.data?.catalogId}-${profileQuery.data?.programId}-${profileQuery.data?.specializationId}`}
-            profile={profileQuery.data}
-            data={staticQuery.data}
-            isLoading={staticQuery.isPending}
-            isError={staticQuery.isError}
-            onRetry={() => void staticQuery.refetch()}
-            attempts={attempts}
-            attemptsLoading={attemptsQuery.isPending}
-          />
-        </details>
-      </AcademicProfileSummary>
+      />
       {profileSaved && (
         <InlineMessage className="mb-5" variant="success">
           Informações do curso salvas.
@@ -524,7 +513,18 @@ export function CourseSituationPage() {
       <ResponsiveDialog
         open={profileEditing}
         onOpenChange={setProfileEditing}
-        title="Editar curso e ingresso"
+        title={
+          <span ref={profileTitleRef} tabIndex={-1}>
+            Editar vínculo acadêmico
+          </span>
+        }
+        onOpenAutoFocus={(event) => {
+          event.preventDefault()
+          profileTitleRef.current?.focus()
+        }}
+        description="Esses dados preenchem novos planejamentos. O histórico e os planejamentos existentes são preservados."
+        dialogContentClassName="max-w-2xl"
+        bodyClassName="min-w-0"
       >
         <CourseProfilePanel
           profile={profileQuery.data}
@@ -546,10 +546,11 @@ export function CourseSituationPage() {
           <TabsTrigger value="enrolled">
             Cursando <TabCount value={enrolledAttempts.length} />
           </TabsTrigger>
-          <TabsTrigger value="history">
+          <TabsTrigger id="course-history-tab" value="history">
             Histórico{' '}
             <TabCount value={attempts.length - enrolledAttempts.length} />
           </TabsTrigger>
+          <TabsTrigger value="curriculum">Currículo</TabsTrigger>
         </TabsList>
         <TabsContent value="enrolled">
           {attemptsQuery.isPending ? (
@@ -621,6 +622,30 @@ export function CourseSituationPage() {
               onLambdaImport={() => setLambdaImportOpen(true)}
             />
           )}
+        </TabsContent>
+        <TabsContent
+          value="curriculum"
+          forceMount
+          hidden={activeTab !== 'curriculum'}
+        >
+          <StudentProgramCurriculum
+            key={`${profileQuery.data?.catalogId}-${profileQuery.data?.programId}-${profileQuery.data?.specializationId}-${profileQuery.data?.languageId}`}
+            profile={profileQuery.data}
+            data={staticQuery.data}
+            isLoading={staticQuery.isPending}
+            isError={staticQuery.isError}
+            onRetry={() => void staticQuery.refetch()}
+            attempts={attempts}
+            attemptsLoading={attemptsQuery.isPending}
+            attemptsError={attemptsQuery.isError}
+            onRetryAttempts={() => void attemptsQuery.refetch()}
+            onOpenHistory={() => {
+              setActiveTab('history')
+              requestAnimationFrame(() =>
+                document.getElementById('course-history-tab')?.focus(),
+              )
+            }}
+          />
         </TabsContent>
       </Tabs>
       <HistoryImportDialog

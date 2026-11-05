@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CourseProfilePanel } from './CourseProfilePanel'
+import { ResponsiveDialog } from '@/components/patterns/ResponsiveDialog'
 
 describe('CourseProfilePanel', () => {
   it('shows the profile fields with labels without requiring configuration mode', async () => {
@@ -81,5 +82,51 @@ describe('CourseProfilePanel', () => {
       { target: { value: '2025' } },
     )
     expect(saveButton.disabled).toBe(false)
+  })
+  it('opens the academic profile in a dialog with a populated catalog and permits editing', async () => {
+    render(
+      <ResponsiveDialog
+        open
+        onOpenChange={vi.fn()}
+        title="Editar curso e ingresso"
+      >
+        <CourseProfilePanel
+          profile={{
+            id: 1,
+            name: 'Estudante',
+            catalogId: 2023,
+            programId: 42,
+            specializationId: null,
+            languageId: null,
+            entryYear: 2023,
+          }}
+          catalogPrograms={Array.from({ length: 60 }, (_, index) => ({
+            id: String(index + 1) as never,
+            title: 'Computação',
+            catalog: { id: String(2026 - index) as never, year: 2026 - index },
+            program: { id: '42' as never, code: '42', name: 'Computação' },
+            baseBlocks: { mandatory: [], electives: [] },
+            variants: [],
+            languages: [],
+          }))}
+          onSave={vi.fn()}
+        />
+      </ResponsiveDialog>,
+    )
+    const catalog = await screen.findByRole('combobox', { name: 'Catálogo' })
+    fireEvent.focus(catalog)
+    expect(
+      await screen.findByRole('option', { name: 'Catálogo 2023' }),
+    ).toBeTruthy()
+    fireEvent.click(screen.getByRole('option', { name: 'Catálogo 2023' }))
+    fireEvent.change(
+      screen.getByRole('spinbutton', { name: 'Ano de ingresso' }),
+      { target: { value: '2024' } },
+    )
+    expect(
+      screen.getByRole<HTMLButtonElement>('button', {
+        name: 'Salvar alterações',
+      }).disabled,
+    ).toBe(false)
   })
 })

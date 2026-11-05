@@ -8,6 +8,7 @@ type AutocompleteSelectProps = Readonly<{
   disabled?: boolean
   emptyLabel?: string
   fitContainer?: boolean
+  listPlacement?: 'auto' | 'overlay'
   onValueChange: (value: string) => void
   options: ReadonlyArray<AutocompleteOption>
   placeholder?: string
@@ -31,6 +32,7 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
   disabled,
   emptyLabel,
   fitContainer = false,
+  listPlacement = 'auto',
   onValueChange,
   options,
   placeholder,
@@ -41,6 +43,10 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
   const [query, setQuery] = useState(selected?.label ?? '')
   const [open, setOpen] = useState(false)
   const [scrollTop, setScrollTop] = useState(0)
+  const [openAbove, setOpenAbove] = useState(false)
+  const [availableListHeight, setAvailableListHeight] = useState(
+    viewportHeight + listChromeHeight,
+  )
   const anchorRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const insideDialog = Boolean(anchorRef.current?.closest('[role="dialog"]'))
@@ -116,6 +122,29 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
         aria-label={ariaLabel}
         className="pomi-focus h-10 w-full rounded-md border-2 border-input bg-background px-3 py-2 text-sm font-medium text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
         onFocus={() => {
+          if (listPlacement === 'overlay' && anchorRef.current) {
+            const anchor = anchorRef.current.getBoundingClientRect()
+            const dialog = anchorRef.current
+              .closest('[role="dialog"]')
+              ?.getBoundingClientRect()
+            const below =
+              Math.min(
+                window.innerHeight,
+                dialog?.bottom ?? window.innerHeight,
+              ) -
+              anchor.bottom -
+              8
+            const above = anchor.top - Math.max(0, dialog?.top ?? 0) - 8
+            const placeAbove =
+              below < viewportHeight + listChromeHeight && above > below
+            setOpenAbove(placeAbove)
+            setAvailableListHeight(
+              Math.max(
+                optionHeight + listChromeHeight,
+                placeAbove ? above : below,
+              ),
+            )
+          }
           setQuery('')
           setOpen(true)
         }}
@@ -141,10 +170,11 @@ export const AutocompleteSelect = memo(function AutocompleteSelect({
           ref={listRef}
           id={listId}
           label={`Opções de ${ariaLabel}`}
-          className={`${insideDialog ? 'relative w-full' : fitContainer ? 'absolute w-full' : 'absolute w-max min-w-full'} z-50 mt-1 overflow-y-auto rounded-md border-2 border-strong-border bg-popover p-1 text-popover-foreground shadow-lg`}
+          className={`${insideDialog && listPlacement === 'auto' ? 'relative w-full' : fitContainer ? 'absolute w-full' : 'absolute w-max min-w-full'} ${listPlacement === 'overlay' && openAbove ? 'bottom-full mb-1' : 'mt-1'} z-50 overflow-y-auto rounded-md border-2 border-strong-border bg-popover p-1 text-popover-foreground shadow-lg`}
           style={{
             height: Math.min(
               viewportHeight + listChromeHeight,
+              availableListHeight,
               listChromeHeight +
                 optionListOffset +
                 Math.max(visibleOptions.length, 1) * optionHeight,

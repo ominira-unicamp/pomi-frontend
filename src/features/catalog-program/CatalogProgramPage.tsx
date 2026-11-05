@@ -372,6 +372,8 @@ export function CatalogProgramDetails({
   search,
   onSearchChange,
   actions,
+  embedded = false,
+  personalContext,
 }: {
   program: CatalogProgramOption
   variant?: CatalogProgramVariantOption
@@ -384,6 +386,8 @@ export function CatalogProgramDetails({
     options?: CatalogProgramNavigationOptions,
   ) => void
   actions?: ReactNode
+  embedded?: boolean
+  personalContext?: (course: Course, closeDetails: () => void) => ReactNode
 }) {
   const { openFeedback } = useFeedbackReport()
   const [selectedCourse, setSelectedCourse] = useState<Course>()
@@ -429,34 +433,36 @@ export function CatalogProgramDetails({
   ) => onSearchChange({ ...search, ...change }, options)
   return (
     <CatalogProgramYearContext.Provider value={selectedProgram.catalog.year}>
-      <PageHeader
-        compact
-        title={`${selectedProgram.program.code} — ${selectedProgram.program.name}`}
-        description={`Catálogo ${selectedProgram.catalog.year}`}
-        actions={
-          <>
-            {actions}
-            <Button
-              variant="outline"
-              onClick={() =>
-                openFeedback({
-                  kind: 'DATA_ISSUE',
-                  target: {
-                    type: 'ACADEMIC_RESOURCE',
-                    academicResource: {
-                      type: 'CATALOG_PROGRAM',
-                      id: Number(selectedProgram.id),
+      {!embedded && (
+        <PageHeader
+          compact
+          title={`${selectedProgram.program.code} — ${selectedProgram.program.name}`}
+          description={`Catálogo ${selectedProgram.catalog.year}`}
+          actions={
+            <>
+              {actions}
+              <Button
+                variant="outline"
+                onClick={() =>
+                  openFeedback({
+                    kind: 'DATA_ISSUE',
+                    target: {
+                      type: 'ACADEMIC_RESOURCE',
+                      academicResource: {
+                        type: 'CATALOG_PROGRAM',
+                        id: Number(selectedProgram.id),
+                      },
                     },
-                  },
-                  title: `Informação do catálogo ${selectedProgram.catalog.year} — ${selectedProgram.program.code}`,
-                })
-              }
-            >
-              <MessageSquareWarning /> Reportar dado incorreto do catálogo
-            </Button>
-          </>
-        }
-      />
+                    title: `Informação do catálogo ${selectedProgram.catalog.year} — ${selectedProgram.program.code}`,
+                  })
+                }
+              >
+                <MessageSquareWarning /> Reportar dado incorreto do catálogo
+              </Button>
+            </>
+          }
+        />
+      )}
       <Tabs
         value={search.tab}
         onValueChange={(value) =>
@@ -548,6 +554,13 @@ export function CatalogProgramDetails({
       <CatalogProgramCourseDialog
         course={selectedCourse}
         catalogYear={selectedProgram.catalog.year}
+        personalContext={
+          selectedCourse
+            ? personalContext?.(selectedCourse, () =>
+                setSelectedCourse(undefined),
+              )
+            : undefined
+        }
         onOpenChange={(open) => {
           if (!open) setSelectedCourse(undefined)
         }}

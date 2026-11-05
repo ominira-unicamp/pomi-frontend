@@ -1,16 +1,10 @@
-import { useState } from 'react'
 import { catalogProgramVariantForSelection } from '@pomi/planner-domain/curriculum'
+import { PersonalCurriculumExplorer } from './PersonalCurriculumExplorer'
 import type { CurriculumPlannerStaticData } from '@pomi/planner-domain/curriculum'
 import type {
   StudentCourseAttempt,
   StudentProfile,
 } from '@/features/student/data/studentApi'
-import type { CatalogProgramDetailsSearch } from '@/features/catalog-program'
-import {
-  CatalogProgramDetails,
-  CompletedCoursesToggle,
-} from '@/features/catalog-program'
-import { isApprovedStudentCourseAttempt } from '@/features/student/data/studentApi'
 import { InlineMessage } from '@/components/patterns/InlineMessage'
 import { EmptyState, ErrorState, LoadingState } from '@/components/PageLayout'
 
@@ -22,6 +16,9 @@ export function StudentProgramCurriculum({
   onRetry,
   attempts,
   attemptsLoading,
+  attemptsError = false,
+  onRetryAttempts,
+  onOpenHistory,
 }: {
   profile?: StudentProfile
   data?: CurriculumPlannerStaticData
@@ -30,11 +27,10 @@ export function StudentProgramCurriculum({
   onRetry: () => void
   attempts: ReadonlyArray<StudentCourseAttempt>
   attemptsLoading: boolean
+  attemptsError?: boolean
+  onRetryAttempts?: () => void
+  onOpenHistory?: () => void
 }) {
-  const [markCompleted, setMarkCompleted] = useState(false)
-  const [search, setSearch] = useState<CatalogProgramDetailsSearch>({
-    tab: 'full',
-  })
   if (isLoading)
     return <LoadingState label="Carregando informações do programa" />
   if (isError || !data)
@@ -75,11 +71,6 @@ export function StudentProgramCurriculum({
         description="Selecione e salve uma modalidade disponível em Curso e ingresso para consultar o currículo correspondente."
       />
     )
-  const completedCourseIds = new Set<number>(
-    attempts
-      .filter(isApprovedStudentCourseAttempt)
-      .map((attempt) => attempt.courseId),
-  )
   return (
     <section
       aria-label="Informações do programa escolhido"
@@ -92,22 +83,16 @@ export function StudentProgramCurriculum({
           comum continua disponível abaixo.
         </InlineMessage>
       )}
-      <CatalogProgramDetails
-        key={`${program.id}-${variant?.id ?? 'base'}`}
+      <PersonalCurriculumExplorer
         program={program}
         variant={variant}
         courses={data.courses}
-        completedCourseIds={completedCourseIds}
-        markCompleted={markCompleted}
-        search={search}
-        onSearchChange={setSearch}
-        actions={
-          <CompletedCoursesToggle
-            checked={markCompleted}
-            disabled={attemptsLoading}
-            onClick={() => setMarkCompleted((current) => !current)}
-          />
-        }
+        profile={profile}
+        attempts={attempts}
+        attemptsLoading={attemptsLoading}
+        attemptsError={attemptsError}
+        onRetryAttempts={onRetryAttempts}
+        onOpenHistory={onOpenHistory}
       />
     </section>
   )

@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { ExternalLink, MessageSquareWarning } from 'lucide-react'
+import { useId, useRef } from 'react'
+import type { ReactNode } from 'react'
 import {
   Dialog,
   DialogContent,
@@ -25,6 +27,7 @@ import { useDesktopLayout } from '@/hooks/useDesktopLayout'
 export function CatalogProgramCourseDialog({
   course,
   catalogYear,
+  personalContext,
   onOpenChange,
 }: {
   course?: Readonly<{
@@ -34,8 +37,24 @@ export function CatalogProgramCourseDialog({
     credits: number
   }>
   catalogYear: number
+  personalContext?: ReactNode
   onOpenChange: (open: boolean) => void
 }) {
+  const returnFocusRef = useRef<HTMLElement | null>(null)
+  const titleId = useId()
+  const handleOpenAutoFocus = (event: Event) => {
+    returnFocusRef.current =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null
+    event.preventDefault()
+    document.getElementById(titleId)?.focus()
+  }
+  const handleCloseAutoFocus = (event: Event) => {
+    event.preventDefault()
+    const target = returnFocusRef.current
+    if (target?.isConnected && target.getClientRects().length) target.focus()
+  }
   const desktop = useDesktopLayout()
   const { openFeedback } = useFeedbackReport()
   const courseId = course ? Number(course.id) : undefined
@@ -56,6 +75,7 @@ export function CatalogProgramCourseDialog({
   const description = `${course.credits} créditos · Catálogo ${catalogYear}`
   const body = (
     <div className="space-y-5 overflow-y-auto p-5 sm:p-6">
+      {personalContext}
       {query.isLoading && (
         <p className="text-sm text-muted-foreground" aria-live="polite">
           Carregando informações acadêmicas...
@@ -98,7 +118,9 @@ export function CatalogProgramCourseDialog({
             variant="ghost"
             size="sm"
             className="h-auto px-0 py-1 text-muted-foreground hover:bg-transparent hover:text-foreground"
-            onClick={() =>
+            onClick={() => {
+              returnFocusRef.current = null
+              onOpenChange(false)
               openFeedback({
                 kind: 'DATA_ISSUE',
                 target: {
@@ -110,7 +132,7 @@ export function CatalogProgramCourseDialog({
                 },
                 title: `Informação de ${details.code}`,
               })
-            }
+            }}
           >
             <MessageSquareWarning className="size-4" /> Reportar dado incorreto
           </Button>
@@ -122,11 +144,15 @@ export function CatalogProgramCourseDialog({
   return desktop ? (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent
+        aria-labelledby={titleId}
         className="flex max-h-[88dvh] max-w-2xl flex-col overflow-hidden p-0"
-        onOpenAutoFocus={(event) => event.preventDefault()}
+        onOpenAutoFocus={handleOpenAutoFocus}
+        onCloseAutoFocus={handleCloseAutoFocus}
       >
         <DialogHeader className="mb-0 border-b-2 border-strong-border p-5 pr-12 sm:p-6 sm:pr-12">
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle id={titleId} tabIndex={-1} className="pomi-focus">
+            {title}
+          </DialogTitle>
           <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         {body}
@@ -135,13 +161,17 @@ export function CatalogProgramCourseDialog({
   ) : (
     <Sheet open onOpenChange={onOpenChange}>
       <SheetContent
+        aria-labelledby={titleId}
         side="bottom"
         className="max-h-[88dvh] rounded-t-xl bg-background text-foreground"
         closeButtonClassName="text-foreground hover:bg-accent"
-        onOpenAutoFocus={(event) => event.preventDefault()}
+        onOpenAutoFocus={handleOpenAutoFocus}
+        onCloseAutoFocus={handleCloseAutoFocus}
       >
         <SheetHeader className="border-b-2 border-strong-border pr-12">
-          <SheetTitle>{title}</SheetTitle>
+          <SheetTitle id={titleId} tabIndex={-1} className="pomi-focus">
+            {title}
+          </SheetTitle>
           <SheetDescription>{description}</SheetDescription>
         </SheetHeader>
         {body}

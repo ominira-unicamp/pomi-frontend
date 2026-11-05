@@ -188,6 +188,34 @@ describe('CourseSituationPage', () => {
     expect(screen.getByText('MA111 — Cálculo I')).toBeTruthy()
   })
 
+  it('opens the curriculum in a dedicated tab and keeps academic profile editing available', async () => {
+    renderPage()
+    const curriculumTab = await screen.findByRole('tab', {
+      name: 'Currículo',
+    })
+    expect(screen.queryByRole('tabpanel', { name: 'Currículo' })).toBeNull()
+    expect(screen.queryByText('Consultar currículo do programa')).toBeNull()
+    fireEvent.mouseDown(curriculumTab, { button: 0, ctrlKey: false })
+    expect(
+      await screen.findByRole('tabpanel', { name: 'Currículo' }),
+    ).toBeTruthy()
+    expect(await screen.findByText('Escolha seu programa')).toBeTruthy()
+    expect(
+      screen.getByRole('button', { name: 'Editar vínculo acadêmico' }),
+    ).toBeTruthy()
+    expect(
+      screen.queryByRole('button', {
+        name: 'Adicionar tentativa ao histórico',
+      }),
+    ).toBeNull()
+    fireEvent.mouseDown(screen.getByRole('tab', { name: /Histórico/ }), {
+      button: 0,
+      ctrlKey: false,
+    })
+    expect(await screen.findByText('MA111 — Cálculo I')).toBeTruthy()
+    expect(screen.queryByRole('tabpanel', { name: 'Currículo' })).toBeNull()
+  })
+
   it('orders historical semesters from the most recent to the oldest', async () => {
     listStudentCourseAttempts.mockResolvedValue([
       {

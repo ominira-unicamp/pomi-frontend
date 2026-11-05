@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react'
 import type { CurriculumPlannerStaticData } from '@pomi/planner-domain/curriculum'
 import type { StudentProfile } from '@/features/student/data/studentApi'
 import { Button } from '@/components/ui/button'
@@ -10,14 +9,12 @@ export function AcademicProfileSummary({
   loading,
   onEdit,
   editDisabled,
-  children,
 }: {
   profile?: StudentProfile
   data?: CurriculumPlannerStaticData
   loading: boolean
   onEdit: () => void
   editDisabled?: boolean
-  children: ReactNode
 }) {
   const program = data?.catalogPrograms.find(
     (item) =>
@@ -59,7 +56,6 @@ export function AcademicProfileSummary({
           Editar vínculo acadêmico
         </Button>
       </div>
-      {children}
     </Section>
   )
 }

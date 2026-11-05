@@ -14,7 +14,7 @@ export type ElectiveCreditsBalance = Readonly<{
   remainingCredits: number
 }>
 
-function matchesSelector(course: Course, selector: CourseSelector) {
+export function courseMatchesSelector(course: Course, selector: CourseSelector) {
   if (selector.type === 'anyCourse') return true
   if (selector.type === 'specificCourse') return course.id === selector.courseId
   return course.code
@@ -27,7 +27,7 @@ function matchesRequirement(
   requirement: ElectiveCreditsRequirement,
 ) {
   return requirement.eligibleCourses.some((selector) =>
-    matchesSelector(course, selector),
+    courseMatchesSelector(course, selector),
   )
 }
 
@@ -52,7 +52,7 @@ export function calculateElectiveCreditsBalances(
     distinctCourses
       .filter((course) =>
         blocks.mandatory.some((requirement) =>
-          matchesSelector(course, requirement.selector),
+          courseMatchesSelector(course, requirement.selector),
         ),
       )
       .map((course) => course.id),

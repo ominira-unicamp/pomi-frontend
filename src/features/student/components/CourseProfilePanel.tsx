@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import type { CatalogProgramOption } from '@pomi/planner-domain/curriculum'
 import type { StudentProfile } from '@/features/student/data/studentApi'
@@ -6,7 +6,6 @@ import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Field, FieldError, FieldLabel } from '@/components/patterns/Field'
 import { InlineMessage } from '@/components/patterns/InlineMessage'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
 
@@ -29,11 +28,27 @@ export function CourseProfilePanel({
   onSave: (value: CourseProfileValues) => Promise<void>
   onCancel?: () => void
 }) {
-  const [catalogId, setCatalogId] = useState('')
-  const [programId, setProgramId] = useState('')
-  const [specializationId, setSpecializationId] = useState('')
-  const [languageId, setLanguageId] = useState('')
-  const [entryYear, setEntryYear] = useState('')
+  const [catalogId, setCatalogId] = useState(() =>
+    profile?.catalogId ? String(profile.catalogId) : '',
+  )
+  const [programId, setProgramId] = useState(() =>
+    catalogPrograms.some(
+      (item) =>
+        Number(item.catalog.id) === profile?.catalogId &&
+        Number(item.program.id) === profile.programId,
+    )
+      ? String(profile?.programId)
+      : '',
+  )
+  const [specializationId, setSpecializationId] = useState(() =>
+    profile?.specializationId ? String(profile.specializationId) : '',
+  )
+  const [languageId, setLanguageId] = useState(() =>
+    profile?.languageId ? String(profile.languageId) : '',
+  )
+  const [entryYear, setEntryYear] = useState(() =>
+    profile?.entryYear ? String(profile.entryYear) : '',
+  )
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState(false)
 
@@ -92,23 +107,6 @@ export function CourseProfilePanel({
     [selectedProgram],
   )
 
-  useEffect(() => {
-    setCatalogId(profile?.catalogId ? String(profile.catalogId) : '')
-    const current = profile
-      ? catalogPrograms.find(
-          (item) =>
-            Number(item.catalog.id) === profile.catalogId &&
-            Number(item.program.id) === profile.programId,
-        )
-      : undefined
-    setProgramId(current ? String(current.program.id) : '')
-    setSpecializationId(
-      profile?.specializationId ? String(profile.specializationId) : '',
-    )
-    setLanguageId(profile?.languageId ? String(profile.languageId) : '')
-    setEntryYear(profile?.entryYear ? String(profile.entryYear) : '')
-  }, [catalogPrograms, profile])
-
   const values: CourseProfileValues = {
     catalogId: catalogId ? Number(catalogId) : null,
     programId: selectedProgram ? Number(selectedProgram.program.id) : null,
@@ -152,123 +150,127 @@ export function CourseProfilePanel({
   }
 
   return (
-    <Card variant="flat" className="mb-6">
-      <CardContent className="p-4">
-        <p className="font-extrabold">Curso e ingresso</p>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Estas informações preenchem automaticamente os novos planejamentos.
-          Planejamentos existentes e tentativas do histórico não são alterados.
-        </p>
-      </CardContent>
-      <CardContent className="border-t-2 border-strong-border p-4">
-        <div className="grid gap-4 md:grid-cols-2">
-          <Field>
-            <FieldLabel>Catálogo</FieldLabel>
+    <form
+      onSubmit={(event) => {
+        event.preventDefault()
+        void save()
+      }}
+    >
+      <div className="grid grid-cols-2 gap-4">
+        <Field>
+          <FieldLabel>Catálogo</FieldLabel>
+          <AutocompleteSelect
+            fitContainer
+            listPlacement="overlay"
+            ariaLabel="Catálogo"
+            value={catalogId}
+            options={catalogOptions}
+            placeholder="Escolha o catálogo"
+            onValueChange={(value) => {
+              setSaveError(false)
+              setCatalogId(value)
+              setProgramId('')
+              setSpecializationId('')
+              setLanguageId('')
+            }}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="course-profile-entry-year">
+            Ano de ingresso
+          </FieldLabel>
+          <Input
+            id="course-profile-entry-year"
+            type="number"
+            min="1900"
+            max="9999"
+            value={entryYear}
+            placeholder="Ex.: 2024"
+            onChange={(event) => {
+              setSaveError(false)
+              setEntryYear(event.target.value)
+            }}
+            aria-invalid={!entryYearValid}
+            aria-describedby={
+              entryYearValid ? undefined : 'course-profile-entry-year-error'
+            }
+          />
+          <FieldError id="course-profile-entry-year-error">
+            {!entryYearValid
+              ? 'Informe um ano de ingresso entre 1900 e 9999.'
+              : undefined}
+          </FieldError>
+        </Field>
+        <Field className="col-span-2">
+          <FieldLabel>Programa</FieldLabel>
+          <AutocompleteSelect
+            fitContainer
+            listPlacement="overlay"
+            ariaLabel="Programa"
+            value={programId}
+            options={programOptions}
+            disabled={!catalogId}
+            placeholder="Escolha o programa"
+            onValueChange={(value) => {
+              setSaveError(false)
+              setProgramId(value)
+              setSpecializationId('')
+              setLanguageId('')
+            }}
+          />
+        </Field>
+        {specializationOptions.length ? (
+          <Field className="col-span-2">
+            <FieldLabel>Modalidade</FieldLabel>
             <AutocompleteSelect
-              ariaLabel="Catálogo"
-              value={catalogId}
-              options={catalogOptions}
-              placeholder="Escolha o catálogo"
-              onValueChange={(value) => {
-                setSaveError(false)
-                setCatalogId(value)
-                setProgramId('')
-                setSpecializationId('')
-                setLanguageId('')
-              }}
+              fitContainer
+              listPlacement="overlay"
+              ariaLabel="Modalidade"
+              value={specializationId}
+              emptyLabel="Sem modalidade"
+              options={specializationOptions}
+              placeholder="Escolha a modalidade"
+              onValueChange={setSpecializationId}
             />
           </Field>
-          <Field>
-            <FieldLabel>Programa</FieldLabel>
+        ) : null}
+        {selectedProgram?.languages.length ? (
+          <Field className="col-span-2">
+            <FieldLabel>Língua</FieldLabel>
             <AutocompleteSelect
-              ariaLabel="Programa"
-              value={programId}
-              options={programOptions}
-              disabled={!catalogId}
-              placeholder="Escolha o programa"
-              onValueChange={(value) => {
-                setSaveError(false)
-                setProgramId(value)
-                setSpecializationId('')
-                setLanguageId('')
-              }}
+              fitContainer
+              listPlacement="overlay"
+              ariaLabel="Língua"
+              value={languageId}
+              emptyLabel="Sem língua adicional"
+              options={selectedProgram.languages.map((item) => ({
+                value: item.id,
+                label: item.name,
+              }))}
+              placeholder="Escolha a língua"
+              onValueChange={setLanguageId}
             />
           </Field>
-          {specializationOptions.length ? (
-            <Field>
-              <FieldLabel>Modalidade</FieldLabel>
-              <AutocompleteSelect
-                ariaLabel="Modalidade"
-                value={specializationId}
-                emptyLabel="Sem modalidade"
-                options={specializationOptions}
-                placeholder="Escolha a modalidade"
-                onValueChange={setSpecializationId}
-              />
-            </Field>
-          ) : null}
-          {selectedProgram?.languages.length ? (
-            <Field>
-              <FieldLabel>Língua</FieldLabel>
-              <AutocompleteSelect
-                ariaLabel="Língua"
-                value={languageId}
-                emptyLabel="Sem língua adicional"
-                options={selectedProgram.languages.map((item) => ({
-                  value: item.id,
-                  label: item.name,
-                }))}
-                placeholder="Escolha a língua"
-                onValueChange={setLanguageId}
-              />
-            </Field>
-          ) : null}
-          <Field>
-            <FieldLabel htmlFor="course-profile-entry-year">
-              Ano de ingresso
-            </FieldLabel>
-            <Input
-              id="course-profile-entry-year"
-              type="number"
-              min="1900"
-              max="9999"
-              value={entryYear}
-              placeholder="Ex.: 2024"
-              onChange={(event) => {
-                setSaveError(false)
-                setEntryYear(event.target.value)
-              }}
-              aria-invalid={!entryYearValid}
-              aria-describedby={
-                entryYearValid ? undefined : 'course-profile-entry-year-error'
-              }
-            />
-            <FieldError id="course-profile-entry-year-error">
-              {!entryYearValid
-                ? 'Informe um ano de ingresso entre 1900 e 9999.'
-                : undefined}
-            </FieldError>
-          </Field>
-        </div>
-        {saveError && (
-          <InlineMessage className="mt-3" variant="error">
-            Não foi possível salvar as informações do curso.
-          </InlineMessage>
-        )}
-        <div className="mt-5 flex justify-end gap-2">
-          {onCancel && (
-            <Button variant="outline" disabled={saving} onClick={onCancel}>
-              Cancelar
-            </Button>
-          )}
-          <Button
-            disabled={!hasChanges || !entryYearValid || saving}
-            onClick={() => void save()}
-          >
-            {saving ? 'Salvando…' : 'Salvar alterações'}
+        ) : null}
+      </div>
+      {saveError && (
+        <InlineMessage className="mt-3" variant="error">
+          Não foi possível salvar as informações do curso.
+        </InlineMessage>
+      )}
+      <div className="sticky bottom-0 z-10 mt-6 flex justify-end gap-2 border-t border-border bg-card py-4">
+        {onCancel && (
+          <Button variant="outline" disabled={saving} onClick={onCancel}>
+            Cancelar
           </Button>
-        </div>
-      </CardContent>
-    </Card>
+        )}
+        <Button
+          disabled={!hasChanges || !entryYearValid || saving}
+          type="submit"
+        >
+          {saving ? 'Salvando…' : 'Salvar alterações'}
+        </Button>
+      </div>
+    </form>
   )
 }
