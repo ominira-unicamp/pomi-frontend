@@ -344,8 +344,7 @@ function planningGuideInput(guide: PlanningGuideInput): ApiPlanningGuideInput {
       guide.program
     if (
       catalogProgramId === null ||
-      catalogProgramVariantId === null ||
-      languageId === null
+      catalogProgramVariantId === null
     )
       throw new TypeError('Incomplete program planning guide')
     return {

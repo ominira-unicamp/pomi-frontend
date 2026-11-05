@@ -48,7 +48,7 @@ export function guideFromApi(value: {
   program?: {
     catalogProgramId: number
     catalogProgramVariantId: number
-    languageId: number
+    languageId: number | null
   }
   curriculum?:
     | { source: 'SAVED'; saved: { curriculumId: number } }

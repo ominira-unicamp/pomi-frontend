@@ -140,8 +140,7 @@ export function SemesterPlanCreationPage() {
     (guideMode === 'program' &&
       Boolean(
         selection.catalogProgramId &&
-        selection.catalogProgramVariantId &&
-        selection.languageId,
+        selection.catalogProgramVariantId,
       )) ||
     (guideMode === 'curriculum' &&
       (curriculumSource === 'saved'
@@ -454,7 +453,7 @@ export function SemesterPlanCreationPage() {
                     className="mt-4 text-sm text-muted-foreground"
                   >
                     Para usar o guia por programa, selecione catálogo, programa,
-                    modalidade e língua. Se essas opções não estiverem
+                    modalidade, quando disponível. A língua é opcional. Se essas opções não estiverem
                     disponíveis, escolha outro programa ou use o guia Nenhum.
                   </p>
                 )}

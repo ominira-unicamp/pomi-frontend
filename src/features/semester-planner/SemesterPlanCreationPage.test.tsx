@@ -126,18 +126,9 @@ describe('SemesterPlanCreationPage', () => {
     }
   })
 
-  it('requires the complete program guide before review and creation', async () => {
+  it('creates a program guide without an additional language', async () => {
     await openProgramGuide()
     fireEvent.click(screen.getByRole('button', { name: 'Sem língua' }))
-    expect(
-      screen
-        .getByRole('button', { name: 'Continuar' })
-        .hasAttribute('disabled'),
-    ).toBe(true)
-    expect(screen.getByRole('status').textContent).toContain(
-      'modalidade e língua',
-    )
-    fireEvent.click(screen.getByRole('button', { name: 'Completo' }))
     fireEvent.click(screen.getByRole('button', { name: 'Continuar' }))
     fireEvent.click(screen.getByRole('button', { name: 'Criar planejamento' }))
     await waitFor(() =>
@@ -149,7 +140,7 @@ describe('SemesterPlanCreationPage', () => {
             program: {
               catalogProgramId: 42,
               catalogProgramVariantId: 7,
-              languageId: 3,
+              languageId: null,
             },
           }),
         }),
