@@ -52,7 +52,7 @@ export function CourseAttemptRow({
           {attempt.status === 'ENROLLED' && (
             <span
               aria-hidden
-              className={`size-3 shrink-0 rounded-sm border-2 ${scheduleCourseColor(attempt.course.code)}`}
+              className={`size-3 shrink-0 rounded-sm border-2 ${scheduleCourseColor(attempt.course.code, 'red')}`}
             />
           )}
           <Link

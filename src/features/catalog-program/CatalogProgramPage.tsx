@@ -369,6 +369,7 @@ export function CatalogProgramDetails({
   courses,
   completedCourseIds,
   markCompleted = false,
+  hideCompleted = false,
   search,
   onSearchChange,
   actions,
@@ -380,6 +381,7 @@ export function CatalogProgramDetails({
   courses: ReadonlyArray<Course>
   completedCourseIds: ReadonlySet<number>
   markCompleted?: boolean
+  hideCompleted?: boolean
   search: CatalogProgramDetailsSearch
   onSearchChange: (
     search: CatalogProgramDetailsSearch,
@@ -485,6 +487,7 @@ export function CatalogProgramDetails({
             onOpenCourseDetails={setSelectedCourse}
             completedCourseIds={completedCourseIds}
             markCompleted={markCompleted}
+            hideCompleted={hideCompleted}
             connectedCourseIds={connectedCourseIds}
             onOpenDependencyTree={(courseId) =>
               updateSearch(
@@ -507,6 +510,7 @@ export function CatalogProgramDetails({
             onOpenCourseDetails={setSelectedCourse}
             completedCourseIds={completedCourseIds}
             markCompleted={markCompleted}
+            hideCompleted={hideCompleted}
             connectedCourseIds={connectedCourseIds}
             onOpenDependencyTree={(courseId) =>
               updateSearch(
@@ -541,6 +545,8 @@ export function CatalogProgramDetails({
               courses={courses}
               rules={prerequisitesQuery.data.rules}
               completedCourseIds={completedCourseIds}
+              hideCompleted={hideCompleted}
+              showCompletedToggle={!embedded}
               focusedCourseId={
                 search.dependencyCourseId
                   ? (String(search.dependencyCourseId) as CourseId)
@@ -654,6 +660,7 @@ function FullCurriculum({
   onOpenCourseDetails,
   completedCourseIds,
   markCompleted,
+  hideCompleted,
   connectedCourseIds,
   onOpenDependencyTree,
 }: {
@@ -663,6 +670,7 @@ function FullCurriculum({
   onOpenCourseDetails: (course: Course) => void
   completedCourseIds: ReadonlySet<number>
   markCompleted: boolean
+  hideCompleted: boolean
   connectedCourseIds: ReadonlySet<string>
   onOpenDependencyTree: (courseId: CourseId) => void
 }) {
@@ -676,6 +684,7 @@ function FullCurriculum({
         onOpenCourseDetails={onOpenCourseDetails}
         completedCourseIds={completedCourseIds}
         markCompleted={markCompleted}
+        hideCompleted={hideCompleted}
         connectedCourseIds={connectedCourseIds}
         onOpenDependencyTree={onOpenDependencyTree}
       />
@@ -695,6 +704,7 @@ function FullCurriculum({
               onOpenCourseDetails={onOpenCourseDetails}
               completedCourseIds={completedCourseIds}
               markCompleted={markCompleted}
+              hideCompleted={hideCompleted}
               connectedCourseIds={connectedCourseIds}
               onOpenDependencyTree={onOpenDependencyTree}
               nested
@@ -721,6 +731,7 @@ function FullCurriculum({
             onOpenCourseDetails={onOpenCourseDetails}
             completedCourseIds={completedCourseIds}
             markCompleted={markCompleted}
+            hideCompleted={hideCompleted}
             connectedCourseIds={connectedCourseIds}
             onOpenDependencyTree={onOpenDependencyTree}
           />
@@ -744,6 +755,7 @@ function CurriculumSection({
   onOpenCourseDetails,
   completedCourseIds,
   markCompleted,
+  hideCompleted,
   connectedCourseIds,
   onOpenDependencyTree,
   nested = false,
@@ -755,6 +767,7 @@ function CurriculumSection({
   onOpenCourseDetails: (course: Course) => void
   completedCourseIds: ReadonlySet<number>
   markCompleted: boolean
+  hideCompleted: boolean
   connectedCourseIds: ReadonlySet<string>
   onOpenDependencyTree: (courseId: CourseId) => void
   nested?: boolean
@@ -775,6 +788,7 @@ function CurriculumSection({
             onOpenCourseDetails={onOpenCourseDetails}
             completedCourseIds={completedCourseIds}
             markCompleted={markCompleted}
+            hideCompleted={hideCompleted}
             connectedCourseIds={connectedCourseIds}
             onOpenDependencyTree={onOpenDependencyTree}
           />
@@ -794,6 +808,7 @@ function CurriculumSection({
             onOpenCourseDetails={onOpenCourseDetails}
             completedCourseIds={completedCourseIds}
             markCompleted={markCompleted}
+            hideCompleted={hideCompleted}
             connectedCourseIds={connectedCourseIds}
             onOpenDependencyTree={onOpenDependencyTree}
           />
@@ -812,6 +827,7 @@ function RequirementTable({
   onOpenCourseDetails,
   completedCourseIds,
   markCompleted,
+  hideCompleted,
   connectedCourseIds,
   onOpenDependencyTree,
 }: {
@@ -823,6 +839,7 @@ function RequirementTable({
   onOpenCourseDetails: (course: Course) => void
   completedCourseIds: ReadonlySet<number>
   markCompleted: boolean
+  hideCompleted: boolean
   connectedCourseIds: ReadonlySet<string>
   onOpenDependencyTree: (courseId: CourseId) => void
 }) {
@@ -858,6 +875,7 @@ function RequirementTable({
                 onOpenCourseDetails={onOpenCourseDetails}
                 completedCourseIds={completedCourseIds}
                 markCompleted={markCompleted}
+                hideCompleted={hideCompleted}
                 connectedCourseIds={connectedCourseIds}
                 onOpenDependencyTree={onOpenDependencyTree}
               />
@@ -876,6 +894,7 @@ function RequirementRow({
   onOpenCourseDetails,
   completedCourseIds,
   markCompleted,
+  hideCompleted,
   connectedCourseIds,
   onOpenDependencyTree,
 }: {
@@ -885,6 +904,7 @@ function RequirementRow({
   onOpenCourseDetails: (course: Course) => void
   completedCourseIds: ReadonlySet<number>
   markCompleted: boolean
+  hideCompleted: boolean
   connectedCourseIds: ReadonlySet<string>
   onOpenDependencyTree: (courseId: CourseId) => void
 }) {
@@ -905,6 +925,7 @@ function RequirementRow({
   }
   const isCompleted =
     markCompleted && course ? completedCourseIds.has(Number(course.id)) : false
+  if (hideCompleted && isCompleted) return null
   const handleKeyDown = (event: KeyboardEvent<HTMLTableRowElement>) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault()
@@ -981,6 +1002,7 @@ function RequirementRow({
               onOpenCourseDetails={onOpenCourseDetails}
               completedCourseIds={completedCourseIds}
               markCompleted={markCompleted}
+              hideCompleted={hideCompleted}
               connectedCourseIds={connectedCourseIds}
               onOpenDependencyTree={onOpenDependencyTree}
             />
@@ -999,6 +1021,7 @@ function PrefixCourses({
   onOpenCourseDetails,
   completedCourseIds,
   markCompleted,
+  hideCompleted,
   connectedCourseIds,
   onOpenDependencyTree,
 }: {
@@ -1007,13 +1030,16 @@ function PrefixCourses({
   onOpenCourseDetails: (course: Course) => void
   completedCourseIds: ReadonlySet<number>
   markCompleted: boolean
+  hideCompleted: boolean
   connectedCourseIds: ReadonlySet<string>
   onOpenDependencyTree: (courseId: CourseId) => void
 }) {
   const catalogYear = useContext(CatalogProgramYearContext)
   const [page, setPage] = useState(1)
-  const matchingCourses = courses.filter((course) =>
-    course.code.toUpperCase().startsWith(prefix),
+  const matchingCourses = courses.filter(
+    (course) =>
+      course.code.toUpperCase().startsWith(prefix) &&
+      (!hideCompleted || !completedCourseIds.has(Number(course.id))),
   )
   const totalPages = Math.max(
     1,
@@ -1164,6 +1190,7 @@ function CurriculumProposal({
   onOpenCourseDetails,
   completedCourseIds,
   markCompleted,
+  hideCompleted,
   connectedCourseIds,
   onOpenDependencyTree,
 }: {
@@ -1175,6 +1202,7 @@ function CurriculumProposal({
   onOpenCourseDetails: (course: Course) => void
   completedCourseIds: ReadonlySet<number>
   markCompleted: boolean
+  hideCompleted: boolean
   connectedCourseIds: ReadonlySet<string>
   onOpenDependencyTree: (courseId: CourseId) => void
 }) {
@@ -1205,10 +1233,33 @@ function CurriculumProposal({
       />
     )
   }
+  const filteredSuggestions = visibleSuggestions.map((suggestion) => ({
+    ...suggestion,
+    semesters: suggestion.semesters
+      .map((semester) => ({
+        ...semester,
+        courses: semester.courses.filter(
+          (course) =>
+            !hideCompleted || !completedCourseIds.has(Number(course.id)),
+        ),
+      }))
+      .filter((semester) => semester.courses.length > 0),
+  }))
+
+  if (
+    hideCompleted &&
+    filteredSuggestions.every((item) => !item.semesters.length)
+  )
+    return (
+      <EmptyState
+        title="Todas as disciplinas da proposta foram concluídas"
+        description="Mostre as disciplinas concluídas para consultar a proposta completa."
+      />
+    )
 
   return (
     <div className="space-y-8">
-      {visibleSuggestions.map((suggestion) => (
+      {filteredSuggestions.map((suggestion) => (
         <section
           key={suggestion.id}
           aria-labelledby={`suggestion-${suggestion.id}`}

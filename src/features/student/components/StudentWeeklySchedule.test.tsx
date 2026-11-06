@@ -70,4 +70,25 @@ describe('StudentWeeklySchedule', () => {
     )
     expect(onOpenMeeting).toHaveBeenCalledWith(meeting)
   })
+  it('uses the red palette when requested', () => {
+    const { container } = render(
+      <StudentWeeklySchedule
+        palette="red"
+        meetings={[
+          {
+            id: 1,
+            classCode: 'A',
+            courseCode: 'MC102',
+            dayOfWeek: 'MONDAY',
+            start: '08:00',
+            end: '10:00',
+            roomCode: 'CB01',
+          },
+        ]}
+      />,
+    )
+    expect(container.querySelector('[title^="MC102"]')?.className).toContain(
+      'bg-schedule-red-',
+    )
+  })
 })

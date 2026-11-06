@@ -78,6 +78,8 @@ export function CatalogProgramDependencyTree({
   courses,
   rules,
   completedCourseIds,
+  hideCompleted = false,
+  showCompletedToggle = true,
   focusedCourseId,
   onOpenCourseDetails,
 }: {
@@ -86,6 +88,8 @@ export function CatalogProgramDependencyTree({
   courses: ReadonlyArray<Course>
   rules: ReadonlyArray<CoursePrerequisiteRule>
   completedCourseIds: ReadonlySet<number>
+  hideCompleted?: boolean
+  showCompletedToggle?: boolean
   focusedCourseId?: CourseId
   onOpenCourseDetails: (course: Course) => void
 }) {
@@ -101,17 +105,27 @@ export function CatalogProgramDependencyTree({
     () => catalogProgramTreeCourseIds(program, variant, showElectives),
     [program, showElectives, variant],
   )
+  const visibleCourseIds = useMemo(
+    () =>
+      new Set(
+        [...courseIds].filter(
+          (courseId) =>
+            !hideCompleted || !completedCourseIds.has(Number(courseId)),
+        ),
+      ),
+    [completedCourseIds, courseIds, hideCompleted],
+  )
   const visibleCourses = useMemo(
-    () => courses.filter((course) => courseIds.has(course.id)),
-    [courseIds, courses],
+    () => courses.filter((course) => visibleCourseIds.has(course.id)),
+    [courses, visibleCourseIds],
   )
   const courseById = useMemo(
     () => new Map(visibleCourses.map((course) => [course.id, course])),
     [visibleCourses],
   )
   const links = useMemo(
-    () => dependencyLinks(rules, courseIds),
-    [courseIds, rules],
+    () => dependencyLinks(rules, visibleCourseIds),
+    [rules, visibleCourseIds],
   )
 
   return (
@@ -123,6 +137,7 @@ export function CatalogProgramDependencyTree({
       links={links}
       initialFocusedCourseIds={focusedCourseId ? [focusedCourseId] : []}
       showPlanningLegend={false}
+      showCompletedToggle={showCompletedToggle}
       title="Árvore de dependências"
       description="Visualize as relações entre as disciplinas deste currículo."
       onOpenCourseDetails={(courseId) => {

@@ -10,6 +10,11 @@
   --schedule-2: #d3d8b7;
   --schedule-3: #d8cde1;
   --schedule-foreground: #202020;
+  --schedule-red-1: #f4dddd;
+  --schedule-red-2: #edcaca;
+  --schedule-red-3: #e4b6b6;
+  --schedule-red-4: #d99d9d;
+  --schedule-red-foreground: #3d1717;
   --background: #f7f3ed;
   --foreground: #202020;
   --card: #fffdf9;
@@ -71,6 +76,11 @@
   --scrollbar-track: transparent;
   --scrollbar-thumb: #78685d;
   --scrollbar-thumb-hover: #d56565;
+  --schedule-red-1: #4a2929;
+  --schedule-red-2: #5a3030;
+  --schedule-red-3: #6a3838;
+  --schedule-red-4: #7a4141;
+  --schedule-red-foreground: #fff4f4;
 }
 
 @theme inline {
@@ -78,6 +88,11 @@
   --color-schedule-2: var(--schedule-2);
   --color-schedule-3: var(--schedule-3);
   --color-schedule-foreground: var(--schedule-foreground);
+  --color-schedule-red-1: var(--schedule-red-1);
+  --color-schedule-red-2: var(--schedule-red-2);
+  --color-schedule-red-3: var(--schedule-red-3);
+  --color-schedule-red-4: var(--schedule-red-4);
+  --color-schedule-red-foreground: var(--schedule-red-foreground);
   --font-sans: 'Outfit Variable', 'Segoe UI', sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);

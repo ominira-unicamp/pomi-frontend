@@ -118,7 +118,6 @@ solicitam reabertura do item. Essa comparação antes de salvar não substitui u
 operação atômica de versionamento no backend. O plano e as evidências da entrega
 estão em [Fluxo de taxonomia](../docs/plano-melhoria-fluxo-taxonomia-pomi.md).
 
-
 A adaptação visual às referências de 01/11/2026 agrupa a exploração por categoria,
 mostra interesses por estrela e oferece chips removíveis e ordenação A–Z/Z–A
 preservada no parâmetro `order`. O detalhe e o editor usam painéis de contexto e
@@ -142,8 +141,8 @@ como a busca de disciplinas e as telas de pessoas. A seção “Sobre as tags”
 ## Programa na situação do curso
 
 Em `/situacao-do-curso`, o resumo de **Vínculo acadêmico** fica acima de
-**Cursando**, **Histórico** e **Currículo**. **Editar vínculo acadêmico** abre os
-campos de curso e ingresso; a aba **Currículo** apresenta a consulta configurável
+**Cursando**, **Histórico** e **Integralização**. **Editar vínculo acadêmico** abre os
+campos de curso e ingresso; a aba **Integralização** apresenta a consulta configurável
 do programa na própria página. As abas internas **Currículo pleno**, **Proposta
 de currículo** e **Árvore de dependências** reutilizam a composição de `/cursos`,
 com seus blocos, tabelas, detalhes e navegação por dependências. As disciplinas
@@ -158,6 +157,8 @@ pré-requisitos e alocação de créditos entre blocos eletivos não são calcul
 Opções eletivas não são pendências individuais. Histórico vazio, carregando e
 indisponível têm mensagens distintas; o currículo do catálogo continua
 consultável mesmo quando os registros pessoais não carregam.
+Nas tabelas da integralização, a pessoa pode ocultar e restaurar as disciplinas
+com aprovação registrada.
 
 Se o programa ainda não foi definido ou não estiver disponível no catálogo salvo,
 a tela orienta a revisar a seleção. Sem modalidade, o núcleo comum permanece

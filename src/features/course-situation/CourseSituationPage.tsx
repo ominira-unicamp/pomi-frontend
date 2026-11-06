@@ -550,7 +550,7 @@ export function CourseSituationPage() {
             Histórico{' '}
             <TabCount value={attempts.length - enrolledAttempts.length} />
           </TabsTrigger>
-          <TabsTrigger value="curriculum">Currículo</TabsTrigger>
+          <TabsTrigger value="curriculum">Integralização</TabsTrigger>
         </TabsList>
         <TabsContent value="enrolled">
           {attemptsQuery.isPending ? (

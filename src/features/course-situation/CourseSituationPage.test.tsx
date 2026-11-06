@@ -191,13 +191,15 @@ describe('CourseSituationPage', () => {
   it('opens the curriculum in a dedicated tab and keeps academic profile editing available', async () => {
     renderPage()
     const curriculumTab = await screen.findByRole('tab', {
-      name: 'Currículo',
+      name: 'Integralização',
     })
-    expect(screen.queryByRole('tabpanel', { name: 'Currículo' })).toBeNull()
+    expect(
+      screen.queryByRole('tabpanel', { name: 'Integralização' }),
+    ).toBeNull()
     expect(screen.queryByText('Consultar currículo do programa')).toBeNull()
     fireEvent.mouseDown(curriculumTab, { button: 0, ctrlKey: false })
     expect(
-      await screen.findByRole('tabpanel', { name: 'Currículo' }),
+      await screen.findByRole('tabpanel', { name: 'Integralização' }),
     ).toBeTruthy()
     expect(await screen.findByText('Escolha seu programa')).toBeTruthy()
     expect(
@@ -213,7 +215,9 @@ describe('CourseSituationPage', () => {
       ctrlKey: false,
     })
     expect(await screen.findByText('MA111 — Cálculo I')).toBeTruthy()
-    expect(screen.queryByRole('tabpanel', { name: 'Currículo' })).toBeNull()
+    expect(
+      screen.queryByRole('tabpanel', { name: 'Integralização' }),
+    ).toBeNull()
   })
 
   it('orders historical semesters from the most recent to the oldest', async () => {

@@ -16,7 +16,10 @@ import type {
 import type { CatalogProgramDetailsSearch } from '@/features/catalog-program'
 import { isApprovedStudentCourseAttempt } from '@/features/student/data/studentApi'
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
-import { CatalogProgramDetails } from '@/features/catalog-program'
+import {
+  CatalogProgramDetails,
+  CompletedCoursesToggle,
+} from '@/features/catalog-program'
 import { ErrorState, LoadingState } from '@/components/PageLayout'
 import { Badge } from '@/components/patterns/Badge'
 import { DataList, DataRow } from '@/components/patterns/DataList'
@@ -47,6 +50,7 @@ export function PersonalCurriculumExplorer({
   const [search, setSearch] = useState<CatalogProgramDetailsSearch>({
     tab: 'full',
   })
+  const [hideCompleted, setHideCompleted] = useState(false)
   const projection = useMemo(
     () =>
       buildPersonalCurriculum({
@@ -143,13 +147,6 @@ export function PersonalCurriculumExplorer({
       )}
       {!attemptsLoading && !attemptsError && (
         <>
-          <p className="text-sm text-muted-foreground">
-            {projection.approvedMandatoryCount} de {projection.mandatoryCount}{' '}
-            disciplinas obrigatórias identificadas têm aprovação registrada na
-            mesma disciplina do catálogo. Esta consulta usa seus registros e o
-            catálogo; não confirma integralização oficial, equivalências ou
-            matrícula.
-          </p>
           {!attempts.length && (
             <InlineMessage>
               Nenhuma tentativa registrada. Consulte ou importe seu histórico
@@ -166,6 +163,13 @@ export function PersonalCurriculumExplorer({
           )}
         </>
       )}
+      <div className="flex justify-end">
+        <CompletedCoursesToggle
+          checked={!hideCompleted}
+          disabled={attemptsLoading || attemptsError}
+          onClick={() => setHideCompleted((current) => !current)}
+        />
+      </div>
       <CatalogProgramDetails
         program={program}
         variant={variant}
@@ -174,6 +178,7 @@ export function PersonalCurriculumExplorer({
           attemptsLoading || attemptsError ? new Set() : approvedIds
         }
         markCompleted={!attemptsLoading && !attemptsError}
+        hideCompleted={hideCompleted && !attemptsLoading && !attemptsError}
         search={search}
         onSearchChange={setSearch}
         embedded

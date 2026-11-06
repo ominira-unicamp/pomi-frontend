@@ -186,7 +186,9 @@ beforeEach(() => {
 describe('saved program curriculum', () => {
   it('shows the same curriculum views and block tables as the catalog', async () => {
     renderCurriculum()
-    expect(screen.getByText(/1 de 2 disciplinas obrigatórias/)).toBeTruthy()
+    expect(
+      screen.queryByText(/disciplinas obrigatórias identificadas/),
+    ).toBeNull()
     expect(screen.getByRole('tab', { name: 'Currículo pleno' })).toBeTruthy()
     expect(screen.getByText('AA — Sistemas')).toBeTruthy()
     expect(screen.queryByText('AB — Teoria')).toBeNull()
@@ -226,6 +228,45 @@ describe('saved program curriculum', () => {
     expect(screen.getByText('MC202').closest('tr')?.className).not.toContain(
       'line-through',
     )
+  })
+  it('hides and restores completed courses in the integralization tables', () => {
+    renderCurriculum()
+    fireEvent.click(
+      screen.getByRole('switch', {
+        name: 'Mostrar disciplinas concluídas',
+      }),
+    )
+    expect(screen.queryByText('MC102')).toBeNull()
+    expect(screen.getByText('MC202')).toBeTruthy()
+    fireEvent.click(
+      screen.getByRole('switch', {
+        name: 'Mostrar disciplinas concluídas',
+      }),
+    )
+    expect(screen.getByText('MC102')).toBeTruthy()
+  })
+  it('hides completed courses in the dependency tree', async () => {
+    renderCurriculum()
+    fireEvent.mouseDown(
+      screen.getByRole('tab', { name: 'Árvore de dependências' }),
+    )
+    const tree = await screen.findByRole('region', {
+      name: 'Árvore de dependências',
+    })
+    expect(tree.textContent).toContain('MC102')
+    expect(tree.textContent).toContain('MC202')
+
+    fireEvent.click(
+      screen.getByRole('switch', {
+        name: 'Mostrar disciplinas concluídas',
+      }),
+    )
+
+    expect(tree.textContent).not.toContain('MC102')
+    expect(tree.textContent).not.toContain('MC202')
+    expect(
+      screen.queryByRole('button', { name: 'Ocultar concluídas' }),
+    ).toBeNull()
   })
   it('does not present a failed personal request as an empty history and keeps the original available', () => {
     const retry = vi.fn()
@@ -289,7 +330,15 @@ describe('saved program curriculum', () => {
         },
       ] as Array<StudentCourseAttempt>,
     })
-    expect(screen.getByText(/1 de 2 disciplinas obrigatórias/)).toBeTruthy()
+    expect(
+      screen.queryByText(/disciplinas obrigatórias identificadas/),
+    ).toBeNull()
+    expect(screen.getByText('MC102').closest('tr')?.className).not.toContain(
+      'line-through',
+    )
+    expect(screen.getByText('MC202').closest('tr')?.className).toContain(
+      'line-through',
+    )
     fireEvent.click(
       screen.getByRole('button', { name: 'Ver informações de MC102' }),
     )
