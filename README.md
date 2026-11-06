@@ -1,310 +1,180 @@
-Welcome to your new TanStack app! 
+# POMI Frontend
 
-# Getting Started
+SPA do POMI, o Planejador Ominira, com React, TanStack Router, Tailwind CSS e autenticação OpenID Connect pelo Keycloak.
 
-To run this application:
+## Desenvolvimento
 
 ```bash
 npm install
-npm run start
+npm run dev
 ```
 
-# Building For Production
+Copie `.env.example` para `.env`. O client `pomi-frontend` usa Authorization Code com PKCE S256; access e refresh tokens permanecem somente em memória.
 
-To build this application for production:
+Em desenvolvimento, `VITE_DATA_API_URL` aponta para `http://localhost:3000` e
+`VITE_APP_API_URL` para `http://localhost:3001`. A primeira atende dados
+acadêmicos públicos; a segunda atende recursos autenticados do estudante.
 
-```bash
-npm run build
-```
+Com o servidor local ativo, `/_design-system` apresenta os tokens, variantes, estados e composições disponíveis. Essa rota renderiza a página de não encontrado em builds de produção.
 
-## Testing
+## Design system
 
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+A interface segue três camadas:
 
-```bash
-npm run test
-```
+1. `src/styles.css` contém os tokens semânticos dos temas claro e escuro. Cores de marca não devem ser repetidas nos componentes.
+2. `src/components/ui` contém as primitivas Shadcn baseadas exclusivamente em Radix UI. Elas controlam comportamento acessível e variantes elementares.
+3. `src/components` contém as composições do POMI, como shell, cabeçalho de página e estados de carregamento, vazio e erro. Rotas devem reutilizar essas composições em vez de reconstruir layouts.
 
-## Styling
+O visual usa Outfit, vermelho POMI, superfícies de papel, contornos fortes e grafismos geométricos pontuais. Evite estilos inline, cores literais nas rotas, gradientes decorativos e agrupamentos excessivos em cards.
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
+## Tema
 
+O tema inicial segue `prefers-color-scheme`. A escolha entre claro, escuro e sistema é persistida no navegador com a chave `pomi-theme`.
 
-## Linting & Formatting
-
-
-This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:
+## Verificação
 
 ```bash
 npm run lint
-npm run format
-npm run check
+npm run test
+npm run build
 ```
 
-
-## Shadcn
-
-Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
-
-```bash
-pnpm dlx shadcn@latest add button
-```
-
-
-
-## Routing
-This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add another a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you use the `<Outlet />` component.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { Outlet, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-
-import { Link } from "@tanstack/react-router";
-
-export const Route = createRootRoute({
-  component: () => (
-    <>
-      <header>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-        </nav>
-      </header>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </>
-  ),
-})
-```
-
-The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-const peopleRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/people",
-  loader: async () => {
-    const response = await fetch("https://swapi.dev/api/people");
-    return response.json() as Promise<{
-      results: {
-        name: string;
-      }[];
-    }>;
-  },
-  component: () => {
-    const data = peopleRoute.useLoaderData();
-    return (
-      <ul>
-        {data.results.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    );
-  },
-});
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-### React-Query
-
-React-Query is an excellent addition or alternative to route loading and integrating it into you application is a breeze.
-
-First add your dependencies:
-
-```bash
-npm install @tanstack/react-query @tanstack/react-query-devtools
-```
-
-Next we'll need to create a query client and provider. We recommend putting those in `main.tsx`.
-
-```tsx
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-
-// ...
-
-const queryClient = new QueryClient();
-
-// ...
-
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-
-  root.render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  );
-}
-```
-
-You can also add TanStack Query Devtools to the root route (optional).
-
-```tsx
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-
-const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <Outlet />
-      <ReactQueryDevtools buttonPosition="top-right" />
-      <TanStackRouterDevtools />
-    </>
-  ),
-});
-```
-
-Now you can use `useQuery` to fetch your data.
-
-```tsx
-import { useQuery } from "@tanstack/react-query";
-
-import "./App.css";
-
-function App() {
-  const { data } = useQuery({
-    queryKey: ["people"],
-    queryFn: () =>
-      fetch("https://swapi.dev/api/people")
-        .then((res) => res.json())
-        .then((data) => data.results as { name: string }[]),
-    initialData: [],
-  });
-
-  return (
-    <div>
-      <ul>
-        {data.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
-export default App;
-```
-
-You can find out everything you need to know on how to use React-Query in the [React-Query documentation](https://tanstack.com/query/latest/docs/framework/react/overview).
-
-## State Management
-
-Another common requirement for React applications is state management. There are many options for state management in React. TanStack Store provides a great starting point for your project.
-
-First you need to add TanStack Store as a dependency:
-
-```bash
-npm install @tanstack/store
-```
-
-Now let's create a simple counter in the `src/App.tsx` file as a demonstration.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-function App() {
-  const count = useStore(countStore);
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-    </div>
-  );
-}
-
-export default App;
-```
-
-One of the many nice features of TanStack Store is the ability to derive state from other state. That derived state will update when the base state updates.
-
-Let's check this out by doubling the count using derived state.
-
-```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store, Derived } from "@tanstack/store";
-import "./App.css";
-
-const countStore = new Store(0);
-
-const doubledStore = new Derived({
-  fn: () => countStore.state * 2,
-  deps: [countStore],
-});
-doubledStore.mount();
-
-function App() {
-  const count = useStore(countStore);
-  const doubledCount = useStore(doubledStore);
-
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
-      <div>Doubled - {doubledCount}</div>
-    </div>
-  );
-}
-
-export default App;
-```
-
-We use the `Derived` class to create a new store that is derived from another store. The `Derived` class has a `mount` method that will start the derived store updating.
-
-Once we've created the derived store we can use it in the `App` component just like we would any other store using the `useStore` hook.
-
-You can find out everything you need to know on how to use TanStack Store in the [TanStack Store documentation](https://tanstack.com/store/latest).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
+O build executa Vite e TypeScript. A validação visual responsiva é feita em navegador real sobre o servidor local.
+
+## Imagens de identidade
+
+Avatares aparecem nos perfis, no menu da conta e nas listas e painéis de pessoas,
+grupos, membros, convites, eventos e autoria de planejamentos. Os componentes de mídia usam as
+variantes da App API e mostram iniciais quando não há imagem ou a leitura falha.
+
+O menu da conta compartilha a consulta de perfil social com a edição. Fotos
+privadas são lidas com Bearer, usam Blob URL temporária e são removidas da tela
+na troca de sessão. As mutações de imagem invalidam as consultas de identidade
+para atualizar as demais telas. A exibição não adiciona ampliação ao clicar.
+
+## Perfil de pessoas
+
+O perfil reúne avatar, nome, biografia e vínculo acadêmico no cabeçalho. Grupos
+públicos e interesses aparecem em seções compactas, seguidos pela agenda e pelos
+planejamentos autorizados. O menu Amigos oferece remoção com confirmação.
+
+As participações formam uma lista vertical sem cards: nome e avatar de 40 px,
+com cargos e períodos publicados em `positions`. Sem cargos, `joinedAt` fornece
+a data de entrada; sem metadados, aparece somente a identidade do grupo. Papéis
+e permissões de gestão não são usados. Interesses permanecem links vermelhos
+para disciplinas filtradas pela tag. As divisórias usam contraste reduzido.
+
+A agenda é delimitada por divisórias discretas e mantém a grade semanal existente,
+com rolagem horizontal quando a largura disponível é menor que a grade.
+
+A API atual não distingue agenda oculta de ausência de horários, por isso o
+estado vazio informa apenas que não há horários compartilhados disponíveis.
+
+### Edição de Meu perfil
+
+A aba Informações reúne foto, nome e bio em Identidade pública, com Privacidade
+na coluna lateral quando houver espaço e Interesses abaixo. O botão Salvar
+alterações envia somente nome e bio; limites de 80 e 280 caracteres seguem o
+contrato existente. Rascunhos sobrevivem às atualizações de foto, privacidade e
+interesses, e a navegação avisa antes de descartar alterações pendentes.
+
+A foto mantém seleção, prévia, cancelamento e envio separados. Privacidade usa
+PATCHs independentes: o público das disciplinas salva ao selecionar e a
+visibilidade do perfil mantém confirmação. As disciplinas incluem turmas,
+horários e salas; curso, modalidade e ingresso seguem a visibilidade do perfil.
+Interesses são adicionados ao selecionar uma sugestão e removidos pelo controle
+do chip. O código público fica junto de Visualizar perfil no cabeçalho.
+
+## Tags e taxonomia
+
+`/taxonomia` permite explorar tags por categoria, buscar sem distinção de acentos
+ou filtrar os interesses do estudante. Busca e filtros ficam na URL e acompanham
+a navegação ao detalhe e o retorno à exploração.
+
+`/taxonomia/tags/:tagId` é o endereço compartilhável de uma tag. Exibe o caminho
+na hierarquia, subtags, interesse pessoal e disciplinas paginadas. As disciplinas
+são associações diretas: selecionar uma tag pai não agrega as filhas.
+
+`/taxonomia/organizar` exige login e concentra a manutenção de categorias e tags.
+O parâmetro `tagId` abre uma tag para edição. No desktop a edição fica ao lado da
+estrutura; no celular ocupa a etapa de edição, com retorno pelo botão Cancelar.
+Alterações não salvas exigem confirmação antes de sair ou trocar o item editado.
+Renomear um termo afeta todos os seus usos. Excluir uma tag remove interesses
+associados; vínculos com subtags, disciplinas, grupos ou eventos impedem a exclusão.
+
+A exploração permite adicionar ou remover interesses diretamente nas linhas.
+O detalhe apresenta breadcrumb navegável e omite paginação quando só há uma
+página. A organização usa árvore e painel, com busca e seleção na URL; o contexto
+validado em `returnTo` permite voltar ao detalhe e aos filtros de origem.
+Voltar à estrutura no celular mantém busca, expansão, seleção e rolagem.
+
+A contribuição global permanece aberta a qualquer pessoa autenticada, conforme
+a decisão de produto de 01/11/2026. Sem perfil de estudante, a pessoa ainda pode
+contribuir; apenas o registro de interesses exige esse perfil. A interface oculta
+as entradas de manutenção de visitantes e trata recusas de autorização da API.
+
+Edições com divergência observável em relação ao servidor preservam o rascunho e
+solicitam reabertura do item. Essa comparação antes de salvar não substitui uma
+operação atômica de versionamento no backend. O plano e as evidências da entrega
+estão em [Fluxo de taxonomia](../docs/plano-melhoria-fluxo-taxonomia-pomi.md).
+
+A adaptação visual às referências de 01/11/2026 agrupa a exploração por categoria,
+mostra interesses por estrela e oferece chips removíveis e ordenação A–Z/Z–A
+preservada no parâmetro `order`. O detalhe e o editor usam painéis de contexto e
+resumos baseados nos campos existentes. As decisões sobre dados disponíveis e
+capturas estão em [Adaptação visual da taxonomia](../docs/plans/resultado-referencia-visual-taxonomia-pomi.md).
+
+A revisão de 02/11/2026 usa a largura comum de página e as composições
+`AppliedFilters`, `Field`, `Section`, `InlineMessage`, `Badge`, `ActionBar` e
+`ResponsiveDialog`. Criação e confirmações usam folha inferior no celular;
+descarte e exclusão preservam o rascunho até a confirmação explícita.
+Detalhes e evidências em [Alinhamento ao design system](../docs/plans/alinhamento-design-taxonomia-pomi.md).
+
+A composição compacta da taxonomia prioriza listas e edição, com expansão das subtags na própria linha e contagens nos títulos das
+seções. O editor só permite salvar mudanças e apresenta comparação de caminhos
+quando categoria ou pai muda. A revisão visual e as evidências estão em
+[Composição compacta da taxonomia](../docs/plans/composicao-compacta-taxonomia-pomi.md).
+
+Exploração e organização da taxonomia usam a largura padrão (`PageContainer`),
+como a busca de disciplinas e as telas de pessoas. A seção “Sobre as tags” foi removida.
+
+## Programa na situação do curso
+
+Em `/situacao-do-curso`, o resumo de **Vínculo acadêmico** fica acima de
+**Cursando**, **Histórico** e **Integralização**. **Editar vínculo acadêmico** abre os
+campos de curso e ingresso; a aba **Integralização** apresenta a consulta configurável
+do programa na própria página. As abas internas **Currículo pleno**, **Proposta
+de currículo** e **Árvore de dependências** reutilizam a composição de `/cursos`,
+com seus blocos, tabelas, detalhes e navegação por dependências. As disciplinas
+com aprovação registrada aparecem marcadas nas três visualizações. O detalhe
+acadêmico reúne as tentativas do mesmo identificador de disciplina. O atalho
+**Consultar histórico** abre a aba Histórico e posiciona o foco nela. O
+planejamento permanece em seu fluxo próprio.
+
+As contagens representam aprovações registradas em disciplinas obrigatórias
+identificadas, não integralização oficial. Equivalências, avaliação automática de
+pré-requisitos e alocação de créditos entre blocos eletivos não são calculadas.
+Opções eletivas não são pendências individuais. Histórico vazio, carregando e
+indisponível têm mensagens distintas; o currículo do catálogo continua
+consultável mesmo quando os registros pessoais não carregam.
+Nas tabelas da integralização, a pessoa pode ocultar e restaurar as disciplinas
+com aprovação registrada.
+
+Se o programa ainda não foi definido ou não estiver disponível no catálogo salvo,
+a tela orienta a revisar a seleção. Sem modalidade, o núcleo comum permanece
+disponível e a tela orienta a escolher a modalidade para consultar seus requisitos.
+
+O histórico usa períodos expansíveis, busca por código ou nome sem distinção de
+acentos e filtro por resultado. A busca alcança períodos recolhidos. A ação de
+adicionar segue a aba ativa; edição e remoção de uma tentativa ficam no seu menu,
+e a confirmação de remoção identifica disciplina e período.
+
+**Importar histórico** reúne PDF da DAC (interpretado no navegador) e consulta
+experimental via DAC. A prévia distingue novas tentativas, registros já existentes
+e divergências. Somente registros selecionados são enviados; atualizar uma
+divergência exige seleção explícita. Correspondências ambíguas exigem revisão
+manual. As validações finais e o resultado por registro continuam no servidor.
+
+A agenda usa grade em desktop e lista por dia no mobile. Ambas abrem **Aulas e
+faltas**, com a mesma operação usada na Página inicial. Os períodos exibidos
+usam o formato `2026 · 2º semestre`; códigos internos como `2026s2` são preservados.

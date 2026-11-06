@@ -1,0 +1,48 @@
+import { afterEach, describe, expect, it, vi } from 'vitest'
+
+import { loadCurriculumSuggestions } from './curriculumSuggestionApi'
+import type { CatalogProgramId } from '@pomi/planner-domain/curriculum'
+
+describe('loadCurriculumSuggestions', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('loads public suggestions for one catalog program', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json({
+        data: [{
+          id: 7,
+          catalogProgramId: 3,
+          catalogProgramVariantId: 4,
+          programName: 'Programa geral',
+          code: 'GERAL',
+          name: 'Sugestão geral',
+          type: 'GENERAL',
+          specialization: null,
+          semesters: [
+            {
+              semester: 1,
+              electiveCredits: 0,
+              courses: [
+                { id: 9, code: 'AB100', name: 'Algoritmos', credits: 4 },
+              ],
+            },
+          ],
+        }],
+        links: { next: null },
+      }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const suggestions = await loadCurriculumSuggestions('3' as CatalogProgramId)
+
+    expect(suggestions[0]).toMatchObject({
+      id: '7',
+      catalogProgramId: '3',
+      semesters: [{ courses: [{ id: '9' }] }],
+    })
+    const [request] = fetchMock.mock.calls[0] as [string]
+    const url = new URL(request)
+    expect(url.pathname).toBe('/curriculum-suggestions')
+    expect(url.searchParams.get('filter[catalogProgramId]')).toBe('3')
+  })
+})

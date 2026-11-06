@@ -1,0 +1,131 @@
+import { useQuery } from '@tanstack/react-query'
+
+import type { CatalogProgramId } from '@pomi/planner-domain/curriculum'
+import { loadCurriculumCatalog } from '@/catalog/data/curriculumCatalogApi'
+import {
+  getCurriculum,
+  listCurricula,
+} from '@/features/curriculum-planner/data/curriculumPersistenceApi'
+import { loadCurriculumSuggestions } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
+import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { listStudentCourseAttempts } from '@/features/student/data/studentApi'
+import {
+  getSemesterPlanning,
+  listSemesterPlannings,
+  loadProfessorEvaluationSummaries,
+  loadSemesterPlannerStaticData,
+} from '@/features/semester-planner/data/semesterPlanningApi'
+import { useOptionalAuth } from '@/auth/AuthProvider'
+import {
+  privateQueryKeys,
+  publicQueryKeys,
+} from '@/integrations/tanstack-query/queryKeys'
+
+export function useSemesterPlannerQueries({
+  getAccessToken,
+  authInitialized,
+  studyPeriodId,
+  guideCurriculumId,
+  anonymousCatalogProgramId,
+  planningId,
+}: {
+  getAccessToken: () => Promise<string>
+  authInitialized: boolean
+  studyPeriodId?: number
+  guideCurriculumId?: number | null
+  anonymousCatalogProgramId: string
+  planningId?: string
+}) {
+  const auth = useOptionalAuth()
+  const sessionSubject = auth.sessionSubject ?? 'unknown-session'
+  const { studentId, profileQuery: studentProfileQuery } = useStudentProfile()
+  const query = useQuery({
+    queryKey: publicQueryKeys.semesterPlannerStaticData(studyPeriodId),
+    queryFn: () => loadSemesterPlannerStaticData(studyPeriodId),
+    staleTime: 5 * 60_000,
+  })
+  const plansQuery = useQuery({
+    queryKey: privateQueryKeys.semesterPlannings(sessionSubject, studentId),
+    queryFn: () => listSemesterPlannings(studentId!, getAccessToken),
+    enabled: Boolean(studentId),
+    retry: false,
+  })
+  const courseAttemptsQuery = useQuery({
+    queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
+    queryFn: () => listStudentCourseAttempts(studentId!, getAccessToken),
+    enabled: Boolean(studentId),
+    retry: false,
+  })
+  const numericPlanningId = planningId ? Number(planningId) : undefined
+  const planQuery = useQuery({
+    queryKey: privateQueryKeys.semesterPlanning(
+      sessionSubject,
+      studentId,
+      planningId ?? 'none',
+    ),
+    queryFn: () =>
+      getSemesterPlanning(studentId!, numericPlanningId!, getAccessToken),
+    enabled:
+      Boolean(studentId) &&
+      planningId !== undefined &&
+      planningId !== 'rascunho' &&
+      Number.isInteger(numericPlanningId),
+    retry: false,
+  })
+  const professorEvaluationSummariesQuery = useQuery({
+    queryKey: publicQueryKeys.semesterPlannerProfessorEvaluationSummaries(),
+    queryFn: loadProfessorEvaluationSummaries,
+    staleTime: 5 * 60_000,
+    retry: false,
+  })
+  const curriculaQuery = useQuery({
+    queryKey: privateQueryKeys.curricula(sessionSubject, studentId),
+    queryFn: () => listCurricula(studentId!, getAccessToken),
+    enabled: Boolean(studentId),
+    retry: false,
+  })
+  const curriculumQuery = useQuery({
+    queryKey: privateQueryKeys.curriculum(
+      sessionSubject,
+      studentId,
+      guideCurriculumId ?? undefined,
+    ),
+    queryFn: () =>
+      getCurriculum(studentId!, guideCurriculumId!, getAccessToken),
+    enabled: Boolean(studentId && guideCurriculumId),
+    retry: false,
+  })
+  const anonymousCurriculumDataQuery = useQuery({
+    queryKey: publicQueryKeys.semesterPlannerAnonymousCurriculumData(),
+    queryFn: async () => {
+      const result = await loadCurriculumCatalog()
+      if (!result.ok) throw new Error(result.error.code)
+      return result.value
+    },
+    enabled: authInitialized,
+    staleTime: 5 * 60_000,
+  })
+  const anonymousSuggestionsQuery = useQuery({
+    queryKey: publicQueryKeys.semesterPlannerAnonymousSuggestions(
+      anonymousCatalogProgramId,
+    ),
+    queryFn: () =>
+      loadCurriculumSuggestions(anonymousCatalogProgramId as CatalogProgramId),
+    enabled: Boolean(anonymousCatalogProgramId),
+    retry: false,
+  })
+
+  return {
+    studentId,
+    studentProfileQuery,
+    query,
+    plansQuery,
+    courseAttemptsQuery,
+    planQuery,
+    professorEvaluationSummariesQuery,
+    curriculaQuery,
+    curriculumQuery,
+    anonymousCurriculumDataQuery,
+    anonymousSuggestionsQuery,
+  }
+}

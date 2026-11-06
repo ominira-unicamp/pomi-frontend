@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "pomi-curriculum-planner-v1",
+  "title": "POMI Curriculum Planner",
+  "type": "object",
+  "required": ["format", "version", "exportedAt", "curriculum"],
+  "properties": {
+    "format": { "const": "pomi-curriculum-planner" },
+    "version": { "const": 1 },
+    "exportedAt": { "type": "string", "format": "date-time" },
+    "curriculum": {
+      "type": "object",
+      "required": [
+        "selection",
+        "planningStart",
+        "currentPeriodId",
+        "currentPeriodPosition",
+        "periods",
+        "courses"
+      ],
+      "properties": {
+        "name": { "type": "string", "maxLength": 120 },
+        "selection": {
+          "type": "object",
+          "required": [
+            "catalogProgramId",
+            "catalogSpecializationId",
+            "catalogLanguageId",
+            "catalogYear",
+            "programCode",
+            "programName",
+            "specializationCode",
+            "specializationName",
+            "languageName"
+          ],
+          "properties": {
+            "catalogProgramId": { "type": ["integer", "null"] },
+            "catalogSpecializationId": { "type": ["integer", "null"] },
+            "catalogLanguageId": { "type": ["integer", "null"] },
+            "catalogYear": { "type": ["integer", "null"] },
+            "programCode": { "type": ["string", "null"] },
+            "programName": { "type": ["string", "null"] },
+            "specializationCode": { "type": ["string", "null"] },
+            "specializationName": { "type": ["string", "null"] },
+            "languageName": { "type": ["string", "null"] }
+          },
+          "additionalProperties": true
+        },
+        "planningStart": {
+          "anyOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["year", "semester", "semesterNumber"],
+              "properties": {
+                "year": { "type": "integer", "minimum": 1900, "maximum": 9999 },
+                "semester": { "enum": [1, 2] },
+                "semesterNumber": { "type": "integer", "minimum": 1 }
+              },
+              "additionalProperties": true
+            }
+          ]
+        },
+        "currentPeriodId": { "type": ["integer", "null"] },
+        "currentPeriodPosition": { "type": ["integer", "null"], "minimum": 1 },
+        "periods": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "required": ["id", "position"],
+            "properties": {
+              "id": { "type": ["integer", "null"] },
+              "position": { "type": "integer", "minimum": 1 }
+            },
+            "additionalProperties": true
+          }
+        },
+        "courses": {
+          "type": "array",
+          "maxItems": 5000,
+          "items": {
+            "type": "object",
+            "required": [
+              "courseId",
+              "periodId",
+              "periodPosition",
+              "code",
+              "name",
+              "credits"
+            ],
+            "properties": {
+              "courseId": { "type": ["integer", "null"] },
+              "periodId": { "type": ["integer", "null"] },
+              "periodPosition": { "type": ["integer", "null"], "minimum": 1 },
+              "code": { "type": "string", "maxLength": 32 },
+              "name": { "type": "string", "maxLength": 200 },
+              "credits": { "type": "integer", "minimum": 0 }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
