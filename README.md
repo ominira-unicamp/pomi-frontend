@@ -17,6 +17,25 @@ acadêmicos públicos; a segunda atende recursos autenticados do estudante.
 
 Com o servidor local ativo, `/_design-system` apresenta os tokens, variantes, estados e composições disponíveis. Essa rota renderiza a página de não encontrado em builds de produção.
 
+## SDK e builds independentes
+
+O frontend usa a versão publicada `1.0.0-rc.4` de `@ominira/pomi-sdk`, fixada no
+manifesto e no lockfile. `npm ci` e `npm run build` devem funcionar com apenas o
+checkout do frontend, inclusive na Vercel. Não externalize o SDK no Rollup: ele
+integra o bundle da aplicação.
+
+Para desenvolver com o checkout vizinho do SDK, use um vínculo apenas local:
+
+```bash
+npm --prefix ../pomi-ts-sdk run build
+npm install --no-save --package-lock=false ../pomi-ts-sdk
+```
+
+Esse comando não deve alterar `package.json` ou `package-lock.json`. Execute
+`npm ci` para voltar ao pacote publicado. Os comandos `sdk:generate` e
+`sdk:check` exigem os checkouts vizinhos do SDK e backend e não fazem parte do
+build da Vercel.
+
 ## Design system
 
 A interface segue três camadas:
