@@ -343,6 +343,7 @@ export function CurriculumPlannerPage({
     if (succeeded) setSelectedCourseIds(new Set())
   }, [planner.dispatch, removableSelectedCourseIds])
   const studentDefaultsApplied = useRef<string | undefined>(undefined)
+  const [draftStorageError, setDraftStorageError] = useState<string>()
   const [saveDraftDialogOpen, setSaveDraftDialogOpen] = useState(false)
   const [curriculumAction, setCurriculumAction] = useState<
     'rename' | 'delete'
@@ -952,19 +953,27 @@ export function CurriculumPlannerPage({
         <SaveDraftDialog
           open={saveDraftDialogOpen}
           onOpenChange={setSaveDraftDialogOpen}
+          error={draftStorageError}
           onLogin={() => {
-            saveDraftHandoff({
-              version: 1,
-              kind: 'curriculum',
-              name: planningName,
-              state: {
-                revision: snapshot.revision,
-                selection: snapshot.selection,
-                plan: snapshot.plan,
-                academicRecord: snapshot.academicRecord,
-              },
-            })
-            void auth.login(window.location.href)
+            setDraftStorageError(undefined)
+            try {
+              saveDraftHandoff({
+                version: 1,
+                kind: 'curriculum',
+                name: planningName,
+                state: {
+                  revision: snapshot.revision,
+                  selection: snapshot.selection,
+                  plan: snapshot.plan,
+                  academicRecord: snapshot.academicRecord,
+                },
+              })
+              void auth.login(window.location.href)
+            } catch {
+              setDraftStorageError(
+                'Não foi possível guardar o rascunho neste navegador. Suas escolhas continuam nesta aba; libere o armazenamento e tente novamente.',
+              )
+            }
           }}
         />
       </DndContext>

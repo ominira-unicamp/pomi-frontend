@@ -4,6 +4,7 @@ import { useState } from 'react'
 
 import { PersonLink, RelationshipAction } from './components'
 import { relationshipFor } from './types'
+import { UserIdentityState } from '@/features/identity/UserIdentityState'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
 import {
@@ -19,49 +20,46 @@ import {
   listFriendships,
   requestFriendship,
   searchPeople,
-} from '@/features/friends/studentSocialApi'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+} from '@/features/friends/userSocialApi'
+import { useUserContext } from '@/features/identity'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 export function PublicPeoplePage() {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const queryClient = useQueryClient()
-  const { studentId, studentQuery } = useStudentProfile()
+  const { userId, userQuery } = useUserContext()
   const [search, setSearch] = useState('')
   const friendshipsQuery = useQuery({
-    queryKey: privateQueryKeys.studentSocialFriendships(
-      sessionSubject,
-      studentId,
-    ),
-    queryFn: () => listFriendships(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.userSocialFriendships(sessionSubject, userId),
+    queryFn: () => listFriendships(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
   })
   const peopleQuery = useQuery({
-    queryKey: privateQueryKeys.studentSocialPeople(
+    queryKey: privateQueryKeys.userSocialPeople(
       sessionSubject,
-      studentId,
+      userId,
       search.trim(),
     ),
     queryFn: () =>
-      searchPeople(studentId!, search.trim() || undefined, auth.getAccessToken),
-    enabled: Boolean(studentId),
+      searchPeople(userId!, search.trim() || undefined, auth.getAccessToken),
+    enabled: Boolean(userId),
   })
   const refresh = () =>
     queryClient.invalidateQueries({
-      queryKey: privateQueryKeys.studentSocial(sessionSubject, studentId),
+      queryKey: privateQueryKeys.userSocial(sessionSubject, userId),
     })
   const add = useMutation({
     mutationFn: (publicId: string) =>
-      requestFriendship(studentId!, publicId, auth.getAccessToken),
+      requestFriendship(userId!, publicId, auth.getAccessToken),
     onSuccess: refresh,
   })
   const accept = useMutation({
     mutationFn: (id: number) =>
-      acceptFriendship(studentId!, id, auth.getAccessToken),
+      acceptFriendship(userId!, id, auth.getAccessToken),
     onSuccess: refresh,
   })
-  if (!auth.initialized || studentQuery.isLoading)
+  if (!auth.initialized || userQuery.isLoading)
     return (
       <PageContainer>
         <LoadingState label="Carregando comunidade" />
@@ -73,22 +71,19 @@ export function PublicPeoplePage() {
         <PageHeader
           eyebrow="Comunidade"
           title="Pessoas"
-          description="Encontre estudantes que optaram por tornar seu perfil público."
+          description="Encontre pessoas que optaram por tornar seu perfil público."
         />
         <AuthRequiredState
           title="Entre para encontrar pessoas"
-          description="A comunidade é reservada a estudantes autenticados e respeita as escolhas de privacidade de cada perfil."
+          description="A comunidade é reservada a usuários autenticados e respeita as escolhas de privacidade de cada perfil."
           onLogin={() => void auth.login(window.location.href)}
         />
       </PageContainer>
     )
-  if (!studentId)
+  if (!userId)
     return (
       <PageContainer>
-        <EmptyState
-          title="Perfil acadêmico necessário"
-          description="Conclua seu cadastro de estudante para encontrar perfis públicos."
-        />
+        <UserIdentityState query={userQuery} />
       </PageContainer>
     )
   const people = peopleQuery.data?.items ?? []
@@ -98,7 +93,7 @@ export function PublicPeoplePage() {
       <PageHeader
         eyebrow="Comunidade"
         title="Pessoas"
-        description="Encontre estudantes que optaram por tornar seu perfil público."
+        description="Encontre pessoas que optaram por tornar seu perfil público."
       />
       <label className="relative mb-6 block max-w-xl">
         <span className="sr-only">Buscar pessoas</span>
@@ -120,7 +115,7 @@ export function PublicPeoplePage() {
       ) : (
         <section className="grid gap-4 sm:grid-cols-2">
           {people.map((person) => {
-            const state = relationshipFor(person, studentId, friendships)
+            const state = relationshipFor(person, userId, friendships)
             const friendship = friendships.find(
               (item) => item.friend.publicId === person.publicId,
             )
@@ -142,7 +137,7 @@ export function PublicPeoplePage() {
       )}
       <p className="mt-5 flex items-center gap-2 text-sm text-muted-foreground">
         <Users className="size-4" /> Perfis públicos mostram somente as
-        informações autorizadas pelo próprio estudante.
+        informações autorizadas pela própria pessoa.
       </p>
     </PageContainer>
   )

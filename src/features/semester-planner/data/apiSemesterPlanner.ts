@@ -7,13 +7,13 @@ import type {
 
 export function createApiSemesterPlanner({
   planner,
-  studentId,
+  userId,
   planningId,
   getAccessToken,
   onSavingChange,
 }: Readonly<{
   planner: SemesterPlanner
-  studentId?: number
+  userId?: number
   planningId?: number
   getAccessToken: () => Promise<string>
   onSavingChange?: (saving: boolean) => void
@@ -26,13 +26,13 @@ export function createApiSemesterPlanner({
       command: SemesterPlannerCommand,
     ): Promise<SemesterPlannerResult> {
       const result = await planner.dispatch(command)
-      if (!result.ok || !studentId || !planningId) return result
+      if (!result.ok || !userId || !planningId) return result
       const snapshot = await planner.getSnapshot()
       if (!snapshot.ok) return snapshot
       try {
         onSavingChange?.(true)
         await patchSemesterPlanning(
-          studentId,
+          userId,
           planningId,
           snapshot.value.document,
           getAccessToken,

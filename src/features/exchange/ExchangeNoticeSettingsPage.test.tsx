@@ -23,8 +23,8 @@ const mocks = vi.hoisted(() => ({
     emailVerificationRequired: false,
   },
   student: {
-    studentId: 7 as number | undefined,
-    studentQuery: {
+    userId: 7 as number | undefined,
+    userQuery: {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
@@ -40,8 +40,8 @@ vi.mock('@/auth/AuthProvider', () => ({
   useOptionalAuth: () => mocks.auth,
 }))
 
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile: () => mocks.student,
+vi.mock('@/features/identity', () => ({
+  useUserContext: () => mocks.student,
 }))
 
 vi.mock('@/features/exchange/data/exchangeApi', async (importOriginal) => {
@@ -76,19 +76,19 @@ describe('ExchangeNoticeSettingsPage', () => {
     mocks.auth.initialized = true
     mocks.auth.isAuthenticated = true
     mocks.auth.login.mockReset()
-    mocks.student.studentId = 7
-    mocks.student.studentQuery.isLoading = false
-    mocks.student.studentQuery.isError = false
+    mocks.student.userId = 7
+    mocks.student.userQuery.isLoading = false
+    mocks.student.userQuery.isError = false
     mocks.listPlaces
       .mockReset()
       .mockResolvedValue([{ id: 3, name: 'França', normalizedName: 'franca' }])
     mocks.getSubscription.mockReset().mockResolvedValue({
-      studentId: 7,
+      userId: 7,
       enabled: false,
       placeIds: [3],
     })
     mocks.patchSubscription.mockReset().mockResolvedValue({
-      studentId: 7,
+      userId: 7,
       enabled: true,
       placeIds: [3],
     })

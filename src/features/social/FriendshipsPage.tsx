@@ -2,20 +2,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, Trash2, Users } from 'lucide-react'
 
 import { PersonLink } from './components'
+import { UserIdentityState } from '@/features/identity/UserIdentityState'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import {
-  EmptyState,
-  LoadingState,
-  PageContainer,
-} from '@/components/PageLayout'
+import { LoadingState, PageContainer } from '@/components/PageLayout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   acceptFriendship,
   listFriendships,
   removeFriendship,
-} from '@/features/friends/studentSocialApi'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+} from '@/features/friends/userSocialApi'
+import { useUserContext } from '@/features/identity'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 type FriendshipsPageProps = {
@@ -26,42 +23,36 @@ export function FriendshipsPage({ view }: FriendshipsPageProps) {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const queryClient = useQueryClient()
-  const { studentId, studentQuery } = useStudentProfile()
+  const { userId, userQuery } = useUserContext()
   const friendshipsQuery = useQuery({
-    queryKey: privateQueryKeys.studentSocialFriendships(
-      sessionSubject,
-      studentId,
-    ),
-    queryFn: () => listFriendships(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.userSocialFriendships(sessionSubject, userId),
+    queryFn: () => listFriendships(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
   })
   const refresh = () =>
     queryClient.invalidateQueries({
-      queryKey: privateQueryKeys.studentSocial(sessionSubject, studentId),
+      queryKey: privateQueryKeys.userSocial(sessionSubject, userId),
     })
   const accept = useMutation({
     mutationFn: (id: number) =>
-      acceptFriendship(studentId!, id, auth.getAccessToken),
+      acceptFriendship(userId!, id, auth.getAccessToken),
     onSuccess: refresh,
   })
   const remove = useMutation({
     mutationFn: (id: number) =>
-      removeFriendship(studentId!, id, auth.getAccessToken),
+      removeFriendship(userId!, id, auth.getAccessToken),
     onSuccess: refresh,
   })
-  if (studentQuery.isLoading || friendshipsQuery.isLoading)
+  if (userQuery.isLoading || friendshipsQuery.isLoading)
     return (
       <PageContainer>
         <LoadingState label="Carregando amizades" />
       </PageContainer>
     )
-  if (!studentId)
+  if (!userId)
     return (
       <PageContainer>
-        <EmptyState
-          title="Perfil acadêmico necessário"
-          description="Conclua seu cadastro de estudante antes de gerenciar amizades."
-        />
+        <UserIdentityState query={userQuery} />
       </PageContainer>
     )
   const items = friendshipsQuery.data ?? []

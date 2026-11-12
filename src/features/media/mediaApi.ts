@@ -1,8 +1,8 @@
 import { appApiUrl, pomiSdk } from '@/api/client'
 
 export type MediaTarget =
-  | { kind: 'studentAvatar'; studentId: number }
-  | { kind: 'groupAvatar'; studentId: number; groupId: number }
+  | { kind: 'userAvatar'; userId: number }
+  | { kind: 'groupAvatar'; userId: number; groupId: number }
 
 export type MediaPreset = 'avatarSmall' | 'avatarLarge'
 type Token = () => Promise<string>
@@ -33,11 +33,11 @@ export function uploadMedia(
   const form = new FormData()
   form.append('images[]', file, file.name)
   const context = { getAccessToken, signal }
-  if (target.kind === 'studentAvatar') {
-    return pomiSdk.app.media.putStudentAvatar(target.studentId, form, context)
+  if (target.kind === 'userAvatar') {
+    return pomiSdk.app.media.putUserAvatar(target.userId, form, context)
   }
   return pomiSdk.app.media.putGroupAvatar(
-    target.studentId,
+    target.userId,
     target.groupId,
     form,
     context,
@@ -46,11 +46,11 @@ export function uploadMedia(
 
 export function removeMedia(target: MediaTarget, getAccessToken: Token) {
   const context = { getAccessToken }
-  if (target.kind === 'studentAvatar') {
-    return pomiSdk.app.media.deleteStudentAvatar(target.studentId, context)
+  if (target.kind === 'userAvatar') {
+    return pomiSdk.app.media.deleteUserAvatar(target.userId, context)
   }
   return pomiSdk.app.media.deleteGroupAvatar(
-    target.studentId,
+    target.userId,
     target.groupId,
     context,
   )

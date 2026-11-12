@@ -24,10 +24,10 @@ vi.mock('@/auth/AuthProvider', () => ({
     getAccessToken: () => Promise.resolve('token'),
   }),
 }))
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile: () => ({
-    studentId: 7,
-    studentQuery: { isLoading: false },
+vi.mock('@/features/identity', () => ({
+  useUserContext: () => ({
+    userId: 7,
+    userQuery: { isLoading: false },
   }),
 }))
 vi.mock('@tanstack/react-router', () => ({
@@ -37,14 +37,14 @@ vi.mock('@tanstack/react-router', () => ({
     <a href={to}>{children}</a>
   ),
 }))
-vi.mock('@/features/friends/studentSocialApi', () => ({
+vi.mock('@/features/friends/userSocialApi', () => ({
   getPublicProfile: mocks.profile,
   updatePublicProfile: mocks.update,
 }))
 vi.mock('@/features/student-interests/data/studentTagInterestApi', () => ({
-  listStudentTagInterests: mocks.interests,
-  putStudentTagInterest: mocks.add,
-  deleteStudentTagInterest: mocks.remove,
+  listUserInterests: mocks.interests,
+  putUserInterest: mocks.add,
+  deleteUserInterest: mocks.remove,
 }))
 vi.mock('@/features/tag-taxonomy/data/tagTaxonomyApi', () => ({
   listTags: mocks.tags,
@@ -66,7 +66,7 @@ const initial = {
   specialization: null,
   entryYear: null,
 }
-const key = privateQueryKeys.studentSocialProfile('session', 7)
+const key = privateQueryKeys.userSocialProfile('session', 7)
 function renderPage(layout = false) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },

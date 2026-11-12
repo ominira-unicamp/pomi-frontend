@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
-  deleteStudentTagInterest,
-  listStudentTagInterests,
-  putStudentTagInterest,
+  deleteUserInterest,
+  listUserInterests,
+  putUserInterest,
 } from './studentTagInterestApi'
 
 describe('student tag interest API', () => {
@@ -32,27 +32,27 @@ describe('student tag interest API', () => {
       ),
     )
 
-    await expect(listStudentTagInterests(7, getAccessToken)).resolves.toEqual(
+    await expect(listUserInterests(7, getAccessToken)).resolves.toEqual(
       interests,
     )
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringMatching(/\/student\/7\/tag-interests(?:\?|$)/),
+      expect.stringMatching(/\/users\/7\/interests(?:\?|$)/),
       expect.objectContaining({ cache: 'no-store' }),
     )
   })
 
   it('adds and removes an interest idempotently', async () => {
-    await putStudentTagInterest(7, 8, getAccessToken)
-    await deleteStudentTagInterest(7, 8, getAccessToken)
+    await putUserInterest(7, 8, getAccessToken)
+    await deleteUserInterest(7, 8, getAccessToken)
 
     expect(fetchMock).toHaveBeenNthCalledWith(
       1,
-      expect.stringMatching(/\/student\/7\/tag-interests\/8$/),
+      expect.stringMatching(/\/users\/7\/interests\/8$/),
       expect.objectContaining({ method: 'PUT' }),
     )
     expect(fetchMock).toHaveBeenNthCalledWith(
       2,
-      expect.stringMatching(/\/student\/7\/tag-interests\/8$/),
+      expect.stringMatching(/\/users\/7\/interests\/8$/),
       expect.objectContaining({ method: 'DELETE' }),
     )
   })

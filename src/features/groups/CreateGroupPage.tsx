@@ -4,10 +4,10 @@ import { ArrowLeft } from 'lucide-react'
 import { useState } from 'react'
 
 import { groupApi } from './data/groupApi'
+import { UserIdentityState } from '@/features/identity/UserIdentityState'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
 import {
-  ErrorState,
   LoadingState,
   PageContainer,
   PageHeader,
@@ -15,25 +15,25 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useUserContext } from '@/features/identity'
 
 export function CreateGroupPage() {
   const auth = useOptionalAuth()
-  const { studentId, studentQuery } = useStudentProfile()
+  const { userId, userQuery } = useUserContext()
   const queryClient = useQueryClient()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const create = useMutation({
     mutationFn: () =>
       groupApi.create(
-        studentId!,
+        userId!,
         { name: name.trim(), description: description.trim() || null },
         auth.getAccessToken,
       ),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['public', 'groups'] })
       void queryClient.invalidateQueries({
-        queryKey: ['private', auth.sessionSubject, 'groups'],
+        queryKey: ['private', auth.sessionSubject, 'user', userId, 'groups'],
       })
     },
   })
@@ -43,7 +43,7 @@ export function CreateGroupPage() {
     enableBeforeUnload: dirty,
     shouldBlockFn: () => !window.confirm('Descartar o grupo ainda não criado?'),
   })
-  if (!auth.initialized || (auth.isAuthenticated && studentQuery.isPending))
+  if (!auth.initialized || (auth.isAuthenticated && userQuery.isPending))
     return (
       <PageContainer>
         <LoadingState label="Preparando criação" />
@@ -59,13 +59,10 @@ export function CreateGroupPage() {
         />
       </PageContainer>
     )
-  if (!studentId)
+  if (!userId)
     return (
       <PageContainer>
-        <ErrorState
-          title="Perfil necessário"
-          description="No momento, criar um grupo exige um perfil de estudante associado à sua conta."
-        />
+        <UserIdentityState query={userQuery} />
       </PageContainer>
     )
   if (create.data)

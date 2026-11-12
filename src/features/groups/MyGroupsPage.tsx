@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { groupApi } from './data/groupApi'
 import { canOrganizeEvents, groupWorkspaceDestination } from './groupNavigation'
 import { formatGroupDate } from './presentation'
+import { UserIdentityState } from '@/features/identity/UserIdentityState'
 import { GroupAvatar } from '@/features/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
@@ -16,11 +17,11 @@ import {
   PageHeader,
 } from '@/components/PageLayout'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useUserContext } from '@/features/identity'
 
 export function MyGroupsPage() {
   const auth = useOptionalAuth()
-  const { studentId, studentQuery } = useStudentProfile()
+  const { userId, userQuery } = useUserContext()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
   const [showAllInvitations, setShowAllInvitations] = useState(false)
@@ -29,23 +30,37 @@ export function MyGroupsPage() {
     queryFn: groupApi.list,
   })
   const memberships = useQuery({
-    queryKey: ['private', auth.sessionSubject, 'groups', 'memberships'],
-    queryFn: () => groupApi.ownMemberships(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: [
+      'private',
+      auth.sessionSubject,
+      'user',
+      userId,
+      'groups',
+      'memberships',
+    ],
+    queryFn: () => groupApi.ownMemberships(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
   const invitations = useQuery({
-    queryKey: ['private', auth.sessionSubject, 'groups', 'invitations'],
-    queryFn: () => groupApi.invitations(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: [
+      'private',
+      auth.sessionSubject,
+      'user',
+      userId,
+      'groups',
+      'invitations',
+    ],
+    queryFn: () => groupApi.invitations(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
   const accept = useMutation({
     mutationFn: (id: number) =>
-      groupApi.accept(studentId!, id, auth.getAccessToken),
+      groupApi.accept(userId!, id, auth.getAccessToken),
     onSuccess: (membership) => {
       void queryClient.invalidateQueries({
-        queryKey: ['private', auth.sessionSubject, 'groups'],
+        queryKey: ['private', auth.sessionSubject, 'user', userId, 'groups'],
       })
       void navigate({
         to: '/meus-grupos/$groupId',
@@ -55,14 +70,21 @@ export function MyGroupsPage() {
   })
   const decline = useMutation({
     mutationFn: (id: number) =>
-      groupApi.decline(studentId!, id, auth.getAccessToken),
+      groupApi.decline(userId!, id, auth.getAccessToken),
     onSuccess: () =>
       void queryClient.invalidateQueries({
-        queryKey: ['private', auth.sessionSubject, 'groups', 'invitations'],
+        queryKey: [
+          'private',
+          auth.sessionSubject,
+          'user',
+          userId,
+          'groups',
+          'invitations',
+        ],
       }),
   })
 
-  if (!auth.initialized || (auth.isAuthenticated && studentQuery.isPending))
+  if (!auth.initialized || (auth.isAuthenticated && userQuery.isPending))
     return (
       <PageContainer>
         <LoadingState label="Carregando sua participação" />
@@ -78,16 +100,12 @@ export function MyGroupsPage() {
         />
       </PageContainer>
     )
-  if (!studentId)
+  if (!userId)
     return (
       <PageContainer>
-        <ErrorState
-          title="Perfil necessário para participar"
-          description="No momento, criar ou participar de grupos exige um perfil de estudante associado à sua conta."
-        />
+        <UserIdentityState query={userQuery} />
       </PageContainer>
     )
-
   const groupById = new Map(
     groups.data?.map((group) => [group.id, group]) ?? [],
   )

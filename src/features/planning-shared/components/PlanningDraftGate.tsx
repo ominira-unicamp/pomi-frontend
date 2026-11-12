@@ -3,20 +3,27 @@ import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 
-import type { CurriculumDraftBootstrap, SemesterDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
+import type {
+  CurriculumDraftBootstrap,
+  SemesterDraftBootstrap,
+} from '@/features/planning-shared/data/planningDraftBootstrap'
+import { requireCurrentUserId } from '@/features/identity/identityApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import { ErrorState, LoadingState, PageContainer } from '@/components/PageLayout'
+import {
+  ErrorState,
+  LoadingState,
+  PageContainer,
+} from '@/components/PageLayout'
 import { persistCurriculumState } from '@/features/curriculum-planner/data/curriculumPersistenceAdapter'
 import {
   clearDraftHandoff,
-  loadDraftHandoff,
+  readDraftHandoff,
 } from '@/features/planning-shared/data/planningDraftHandoff'
 import {
   curriculumDraftBootstrapKey,
   semesterDraftBootstrapKey,
 } from '@/features/planning-shared/data/planningDraftBootstrap'
 import { createSemesterPlanning } from '@/features/semester-planner/data/semesterPlanningApi'
-import { ensureCurrentStudent } from '@/features/student/data/studentApi'
 
 type DraftKind = 'curriculum' | 'semester'
 
@@ -58,7 +65,16 @@ export function PlanningDraftGate({
       return
     }
 
-    const handoff = loadDraftHandoff()
+    const stored = readDraftHandoff()
+    if (stored.status === 'invalid' || stored.status === 'unavailable') {
+      setPromotionError(
+        stored.status === 'invalid'
+          ? 'Não foi possível recuperar este rascunho. Os dados armazenados foram preservados. Você pode tentar novamente ou voltar à aba em que iniciou o planejamento.'
+          : 'O armazenamento do navegador está indisponível. Libere o acesso e tente novamente; o rascunho não foi removido.',
+      )
+      return
+    }
+    const handoff = stored.status === 'ready' ? stored.handoff : undefined
     if (!handoff || handoff.kind !== kind || promotionStarted.current) {
       if (!promotionStarted.current)
         void navigate({ to: creationPath(kind), replace: true })
@@ -69,15 +85,10 @@ export function PlanningDraftGate({
     setPromotionError(undefined)
     void (async () => {
       try {
-        const studentId = await ensureCurrentStudent(
-          String(
-            auth.profile?.name ?? auth.profile?.preferred_username ?? 'Estudante',
-          ),
-          auth.getAccessToken,
-        )
+        const userId = await requireCurrentUserId(auth.getAccessToken)
         if (handoff.kind === 'curriculum') {
           const created = await persistCurriculumState({
-            studentId,
+            userId,
             state: handoff.state,
             name: handoff.name,
             getAccessToken: auth.getAccessToken,
@@ -93,7 +104,7 @@ export function PlanningDraftGate({
         if (!handoff.document.studyPeriodId)
           throw new Error('missing-study-period')
         const created = await createSemesterPlanning(
-          studentId,
+          userId,
           {
             ...handoff.document,
             studyPeriodId: handoff.document.studyPeriodId,
@@ -107,7 +118,9 @@ export function PlanningDraftGate({
           replace: true,
         })
       } catch {
-        setPromotionError('Não foi possível salvar o rascunho. Tente novamente.')
+        setPromotionError(
+          'Não foi possível salvar o rascunho. Tente novamente.',
+        )
       }
     })()
   }, [anonymousBootstrap, attempt, auth, kind, navigate])

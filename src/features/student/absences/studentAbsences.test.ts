@@ -14,7 +14,7 @@ import {
 
 const attempt: StudentCourseAttempt = {
   id: 11,
-  studentId: 1,
+  userId: 1,
   courseId: 20,
   studyPeriodId: 30,
   classId: 40,

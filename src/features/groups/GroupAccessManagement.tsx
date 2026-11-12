@@ -24,19 +24,35 @@ const permissionGroups = [
 ] as const
 
 function useAccessData() {
-  const { group, own, studentId } = useGroupManagement()
+  const { group, own, userId } = useGroupManagement()
   const auth = useOptionalAuth()
   const allowed = own.permissions.includes('ROLE_MANAGE')
   const roles = useQuery({
-    queryKey: ['private', auth.sessionSubject, 'groups', group.id, 'roles'],
-    queryFn: () => groupApi.roles(studentId, group.id, auth.getAccessToken),
+    queryKey: [
+      'private',
+      auth.sessionSubject,
+      'user',
+      userId,
+      'groups',
+      group.id,
+      'roles',
+    ],
+    queryFn: () => groupApi.roles(userId, group.id, auth.getAccessToken),
     enabled: allowed,
     retry: false,
   })
   const members = useQuery({
-    queryKey: ['private', auth.sessionSubject, 'groups', group.id, 'members'],
+    queryKey: [
+      'private',
+      auth.sessionSubject,
+      'user',
+      userId,
+      'groups',
+      group.id,
+      'members',
+    ],
     queryFn: () =>
-      groupApi.managedMembers(studentId, group.id, auth.getAccessToken),
+      groupApi.managedMembers(userId, group.id, auth.getAccessToken),
     enabled: allowed,
     retry: false,
   })
@@ -175,7 +191,7 @@ export function GroupAccessManagementPage() {
 }
 
 function RoleForm({ role }: { role?: GroupRole }) {
-  const { group, studentId, refresh } = useGroupManagement()
+  const { group, userId, refresh } = useGroupManagement()
   const auth = useOptionalAuth()
   const navigate = useNavigate()
   const { members } = useAccessData()
@@ -205,7 +221,8 @@ function RoleForm({ role }: { role?: GroupRole }) {
     mutationFn: () =>
       role
         ? groupApi.updateRole(
-            studentId,
+            userId,
+            group.id,
             role.id,
             {
               name: name.trim(),
@@ -221,7 +238,7 @@ function RoleForm({ role }: { role?: GroupRole }) {
             auth.getAccessToken,
           )
         : groupApi.createRole(
-            studentId,
+            userId,
             group.id,
             { name: name.trim(), permissions },
             auth.getAccessToken,
@@ -238,7 +255,7 @@ function RoleForm({ role }: { role?: GroupRole }) {
   })
   const remove = useMutation({
     mutationFn: () =>
-      groupApi.deleteRole(studentId, role!.id, auth.getAccessToken),
+      groupApi.deleteRole(userId, group.id, role!.id, auth.getAccessToken),
     onSuccess: () => {
       refresh()
       void navigate({ to: accessPath, params: { groupId: String(group.id) } })
@@ -394,7 +411,7 @@ export function GroupRoleAssignmentPage({
 }: {
   membershipId: number
 }) {
-  const { group, studentId, refresh } = useGroupManagement()
+  const { group, userId, refresh } = useGroupManagement()
   const auth = useOptionalAuth()
   const { roles, members, allowed } = useAccessData()
   const member = members.data?.find(
@@ -403,7 +420,8 @@ export function GroupRoleAssignmentPage({
   const update = useMutation({
     mutationFn: ({ id, assigned }: { id: number; assigned: boolean }) =>
       groupApi.updateMember(
-        studentId,
+        userId,
+        group.id,
         membershipId,
         { roles: assigned ? { remove: [id] } : { add: [id] } },
         auth.getAccessToken,

@@ -1,3 +1,5 @@
+import { isCompatiblePublicStaticData } from './publicStaticDataValidation'
+
 type CacheRecord = Readonly<{
   key: string
   schemaVersion: number
@@ -69,13 +71,22 @@ export function createPublicStaticDataCache(): PublicStaticDataCache {
               .get(key),
           )
         : memory.get(key)
-      if (!record || record.schemaVersion !== schemaVersion) {
+      if (
+        !record ||
+        record.schemaVersion !== schemaVersion ||
+        !isCompatiblePublicStaticData(key, record.value)
+      ) {
         if (record) await remove(key)
         return undefined
       }
       return record.value as T
     } catch {
-      return memory.get(key)?.value as T | undefined
+      const cached = memory.get(key)
+      return cached &&
+        cached.schemaVersion === schemaVersion &&
+        isCompatiblePublicStaticData(key, cached.value)
+        ? (cached.value as T)
+        : undefined
     }
   }
 

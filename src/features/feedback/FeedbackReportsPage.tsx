@@ -5,7 +5,8 @@ import type {
   FeedbackReport,
   FeedbackReportStatus,
 } from '@/features/feedback/feedbackReportApi'
-import { listStudentFeedbackReports } from '@/features/feedback/feedbackReportApi'
+import { UserIdentityState } from '@/features/identity/UserIdentityState'
+import { listUserFeedbackReports } from '@/features/feedback/feedbackReportApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
 import {
@@ -17,7 +18,7 @@ import {
 } from '@/components/PageLayout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useUserContext } from '@/features/identity'
 
 const statusLabels: Record<FeedbackReportStatus, string> = {
   OPEN: 'Aberta',
@@ -92,21 +93,21 @@ function FeedbackReportCard({ report }: { report: FeedbackReport }) {
 
 export function FeedbackReportsPage() {
   const auth = useOptionalAuth()
-  const { studentId, studentQuery } = useStudentProfile()
+  const { userId, userQuery } = useUserContext()
   const reportsQuery = useQuery({
     queryKey: privateQueryKeys.feedbackReports(
       auth.sessionSubject ?? 'unknown-session',
-      studentId,
+      userId,
     ),
-    queryFn: () => listStudentFeedbackReports(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryFn: () => listUserFeedbackReports(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
 
   if (
     !auth.initialized ||
-    studentQuery.isLoading ||
-    (studentId && reportsQuery.isLoading)
+    userQuery.isLoading ||
+    (userId && reportsQuery.isLoading)
   ) {
     return <LoadingState label="Carregando seus feedbacks" />
   }
@@ -126,7 +127,7 @@ export function FeedbackReportsPage() {
       </PageContainer>
     )
   }
-  if (studentQuery.isError || reportsQuery.isError) {
+  if (userQuery.isError || reportsQuery.isError) {
     return (
       <PageContainer>
         <ErrorState
@@ -140,16 +141,13 @@ export function FeedbackReportsPage() {
       </PageContainer>
     )
   }
-  if (!studentId) {
+  if (!userId)
     return (
       <PageContainer>
-        <ErrorState
-          title="Conta de estudante não encontrada"
-          description="Conclua o cadastro do seu estudante para consultar seus feedbacks."
-        />
+        <UserIdentityState query={userQuery} />
       </PageContainer>
     )
-  }
+
   const reports = reportsQuery.data ?? []
   return (
     <PageContainer>

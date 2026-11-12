@@ -62,13 +62,13 @@ const questions = [
 export function ProfessorEvaluationDialog({
   open,
   onOpenChange,
-  studentId,
+  userId,
   target,
   onSaved,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
-  studentId: number | undefined
+  userId: number | undefined
   target: ProfessorEvaluationTarget | undefined
   onSaved?: () => void
 }) {
@@ -81,18 +81,18 @@ export function ProfessorEvaluationDialog({
   const evaluationQuery = useQuery({
     queryKey: privateQueryKeys.professorEvaluation(
       sessionSubject,
-      studentId,
+      userId,
       target?.classId,
       target?.professorId,
     ),
     queryFn: () =>
       getProfessorEvaluation(
-        studentId!,
+        userId!,
         target!.classId,
         target!.professorId,
         auth.getAccessToken,
       ),
-    enabled: open && Boolean(studentId && target),
+    enabled: open && Boolean(userId && target),
     retry: false,
   })
 
@@ -115,12 +115,12 @@ export function ProfessorEvaluationDialog({
   const complete = Object.values(scores).every((score) => score !== null)
 
   async function save() {
-    if (!studentId || !target || !complete) return
+    if (!userId || !target || !complete) return
     setSaving(true)
     setError(undefined)
     try {
       await putProfessorEvaluation(
-        studentId,
+        userId,
         target.classId,
         target.professorId,
         {
@@ -134,7 +134,7 @@ export function ProfessorEvaluationDialog({
       await queryClient.invalidateQueries({
         queryKey: privateQueryKeys.professorEvaluation(
           sessionSubject,
-          studentId,
+          userId,
           target.classId,
           target.professorId,
         ),

@@ -6,6 +6,7 @@ import { createContext, useContext, useEffect, useRef } from 'react'
 import { groupApi } from './data/groupApi'
 import { canOrganizeEvents } from './groupNavigation'
 import type { Group, OwnGroupMembership } from '@ominira/pomi-sdk/generated/app'
+import { UserIdentityState } from '@/features/identity/UserIdentityState'
 import { GroupAvatar } from '@/features/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
@@ -14,12 +15,12 @@ import {
   LoadingState,
   PageContainer,
 } from '@/components/PageLayout'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useUserContext } from '@/features/identity'
 
 type ManagementContext = {
   group: Group
   own: OwnGroupMembership
-  studentId: number
+  userId: number
   refresh: () => void
 }
 const context = createContext<ManagementContext | null>(null)
@@ -39,7 +40,7 @@ export function GroupManagementLayout({ groupId }: { groupId: number }) {
     contentRef.current?.focus()
   }, [pathname])
   const auth = useOptionalAuth()
-  const { studentId, studentQuery } = useStudentProfile()
+  const { userId, userQuery } = useUserContext()
   const queryClient = useQueryClient()
   const group = useQuery({
     queryKey: ['public', 'groups', groupId],
@@ -48,9 +49,16 @@ export function GroupManagementLayout({ groupId }: { groupId: number }) {
     retry: false,
   })
   const memberships = useQuery({
-    queryKey: ['private', auth.sessionSubject, 'groups', 'memberships'],
-    queryFn: () => groupApi.ownMemberships(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: [
+      'private',
+      auth.sessionSubject,
+      'user',
+      userId,
+      'groups',
+      'memberships',
+    ],
+    queryFn: () => groupApi.ownMemberships(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
   const own = memberships.data?.find(
@@ -65,7 +73,7 @@ export function GroupManagementLayout({ groupId }: { groupId: number }) {
         />
       </PageContainer>
     )
-  if (!auth.initialized || (auth.isAuthenticated && studentQuery.isPending))
+  if (!auth.initialized || (auth.isAuthenticated && userQuery.isPending))
     return (
       <PageContainer>
         <LoadingState label="Carregando gestão" />
@@ -81,13 +89,10 @@ export function GroupManagementLayout({ groupId }: { groupId: number }) {
         />
       </PageContainer>
     )
-  if (!studentId)
+  if (!userId)
     return (
       <PageContainer>
-        <ErrorState
-          title="Perfil necessário"
-          description="No momento, a gestão de grupos exige um perfil de estudante."
-        />
+        <UserIdentityState query={userQuery} />
       </PageContainer>
     )
   if (group.isPending || memberships.isPending)
@@ -118,7 +123,7 @@ export function GroupManagementLayout({ groupId }: { groupId: number }) {
   const value: ManagementContext = {
     group: group.data,
     own,
-    studentId,
+    userId,
     refresh: () => {
       void queryClient.invalidateQueries({ queryKey: ['public', 'groups'] })
       void queryClient.invalidateQueries({
@@ -128,7 +133,7 @@ export function GroupManagementLayout({ groupId }: { groupId: number }) {
         queryKey: ['public', 'group-events'],
       })
       void queryClient.invalidateQueries({
-        queryKey: ['private', auth.sessionSubject, 'groups'],
+        queryKey: ['private', auth.sessionSubject, 'user', userId, 'groups'],
       })
     },
   }

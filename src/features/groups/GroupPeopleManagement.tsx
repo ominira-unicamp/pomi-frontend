@@ -18,7 +18,7 @@ import { useOptionalAuth } from '@/auth/AuthProvider'
 import { ErrorState, LoadingState } from '@/components/PageLayout'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { searchPeople } from '@/features/friends/studentSocialApi'
+import { searchPeople } from '@/features/friends/userSocialApi'
 
 const peoplePath = '/grupos/$groupId/gerenciar/pessoas'
 
@@ -32,15 +32,23 @@ function inviteConflict(error: unknown) {
 }
 
 function useManagedMembers() {
-  const { group, own, studentId } = useGroupManagement()
+  const { group, own, userId } = useGroupManagement()
   const auth = useOptionalAuth()
   const allowed =
     own.permissions.includes('MEMBER_MANAGE') ||
     own.permissions.includes('ROLE_MANAGE')
   const query = useQuery({
-    queryKey: ['private', auth.sessionSubject, 'groups', group.id, 'members'],
+    queryKey: [
+      'private',
+      auth.sessionSubject,
+      'user',
+      userId,
+      'groups',
+      group.id,
+      'members',
+    ],
     queryFn: () =>
-      groupApi.managedMembers(studentId, group.id, auth.getAccessToken),
+      groupApi.managedMembers(userId, group.id, auth.getAccessToken),
     enabled: allowed,
     retry: false,
   })
@@ -48,18 +56,20 @@ function useManagedMembers() {
 }
 
 function useManagedInvitations() {
-  const { group, own, studentId } = useGroupManagement()
+  const { group, own, userId } = useGroupManagement()
   const auth = useOptionalAuth()
   return useQuery({
     queryKey: [
       'private',
       auth.sessionSubject,
+      'user',
+      userId,
       'groups',
       group.id,
       'invitations',
     ],
     queryFn: () =>
-      groupApi.managedInvitations(studentId, group.id, auth.getAccessToken),
+      groupApi.managedInvitations(userId, group.id, auth.getAccessToken),
     enabled: own.permissions.includes('MEMBER_MANAGE'),
     refetchOnMount: 'always',
     retry: false,
@@ -262,7 +272,7 @@ export function GroupPeopleManagementPage() {
 }
 
 export function GroupInvitePage() {
-  const { group, own, studentId, refresh } = useGroupManagement()
+  const { group, own, userId, refresh } = useGroupManagement()
   const auth = useOptionalAuth()
   const invitations = useManagedInvitations()
   const [search, setSearch] = useState('')
@@ -278,7 +288,7 @@ export function GroupInvitePage() {
       'group-invite-people',
       search.trim(),
     ],
-    queryFn: () => searchPeople(studentId, search.trim(), auth.getAccessToken),
+    queryFn: () => searchPeople(userId, search.trim(), auth.getAccessToken),
     enabled:
       own.permissions.includes('MEMBER_MANAGE') && search.trim().length >= 2,
   })
@@ -301,7 +311,7 @@ export function GroupInvitePage() {
           detail: 'Já existe convite pendente.',
         })
       return groupApi.invite(
-        studentId,
+        userId,
         group.id,
         recipientPublicId,
         auth.getAccessToken,
@@ -475,7 +485,7 @@ function PositionForm({
   onClose: () => void
   onSaved: () => void
 }) {
-  const { studentId } = useGroupManagement()
+  const { userId, group } = useGroupManagement()
   const auth = useOptionalAuth()
   const start = displayLocalDateTime(position?.startedAt ?? null)
   const end = displayLocalDateTime(position?.endedAt ?? null)
@@ -498,9 +508,10 @@ function PositionForm({
       !window.confirm('Descartar alterações não salvas do cargo?'),
   })
   const save = useMutation({
-    mutationFn: (body: Parameters<typeof groupApi.updateMember>[2]) =>
+    mutationFn: (body: Parameters<typeof groupApi.updateMember>[3]) =>
       groupApi.updateMember(
-        studentId,
+        userId,
+        group.id,
         membership.id,
         body,
         auth.getAccessToken,
@@ -605,7 +616,7 @@ export function GroupMemberDetailPage({
 }: {
   membershipId: number
 }) {
-  const { group, own, studentId, refresh } = useGroupManagement()
+  const { group, own, userId, refresh } = useGroupManagement()
   const auth = useOptionalAuth()
   const { query, allowed } = useManagedMembers()
   const [editing, setEditing] = useState<number | 'new'>()
@@ -615,8 +626,14 @@ export function GroupMemberDetailPage({
     own.permissions.includes('MEMBER_MANAGE') &&
     Boolean(member && !member.leftAt)
   const update = useMutation({
-    mutationFn: (body: Parameters<typeof groupApi.updateMember>[2]) =>
-      groupApi.updateMember(studentId, membershipId, body, auth.getAccessToken),
+    mutationFn: (body: Parameters<typeof groupApi.updateMember>[3]) =>
+      groupApi.updateMember(
+        userId,
+        group.id,
+        membershipId,
+        body,
+        auth.getAccessToken,
+      ),
     onSuccess: refresh,
   })
   if (!allowed)

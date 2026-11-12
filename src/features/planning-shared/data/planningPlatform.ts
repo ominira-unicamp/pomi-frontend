@@ -1,25 +1,41 @@
-import type {
-  CurriculumPlannerStateStore,
-} from '@pomi/planner-domain/curriculum'
+import { isCurriculumDraft, isRecord } from './draftValidation'
+import type { CurriculumPlannerStateStore } from '@pomi/planner-domain/curriculum'
 
 export function createLocalStorageCurriculumPlannerStateStore({
   key,
-  storage = window.localStorage,
+  storage,
 }: Readonly<{
   key: string
   storage?: Storage
 }>): CurriculumPlannerStateStore {
   return {
-    read() {
-      const raw = storage.getItem(key)
-      return Promise.resolve(raw === null ? null : JSON.parse(raw))
+    async read() {
+      const raw = (storage ?? window.localStorage).getItem(key)
+      if (raw === null) return Promise.resolve(null)
+      let value: unknown
+      try {
+        value = JSON.parse(raw)
+      } catch {
+        throw new Error(
+          'Não foi possível recuperar o rascunho. Os dados originais foram preservados.',
+        )
+      }
+      if (
+        !isRecord(value) ||
+        value.version !== 1 ||
+        !isCurriculumDraft(value.state)
+      )
+        throw new Error(
+          'Este formato de rascunho não pôde ser recuperado. Os dados originais foram preservados.',
+        )
+      return Promise.resolve(value)
     },
     write(state) {
-      storage.setItem(key, JSON.stringify(state))
+      ;(storage ?? window.localStorage).setItem(key, JSON.stringify(state))
       return Promise.resolve()
     },
     clear() {
-      storage.removeItem(key)
+      ;(storage ?? window.localStorage).removeItem(key)
       return Promise.resolve()
     },
   }

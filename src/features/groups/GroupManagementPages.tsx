@@ -41,12 +41,11 @@ export function GroupManagementHome() {
 }
 
 export function GroupProfileManagementPage() {
-  const { group, own, studentId, refresh } = useGroupManagement()
+  const { group, own, userId, refresh } = useGroupManagement()
   const auth = useOptionalAuth()
   const navigate = useNavigate()
   const archive = useMutation({
-    mutationFn: () =>
-      groupApi.archive(studentId, group.id, auth.getAccessToken),
+    mutationFn: () => groupApi.archive(userId, group.id, auth.getAccessToken),
     onSuccess: () => {
       refresh()
       void navigate({ to: '/meus-grupos' })
@@ -69,7 +68,7 @@ export function GroupProfileManagementPage() {
       </div>
       <ProfileEditor
         group={group}
-        studentId={studentId}
+        userId={userId}
         permissions={own.permissions}
         refresh={refresh}
       />

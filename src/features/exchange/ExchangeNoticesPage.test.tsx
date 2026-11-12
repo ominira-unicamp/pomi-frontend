@@ -28,8 +28,8 @@ const mocks = vi.hoisted(() => ({
     emailVerificationRequired: false,
   },
   student: {
-    studentId: undefined as number | undefined,
-    studentQuery: {
+    userId: undefined as number | undefined,
+    userQuery: {
       isLoading: false,
       isError: false,
       refetch: vi.fn(),
@@ -42,8 +42,8 @@ vi.mock('@/auth/AuthProvider', () => ({
   useOptionalAuth: () => mocks.auth,
 }))
 
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile: () => mocks.student,
+vi.mock('@/features/identity', () => ({
+  useUserContext: () => mocks.student,
 }))
 
 vi.mock('@/features/exchange/data/exchangeApi', async (importOriginal) => {
@@ -73,9 +73,9 @@ describe('ExchangeNoticesPage', () => {
     mocks.auth.initialized = true
     mocks.auth.isAuthenticated = false
     mocks.auth.login.mockReset()
-    mocks.student.studentId = undefined
-    mocks.student.studentQuery.isLoading = false
-    mocks.student.studentQuery.isError = false
+    mocks.student.userId = undefined
+    mocks.student.userQuery.isLoading = false
+    mocks.student.userQuery.isError = false
     mocks.listPlaces.mockReset().mockResolvedValue([])
     mocks.listNotices.mockReset().mockResolvedValue([
       {
@@ -104,9 +104,9 @@ describe('ExchangeNoticesPage', () => {
 
   it('summarizes active alerts without hiding the public catalog', async () => {
     mocks.auth.isAuthenticated = true
-    mocks.student.studentId = 7
+    mocks.student.userId = 7
     mocks.getSubscription.mockResolvedValue({
-      studentId: 7,
+      userId: 7,
       enabled: true,
       placeIds: [3, 5],
     })

@@ -22,7 +22,7 @@ const {
   loadCurriculumSuggestions,
   listStudentCourseAttempts,
   useOptionalAuth,
-  useStudentProfile,
+  useStudentAcademicProfile,
 } = vi.hoisted(() => ({
   getCatalogCourseDetails: vi.fn(),
   getCourse: vi.fn(),
@@ -31,7 +31,7 @@ const {
   loadCurriculumSuggestions: vi.fn(),
   listStudentCourseAttempts: vi.fn(),
   useOptionalAuth: vi.fn(),
-  useStudentProfile: vi.fn(),
+  useStudentAcademicProfile: vi.fn(),
 }))
 
 vi.mock('@/catalog/data/curriculumCatalogApi', () => ({
@@ -57,8 +57,8 @@ vi.mock('@/features/course-catalog/data/courseCatalogApi', async () => {
   return { ...actual, getCourse }
 })
 
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile,
+vi.mock('@/features/student/hooks/useStudentAcademicProfile', () => ({
+  useStudentAcademicProfile,
 }))
 
 vi.mock('@/features/student/data/studentApi', async () => {
@@ -311,7 +311,9 @@ describe('CatalogProgramPage', () => {
       sessionSubject: undefined,
       getAccessToken: vi.fn(),
     })
-    useStudentProfile.mockReturnValue({ profileQuery: { data: undefined } })
+    useStudentAcademicProfile.mockReturnValue({
+      profileQuery: { data: undefined },
+    })
   })
 
   it('renders the full curriculum with language options and selected variant', async () => {
@@ -365,7 +367,7 @@ describe('CatalogProgramPage', () => {
   })
 
   it('fills the selection from the authenticated student profile', async () => {
-    useStudentProfile.mockReturnValue({
+    useStudentAcademicProfile.mockReturnValue({
       profileQuery: {
         data: {
           catalogId: 1,
@@ -502,8 +504,8 @@ describe('CatalogProgramPage', () => {
       sessionSubject: 'student-session',
       getAccessToken: vi.fn(),
     })
-    useStudentProfile.mockReturnValue({
-      studentId: 7,
+    useStudentAcademicProfile.mockReturnValue({
+      userId: 7,
       profileQuery: { data: undefined },
     })
     listStudentCourseAttempts.mockResolvedValue([
@@ -591,10 +593,7 @@ describe('CatalogProgramPage', () => {
     expect(
       screen.getByRole('button', { name: 'Reportar dado incorreto' }),
     ).toBeTruthy()
-    expect(getCatalogCourseDetails).toHaveBeenCalledWith(
-      1,
-      2026,
-    )
+    expect(getCatalogCourseDetails).toHaveBeenCalledWith(1, 2026)
   })
 
   it('links prerequisite courses to their full discipline page', async () => {
@@ -615,8 +614,8 @@ describe('CatalogProgramPage', () => {
       sessionSubject: 'student-session',
       getAccessToken: vi.fn(),
     })
-    useStudentProfile.mockReturnValue({
-      studentId: 7,
+    useStudentAcademicProfile.mockReturnValue({
+      userId: 7,
       profileQuery: { data: undefined },
     })
     listStudentCourseAttempts.mockResolvedValue([

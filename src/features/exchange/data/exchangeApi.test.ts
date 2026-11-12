@@ -47,7 +47,7 @@ describe('exchange API', () => {
   })
 
   it('loads and patches preferences using the student and bearer token', async () => {
-    const subscription = { studentId: 7, enabled: true, placeIds: [2] }
+    const subscription = { userId: 7, enabled: true, placeIds: [2] }
     const fetchMock = vi
       .fn()
       .mockImplementation(() => Promise.resolve(Response.json(subscription)))
@@ -59,7 +59,7 @@ describe('exchange API', () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(new URL(fetchMock.mock.calls[0][0]).pathname).toBe(
-      '/student/7/exchange-notice-subscription',
+      '/users/7/exchange-notice-subscription',
     )
     const [, patchInit] = fetchMock.mock.calls[1]
     expect(patchInit.method).toBe('PATCH')

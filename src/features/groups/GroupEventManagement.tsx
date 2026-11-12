@@ -45,15 +45,23 @@ function EventBack({ groupId }: { groupId: number }) {
 }
 
 function useManagedEvents() {
-  const { group, studentId, own } = useGroupManagement()
+  const { group, userId, own } = useGroupManagement()
   const auth = useOptionalAuth()
   const allowed = own.permissions.some((permission) =>
     permission.startsWith('EVENT_'),
   )
   const query = useQuery({
-    queryKey: ['private', auth.sessionSubject, 'groups', group.id, 'events'],
+    queryKey: [
+      'private',
+      auth.sessionSubject,
+      'user',
+      userId,
+      'groups',
+      group.id,
+      'events',
+    ],
     queryFn: () =>
-      groupApi.managedEvents(studentId, group.id, auth.getAccessToken),
+      groupApi.managedEvents(userId, group.id, auth.getAccessToken),
     enabled: allowed,
     retry: false,
   })
@@ -199,7 +207,7 @@ export function GroupEventsManagementPage() {
 }
 
 function EventForm({ event }: { event?: ManagedGroupEvent }) {
-  const { group, own, studentId, refresh } = useGroupManagement()
+  const { group, own, userId, refresh } = useGroupManagement()
   const auth = useOptionalAuth()
   const navigate = useNavigate()
   const originalStart = displayLocalDateTime(event?.startsAt ?? null)
@@ -255,8 +263,14 @@ function EventForm({ event }: { event?: ManagedGroupEvent }) {
   const save = useMutation({
     mutationFn: (body: Parameters<typeof groupApi.createEvent>[2]) =>
       event
-        ? groupApi.updateEvent(studentId, event.id, body, auth.getAccessToken)
-        : groupApi.createEvent(studentId, group.id, body, auth.getAccessToken),
+        ? groupApi.updateEvent(
+            userId,
+            group.id,
+            event.id,
+            body,
+            auth.getAccessToken,
+          )
+        : groupApi.createEvent(userId, group.id, body, auth.getAccessToken),
     onSuccess: (result) => {
       savedRef.current = true
       setSavedId(result.id)
@@ -498,15 +512,15 @@ export function GroupEventCreatePage() {
 }
 
 export function GroupEventDetailPage({ eventId }: { eventId: number }) {
-  const { group, own, studentId, refresh } = useGroupManagement()
+  const { group, own, userId, refresh } = useGroupManagement()
   const auth = useOptionalAuth()
   const { query, allowed } = useManagedEvents()
   const event = query.data?.find((item) => item.id === eventId)
   const action = useMutation({
     mutationFn: (kind: 'publish' | 'cancel') =>
       kind === 'publish'
-        ? groupApi.publishEvent(studentId, eventId, auth.getAccessToken)
-        : groupApi.cancelEvent(studentId, eventId, auth.getAccessToken),
+        ? groupApi.publishEvent(userId, group.id, eventId, auth.getAccessToken)
+        : groupApi.cancelEvent(userId, group.id, eventId, auth.getAccessToken),
     onSuccess: refresh,
   })
   if (!allowed)

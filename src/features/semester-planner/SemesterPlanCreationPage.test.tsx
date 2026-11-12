@@ -13,11 +13,11 @@ vi.mock('@tanstack/react-router', () => ({ useNavigate: () => mocks.navigate }))
 vi.mock('@/auth/AuthProvider', () => ({
   useOptionalAuth: () => ({ isAuthenticated: true, getAccessToken: vi.fn() }),
 }))
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile: () => ({ profileQuery: {} }),
+vi.mock('@/features/student/hooks/useStudentAcademicProfile', () => ({
+  useStudentAcademicProfile: () => ({ profileQuery: {} }),
 }))
-vi.mock('@/features/student/data/studentApi', () => ({
-  ensureCurrentStudent: mocks.ensure,
+vi.mock('@/features/identity/identityApi', () => ({
+  requireCurrentUserId: mocks.ensure,
 }))
 vi.mock('@/catalog/data/curriculumCatalogApi', () => ({
   loadCurriculumCatalog: () =>

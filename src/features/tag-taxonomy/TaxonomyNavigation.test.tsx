@@ -44,16 +44,16 @@ vi.mock('@/auth/AuthProvider', () => ({
     login: vi.fn(),
   }),
 }))
-vi.mock('@/features/student/data/studentApi', () => ({
-  getCurrentStudent: () => Promise.resolve({ studentId: 7 }),
+vi.mock('@/features/identity/identityApi', () => ({
+  getCurrentUser: () => Promise.resolve({ userId: 7 }),
 }))
 vi.mock('@/features/student-interests/data/studentTagInterestApi', () => ({
-  listStudentTagInterests: () => Promise.resolve([...mocks.interests]),
-  putStudentTagInterest: (_sid: number, id: number) => {
+  listUserInterests: () => Promise.resolve([...mocks.interests]),
+  putUserInterest: (_sid: number, id: number) => {
     mocks.interests.push({ ...mocks.tags.find((item) => item.id === id)! })
     return Promise.resolve()
   },
-  deleteStudentTagInterest: (_sid: number, id: number) => {
+  deleteUserInterest: (_sid: number, id: number) => {
     mocks.interests = mocks.interests.filter((item) => item.id !== id)
     return Promise.resolve()
   },

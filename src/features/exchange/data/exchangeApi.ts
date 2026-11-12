@@ -27,16 +27,16 @@ export const listExchangeNotices = (query: ExchangeNoticeQuery = {}) =>
   pomiSdk.data.exchangeNotices.listAll(query)
 export const listExchangePlaces = () => pomiSdk.data.exchangePlaces.listAll({})
 export const getExchangeNoticeSubscription = (
-  studentId: number,
+  userId: number,
   getAccessToken: GetAccessToken,
-) => pomiSdk.app.exchangeNoticeSubscriptions.get(studentId, { getAccessToken })
+) => pomiSdk.app.exchangeNoticeSubscriptions.get(userId, { getAccessToken })
 export const patchExchangeNoticeSubscription = (
-  studentId: number,
+  userId: number,
   patch: ExchangeNoticeSubscriptionPatch,
   getAccessToken: GetAccessToken,
 ) =>
   pomiSdk.app.exchangeNoticeSubscriptions.update(
-    studentId,
+    userId,
     {
       ...patch,
       placeIds: patch.placeIds ? [...patch.placeIds] : undefined,

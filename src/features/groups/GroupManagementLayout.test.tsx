@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
     getAccessToken: vi.fn().mockResolvedValue('token'),
     login: vi.fn(),
   },
-  student: { studentId: 7, studentQuery: { isPending: false } },
+  student: { userId: 7, userQuery: { isPending: false } },
 }))
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: ReactNode; to: string }) => (
@@ -24,8 +24,8 @@ vi.mock('@tanstack/react-router', () => ({
   useRouterState: () => '/grupos/42/gerenciar',
 }))
 vi.mock('@/auth/AuthProvider', () => ({ useOptionalAuth: () => mocks.auth }))
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile: () => mocks.student,
+vi.mock('@/features/identity', () => ({
+  useUserContext: () => mocks.student,
 }))
 vi.mock('./data/groupApi', () => ({ groupApi: mocks }))
 function renderPage() {
@@ -73,7 +73,14 @@ it('removes the workspace when permissions are revoked during the session', asyn
     { id: 8, groupId: 42, leftAt: null, permissions: [] },
   ])
   await client.invalidateQueries({
-    queryKey: ['private', mocks.auth.sessionSubject, 'groups', 'memberships'],
+    queryKey: [
+      'private',
+      mocks.auth.sessionSubject,
+      'user',
+      7,
+      'groups',
+      'memberships',
+    ],
   })
   await waitFor(() =>
     expect(screen.getByText('Acesso insuficiente')).toBeTruthy(),

@@ -48,13 +48,13 @@ vi.mock('./data/tagTaxonomyApi', () => ({
   deleteCategory: vi.fn(),
   deleteTag: mocks.deleteTag,
 }))
-vi.mock('@/features/student/data/studentApi', () => ({
-  getCurrentStudent: mocks.student,
+vi.mock('@/features/identity/identityApi', () => ({
+  getCurrentUser: mocks.student,
 }))
 vi.mock('@/features/student-interests/data/studentTagInterestApi', () => ({
-  listStudentTagInterests: mocks.interests,
-  putStudentTagInterest: mocks.putInterest,
-  deleteStudentTagInterest: mocks.removeInterest,
+  listUserInterests: mocks.interests,
+  putUserInterest: mocks.putInterest,
+  deleteUserInterest: mocks.removeInterest,
 }))
 const tags = [
   { id: 2, name: 'Álgebra', categoryId: 1, parentTagId: null },
@@ -80,7 +80,7 @@ beforeEach(() => {
     data: [{ id: 10, code: 'MA141', name: 'Cálculo I', credits: 6 }],
     links: { next: '/next' },
   })
-  mocks.student.mockResolvedValue({ studentId: 7 })
+  mocks.student.mockResolvedValue({ userId: 7 })
   mocks.interests.mockResolvedValue([])
   mocks.updateTag.mockResolvedValue(tags[0])
   mocks.getCategory.mockResolvedValue({ id: 1, name: 'Matemática' })
@@ -371,9 +371,9 @@ describe('taxonomy journeys', () => {
         .getAttribute('aria-pressed'),
     ).toBe('true')
   })
-  it('allows contribution without a student profile while explaining the interest requirement', async () => {
+  it('allows contribution without a resolved user while explaining the interest requirement', async () => {
     mocks.auth.isAuthenticated = true
-    mocks.student.mockResolvedValue({ studentId: null })
+    mocks.student.mockResolvedValue({ userId: null })
     renderPage(
       <TaxonomyExplorePage
         search={{ q: 'algebra' }}
@@ -382,7 +382,7 @@ describe('taxonomy journeys', () => {
     )
     expect(
       await screen.findByText(
-        'Cadastre seu perfil de estudante para registrar interesses.',
+        'Não foi possível identificar sua conta para registrar interesses.',
       ),
     ).toBeTruthy()
     expect(

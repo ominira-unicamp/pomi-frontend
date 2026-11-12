@@ -39,7 +39,7 @@ function editor(variant?: 'profile') {
       label="Avatar do estudante"
       variant={variant}
       onPendingChange={mocks.pending}
-      target={{ kind: 'studentAvatar', studentId: 7 }}
+      target={{ kind: 'userAvatar', userId: 7 }}
       mediaId={null}
       preset="avatarSmall"
       onChanged={vi.fn()}
@@ -105,7 +105,7 @@ describe('media editor', () => {
         <MediaEditor
           label="Foto do perfil"
           variant="profile"
-          target={{ kind: 'studentAvatar', studentId: 7 }}
+          target={{ kind: 'userAvatar', userId: 7 }}
           mediaId="saved-photo"
           preset="avatarSmall"
           onChanged={changed}
@@ -115,7 +115,7 @@ describe('media editor', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Remover foto' }))
     expect(await screen.findByText('Foto removida.')).toBeTruthy()
     expect(mocks.removeMedia).toHaveBeenCalledWith(
-      { kind: 'studentAvatar', studentId: 7 },
+      { kind: 'userAvatar', userId: 7 },
       mocks.getAccessToken,
     )
     expect(changed).toHaveBeenCalledOnce()

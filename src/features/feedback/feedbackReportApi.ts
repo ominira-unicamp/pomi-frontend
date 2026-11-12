@@ -31,21 +31,25 @@ export function submitAnonymousFeedbackReport(input: FeedbackReportInput) {
   return pomiSdk.app.feedbackReports.create(input)
 }
 
-export function submitStudentFeedbackReport(
-  studentId: number,
+export function submitUserFeedbackReport(
+  userId: number,
   input: FeedbackReportInput,
   getAccessToken: GetAccessToken,
 ) {
-  return pomiSdk.app.feedbackReports.createForStudent(studentId, input, {
+  return pomiSdk.app.feedbackReports.createForUser(userId, input, {
     getAccessToken,
   })
 }
 
-export function listStudentFeedbackReports(
-  studentId: number,
+export function listUserFeedbackReports(
+  userId: number,
   getAccessToken: GetAccessToken,
 ) {
-  return pomiSdk.app.feedbackReports.listForStudentAll(studentId, {}, {
-    getAccessToken,
-  })
+  return pomiSdk.app.feedbackReports.listForUserAll(
+    userId,
+    {},
+    {
+      getAccessToken,
+    },
+  )
 }

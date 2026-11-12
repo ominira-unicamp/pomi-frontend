@@ -4,8 +4,8 @@ import type {
 } from '@pomi/planner-domain/curriculum'
 import type {
   Curriculum,
-  createStudentCurriculaInput,
-  updateStudentCurriculaInput,
+  createCurriculumsInput,
+  updateCurriculumsInput,
 } from '@ominira/pomi-sdk/generated/app'
 import { pomiSdk } from '@/api/client'
 
@@ -68,11 +68,11 @@ function documentFromApi(entity: CurriculumApiEntity): CurriculumDocument {
   }
 }
 export async function listCurricula(
-  studentId: number,
+  userId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  const summaries = await pomiSdk.app.curricula.listAll(
-    studentId,
+  const summaries = await pomiSdk.app.curriculums.listAll(
+    userId,
     {},
     { getAccessToken },
   )
@@ -105,56 +105,50 @@ export async function listCurricula(
 }
 
 export async function getCurriculum(
-  studentId: number,
+  userId: number,
   curriculumId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  const entity = await pomiSdk.app.curricula.get(
-    studentId,
-    curriculumId,
-    { getAccessToken },
-  )
+  const entity = await pomiSdk.app.curriculums.get(userId, curriculumId, {
+    getAccessToken,
+  })
   return documentFromApi(entity)
 }
 
 export async function createCurriculum(
-  studentId: number,
+  userId: number,
   document: CurriculumDocument,
   getAccessToken: () => Promise<string>,
 ) {
-  const entity = await pomiSdk.app.curricula.create(
-    studentId,
-    toCreateBody(document) as createStudentCurriculaInput['body'],
+  const entity = await pomiSdk.app.curriculums.create(
+    userId,
+    toCreateBody(document) as createCurriculumsInput['body'],
     { getAccessToken },
   )
   return documentFromApi(entity)
 }
 
 export async function patchCurriculum(
-  studentId: number,
+  userId: number,
   curriculumId: number,
   body: Record<string, unknown>,
   getAccessToken: () => Promise<string>,
 ) {
-  const entity = await pomiSdk.app.curricula.update(
-    studentId,
+  const entity = await pomiSdk.app.curriculums.update(
+    userId,
     curriculumId,
-    body as updateStudentCurriculaInput['body'],
+    body as updateCurriculumsInput['body'],
     { getAccessToken },
   )
   return documentFromApi(entity)
 }
 
 export async function deleteCurriculum(
-  studentId: number,
+  userId: number,
   curriculumId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  await pomiSdk.app.curricula.delete(
-    studentId,
-    curriculumId,
-    { getAccessToken },
-  )
+  await pomiSdk.app.curriculums.delete(userId, curriculumId, { getAccessToken })
 }
 
 function toCreateBody(document: CurriculumDocument) {
@@ -259,7 +253,11 @@ export function stateFromDocument(
         ? { catalogProgramId: String(selection.catalogProgramId) as never }
         : {}),
       ...(selection.catalogProgramVariantId !== null
-        ? { catalogProgramVariantId: String(selection.catalogProgramVariantId) as never }
+        ? {
+            catalogProgramVariantId: String(
+              selection.catalogProgramVariantId,
+            ) as never,
+          }
         : {}),
       ...(selection.languageId !== null
         ? { languageId: String(selection.languageId) as never }
@@ -327,7 +325,9 @@ export function patchBodyFromState(
     name: next.name,
     selection: {
       catalogProgramId: toNumberOrNull(next.selection.catalogProgramId),
-      catalogProgramVariantId: toNumberOrNull(next.selection.catalogProgramVariantId),
+      catalogProgramVariantId: toNumberOrNull(
+        next.selection.catalogProgramVariantId,
+      ),
       languageId: toNumberOrNull(next.selection.languageId),
     },
     planningStart: next.planningStart,

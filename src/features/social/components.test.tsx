@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
 
 import { PersonSummary } from './components'
-import type { PublicPerson } from '@/features/friends/studentSocialApi'
+import type { PublicPerson } from '@/features/friends/userSocialApi'
 
 vi.mock('@/auth/AuthProvider', () => ({
   useOptionalAuth: () => ({ sessionSubject: null }),

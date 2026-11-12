@@ -81,7 +81,7 @@ export function TaxonomyExplorePage({
 }) {
   const { categories, tags } = useTaxonomy()
   const interestState = useTaxonomyInterests()
-  const { auth, student, studentId, interests } = interestState
+  const { auth, student, userId, interests } = interestState
   const query = normalizeTagSearch(search.q ?? '')
   const filtered = useMemo(
     () =>
@@ -116,7 +116,7 @@ export function TaxonomyExplorePage({
     Boolean(search.interests) &&
     (!auth.initialized ||
       (auth.isAuthenticated &&
-        (student.isPending || (Boolean(studentId) && interests.isPending))))
+        (student.isPending || (Boolean(userId) && interests.isPending))))
   const groups = (categories.data ?? [])
     .filter(
       (category) => !search.categoryId || category.id === search.categoryId,
@@ -247,9 +247,10 @@ export function TaxonomyExplorePage({
                 Entrar para registrar interesses
               </Button>
             )}
-            {auth.isAuthenticated && student.isSuccess && !studentId && (
+            {auth.isAuthenticated && student.isSuccess && !userId && (
               <p className="text-sm text-muted-foreground">
-                Cadastre seu perfil de estudante para registrar interesses.
+                Não foi possível identificar sua conta para registrar
+                interesses.
               </p>
             )}
           </div>
@@ -309,9 +310,9 @@ export function TaxonomyExplorePage({
             <p className="text-sm text-muted-foreground">
               Tente carregar seus interesses novamente para aplicar este filtro.
             </p>
-          ) : search.interests && !studentId ? (
+          ) : search.interests && !userId ? (
             <p className="text-sm text-muted-foreground">
-              O filtro de interesses requer um perfil de estudante.
+              O filtro de interesses exige uma conta de usuário disponível.
             </p>
           ) : filtered.length === 0 ? (
             <EmptyState

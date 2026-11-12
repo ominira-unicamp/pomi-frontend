@@ -1,7 +1,4 @@
-import type {
-  Friendship,
-  PublicPerson,
-} from '@/features/friends/studentSocialApi'
+import type { Friendship, PublicPerson } from '@/features/friends/userSocialApi'
 
 export type RelationshipState =
   | 'SELF'
@@ -12,10 +9,10 @@ export type RelationshipState =
 
 export function relationshipFor(
   person: PublicPerson,
-  studentId: number | undefined,
+  userId: number | undefined,
   friendships: ReadonlyArray<Friendship>,
 ): RelationshipState {
-  if (studentId === undefined) return 'NONE'
+  if (userId === undefined) return 'NONE'
   const friendship = friendships.find(
     (item) => item.friend.publicId === person.publicId,
   )

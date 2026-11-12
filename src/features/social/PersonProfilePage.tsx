@@ -46,10 +46,10 @@ import {
   listFriendships,
   removeFriendship,
   requestFriendship,
-} from '@/features/friends/studentSocialApi'
+} from '@/features/friends/userSocialApi'
 import { groupApi } from '@/features/groups/data/groupApi'
 import { listSharedPeriodPlanningsForPerson } from '@/features/planning-shared/data/sharedPeriodPlanningApi'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useUserContext } from '@/features/identity'
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
 import { GroupAvatar, PersonAvatar } from '@/features/media/IdentityImages'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
@@ -84,42 +84,39 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const queryClient = useQueryClient()
-  const { studentId, studentQuery } = useStudentProfile()
+  const { userId, userQuery } = useUserContext()
   const personQuery = useQuery({
-    queryKey: privateQueryKeys.studentSocialPerson(
+    queryKey: privateQueryKeys.userSocialPerson(
       sessionSubject,
-      studentId,
+      userId,
       publicId,
     ),
-    queryFn: () => getPerson(studentId!, publicId, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryFn: () => getPerson(userId!, publicId, auth.getAccessToken),
+    enabled: Boolean(userId),
   })
   const ownProfileQuery = useQuery({
-    queryKey: privateQueryKeys.studentSocialProfile(sessionSubject, studentId),
-    queryFn: () => getPublicProfile(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.userSocialProfile(sessionSubject, userId),
+    queryFn: () => getPublicProfile(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
   })
   const friendshipsQuery = useQuery({
-    queryKey: privateQueryKeys.studentSocialFriendships(
-      sessionSubject,
-      studentId,
-    ),
-    queryFn: () => listFriendships(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.userSocialFriendships(sessionSubject, userId),
+    queryFn: () => listFriendships(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
   })
   const plansQuery = useQuery({
-    queryKey: privateQueryKeys.studentSharedPeriodPlannings(
+    queryKey: privateQueryKeys.userSharedPeriodPlans(
       sessionSubject,
-      studentId,
+      userId,
       publicId,
     ),
     queryFn: () =>
       listSharedPeriodPlanningsForPerson(
-        studentId!,
+        userId!,
         publicId,
         auth.getAccessToken,
       ),
-    enabled: Boolean(studentId),
+    enabled: Boolean(userId),
   })
   const publicProfileAvailable = Boolean(
     personQuery.data ||
@@ -138,21 +135,20 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
   })
   const refresh = () =>
     queryClient.invalidateQueries({
-      queryKey: privateQueryKeys.studentSocial(sessionSubject, studentId),
+      queryKey: privateQueryKeys.userSocial(sessionSubject, userId),
     })
   const add = useMutation({
-    mutationFn: () =>
-      requestFriendship(studentId!, publicId, auth.getAccessToken),
+    mutationFn: () => requestFriendship(userId!, publicId, auth.getAccessToken),
     onSuccess: refresh,
   })
   const accept = useMutation({
     mutationFn: (id: number) =>
-      acceptFriendship(studentId!, id, auth.getAccessToken),
+      acceptFriendship(userId!, id, auth.getAccessToken),
     onSuccess: refresh,
   })
   const remove = useMutation({
     mutationFn: (id: number) =>
-      removeFriendship(studentId!, id, auth.getAccessToken),
+      removeFriendship(userId!, id, auth.getAccessToken),
     onSuccess: async () => {
       setConfirmRemoval(false)
       await refresh()
@@ -169,21 +165,17 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
       <PageContainer>
         <PageHeader
           eyebrow="Comunidade"
-          title="Perfil de estudante"
+          title="Perfil de pessoa"
           description="Conheça pessoas da comunidade POMI."
         />
         <AuthRequiredState
           title="Entre para visualizar este perfil"
-          description="Perfis de estudantes ficam disponíveis somente para a comunidade autenticada."
+          description="Perfis de pessoas ficam disponíveis somente para a comunidade autenticada."
           onLogin={() => void auth.login(window.location.href)}
         />
       </PageContainer>
     )
-  if (
-    studentQuery.isLoading ||
-    personQuery.isLoading ||
-    ownProfileQuery.isLoading
-  )
+  if (userQuery.isLoading || personQuery.isLoading || ownProfileQuery.isLoading)
     return (
       <PageContainer>
         <LoadingState label="Carregando perfil" />
@@ -193,7 +185,7 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
   const person =
     personQuery.data ??
     (ownProfile?.publicId === publicId ? ownProfile : undefined)
-  if (!studentId || !person)
+  if (!userId || !person)
     return (
       <PageContainer>
         <EmptyState
@@ -229,7 +221,7 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
   )
   const state = isSelf
     ? ('SELF' as const)
-    : relationshipFor(person, studentId, friendships)
+    : relationshipFor(person, userId, friendships)
   const friendship = friendshipFor(publicId, friendships)
   return (
     <PageContainer className="min-w-0 space-y-6">

@@ -32,9 +32,11 @@ vi.mock('@/auth/AuthProvider', () => ({
   useOptionalAuth: () => authState,
 }))
 
+vi.mock('@/features/identity/identityApi', () => ({
+  requireCurrentUserId: vi.fn(),
+  getCurrentUser: vi.fn(() => Promise.resolve({ userId: 1 })),
+}))
 vi.mock('@/features/student/data/studentApi', () => ({
-  ensureCurrentStudent: vi.fn(),
-  getCurrentStudent: vi.fn(() => Promise.resolve({ studentId: 1 })),
   isApprovedStudentCourseAttempt: (attempt: { status: string }) =>
     attempt.status === 'APPROVED',
   listStudentCourseAttempts: vi.fn(() =>
@@ -48,9 +50,9 @@ vi.mock('@/features/student/data/studentApi', () => ({
   ),
 }))
 
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile: () => ({
-    studentId: 1,
+vi.mock('@/features/student/hooks/useStudentAcademicProfile', () => ({
+  useStudentAcademicProfile: () => ({
+    userId: 1,
     profileQuery: {
       data: {
         catalogId: 1,
@@ -184,11 +186,9 @@ describe('CurriculumPlanCreationPage', () => {
       ).value,
     ).toBe('2023')
     expect(
-      (
-        screen.getByRole('combobox', {
-          name: 'Período inicial',
-        }) as HTMLInputElement
-      ).value,
+      screen.getByRole<HTMLInputElement>('combobox', {
+        name: 'Período inicial',
+      }).value,
     ).toBe('1º semestre')
     fireEvent.click(await screen.findByRole('button', { name: 'Continuar' }))
 

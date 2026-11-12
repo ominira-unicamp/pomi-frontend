@@ -31,17 +31,18 @@ export type SharedPeriodPlanning = Readonly<{
   createdAt: GeneratedSharedPeriodPlanning['createdAt']
   updatedAt: GeneratedSharedPeriodPlanning['updatedAt']
 }>
-export type SharedPeriodYearPeriod = SharedPeriodPlanning['studyPeriodYearPeriod']
+export type SharedPeriodYearPeriod =
+  SharedPeriodPlanning['studyPeriodYearPeriod']
 
 type GetAccessToken = () => Promise<string>
 
 export async function listSharedPeriodPlanningsForPerson(
-  studentId: number,
+  userId: number,
   ownerPublicId: string,
   getAccessToken: GetAccessToken,
 ) {
-  const pages = pomiSdk.app.studentSharedPeriodPlannings.pages(
-    studentId,
+  const pages = pomiSdk.app.userSharedPeriodPlans.pages(
+    userId,
     { page: 1, pageSize: 20, filter: { ownerPublicId } },
     { getAccessToken },
   )
@@ -55,22 +56,22 @@ export async function listSharedPeriodPlanningsForPerson(
 }
 
 export const getPublicSharedPeriodPlanning = (shareId: string) =>
-  pomiSdk.app.sharedPeriodPlannings.getPublic(shareId)
-export const getSharedPeriodPlanningForStudent = (
-  studentId: number,
+  pomiSdk.app.sharedPeriodPlans.getPublic(shareId)
+export const getSharedPeriodPlanningForUser = (
+  userId: number,
   shareId: string,
   getAccessToken: GetAccessToken,
 ) =>
-  pomiSdk.app.sharedPeriodPlannings.getForStudent(studentId, shareId, {
+  pomiSdk.app.sharedPeriodPlans.getForUser(userId, shareId, {
     getAccessToken,
   })
 export const copySharedPeriodPlanning = (
-  studentId: number,
+  userId: number,
   planning: Pick<SharedPeriodPlanning, 'name' | 'studyPeriodId' | 'classes'>,
   getAccessToken: GetAccessToken,
 ) =>
-  pomiSdk.app.periodPlannings.create(
-    studentId,
+  pomiSdk.app.periodPlans.create(
+    userId,
     {
       name: `Cópia de ${planning.name}`,
       studyPeriodId: planning.studyPeriodId,

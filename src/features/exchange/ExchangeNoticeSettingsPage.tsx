@@ -29,7 +29,7 @@ import {
   listExchangePlaces,
   patchExchangeNoticeSubscription,
 } from '@/features/exchange/data/exchangeApi'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useUserContext } from '@/features/identity'
 import {
   privateQueryKeys,
   publicQueryKeys,
@@ -49,7 +49,7 @@ export function ExchangeNoticeSettingsPage() {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const queryClient = useQueryClient()
-  const { studentId, studentQuery } = useStudentProfile()
+  const { userId, userQuery } = useUserContext()
   const placesQuery = useQuery({
     queryKey: publicQueryKeys.exchangePlaces(),
     queryFn: listExchangePlaces,
@@ -57,10 +57,9 @@ export function ExchangeNoticeSettingsPage() {
     retry: false,
   })
   const subscriptionQuery = useQuery({
-    queryKey: privateQueryKeys.exchangeSubscription(sessionSubject, studentId),
-    queryFn: () =>
-      getExchangeNoticeSubscription(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.exchangeSubscription(sessionSubject, userId),
+    queryFn: () => getExchangeNoticeSubscription(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
   const [draft, setDraft] = useState<
@@ -88,10 +87,10 @@ export function ExchangeNoticeSettingsPage() {
       : undefined
   const mutation = useMutation({
     mutationFn: () =>
-      patchExchangeNoticeSubscription(studentId!, patch!, auth.getAccessToken),
+      patchExchangeNoticeSubscription(userId!, patch!, auth.getAccessToken),
     onSuccess: (subscription) => {
       queryClient.setQueryData(
-        privateQueryKeys.exchangeSubscription(sessionSubject, studentId),
+        privateQueryKeys.exchangeSubscription(sessionSubject, userId),
         subscription,
       )
       setDraft({
@@ -104,18 +103,14 @@ export function ExchangeNoticeSettingsPage() {
   if (
     !auth.initialized ||
     !auth.isAuthenticated ||
-    studentQuery.isLoading ||
+    userQuery.isLoading ||
     subscriptionQuery.isLoading ||
     placesQuery.isLoading
   ) {
     return <LoadingState label="Carregando configurações de alertas" />
   }
 
-  if (
-    studentQuery.isError ||
-    subscriptionQuery.isError ||
-    placesQuery.isError
-  ) {
+  if (userQuery.isError || subscriptionQuery.isError || placesQuery.isError) {
     return (
       <PageContainer>
         <ErrorState
@@ -124,7 +119,7 @@ export function ExchangeNoticeSettingsPage() {
           action={{
             label: 'Tentar novamente',
             onClick: () => {
-              void studentQuery.refetch()
+              void userQuery.refetch()
               void subscriptionQuery.refetch()
               void placesQuery.refetch()
             },
@@ -134,12 +129,12 @@ export function ExchangeNoticeSettingsPage() {
     )
   }
 
-  if (!studentId || !draft) {
+  if (!userId || !draft) {
     return (
       <PageContainer>
         <ErrorState
-          title="Complete seu perfil acadêmico"
-          description="Sua conta precisa estar associada a um estudante para configurar alertas."
+          title="Conta de usuário indisponível"
+          description="Não foi possível identificar sua conta para configurar alertas."
         />
       </PageContainer>
     )

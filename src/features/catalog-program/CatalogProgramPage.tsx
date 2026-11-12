@@ -59,7 +59,7 @@ import {
   isApprovedStudentCourseAttempt,
   listStudentCourseAttempts,
 } from '@/features/student/data/studentApi'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useStudentAcademicProfile } from '@/features/student/hooks/useStudentAcademicProfile'
 import {
   privateQueryKeys,
   publicQueryKeys,
@@ -91,15 +91,15 @@ export function CatalogProgramPage({
   ) => void
 }) {
   const auth = useOptionalAuth()
-  const { profileQuery, studentId } = useStudentProfile()
+  const { profileQuery, userId } = useStudentAcademicProfile()
   const [markCompleted, setMarkCompleted] = useState(false)
   const attemptsQuery = useQuery({
     queryKey: privateQueryKeys.courseAttempts(
       auth.sessionSubject ?? 'unknown-session',
-      studentId,
+      userId,
     ),
-    queryFn: () => listStudentCourseAttempts(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryFn: () => listStudentCourseAttempts(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
     staleTime: 5 * 60_000,
   })
   const completedCourseIds = useMemo(
@@ -237,7 +237,7 @@ export function CatalogProgramPage({
           auth.isAuthenticated ? (
             <CompletedCoursesToggle
               checked={markCompleted}
-              disabled={!studentId || attemptsQuery.isLoading}
+              disabled={!userId || attemptsQuery.isLoading}
               onClick={() => setMarkCompleted((current) => !current)}
             />
           ) : undefined

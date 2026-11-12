@@ -9,37 +9,39 @@ import { pomiSdk } from '@/api/client'
 export type StudentAbsenceDayOfWeek = DayOfWeek
 export type StudyPeriodYearPeriod = YearPeriod
 export type CreateStudentAbsenceInput = Readonly<
-  createStudentAbsencesInput['body']
+  createStudentAbsencesInput['body'] & { courseAttemptId: number }
 >
 export type { StudentAbsence }
 
 type GetAccessToken = () => Promise<string>
 
 export function listStudentAbsences(
-  studentId: number,
+  userId: number,
   getAccessToken: GetAccessToken,
 ) {
-  return pomiSdk.app.studentAbsences.listAll(
-    studentId,
-    {},
+  return pomiSdk.app.studentAbsences.listAll(userId, {}, { getAccessToken })
+}
+
+export function createStudentAbsence(
+  userId: number,
+  input: CreateStudentAbsenceInput,
+  getAccessToken: GetAccessToken,
+) {
+  return pomiSdk.app.studentAbsences.create(
+    userId,
+    input.courseAttemptId,
+    { classScheduleId: input.classScheduleId, date: input.date },
     { getAccessToken },
   )
 }
 
-export function createStudentAbsence(
-  studentId: number,
-  input: CreateStudentAbsenceInput,
-  getAccessToken: GetAccessToken,
-) {
-  return pomiSdk.app.studentAbsences.create(studentId, input, { getAccessToken })
-}
-
 export function deleteStudentAbsence(
-  studentId: number,
+  userId: number,
+  attemptId: number,
   absenceId: number,
   getAccessToken: GetAccessToken,
 ) {
-  return pomiSdk.app.studentAbsences.delete(studentId, absenceId, {
+  return pomiSdk.app.studentAbsences.delete(userId, attemptId, absenceId, {
     getAccessToken,
   })
 }

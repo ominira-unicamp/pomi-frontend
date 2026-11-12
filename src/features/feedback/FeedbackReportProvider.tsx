@@ -8,14 +8,13 @@ import {
 } from 'react'
 import type { ReactNode } from 'react'
 
-import type {FeedbackReportInput} from '@/features/feedback/feedbackReportApi';
+import type { FeedbackReportInput } from '@/features/feedback/feedbackReportApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
-  
   submitAnonymousFeedbackReport,
-  submitStudentFeedbackReport
+  submitUserFeedbackReport,
 } from '@/features/feedback/feedbackReportApi'
-import { useCurrentStudent } from '@/features/student/hooks/useStudentProfile'
+import { useCurrentUser } from '@/features/identity'
 import { FeedbackReportDialog } from '@/features/feedback/FeedbackReportDialog'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
@@ -58,7 +57,7 @@ function clearDraft() {
 
 export function FeedbackReportProvider({ children }: { children: ReactNode }) {
   const auth = useOptionalAuth()
-  const student = useCurrentStudent()
+  const currentUser = useCurrentUser()
   const queryClient = useQueryClient()
   const [draft, setDraft] = useState<FeedbackDraft | undefined>(() =>
     readDraft(),
@@ -67,10 +66,11 @@ export function FeedbackReportProvider({ children }: { children: ReactNode }) {
   const mutation = useMutation({
     mutationFn: async (submission: FeedbackDraft) => {
       if (submission.identified) {
-        const studentId = student.data?.studentId
-        if (!studentId) throw new Error('Student feedback requires a student.')
-        return submitStudentFeedbackReport(
-          studentId,
+        const userId = currentUser.data?.userId
+        if (!userId)
+          throw new Error('O envio identificado exige uma conta de usuário.')
+        return submitUserFeedbackReport(
+          userId,
           submission.input,
           auth.getAccessToken,
         )
@@ -81,7 +81,7 @@ export function FeedbackReportProvider({ children }: { children: ReactNode }) {
   const openFeedback = useCallback(
     (input: Partial<FeedbackReportInput> = {}) => {
       setDraft({
-        identified: auth.isAuthenticated && Boolean(student.data?.studentId),
+        identified: auth.isAuthenticated && Boolean(currentUser.data?.userId),
         input: {
           kind: input.kind ?? 'BUG',
           target: input.target ?? { type: 'GENERAL' },
@@ -92,7 +92,7 @@ export function FeedbackReportProvider({ children }: { children: ReactNode }) {
       })
       setOpen(true)
     },
-    [auth.isAuthenticated, student.data?.studentId],
+    [auth.isAuthenticated, currentUser.data?.userId],
   )
   const handleOpenChange = useCallback(
     (nextOpen: boolean) => {
@@ -105,16 +105,16 @@ export function FeedbackReportProvider({ children }: { children: ReactNode }) {
     async (submission: FeedbackDraft) => {
       await mutation.mutateAsync(submission)
       clearDraft()
-      if (student.data?.studentId) {
+      if (currentUser.data?.userId) {
         await queryClient.invalidateQueries({
           queryKey: privateQueryKeys.feedbackReports(
             auth.sessionSubject ?? 'unknown-session',
-            student.data.studentId,
+            currentUser.data.userId,
           ),
         })
       }
     },
-    [auth.sessionSubject, mutation, queryClient, student.data?.studentId],
+    [auth.sessionSubject, mutation, queryClient, currentUser.data?.userId],
   )
   const handleLogin = useCallback(
     (submission: FeedbackDraft) => {
@@ -133,7 +133,7 @@ export function FeedbackReportProvider({ children }: { children: ReactNode }) {
         onOpenChange={handleOpenChange}
         initialDraft={draft}
         authenticated={auth.isAuthenticated}
-        studentId={student.data?.studentId ?? undefined}
+        userId={currentUser.data?.userId ?? undefined}
         submitting={mutation.isPending}
         error={mutation.error}
         submitted={mutation.isSuccess}

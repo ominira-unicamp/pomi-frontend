@@ -14,6 +14,7 @@ import type {
 } from '@/features/student/data/studentApi'
 import type { StudyPeriodYearPeriod } from '@/features/student/data/studyPeriod'
 import type { StudentHistoryParseResult } from '@/features/student/historyImport/studentHistoryParser'
+import { UserIdentityState } from '@/features/identity/UserIdentityState'
 import {
   ErrorState,
   LoadingState,
@@ -115,8 +116,10 @@ export function CourseSituationPage() {
   const {
     auth,
     sessionSubject,
-    studentId,
+    userId,
     profileQuery,
+    userQuery,
+    studentId,
     attemptsQuery,
     periodsQuery,
     staticQuery,
@@ -190,8 +193,7 @@ export function CourseSituationPage() {
     queryFn: () =>
       listClassSchedulesByStudyPeriod(Number(selectedSchedulePeriodId)),
     enabled:
-      activeTab === 'enrolled' &&
-      Boolean(selectedSchedulePeriodId && studentId),
+      activeTab === 'enrolled' && Boolean(selectedSchedulePeriodId && userId),
     staleTime: Infinity,
   })
   const selectedPeriodAttempts = enrolledAttempts.filter(
@@ -217,7 +219,7 @@ export function CourseSituationPage() {
         (scheduleQuery.isSuccess && !classesWithSchedule.has(attempt.classId)),
     ).length
   const absenceController = useStudentAbsences(
-    studentId ?? undefined,
+    userId ?? undefined,
     auth.getAccessToken,
     enrolledAttempts.length > 0,
   )
@@ -260,7 +262,7 @@ export function CourseSituationPage() {
   }
 
   async function saveAttempt() {
-    if (attemptSaving || !studentId || gradeError) return
+    if (attemptSaving || !userId || gradeError) return
     const { editingAttemptId, courseId, studyPeriodId, classId } = attemptForm
     const evaluationMode = attemptForm.evaluationMode
     const status = attemptForm.status
@@ -277,20 +279,20 @@ export function CourseSituationPage() {
     try {
       if (editingAttemptId) {
         await patchStudentCourseAttempt(
-          studentId,
+          userId,
           editingAttemptId,
           body,
           auth.getAccessToken,
         )
       } else if (courseId) {
         await createStudentCourseAttempt(
-          studentId,
+          userId,
           { ...body, courseId: Number(courseId) },
           auth.getAccessToken,
         )
       }
       await queryClient.invalidateQueries({
-        queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
+        queryKey: privateQueryKeys.courseAttempts(sessionSubject, userId),
       })
       setAttemptFeedback('Tentativa salva.')
       setActiveTab(status === 'ENROLLED' ? 'enrolled' : 'history')
@@ -306,19 +308,18 @@ export function CourseSituationPage() {
   }
 
   async function confirmRemoveAttempt() {
-    if (!studentId || removalAttemptId === undefined || removalInProgress)
-      return
+    if (!userId || removalAttemptId === undefined || removalInProgress) return
     setAttemptFeedback(undefined)
     setRemovalError(undefined)
     setRemovalInProgress(true)
     try {
       await deleteStudentCourseAttempt(
-        studentId,
+        userId,
         removalAttemptId,
         auth.getAccessToken,
       )
       await queryClient.invalidateQueries({
-        queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
+        queryKey: privateQueryKeys.courseAttempts(sessionSubject, userId),
       })
       setRemovalAttemptId(undefined)
       setAttemptFeedback('Tentativa removida.')
@@ -330,17 +331,17 @@ export function CourseSituationPage() {
   }
 
   async function saveProfile(value: CourseProfileValues) {
-    if (!studentId) return
-    await patchStudentProfile(studentId, value, auth.getAccessToken)
+    if (!userId) return
+    await patchStudentProfile(userId, value, auth.getAccessToken)
     await queryClient.invalidateQueries({
-      queryKey: privateQueryKeys.studentProfile(sessionSubject, studentId),
+      queryKey: privateQueryKeys.studentAcademicProfile(sessionSubject, userId),
     })
     setProfileEditing(false)
     setProfileSaved(true)
   }
 
   async function parseHistoryFile(file: File) {
-    if (!studentId || historyImporting) return
+    if (!userId || historyImporting) return
     setHistoryImporting(true)
     setHistoryImportError(undefined)
     setHistoryImportSummary(undefined)
@@ -358,16 +359,16 @@ export function CourseSituationPage() {
   }
 
   async function confirmHistoryImport(value: StudentHistoryImport) {
-    if (!studentId || !pendingHistoryImport || historyImporting) return
+    if (!userId || !pendingHistoryImport || historyImporting) return
     setHistoryImporting(true)
     setHistoryImportError(undefined)
     try {
       setHistoryImportSummary(
-        await importStudentHistory(studentId, value, auth.getAccessToken),
+        await importStudentHistory(userId, value, auth.getAccessToken),
       )
       setPendingHistoryImport(undefined)
       await queryClient.invalidateQueries({
-        queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
+        queryKey: privateQueryKeys.courseAttempts(sessionSubject, userId),
       })
     } catch (error) {
       setHistoryImportError(
@@ -385,7 +386,7 @@ export function CourseSituationPage() {
       (absence) => absence.studentCourseAttemptId === attemptId,
     ).length
 
-  if (!auth.initialized || profileQuery.isLoading)
+  if (!auth.initialized || (auth.isAuthenticated && userQuery.isPending))
     return (
       <PageContainer>
         <LoadingState label="Carregando situação do curso" />
@@ -445,10 +446,10 @@ export function CourseSituationPage() {
       </PageContainer>
     )
 
-  if (!studentId)
+  if (!userId)
     return (
       <PageContainer>
-        <LoadingState label="Preparando sua situação do curso" />
+        <UserIdentityState query={userQuery} />
       </PageContainer>
     )
 
@@ -498,8 +499,13 @@ export function CourseSituationPage() {
       <AcademicProfileSummary
         profile={profileQuery.data}
         data={staticQuery.data}
-        loading={staticQuery.isPending || profileQuery.isPending}
-        editDisabled={staticQuery.isError || profileQuery.isError}
+        loading={staticQuery.isPending || profileQuery.isLoading}
+        editDisabled={
+          !studentId ||
+          !profileQuery.data ||
+          staticQuery.isError ||
+          profileQuery.isError
+        }
         onEdit={() => {
           setProfileSaved(false)
           setProfileEditing(true)
@@ -735,7 +741,7 @@ export function CourseSituationPage() {
         onOpenChange={(open) => {
           if (!open) setEvaluationTarget(undefined)
         }}
-        studentId={studentId}
+        userId={userId}
         target={evaluationTarget}
       />
     </PageContainer>

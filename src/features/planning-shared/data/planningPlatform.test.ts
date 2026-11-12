@@ -32,3 +32,25 @@ describe('createLocalStorageCurriculumPlannerStateStore', () => {
     await expect(store.read()).resolves.toBeNull()
   })
 })
+
+it('preserves a corrupted persisted draft and reports recovery failure', async () => {
+  const raw = '{broken'
+  window.localStorage.setItem('legacy-draft', raw)
+  window.localStorage.setItem('pomi-theme', 'dark')
+  const store = createLocalStorageCurriculumPlannerStateStore({
+    key: 'legacy-draft',
+  })
+  await expect(store.read()).rejects.toThrow('preservados')
+  expect(window.localStorage.getItem('legacy-draft')).toBe(raw)
+  expect(window.localStorage.getItem('pomi-theme')).toBe('dark')
+})
+
+it('rejects an incompatible persisted draft without rewriting it', async () => {
+  const raw = JSON.stringify({ version: 2, state: {} })
+  window.localStorage.setItem('legacy-draft', raw)
+  const store = createLocalStorageCurriculumPlannerStateStore({
+    key: 'legacy-draft',
+  })
+  await expect(store.read()).rejects.toThrow('preservados')
+  expect(window.localStorage.getItem('legacy-draft')).toBe(raw)
+})

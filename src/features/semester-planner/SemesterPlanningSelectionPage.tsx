@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 
 import type { PersistedSemesterPlanning } from '@/features/semester-planner/data/semesterPlanningApi'
+import { getCurrentUser } from '@/features/identity/identityApi'
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
@@ -19,7 +20,7 @@ import {
   PageHeader,
 } from '@/components/PageLayout'
 import { Card } from '@/components/ui/card'
-import { getCurrentStudent } from '@/features/student/data/studentApi'
+
 import { listSemesterPlannings } from '@/features/semester-planner/data/semesterPlanningApi'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
@@ -34,20 +35,20 @@ export function SemesterPlanningSelectionPage() {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const navigate = useNavigate()
-  const studentQuery = useQuery({
-    queryKey: privateQueryKeys.currentStudent(sessionSubject),
-    queryFn: () => getCurrentStudent(auth.getAccessToken),
+  const userQuery = useQuery({
+    queryKey: privateQueryKeys.currentUser(sessionSubject),
+    queryFn: () => getCurrentUser(auth.getAccessToken),
     enabled: auth.initialized && auth.isAuthenticated,
     retry: false,
   })
   const plansQuery = useQuery({
     queryKey: privateQueryKeys.semesterPlannings(
       sessionSubject,
-      studentQuery.data?.studentId,
+      userQuery.data?.userId,
     ),
     queryFn: () =>
-      listSemesterPlannings(studentQuery.data!.studentId!, auth.getAccessToken),
-    enabled: Boolean(studentQuery.data?.studentId),
+      listSemesterPlannings(userQuery.data!.userId!, auth.getAccessToken),
+    enabled: Boolean(userQuery.data?.userId),
     retry: false,
   })
 

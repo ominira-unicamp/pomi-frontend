@@ -31,7 +31,7 @@ const mocks = vi.hoisted(() => ({
       tags: [],
     },
     own: { id: 1, permissions: ['EVENT_CREATE'] as Array<string> },
-    studentId: 7,
+    userId: 7,
     refresh: vi.fn(),
   },
   events: vi.fn(),
@@ -92,7 +92,7 @@ vi.mock('./data/groupApi', () => ({
     updateMember: mocks.updateMember,
   },
 }))
-vi.mock('@/features/friends/studentSocialApi', () => ({
+vi.mock('@/features/friends/userSocialApi', () => ({
   searchPeople: mocks.searchPeople,
 }))
 vi.mock('@/api/client', () => ({
@@ -114,7 +114,7 @@ const draft = {
 const member = {
   id: 9,
   groupId: 42,
-  studentId: 15,
+  userId: 15,
   studentName: 'Ana',
   avatarMediaId: 'member-avatar',
   joinedAt: '2026-10-01T12:00:00Z',
@@ -127,11 +127,11 @@ const member = {
 const sentInvitation = {
   id: 12,
   groupId: 42,
-  recipientStudentId: 15,
+  recipientUserId: 15,
   recipientPublicId: 'person-2',
   recipientName: 'Bia',
   recipientAvatarMediaId: 'invited-avatar',
-  inviterStudentId: 7,
+  inviterUserId: 7,
   status: 'PENDING',
   createdAt: '2026-10-01T00:00:00.000Z',
   expiresAt: '2099-10-20T00:00:00.000Z',
@@ -299,6 +299,7 @@ describe('event management by permission', () => {
     await waitFor(() =>
       expect(mocks.publishEvent).toHaveBeenCalledWith(
         7,
+        42,
         50,
         mocks.auth.getAccessToken,
       ),
@@ -320,6 +321,7 @@ describe('event management by permission', () => {
     await waitFor(() =>
       expect(mocks.updateEvent).toHaveBeenCalledWith(
         7,
+        42,
         50,
         expect.objectContaining({
           startsAt: original.startsAt,
@@ -357,6 +359,7 @@ describe('event management by permission', () => {
     await waitFor(() =>
       expect(mocks.cancelEvent).toHaveBeenCalledWith(
         7,
+        42,
         50,
         mocks.auth.getAccessToken,
       ),
@@ -539,6 +542,7 @@ describe('people and access management', () => {
     await waitFor(() =>
       expect(mocks.updateMember).toHaveBeenCalledWith(
         7,
+        42,
         9,
         {
           positions: {
@@ -577,6 +581,7 @@ describe('people and access management', () => {
     await waitFor(() =>
       expect(mocks.updateMember).toHaveBeenCalledWith(
         7,
+        42,
         9,
         { roles: { add: [4] } },
         mocks.auth.getAccessToken,

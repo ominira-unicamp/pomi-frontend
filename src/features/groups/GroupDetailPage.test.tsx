@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
     sessionSubject: 'session-1',
     getAccessToken: vi.fn().mockResolvedValue('token'),
   },
-  student: { studentId: undefined as number | undefined },
+  student: { userId: undefined as number | undefined },
 }))
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -36,8 +36,8 @@ vi.mock('@tanstack/react-router', () => ({
   ),
 }))
 vi.mock('@/auth/AuthProvider', () => ({ useOptionalAuth: () => mocks.auth }))
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile: () => mocks.student,
+vi.mock('@/features/identity', () => ({
+  useUserContext: () => mocks.student,
 }))
 vi.mock('./data/groupApi', () => ({ groupApi: mocks }))
 
@@ -54,7 +54,7 @@ function renderPage() {
 
 describe('GroupDetailPage', () => {
   beforeEach(() => {
-    mocks.student.studentId = undefined
+    mocks.student.userId = undefined
     mocks.get.mockReset().mockResolvedValue({
       id: 42,
       name: 'Coletivo Cultural',
@@ -100,12 +100,12 @@ describe('GroupDetailPage', () => {
   })
 
   it('offers only a link to management for an authorized member', async () => {
-    mocks.student.studentId = 7
+    mocks.student.userId = 7
     mocks.ownMemberships.mockResolvedValue([
       {
         id: 8,
         groupId: 42,
-        studentId: 7,
+        userId: 7,
         leftAt: null,
         isPublic: false,
         permissions: ['EVENT_CREATE'],
@@ -160,12 +160,12 @@ describe('GroupDetailPage', () => {
   })
 
   it('does not offer management to a member without permissions', async () => {
-    mocks.student.studentId = 7
+    mocks.student.userId = 7
     mocks.ownMemberships.mockResolvedValue([
       {
         id: 8,
         groupId: 42,
-        studentId: 7,
+        userId: 7,
         leftAt: null,
         isPublic: false,
         permissions: [],

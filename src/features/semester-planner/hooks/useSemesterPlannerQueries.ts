@@ -7,7 +7,7 @@ import {
   listCurricula,
 } from '@/features/curriculum-planner/data/curriculumPersistenceApi'
 import { loadCurriculumSuggestions } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useStudentAcademicProfile } from '@/features/student/hooks/useStudentAcademicProfile'
 import { listStudentCourseAttempts } from '@/features/student/data/studentApi'
 import {
   getSemesterPlanning,
@@ -38,35 +38,36 @@ export function useSemesterPlannerQueries({
 }) {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
-  const { studentId, profileQuery: studentProfileQuery } = useStudentProfile()
+  const { userId, profileQuery: studentProfileQuery } =
+    useStudentAcademicProfile()
   const query = useQuery({
     queryKey: publicQueryKeys.semesterPlannerStaticData(studyPeriodId),
     queryFn: () => loadSemesterPlannerStaticData(studyPeriodId),
     staleTime: 5 * 60_000,
   })
   const plansQuery = useQuery({
-    queryKey: privateQueryKeys.semesterPlannings(sessionSubject, studentId),
-    queryFn: () => listSemesterPlannings(studentId!, getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.semesterPlannings(sessionSubject, userId),
+    queryFn: () => listSemesterPlannings(userId!, getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
   const courseAttemptsQuery = useQuery({
-    queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
-    queryFn: () => listStudentCourseAttempts(studentId!, getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.courseAttempts(sessionSubject, userId),
+    queryFn: () => listStudentCourseAttempts(userId!, getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
   const numericPlanningId = planningId ? Number(planningId) : undefined
   const planQuery = useQuery({
     queryKey: privateQueryKeys.semesterPlanning(
       sessionSubject,
-      studentId,
+      userId,
       planningId ?? 'none',
     ),
     queryFn: () =>
-      getSemesterPlanning(studentId!, numericPlanningId!, getAccessToken),
+      getSemesterPlanning(userId!, numericPlanningId!, getAccessToken),
     enabled:
-      Boolean(studentId) &&
+      Boolean(userId) &&
       planningId !== undefined &&
       planningId !== 'rascunho' &&
       Number.isInteger(numericPlanningId),
@@ -79,20 +80,19 @@ export function useSemesterPlannerQueries({
     retry: false,
   })
   const curriculaQuery = useQuery({
-    queryKey: privateQueryKeys.curricula(sessionSubject, studentId),
-    queryFn: () => listCurricula(studentId!, getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.curricula(sessionSubject, userId),
+    queryFn: () => listCurricula(userId!, getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
   const curriculumQuery = useQuery({
     queryKey: privateQueryKeys.curriculum(
       sessionSubject,
-      studentId,
+      userId,
       guideCurriculumId ?? undefined,
     ),
-    queryFn: () =>
-      getCurriculum(studentId!, guideCurriculumId!, getAccessToken),
-    enabled: Boolean(studentId && guideCurriculumId),
+    queryFn: () => getCurriculum(userId!, guideCurriculumId!, getAccessToken),
+    enabled: Boolean(userId && guideCurriculumId),
     retry: false,
   })
   const anonymousCurriculumDataQuery = useQuery({
@@ -116,7 +116,7 @@ export function useSemesterPlannerQueries({
   })
 
   return {
-    studentId,
+    userId,
     studentProfileQuery,
     query,
     plansQuery,

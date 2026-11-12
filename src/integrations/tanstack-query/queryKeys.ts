@@ -50,58 +50,46 @@ export const publicQueryKeys = {
 export const privateQueryKeys = {
   all: ['private'] as const,
   session: (sessionSubject: string) => ['private', sessionSubject] as const,
-  currentStudent: (sessionSubject: string) =>
-    ['private', sessionSubject, 'student', 'current'] as const,
-  studentProfile: (sessionSubject: string, studentId?: number | null) =>
+  currentUser: (sessionSubject: string) =>
+    ['private', sessionSubject, 'user', 'current'] as const,
+  studentAcademicProfile: (sessionSubject: string, userId?: number | null) =>
     [
       'private',
       sessionSubject,
-      'student',
-      studentId ?? 'none',
-      'profile',
+      'user',
+      userId ?? 'none',
+      'student-profile',
     ] as const,
-  studentTagInterests: (sessionSubject: string, studentId?: number | null) =>
+  userInterests: (sessionSubject: string, userId?: number | null) =>
     [
       'private',
       sessionSubject,
-      'student',
-      studentId ?? 'none',
+      'user',
+      userId ?? 'none',
       'tag-interests',
     ] as const,
-  courseAttempts: (sessionSubject: string, studentId?: number | null) =>
+  courseAttempts: (sessionSubject: string, userId?: number | null) =>
     [
       'private',
       sessionSubject,
-      'student',
-      studentId ?? 'none',
+      'user',
+      userId ?? 'none',
       'course-attempts',
     ] as const,
-  absences: (sessionSubject: string, studentId?: number | null) =>
-    [
-      'private',
-      sessionSubject,
-      'student',
-      studentId ?? 'none',
-      'absences',
-    ] as const,
-  curricula: (sessionSubject: string, studentId?: number | null) =>
-    [
-      'private',
-      sessionSubject,
-      'student',
-      studentId ?? 'none',
-      'curricula',
-    ] as const,
+  absences: (sessionSubject: string, userId?: number | null) =>
+    ['private', sessionSubject, 'user', userId ?? 'none', 'absences'] as const,
+  curricula: (sessionSubject: string, userId?: number | null) =>
+    ['private', sessionSubject, 'user', userId ?? 'none', 'curricula'] as const,
   curriculum: (
     sessionSubject: string,
-    studentId?: number | null,
+    userId?: number | null,
     curriculumId?: number,
   ) =>
     [
       'private',
       sessionSubject,
-      'student',
-      studentId ?? 'none',
+      'user',
+      userId ?? 'none',
       'curricula',
       curriculumId ?? 'none',
     ] as const,
@@ -118,24 +106,24 @@ export const privateQueryKeys = {
     ] as const,
   curriculumPlannerSnapshots: (sessionSubject: string) =>
     ['private', sessionSubject, 'curriculum-planner', 'snapshot'] as const,
-  semesterPlannings: (sessionSubject: string, studentId?: number | null) =>
+  semesterPlannings: (sessionSubject: string, userId?: number | null) =>
     [
       'private',
       sessionSubject,
-      'student',
-      studentId ?? 'none',
+      'user',
+      userId ?? 'none',
       'semester-plannings',
     ] as const,
   semesterPlanning: (
     sessionSubject: string,
-    studentId: number | null | undefined,
+    userId: number | null | undefined,
     planningId: string | number,
   ) =>
     [
       'private',
       sessionSubject,
-      'student',
-      studentId ?? 'none',
+      'user',
+      userId ?? 'none',
       'semester-plannings',
       String(planningId),
     ] as const,
@@ -154,15 +142,15 @@ export const privateQueryKeys = {
     ] as const,
   pendingProfessorEvaluations: (
     sessionSubject: string,
-    studentId: number | null | undefined,
+    userId: number | null | undefined,
     year: number | undefined,
     yearPeriod: string | undefined,
   ) =>
     [
       'private',
       sessionSubject,
-      'student',
-      studentId ?? 'none',
+      'user',
+      userId ?? 'none',
       'professor-evaluations',
       'pending',
       year ?? 'none',
@@ -170,83 +158,74 @@ export const privateQueryKeys = {
     ] as const,
   professorEvaluation: (
     sessionSubject: string,
-    studentId: number | undefined,
+    userId: number | undefined,
     classId: number | undefined,
     professorId: number | undefined,
   ) =>
     [
       'private',
       sessionSubject,
-      'student',
-      studentId ?? 'none',
+      'user',
+      userId ?? 'none',
       'professor-evaluations',
       classId ?? 'none',
       professorId ?? 'none',
     ] as const,
-  exchangeSubscription: (sessionSubject: string, studentId?: number | null) =>
+  exchangeSubscription: (sessionSubject: string, userId?: number | null) =>
     [
       'private',
       sessionSubject,
-      'student',
-      studentId ?? 'none',
+      'user',
+      userId ?? 'none',
       'exchange-subscription',
     ] as const,
-  studentSocial: (sessionSubject: string, studentId?: number | null) =>
+  userSocial: (sessionSubject: string, userId?: number | null) =>
+    ['private', sessionSubject, 'user', userId ?? 'none', 'social'] as const,
+  userSocialProfile: (sessionSubject: string, userId?: number | null) =>
     [
-      'private',
-      sessionSubject,
-      'student',
-      studentId ?? 'none',
-      'social',
-    ] as const,
-  studentSocialProfile: (sessionSubject: string, studentId?: number | null) =>
-    [
-      ...privateQueryKeys.studentSocial(sessionSubject, studentId),
+      ...privateQueryKeys.userSocial(sessionSubject, userId),
       'profile',
     ] as const,
-  feedbackReports: (sessionSubject: string, studentId?: number | null) =>
+  feedbackReports: (sessionSubject: string, userId?: number | null) =>
     [
       'private',
       sessionSubject,
-      'student',
-      studentId ?? 'none',
+      'user',
+      userId ?? 'none',
       'feedback-reports',
     ] as const,
-  studentSocialFriendships: (
-    sessionSubject: string,
-    studentId?: number | null,
-  ) =>
+  userSocialFriendships: (sessionSubject: string, userId?: number | null) =>
     [
-      ...privateQueryKeys.studentSocial(sessionSubject, studentId),
+      ...privateQueryKeys.userSocial(sessionSubject, userId),
       'friendships',
     ] as const,
-  studentSocialPeople: (
+  userSocialPeople: (
     sessionSubject: string,
-    studentId: number | null | undefined,
+    userId: number | null | undefined,
     search: string,
   ) =>
     [
-      ...privateQueryKeys.studentSocial(sessionSubject, studentId),
+      ...privateQueryKeys.userSocial(sessionSubject, userId),
       'people',
       search,
     ] as const,
-  studentSocialPerson: (
+  userSocialPerson: (
     sessionSubject: string,
-    studentId: number | null | undefined,
+    userId: number | null | undefined,
     publicId: string,
   ) =>
     [
-      ...privateQueryKeys.studentSocial(sessionSubject, studentId),
+      ...privateQueryKeys.userSocial(sessionSubject, userId),
       'person',
       publicId,
     ] as const,
-  studentSharedPeriodPlannings: (
+  userSharedPeriodPlans: (
     sessionSubject: string,
-    studentId: number | null | undefined,
+    userId: number | null | undefined,
     ownerPublicId: string,
   ) =>
     [
-      ...privateQueryKeys.studentSocial(sessionSubject, studentId),
+      ...privateQueryKeys.userSocial(sessionSubject, userId),
       'shared-period-plannings',
       ownerPublicId,
     ] as const,
@@ -254,15 +233,15 @@ export const privateQueryKeys = {
     ['shared-period-planning', sessionSubject, shareId] as const,
   courseSituationClasses: (
     sessionSubject: string,
-    studentId: number | null | undefined,
+    userId: number | null | undefined,
     courseId: string,
     studyPeriodId: string,
   ) =>
     [
       'private',
       sessionSubject,
-      'student',
-      studentId ?? 'none',
+      'user',
+      userId ?? 'none',
       'course-situation',
       'classes',
       courseId,
@@ -270,15 +249,15 @@ export const privateQueryKeys = {
     ] as const,
   courseSituationEvaluation: (
     sessionSubject: string,
-    studentId: number | null | undefined,
+    userId: number | null | undefined,
     courseId: string,
     year: number | string | undefined,
   ) =>
     [
       'private',
       sessionSubject,
-      'student',
-      studentId ?? 'none',
+      'user',
+      userId ?? 'none',
       'course-situation',
       'evaluation',
       courseId,

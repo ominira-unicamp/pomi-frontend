@@ -8,21 +8,20 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { getExchangeNoticeSubscription } from '@/features/exchange/data/exchangeApi'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useUserContext } from '@/features/identity'
 
 export function ExchangeAlertsSummary() {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
-  const { studentId, studentQuery } = useStudentProfile()
+  const { userId, userQuery } = useUserContext()
   const subscriptionQuery = useQuery({
-    queryKey: privateQueryKeys.exchangeSubscription(sessionSubject, studentId),
-    queryFn: () =>
-      getExchangeNoticeSubscription(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.exchangeSubscription(sessionSubject, userId),
+    queryFn: () => getExchangeNoticeSubscription(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
 
-  if (!auth.initialized || (auth.isAuthenticated && studentQuery.isLoading)) {
+  if (!auth.initialized || (auth.isAuthenticated && userQuery.isLoading)) {
     return <LoadingState label="Carregando seus alertas" />
   }
   if (!auth.isAuthenticated) {
@@ -48,27 +47,27 @@ export function ExchangeAlertsSummary() {
       </Card>
     )
   }
-  if (studentQuery.isError) {
+  if (userQuery.isError) {
     return (
       <div className="mb-10">
         <ErrorState
-          title="Não foi possível identificar seu estudante"
+          title="Não foi possível identificar sua conta"
           description="O catálogo continua disponível enquanto tentamos carregar seus alertas."
           action={{
             label: 'Tentar novamente',
-            onClick: () => void studentQuery.refetch(),
+            onClick: () => void userQuery.refetch(),
           }}
         />
       </div>
     )
   }
-  if (!studentId) {
+  if (!userId) {
     return (
       <Card className="mb-10 p-6">
-        <h1 className="text-2xl font-black">Complete seu perfil acadêmico</h1>
+        <h1 className="text-2xl font-black">Conta de usuário indisponível</h1>
         <p className="mt-2 text-muted-foreground">
-          Sua conta ainda não possui um estudante associado. Complete o perfil
-          para configurar alertas de editais.
+          Não foi possível identificar sua conta para configurar alertas de
+          editais. Tente novamente.
         </p>
       </Card>
     )

@@ -5,7 +5,7 @@ import { CalendarDays, Copy, GraduationCap, MapPin, Users } from 'lucide-react'
 import {
   copySharedPeriodPlanning,
   getPublicSharedPeriodPlanning,
-  getSharedPeriodPlanningForStudent,
+  getSharedPeriodPlanningForUser,
 } from './data/sharedPeriodPlanningApi'
 import type { WeeklyScheduleMeeting } from '@/features/student/components/StudentWeeklySchedule'
 import { PersonAvatar } from '@/features/media/IdentityImages'
@@ -25,7 +25,7 @@ import {
   PageContainer,
   PageHeader,
 } from '@/components/PageLayout'
-import { useCurrentStudent } from '@/features/student/hooks/useStudentProfile'
+import { useCurrentUser } from '@/features/identity'
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
@@ -46,47 +46,40 @@ export function SharedSemesterPlanningPage({ shareId }: { shareId: string }) {
   const auth = useOptionalAuth()
   const navigate = useNavigate()
   const sessionSubject = auth.sessionSubject ?? 'anonymous-session'
-  const studentQuery = useCurrentStudent()
-  const studentId = studentQuery.data?.studentId
+  const userQuery = useCurrentUser()
+  const userId = userQuery.data?.userId ?? undefined
 
   const publicQuery = useQuery({
     queryKey: privateQueryKeys.sharedPeriodPlanning(sessionSubject, shareId),
     queryFn: () => getPublicSharedPeriodPlanning(shareId),
     enabled:
       auth.initialized &&
-      (!auth.isAuthenticated ||
-        studentQuery.isError ||
-        studentId === undefined),
+      (!auth.isAuthenticated || userQuery.isError || userId === undefined),
     retry: false,
   })
-  const studentQueryResult = useQuery({
+  const userQueryResult = useQuery({
     queryKey: [
       ...privateQueryKeys.sharedPeriodPlanning(sessionSubject, shareId),
-      'student',
-      studentId ?? 'none',
+      'user',
+      userId ?? 'none',
     ] as const,
     queryFn: () =>
-      getSharedPeriodPlanningForStudent(
-        studentId!,
-        shareId,
-        auth.getAccessToken,
-      ),
-    enabled:
-      auth.initialized && auth.isAuthenticated && studentId !== undefined,
+      getSharedPeriodPlanningForUser(userId!, shareId, auth.getAccessToken),
+    enabled: auth.initialized && auth.isAuthenticated && userId !== undefined,
     retry: false,
   })
 
-  const planning = studentQueryResult.data ?? publicQuery.data
+  const planning = userQueryResult.data ?? publicQuery.data
   const isLoading =
     !auth.initialized ||
-    studentQuery.isLoading ||
-    (auth.isAuthenticated && studentId !== undefined
-      ? studentQueryResult.isLoading
+    userQuery.isLoading ||
+    (auth.isAuthenticated && userId !== undefined
+      ? userQueryResult.isLoading
       : publicQuery.isLoading)
 
   const copyMutation = useMutation({
     mutationFn: () =>
-      copySharedPeriodPlanning(studentId!, planning!, auth.getAccessToken),
+      copySharedPeriodPlanning(userId!, planning!, auth.getAccessToken),
     onSuccess: (created) =>
       void navigate({
         to: '/planejamentos-de-semestre/$planejamentoId',
@@ -138,7 +131,7 @@ export function SharedSemesterPlanningPage({ shareId }: { shareId: string }) {
       void auth.login(window.location.href)
       return
     }
-    if (!studentId || copyMutation.isPending) return
+    if (!userId || copyMutation.isPending) return
     copyMutation.mutate()
   }
 
@@ -153,7 +146,7 @@ export function SharedSemesterPlanningPage({ shareId }: { shareId: string }) {
           <Button
             onClick={handleCopy}
             disabled={
-              copyMutation.isPending || (auth.isAuthenticated && !studentId)
+              copyMutation.isPending || (auth.isAuthenticated && !userId)
             }
           >
             <Copy />

@@ -5,6 +5,7 @@ import { ArrowLeft } from 'lucide-react'
 import { groupApi } from './data/groupApi'
 import { canOrganizeEvents, groupWorkspaceDestination } from './groupNavigation'
 import { formatEventDate, permissionLabels } from './presentation'
+import { UserIdentityState } from '@/features/identity/UserIdentityState'
 import { GroupAvatar } from '@/features/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
@@ -16,16 +17,23 @@ import {
 } from '@/components/PageLayout'
 import { buttonVariants } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useUserContext } from '@/features/identity'
 
 export function MyGroupMembershipPage({ groupId }: { groupId: number }) {
   const auth = useOptionalAuth()
-  const { studentId, studentQuery } = useStudentProfile()
+  const { userId, userQuery } = useUserContext()
   const queryClient = useQueryClient()
   const memberships = useQuery({
-    queryKey: ['private', auth.sessionSubject, 'groups', 'memberships'],
-    queryFn: () => groupApi.ownMemberships(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: [
+      'private',
+      auth.sessionSubject,
+      'user',
+      userId,
+      'groups',
+      'memberships',
+    ],
+    queryFn: () => groupApi.ownMemberships(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
   const group = useQuery({
@@ -40,10 +48,17 @@ export function MyGroupMembershipPage({ groupId }: { groupId: number }) {
     ) ?? memberships.data?.find((item) => item.groupId === groupId)
   const visibility = useMutation({
     mutationFn: (isPublic: boolean) =>
-      groupApi.visibility(studentId!, own!.id, isPublic, auth.getAccessToken),
+      groupApi.visibility(userId!, own!.id, isPublic, auth.getAccessToken),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: ['private', auth.sessionSubject, 'groups', 'memberships'],
+        queryKey: [
+          'private',
+          auth.sessionSubject,
+          'user',
+          userId,
+          'groups',
+          'memberships',
+        ],
       })
       void queryClient.invalidateQueries({
         queryKey: ['public', 'groups', groupId, 'members'],
@@ -62,7 +77,7 @@ export function MyGroupMembershipPage({ groupId }: { groupId: number }) {
         />
       </PageContainer>
     )
-  if (!auth.initialized || (auth.isAuthenticated && studentQuery.isPending))
+  if (!auth.initialized || (auth.isAuthenticated && userQuery.isPending))
     return (
       <PageContainer>
         <LoadingState label="Carregando participação" />
@@ -78,13 +93,10 @@ export function MyGroupMembershipPage({ groupId }: { groupId: number }) {
         />
       </PageContainer>
     )
-  if (!studentId)
+  if (!userId)
     return (
       <PageContainer>
-        <ErrorState
-          title="Perfil necessário"
-          description="No momento, participar de grupos exige um perfil de estudante."
-        />
+        <UserIdentityState query={userQuery} />
       </PageContainer>
     )
   if (memberships.isPending)

@@ -7,9 +7,10 @@ export const studentHistoryImportFormat = 'pomi-student-history'
 export const studentHistoryImportVersion = 1
 
 export type StudentHistoryImport = createStudentHistoryInput['body']
-export type StudentHistoryImportSemester = StudentHistoryImport['semesters'][number]
-export type StudentHistoryImportCourse = StudentHistoryImportSemester['courses'][number]
-
+export type StudentHistoryImportSemester =
+  StudentHistoryImport['semesters'][number]
+export type StudentHistoryImportCourse =
+  StudentHistoryImportSemester['courses'][number]
 
 export type StudentHistoryParseWarning = Readonly<{
   page: number | null
@@ -108,7 +109,7 @@ function parseText(text: string): StudentHistoryParseResult {
     courses: Array<StudentHistoryImportCourse>
   } | null = null
 
-  lines.forEach((line, index) => {
+  for (const [index, line] of lines.entries()) {
     const cleanLine = line.trim()
     const semesterMatch = cleanLine.match(semesterPattern)
     if (semesterMatch) {
@@ -119,14 +120,14 @@ function parseText(text: string): StudentHistoryParseResult {
           semesterMatch[1] === '1' ? 'FIRST_SEMESTER' : 'SECOND_SEMESTER',
         courses: [],
       }
-      return
+      continue
     }
-    if (!current || isNoise(cleanName(line))) return
+    if (!current || isNoise(cleanName(line))) continue
 
     const rowMatch = cleanLine.match(rowPattern)
-    if (!rowMatch) return
-    const status = statusFor(rowMatch[6] ?? '')
-    const inlineName = cleanName(rowMatch[2] ?? '')
+    if (!rowMatch) continue
+    const status = statusFor(rowMatch.at(6) ?? '')
+    const inlineName = cleanName(rowMatch.at(2) ?? '')
     const name =
       inlineName && !/^(?:Prof|Profa|Professor)\b/.test(inlineName)
         ? inlineName
@@ -137,17 +138,17 @@ function parseText(text: string): StudentHistoryParseResult {
         line,
         message: 'Linha de disciplina não reconhecida.',
       })
-      return
+      continue
     }
     current.courses.push({
-      code: rowMatch[1] ?? '',
+      code: rowMatch.at(1) ?? '',
       name,
-      grade: parseNumber(rowMatch[3] ?? '-'),
-      workloadHours: parseNumber(rowMatch[4] ?? '-'),
-      credits: parseNumber(rowMatch[5] ?? '-'),
+      grade: parseNumber(rowMatch.at(3) ?? '-'),
+      workloadHours: parseNumber(rowMatch.at(4) ?? '-'),
+      credits: parseNumber(rowMatch.at(5) ?? '-'),
       status,
     })
-  })
+  }
   if (current) semesters.push(current)
   if (!semesters.length)
     throw new Error('Nenhum semestre foi encontrado no histórico.')
@@ -158,7 +159,7 @@ function parseText(text: string): StudentHistoryParseResult {
     value: {
       format: studentHistoryImportFormat,
       version: studentHistoryImportVersion,
-      student: { ra: raMatch[1] ?? '' },
+      student: { ra: raMatch.at(1) ?? '' },
       semesters,
     },
     warnings,
@@ -194,7 +195,7 @@ export async function parseStudentHistoryPdf(file: File) {
       const line = lines.get(y) ?? []
       line.push({
         x: positioned.transform[4] ?? 0,
-        width: positioned.width ?? 0,
+        width: positioned.width,
         str: positioned.str,
       })
       lines.set(y, line)

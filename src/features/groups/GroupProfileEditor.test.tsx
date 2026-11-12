@@ -54,7 +54,7 @@ describe('partial group permissions', () => {
     renderEditor(
       <ProfileEditor
         group={group as never}
-        studentId={7}
+        userId={7}
         permissions={['GROUP_EDIT']}
         refresh={refresh}
       />,
@@ -84,7 +84,7 @@ describe('partial group permissions', () => {
     renderEditor(
       <ProfileEditor
         group={group as never}
-        studentId={7}
+        userId={7}
         permissions={['GROUP_TAG_MANAGE']}
         refresh={vi.fn()}
       />,

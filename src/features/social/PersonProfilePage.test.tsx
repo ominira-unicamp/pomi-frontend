@@ -68,13 +68,13 @@ afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
 })
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile: () => ({
-    studentId: 7,
-    studentQuery: { isLoading: false },
+vi.mock('@/features/identity', () => ({
+  useUserContext: () => ({
+    userId: 7,
+    userQuery: { isLoading: false },
   }),
 }))
-vi.mock('@/features/friends/studentSocialApi', () => ({
+vi.mock('@/features/friends/userSocialApi', () => ({
   getPerson: mocks.getPerson,
   getPublicProfile: mocks.getPublicProfile,
   listFriendships: mocks.listFriendships,

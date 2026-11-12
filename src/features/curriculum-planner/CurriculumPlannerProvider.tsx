@@ -28,6 +28,7 @@ import type {
   StudentProfile,
 } from '@/features/student/data/studentApi'
 import type { CurriculumDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
+import { requireCurrentUserId } from '@/features/identity/identityApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { createCurriculumCatalogDataSource } from '@/catalog/data/curriculumCatalogApi'
 import {
@@ -38,11 +39,7 @@ import {
 } from '@/features/curriculum-planner/data/curriculumPersistenceApi'
 import { persistCurriculumState } from '@/features/curriculum-planner/data/curriculumPersistenceAdapter'
 import { curriculumDraftBootstrapKey } from '@/features/planning-shared/data/planningDraftBootstrap'
-import {
-  getCurrentStudent,
-  registerCurrentStudent,
-  setCourseCompleted,
-} from '@/features/student/data/studentApi'
+import { setCourseCompleted } from '@/features/student/data/studentApi'
 import { useCurriculumRemoteData } from '@/features/curriculum-planner/hooks/useCurriculumRemoteData'
 import { suggestionOnboardingPreferenceKey } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
 import {
@@ -169,11 +166,11 @@ export function CurriculumPlannerProvider({
 
   const { remoteQuery, studentProfileQuery, attemptsQuery } =
     useCurriculumRemoteData({
-    isAuthenticated: auth.isAuthenticated,
-    authInitialized: auth.initialized,
-    injected: Boolean(injectedPlanner),
-    activeCurriculumId,
-    getAccessToken: auth.getAccessToken,
+      isAuthenticated: auth.isAuthenticated,
+      authInitialized: auth.initialized,
+      injected: Boolean(injectedPlanner),
+      activeCurriculumId,
+      getAccessToken: auth.getAccessToken,
     })
   useEffect(() => {
     const summaries = remoteQuery.data?.summaries
@@ -229,13 +226,9 @@ export function CurriculumPlannerProvider({
 
   const persist = useCallback(
     async (snapshot: CurriculumPlannerSnapshot, name?: string) => {
-      if (
-        !auth.isAuthenticated ||
-        !remoteQuery.data?.studentId ||
-        injectedPlanner
-      )
+      if (!auth.isAuthenticated || !remoteQuery.data?.userId || injectedPlanner)
         return
-      const studentId = remoteQuery.data.studentId
+      const userId = remoteQuery.data.userId
       const state = {
         revision: snapshot.revision,
         selection: snapshot.selection,
@@ -243,7 +236,7 @@ export function CurriculumPlannerProvider({
         academicRecord: snapshot.academicRecord,
       }
       const document = await persistCurriculumState({
-        studentId,
+        userId,
         current: remoteDocument.current,
         state,
         periodIds: persistedPeriodIds.current,
@@ -271,7 +264,7 @@ export function CurriculumPlannerProvider({
       auth.isAuthenticated,
       injectedPlanner,
       activeCurriculumId,
-      remoteQuery.data?.studentId,
+      remoteQuery.data?.userId,
     ],
   )
 
@@ -293,7 +286,7 @@ export function CurriculumPlannerProvider({
           )
           if (
             auth.isAuthenticated &&
-            remoteQuery.data?.studentId &&
+            remoteQuery.data?.userId &&
             !injectedPlanner
           ) {
             if (
@@ -302,7 +295,7 @@ export function CurriculumPlannerProvider({
             ) {
               try {
                 await setCourseCompleted(
-                  remoteQuery.data.studentId,
+                  remoteQuery.data.userId,
                   command.courseId,
                   command.type === 'markCourseCompleted',
                   auth.getAccessToken,
@@ -319,7 +312,7 @@ export function CurriculumPlannerProvider({
               await queryClient.invalidateQueries({
                 queryKey: privateQueryKeys.courseAttempts(
                   sessionSubject,
-                  remoteQuery.data.studentId,
+                  remoteQuery.data.userId,
                 ),
               })
             }
@@ -357,7 +350,7 @@ export function CurriculumPlannerProvider({
       queryClient,
       sessionSubject,
       remoteQuery.data?.document?.id,
-      remoteQuery.data?.studentId,
+      remoteQuery.data?.userId,
     ],
   )
 
@@ -401,30 +394,11 @@ export function CurriculumPlannerProvider({
         return undefined
       }
       try {
-        let studentId =
-          remoteQuery.data?.studentId ??
-          (await getCurrentStudent(auth.getAccessToken)).studentId
-        if (!studentId) {
-          const student = await registerCurrentStudent(
-            String(
-              auth.profile?.name ??
-                auth.profile?.preferred_username ??
-                'Estudante',
-            ),
-            auth.getAccessToken,
-          )
-          studentId = student.id
-        }
-        if (!studentId) {
-          const error = new Error(
-            'A conta autenticada não possui um estudante associado.',
-          )
-          console.error('[curriculum-planner] create rejected', error)
-          setActionError(error.message)
-          return undefined
-        }
+        const userId =
+          remoteQuery.data?.userId ??
+          (await requireCurrentUserId(auth.getAccessToken))
         const created = await createCurriculum(
-          studentId,
+          userId,
           {
             name,
             isFavorite: false,
@@ -442,14 +416,14 @@ export function CurriculumPlannerProvider({
         )
         remoteDocument.current = created
         queryClient.setQueryData(
-          privateQueryKeys.curriculum(sessionSubject, studentId, created.id),
+          privateQueryKeys.curriculum(sessionSubject, userId, created.id),
           created,
         )
         setDraftName(undefined)
         setSelectedCurriculumId(created.id)
         setEntryState('editing')
         await queryClient.invalidateQueries({
-          queryKey: privateQueryKeys.curricula(sessionSubject, studentId),
+          queryKey: privateQueryKeys.curricula(sessionSubject, userId),
         })
         return created.id
       } catch (error) {
@@ -465,16 +439,12 @@ export function CurriculumPlannerProvider({
       auth.isAuthenticated,
       injectedPlanner,
       queryClient,
-      remoteQuery.data?.studentId,
+      remoteQuery.data?.userId,
       sessionSubject,
     ],
   )
   const saveDraft = useCallback(async () => {
-    if (
-      !auth.isAuthenticated ||
-      !remoteQuery.data?.studentId ||
-      injectedPlanner
-    )
+    if (!auth.isAuthenticated || !remoteQuery.data?.userId || injectedPlanner)
       return undefined
     try {
       const snapshot = await unwrap(planner.getSnapshot())
@@ -489,11 +459,11 @@ export function CurriculumPlannerProvider({
     injectedPlanner,
     persist,
     planner,
-    remoteQuery.data?.studentId,
+    remoteQuery.data?.userId,
   ])
   const renameCurriculum = useCallback(
     async (name: string) => {
-      if (!auth.isAuthenticated || !remoteQuery.data?.studentId) return false
+      if (!auth.isAuthenticated || !remoteQuery.data?.userId) return false
       try {
         if (!remoteDocument.current?.id) {
           const snapshot = await unwrap(planner.getSnapshot())
@@ -501,7 +471,7 @@ export function CurriculumPlannerProvider({
         }
         if (!remoteDocument.current?.id) return false
         remoteDocument.current = await patchCurriculum(
-          remoteQuery.data.studentId,
+          remoteQuery.data.userId,
           remoteDocument.current.id,
           { name: name.trim() },
           auth.getAccessToken,
@@ -509,7 +479,7 @@ export function CurriculumPlannerProvider({
         queryClient.setQueryData(
           privateQueryKeys.curriculum(
             sessionSubject,
-            remoteQuery.data.studentId,
+            remoteQuery.data.userId,
             remoteDocument.current.id,
           ),
           remoteDocument.current,
@@ -517,7 +487,7 @@ export function CurriculumPlannerProvider({
         await queryClient.invalidateQueries({
           queryKey: privateQueryKeys.curricula(
             sessionSubject,
-            remoteQuery.data.studentId,
+            remoteQuery.data.userId,
           ),
         })
         return true
@@ -531,16 +501,16 @@ export function CurriculumPlannerProvider({
       persist,
       planner,
       queryClient,
-      remoteQuery.data?.studentId,
+      remoteQuery.data?.userId,
       sessionSubject,
     ],
   )
   const setCurriculumFavorite = useCallback(
     async (curriculumId: number, isFavorite: boolean) => {
-      if (!auth.isAuthenticated || !remoteQuery.data?.studentId) return false
+      if (!auth.isAuthenticated || !remoteQuery.data?.userId) return false
       try {
         const updated = await patchCurriculum(
-          remoteQuery.data.studentId,
+          remoteQuery.data.userId,
           curriculumId,
           { isFavorite },
           auth.getAccessToken,
@@ -550,7 +520,7 @@ export function CurriculumPlannerProvider({
         queryClient.setQueryData(
           privateQueryKeys.curriculum(
             sessionSubject,
-            remoteQuery.data.studentId,
+            remoteQuery.data.userId,
             curriculumId,
           ),
           updated,
@@ -558,7 +528,7 @@ export function CurriculumPlannerProvider({
         await queryClient.invalidateQueries({
           queryKey: privateQueryKeys.curricula(
             sessionSubject,
-            remoteQuery.data.studentId,
+            remoteQuery.data.userId,
           ),
         })
         return true
@@ -570,7 +540,7 @@ export function CurriculumPlannerProvider({
       auth.getAccessToken,
       auth.isAuthenticated,
       queryClient,
-      remoteQuery.data?.studentId,
+      remoteQuery.data?.userId,
       sessionSubject,
     ],
   )
@@ -581,17 +551,17 @@ export function CurriculumPlannerProvider({
       await resetLocalPlan()
       return true
     }
-    if (!remoteQuery.data?.studentId) return false
+    if (!remoteQuery.data?.userId) return false
     try {
       await deleteCurriculum(
-        remoteQuery.data.studentId,
+        remoteQuery.data.userId,
         remoteDocument.current.id,
         auth.getAccessToken,
       )
       queryClient.removeQueries({
         queryKey: privateQueryKeys.curriculum(
           sessionSubject,
-          remoteQuery.data.studentId,
+          remoteQuery.data.userId,
           remoteDocument.current.id,
         ),
       })
@@ -601,7 +571,7 @@ export function CurriculumPlannerProvider({
       await queryClient.invalidateQueries({
         queryKey: privateQueryKeys.curricula(
           sessionSubject,
-          remoteQuery.data.studentId,
+          remoteQuery.data.userId,
         ),
       })
       return true
@@ -612,7 +582,7 @@ export function CurriculumPlannerProvider({
     auth.getAccessToken,
     auth.isAuthenticated,
     queryClient,
-    remoteQuery.data?.studentId,
+    remoteQuery.data?.userId,
     resetLocalPlan,
     sessionSubject,
   ])

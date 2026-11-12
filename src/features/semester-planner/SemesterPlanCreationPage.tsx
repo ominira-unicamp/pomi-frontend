@@ -10,6 +10,7 @@ import type { CatalogProgramId } from '@pomi/planner-domain/curriculum'
 import type { InitialAcademicSelection } from '@/features/planning-shared/components/InitialAcademicSelectionFields'
 import type { SemesterDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
 import type { SemesterPlanningDocument } from '@pomi/planner-domain/semester'
+import { requireCurrentUserId } from '@/features/identity/identityApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { loadCurriculumCatalog } from '@/catalog/data/curriculumCatalogApi'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
@@ -30,10 +31,10 @@ import {
   createSemesterPlanning,
   loadSemesterPlannerStaticData,
 } from '@/features/semester-planner/data/semesterPlanningApi'
-import { ensureCurrentStudent } from '@/features/student/data/studentApi'
+
 import { mostRecentStudyPeriodsFirst } from '@/features/student/data/studyPeriodOrdering'
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useStudentAcademicProfile } from '@/features/student/hooks/useStudentAcademicProfile'
 import {
   privateQueryKeys,
   publicQueryKeys,
@@ -46,7 +47,7 @@ export function SemesterPlanCreationPage() {
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { studentId, profileQuery } = useStudentProfile()
+  const { userId, profileQuery } = useStudentAcademicProfile()
   const [step, setStep] = useState(0)
   const [name, setName] = useState('Novo planejamento de semestre')
   const [studyPeriodId, setStudyPeriodId] = useState('')
@@ -82,9 +83,9 @@ export function SemesterPlanCreationPage() {
     staleTime: Infinity,
   })
   const curriculaQuery = useQuery({
-    queryKey: privateQueryKeys.curricula(sessionSubject, studentId),
-    queryFn: () => listCurricula(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.curricula(sessionSubject, userId),
+    queryFn: () => listCurricula(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
   const suggestionsQuery = useQuery({
@@ -139,8 +140,7 @@ export function SemesterPlanCreationPage() {
     guideMode === 'none' ||
     (guideMode === 'program' &&
       Boolean(
-        selection.catalogProgramId &&
-        selection.catalogProgramVariantId,
+        selection.catalogProgramId && selection.catalogProgramVariantId,
       )) ||
     (guideMode === 'curriculum' &&
       (curriculumSource === 'saved'
@@ -212,14 +212,9 @@ export function SemesterPlanCreationPage() {
         })
         return
       }
-      const currentStudentId = await ensureCurrentStudent(
-        String(
-          auth.profile?.name ?? auth.profile?.preferred_username ?? 'Estudante',
-        ),
-        auth.getAccessToken,
-      )
+      const currentUserId = await requireCurrentUserId(auth.getAccessToken)
       const created = await createSemesterPlanning(
-        currentStudentId,
+        currentUserId,
         {
           ...document,
           studyPeriodId: document.studyPeriodId,
@@ -453,8 +448,9 @@ export function SemesterPlanCreationPage() {
                     className="mt-4 text-sm text-muted-foreground"
                   >
                     Para usar o guia por programa, selecione catálogo, programa,
-                    modalidade, quando disponível. A língua é opcional. Se essas opções não estiverem
-                    disponíveis, escolha outro programa ou use o guia Nenhum.
+                    modalidade, quando disponível. A língua é opcional. Se essas
+                    opções não estiverem disponíveis, escolha outro programa ou
+                    use o guia Nenhum.
                   </p>
                 )}
               </div>

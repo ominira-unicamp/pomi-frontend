@@ -13,12 +13,12 @@ import {
   PageHeader,
 } from '@/components/PageLayout'
 import { buttonVariants } from '@/components/ui/button'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useUserContext } from '@/features/identity'
 import { GroupAvatar, PersonAvatar } from '@/features/media/IdentityImages'
 
 export function GroupDetailPage({ groupId }: { groupId: number }) {
   const auth = useOptionalAuth()
-  const { studentId } = useStudentProfile()
+  const { userId } = useUserContext()
   const group = useQuery({
     queryKey: ['public', 'groups', groupId],
     queryFn: () => groupApi.get(groupId),
@@ -36,9 +36,16 @@ export function GroupDetailPage({ groupId }: { groupId: number }) {
     enabled: Number.isSafeInteger(groupId) && groupId > 0,
   })
   const memberships = useQuery({
-    queryKey: ['private', auth.sessionSubject, 'groups', 'memberships'],
-    queryFn: () => groupApi.ownMemberships(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: [
+      'private',
+      auth.sessionSubject,
+      'user',
+      userId,
+      'groups',
+      'memberships',
+    ],
+    queryFn: () => groupApi.ownMemberships(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
   })
   const own = memberships.data?.find(
     (membership) => membership.groupId === groupId && !membership.leftAt,

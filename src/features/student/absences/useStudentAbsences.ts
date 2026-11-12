@@ -13,13 +13,13 @@ import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 export function studentAbsencesQueryKey(
   sessionSubject: string,
-  studentId: number | undefined,
+  userId: number | undefined,
 ) {
-  return privateQueryKeys.absences(sessionSubject, studentId)
+  return privateQueryKeys.absences(sessionSubject, userId)
 }
 
 export function useStudentAbsences(
-  studentId: number | undefined,
+  userId: number | undefined,
   getAccessToken: () => Promise<string>,
   enabled = true,
 ) {
@@ -27,17 +27,17 @@ export function useStudentAbsences(
   const queryClient = useQueryClient()
   const queryKey = studentAbsencesQueryKey(
     auth.sessionSubject ?? 'unknown-session',
-    studentId,
+    userId,
   )
   const query = useQuery({
     queryKey,
-    queryFn: () => listStudentAbsences(studentId!, getAccessToken),
-    enabled: Boolean(studentId && enabled),
+    queryFn: () => listStudentAbsences(userId!, getAccessToken),
+    enabled: Boolean(userId && enabled),
   })
   const createMutation = useMutation({
     mutationFn: (occurrence: ClassOccurrence) =>
       createStudentAbsence(
-        studentId!,
+        userId!,
         {
           courseAttemptId: occurrence.courseAttemptId,
           classScheduleId: occurrence.classScheduleId,
@@ -58,7 +58,12 @@ export function useStudentAbsences(
   })
   const removeMutation = useMutation({
     mutationFn: ({ absence }: { absence: StudentAbsence }) =>
-      deleteStudentAbsence(studentId!, absence.id, getAccessToken),
+      deleteStudentAbsence(
+        userId!,
+        absence.studentCourseAttemptId,
+        absence.id,
+        getAccessToken,
+      ),
     onSuccess: (_, { absence }) => {
       queryClient.setQueryData<ReadonlyArray<StudentAbsence>>(
         queryKey,

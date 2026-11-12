@@ -18,12 +18,12 @@ import { Textarea } from '@/components/ui/textarea'
 
 export function ProfileEditor({
   group,
-  studentId,
+  userId,
   permissions,
   refresh,
 }: {
   group: Group
-  studentId: number
+  userId: number
   permissions: OwnGroupMembership['permissions']
   refresh: () => void
 }) {
@@ -63,7 +63,7 @@ export function ProfileEditor({
   })
   const update = useMutation({
     mutationFn: (body: Parameters<typeof groupApi.update>[2]) =>
-      groupApi.update(studentId, group.id, body, auth.getAccessToken),
+      groupApi.update(userId, group.id, body, auth.getAccessToken),
     onSuccess: (updated) => {
       setName(updated.name)
       setDescription(updated.description ?? '')
@@ -78,7 +78,7 @@ export function ProfileEditor({
             label="Avatar do grupo"
             variant="profile"
             onPendingChange={setPhotoPending}
-            target={{ kind: 'groupAvatar', studentId, groupId: group.id }}
+            target={{ kind: 'groupAvatar', userId, groupId: group.id }}
             mediaId={group.avatarMediaId}
             preset="avatarLarge"
             onChanged={refresh}

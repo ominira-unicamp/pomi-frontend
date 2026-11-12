@@ -1,37 +1,33 @@
-import type { StudentTagInterest } from '@ominira/pomi-sdk/generated/app'
+import type { UserInterest } from '@ominira/pomi-sdk/generated/app'
 import { pomiSdk } from '@/api/client'
 
-export type StudentInterestTag = StudentTagInterest
+export type UserInterestTag = UserInterest
 
 type GetAccessToken = () => Promise<string>
 
-export function listStudentTagInterests(
-  studentId: number,
+export function listUserInterests(
+  userId: number,
   getAccessToken: GetAccessToken,
 ) {
-  return pomiSdk.app.studentTagInterests.listAll(
-    studentId,
-    {},
-    { getAccessToken },
-  )
+  return pomiSdk.app.userInterests.listAll(userId, {}, { getAccessToken })
 }
 
-export function putStudentTagInterest(
-  studentId: number,
+export function putUserInterest(
+  userId: number,
   tagId: number,
   getAccessToken: GetAccessToken,
 ) {
-  return pomiSdk.app.studentTagInterests.update(studentId, tagId, {
+  return pomiSdk.app.userInterests.update(userId, tagId, {
     getAccessToken,
   })
 }
 
-export function deleteStudentTagInterest(
-  studentId: number,
+export function deleteUserInterest(
+  userId: number,
   tagId: number,
   getAccessToken: GetAccessToken,
 ) {
-  return pomiSdk.app.studentTagInterests.delete(studentId, tagId, {
+  return pomiSdk.app.userInterests.delete(userId, tagId, {
     getAccessToken,
   })
 }

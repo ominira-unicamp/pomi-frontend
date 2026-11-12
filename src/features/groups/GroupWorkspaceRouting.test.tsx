@@ -24,14 +24,14 @@ const mocks = vi.hoisted(() => ({
     getAccessToken: vi.fn().mockResolvedValue('token'),
     login: vi.fn(),
   },
-  student: { studentId: 7, studentQuery: { isPending: false } },
+  student: { userId: 7, userQuery: { isPending: false } },
 }))
 vi.mock('@/components/AppShell', () => ({
   AppShell: ({ children }: { children: ReactNode }) => <>{children}</>,
 }))
 vi.mock('@/auth/AuthProvider', () => ({ useOptionalAuth: () => mocks.auth }))
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile: () => mocks.student,
+vi.mock('@/features/identity', () => ({
+  useUserContext: () => mocks.student,
 }))
 vi.mock('./data/groupApi', () => ({ groupApi: mocks }))
 vi.mock('@/api/client', () => ({

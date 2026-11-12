@@ -27,160 +27,186 @@ export const groupApi = {
   listEvents: () => pomiSdk.app.groupCommunity.listGroupEventsAll({}),
   getEvent: (eventId: number) =>
     pomiSdk.app.groupCommunity.getGroupEvent(eventId),
-  ownMemberships: (studentId: number, token: Token) =>
-    pomiSdk.app.groupCommunity.listStudentGroupMembershipsAll(
-      studentId,
+  ownMemberships: (userId: number, token: Token) =>
+    pomiSdk.app.groupCommunity.listUserGroupMembershipsAll(
+      userId,
       {},
       context(token),
     ),
-  managedMembers: (studentId: number, groupId: number, token: Token) =>
+  managedMembers: (userId: number, groupId: number, token: Token) =>
     pomiSdk.app.groupCommunity.listManagedGroupMembershipsAll(
-      studentId,
-      filter(groupId),
-      context(token),
-    ),
-  managedEvents: (studentId: number, groupId: number, token: Token) =>
-    pomiSdk.app.groupCommunity.listManagedGroupEventsAll(
-      studentId,
-      filter(groupId),
-      context(token),
-    ),
-  roles: (studentId: number, groupId: number, token: Token) =>
-    pomiSdk.app.groupCommunity.listGroupRolesAll(
-      studentId,
-      filter(groupId),
-      context(token),
-    ),
-  invitations: (studentId: number, token: Token) =>
-    pomiSdk.app.groupCommunity.listGroupInvitationsAll(
-      studentId,
+      userId,
+      groupId,
       {},
       context(token),
     ),
-  managedInvitations: (studentId: number, groupId: number, token: Token) =>
-    pomiSdk.app.groupCommunity.listManagedGroupInvitationsAll(
-      studentId,
-      filter(groupId),
+  managedEvents: (userId: number, groupId: number, token: Token) =>
+    pomiSdk.app.groupCommunity.listManagedGroupEventsAll(
+      userId,
+      groupId,
+      {},
       context(token),
     ),
-  create: (studentId: number, body: createGroupInput['body'], token: Token) =>
-    pomiSdk.app.groups.create(studentId, body, context(token)),
+  roles: (userId: number, groupId: number, token: Token) =>
+    pomiSdk.app.groupCommunity.listGroupRolesAll(
+      userId,
+      groupId,
+      {},
+      context(token),
+    ),
+  invitations: (userId: number, token: Token) =>
+    pomiSdk.app.groupCommunity.listGroupInvitationsAll(
+      userId,
+      {},
+      context(token),
+    ),
+  managedInvitations: (userId: number, groupId: number, token: Token) =>
+    pomiSdk.app.groupCommunity.listManagedGroupInvitationsAll(
+      userId,
+      groupId,
+      {},
+      context(token),
+    ),
+  create: (userId: number, body: createGroupInput['body'], token: Token) =>
+    pomiSdk.app.groups.create(userId, body, context(token)),
   update: (
-    studentId: number,
+    userId: number,
     groupId: number,
     body: updateGroupInput['body'],
     token: Token,
-  ) => pomiSdk.app.groups.update(groupId, studentId, body, context(token)),
-  archive: (studentId: number, groupId: number, token: Token) =>
-    pomiSdk.app.groups.archive(groupId, studentId, context(token)),
+  ) => pomiSdk.app.groups.update(groupId, userId, body, context(token)),
+  archive: (userId: number, groupId: number, token: Token) =>
+    pomiSdk.app.groups.archive(groupId, userId, context(token)),
   invite: (
-    studentId: number,
+    userId: number,
     groupId: number,
     recipientPublicId: string,
     token: Token,
   ) =>
     pomiSdk.app.groupCommunity.createGroupInvitation(
-      studentId,
-      { groupId, body: { recipientPublicId } },
+      userId,
+      groupId,
+      { recipientPublicId },
       context(token),
     ),
-  accept: (studentId: number, invitationId: number, token: Token) =>
+  accept: (userId: number, invitationId: number, token: Token) =>
     pomiSdk.app.groupCommunity.acceptGroupInvitation(
-      studentId,
+      userId,
       invitationId,
       context(token),
     ),
-  decline: (studentId: number, invitationId: number, token: Token) =>
+  decline: (userId: number, invitationId: number, token: Token) =>
     pomiSdk.app.groupCommunity.declineGroupInvitation(
-      studentId,
+      userId,
       invitationId,
       context(token),
     ),
   visibility: (
-    studentId: number,
+    userId: number,
     membershipId: number,
     isPublic: boolean,
     token: Token,
   ) =>
-    pomiSdk.app.groupCommunity.updateStudentGroupMembership(
-      studentId,
+    pomiSdk.app.groupCommunity.updateUserGroupMembership(
+      userId,
       membershipId,
       { isPublic },
       context(token),
     ),
   updateMember: (
-    studentId: number,
+    userId: number,
+    groupId: number,
     membershipId: number,
     body: updateManagedGroupMembershipInput['body'],
     token: Token,
   ) =>
     pomiSdk.app.groupCommunity.updateManagedGroupMembership(
-      studentId,
+      userId,
+      groupId,
       membershipId,
       body,
       context(token),
     ),
   createRole: (
-    studentId: number,
+    userId: number,
     groupId: number,
     body: createGroupRoleInput['body'],
     token: Token,
   ) =>
     pomiSdk.app.groupCommunity.createGroupRole(
-      studentId,
-      { groupId, body },
+      userId,
+      groupId,
+      body,
       context(token),
     ),
   updateRole: (
-    studentId: number,
+    userId: number,
+    groupId: number,
     roleId: number,
     body: updateGroupRoleInput['body'],
     token: Token,
   ) =>
     pomiSdk.app.groupCommunity.updateGroupRole(
-      studentId,
+      userId,
+      groupId,
       roleId,
       body,
       context(token),
     ),
-  deleteRole: (studentId: number, roleId: number, token: Token) =>
+  deleteRole: (userId: number, groupId: number, roleId: number, token: Token) =>
     pomiSdk.app.groupCommunity.deleteGroupRole(
-      studentId,
+      userId,
+      groupId,
       roleId,
       context(token),
     ),
   createEvent: (
-    studentId: number,
+    userId: number,
     groupId: number,
     body: createGroupEventInput['body'],
     token: Token,
   ) =>
     pomiSdk.app.groupCommunity.createGroupEvent(
-      studentId,
-      { groupId, body },
+      userId,
+      groupId,
+      body,
       context(token),
     ),
   updateEvent: (
-    studentId: number,
+    userId: number,
+    groupId: number,
     eventId: number,
     body: updateGroupEventInput['body'],
     token: Token,
   ) =>
     pomiSdk.app.groupCommunity.updateGroupEvent(
-      studentId,
+      userId,
+      groupId,
       eventId,
       body,
       context(token),
     ),
-  publishEvent: (studentId: number, eventId: number, token: Token) =>
+  publishEvent: (
+    userId: number,
+    groupId: number,
+    eventId: number,
+    token: Token,
+  ) =>
     pomiSdk.app.groupCommunity.publishGroupEvent(
-      studentId,
+      userId,
+      groupId,
       eventId,
       context(token),
     ),
-  cancelEvent: (studentId: number, eventId: number, token: Token) =>
+  cancelEvent: (
+    userId: number,
+    groupId: number,
+    eventId: number,
+    token: Token,
+  ) =>
     pomiSdk.app.groupCommunity.cancelGroupEvent(
-      studentId,
+      userId,
+      groupId,
       eventId,
       context(token),
     ),

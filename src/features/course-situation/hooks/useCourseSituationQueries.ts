@@ -12,7 +12,7 @@ import {
   listStudentCourseAttempts,
   listStudyPeriods,
 } from '@/features/student/data/studentApi'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useStudentAcademicProfile } from '@/features/student/hooks/useStudentAcademicProfile'
 
 const staticSource = createCurriculumCatalogDataSource()
 
@@ -27,11 +27,12 @@ export function useCourseSituationQueries({
 }) {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
-  const { studentId, profileQuery } = useStudentProfile()
+  const { userId, studentId, userQuery, profileQuery } =
+    useStudentAcademicProfile()
   const attemptsQuery = useQuery({
-    queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
-    queryFn: () => listStudentCourseAttempts(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.courseAttempts(sessionSubject, userId),
+    queryFn: () => listStudentCourseAttempts(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
   })
   const periodsQuery = useQuery({
     queryKey: publicQueryKeys.studyPeriods(),
@@ -52,7 +53,7 @@ export function useCourseSituationQueries({
   const classesQuery = useQuery({
     queryKey: privateQueryKeys.courseSituationClasses(
       sessionSubject,
-      studentId,
+      userId,
       courseId,
       studyPeriodId,
     ),
@@ -70,7 +71,7 @@ export function useCourseSituationQueries({
   const evaluationModeQuery = useQuery({
     queryKey: privateQueryKeys.courseSituationEvaluation(
       sessionSubject,
-      studentId,
+      userId,
       courseId,
       selectedAttemptPeriod?.year,
     ),
@@ -86,7 +87,9 @@ export function useCourseSituationQueries({
   return {
     auth,
     sessionSubject,
+    userId,
     studentId,
+    userQuery,
     profileQuery,
     attemptsQuery,
     periodsQuery,

@@ -49,7 +49,8 @@ type DeepReadonly<T> = T extends (...args: Array<never>) => unknown
 export type StudentHistoryImport = DeepReadonly<
   createStudentHistoryInput['body']
 >
-export type StudentHistoryImportSummary = Readonly<GeneratedStudentHistoryImportSummary>
+export type StudentHistoryImportSummary =
+  Readonly<GeneratedStudentHistoryImportSummary>
 export type StudentCourseAttemptClass = ClassTransport
 export type StudentClassSchedule = Pick<
   GeneratedClassSchedule,
@@ -83,31 +84,20 @@ type StudentCourseAttemptBody = Readonly<
 >
 type PatchAttemptBody = Readonly<updateStudentCourseAttemptsInput['body']>
 
-export function getCurrentStudent(getAccessToken: () => Promise<string>) {
-  return pomiSdk.app.currentUser.get({ getAccessToken })
-}
-
-export function registerCurrentStudent(
-  name: string,
+export function getStudentAcademicProfile(
+  userId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiSdk.app.students.create({ name }, { getAccessToken })
-}
-
-export function getStudentProfile(
-  studentId: number,
-  getAccessToken: () => Promise<string>,
-) {
-  return pomiSdk.app.students.get(studentId, { getAccessToken })
+  return pomiSdk.app.students.get(userId, { getAccessToken })
 }
 
 export function patchStudentProfile(
-  studentId: number,
+  userId: number,
   body: StudentProfilePatch,
   getAccessToken: () => Promise<string>,
 ) {
   return pomiSdk.app.students.update(
-    studentId,
+    userId,
     body as updateStudentsInput['body'],
     { getAccessToken },
   )
@@ -126,7 +116,7 @@ export async function getCourseEvaluationForStudyPeriod(
     pageSize: 1,
     filter: { courseId, catalogYear: year },
   })
-  return (page.data[0]?.evaluation as StudentCourseEvaluationMode | null) ?? null
+  return page.data[0]?.evaluation ?? null
 }
 
 export function listClassesForStudentCourseAttempt(
@@ -149,51 +139,48 @@ export function listClassSchedulesByStudyPeriod(studyPeriodId: number) {
 }
 
 export function listStudentCourseAttempts(
-  studentId: number,
+  userId: number,
   getAccessToken: () => Promise<string>,
 ) {
   return pomiSdk.app.courseAttempts.listAll(
-    studentId,
+    userId,
     {},
     { getAccessToken },
   ) as unknown as Promise<ReadonlyArray<StudentCourseAttempt>>
 }
 
 export function importStudentHistory(
-  studentId: number,
+  userId: number,
   body: StudentHistoryImport,
   getAccessToken: () => Promise<string>,
 ) {
   return pomiSdk.app.studentHistory.create(
-    studentId,
+    userId,
     body as createStudentHistoryInput['body'],
     { getAccessToken },
   )
 }
 
 export function getProfessorEvaluation(
-  studentId: number,
+  userId: number,
   classId: number,
   professorId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiSdk.app.professorEvaluations.get(
-    studentId,
-    classId,
-    professorId,
-    { getAccessToken },
-  )
+  return pomiSdk.app.professorEvaluations.get(userId, classId, professorId, {
+    getAccessToken,
+  })
 }
 
 export function putProfessorEvaluation(
-  studentId: number,
+  userId: number,
   classId: number,
   professorId: number,
   body: ProfessorEvaluationBody,
   getAccessToken: () => Promise<string>,
 ) {
   return pomiSdk.app.professorEvaluations.update(
-    studentId,
+    userId,
     classId,
     professorId,
     body,
@@ -202,7 +189,7 @@ export function putProfessorEvaluation(
 }
 
 export function listPendingProfessorEvaluations(
-  studentId: number,
+  userId: number,
   period: Readonly<{
     year: number
     yearPeriod: 'FIRST_SEMESTER' | 'SECOND_SEMESTER'
@@ -210,39 +197,39 @@ export function listPendingProfessorEvaluations(
   getAccessToken: () => Promise<string>,
 ) {
   return pomiSdk.app.professorEvaluations.listAll(
-    studentId,
+    userId,
     { filter: period },
     { getAccessToken },
   )
 }
 
 export function createStudentCourseAttempt(
-  studentId: number,
+  userId: number,
   body: StudentCourseAttemptBody,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiSdk.app.courseAttempts.create(studentId, body, {
+  return pomiSdk.app.courseAttempts.create(userId, body, {
     getAccessToken,
   })
 }
 
 export function patchStudentCourseAttempt(
-  studentId: number,
+  userId: number,
   attemptId: number,
   body: PatchAttemptBody,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiSdk.app.courseAttempts.update(studentId, attemptId, body, {
+  return pomiSdk.app.courseAttempts.update(userId, attemptId, body, {
     getAccessToken,
   })
 }
 
 export async function deleteStudentCourseAttempt(
-  studentId: number,
+  userId: number,
   attemptId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  await pomiSdk.app.courseAttempts.delete(studentId, attemptId, {
+  await pomiSdk.app.courseAttempts.delete(userId, attemptId, {
     getAccessToken,
   })
 }
@@ -258,21 +245,11 @@ export function isApprovedStudentCourseAttempt(
   ].includes(attempt.status)
 }
 
-export async function ensureCurrentStudent(
-  name: string,
-  getAccessToken: () => Promise<string>,
-) {
-  const current = await getCurrentStudent(getAccessToken)
-  if (current.studentId) return current.studentId
-  const student = await registerCurrentStudent(name, getAccessToken)
-  return student.id
-}
-
 export async function listCompletedCourseIds(
-  studentId: number,
+  userId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  const attempts = await listStudentCourseAttempts(studentId, getAccessToken)
+  const attempts = await listStudentCourseAttempts(userId, getAccessToken)
   return [
     ...new Set(
       attempts
@@ -283,13 +260,13 @@ export async function listCompletedCourseIds(
 }
 
 export async function setCourseCompleted(
-  studentId: number,
+  userId: number,
   courseId: string,
   completed: boolean,
   getAccessToken: () => Promise<string>,
   completion?: Readonly<{ studyPeriodId?: number; grade?: number | null }>,
 ) {
-  const attempts = await listStudentCourseAttempts(studentId, getAccessToken)
+  const attempts = await listStudentCourseAttempts(userId, getAccessToken)
   const completedAttempts = attempts.filter(
     (attempt) =>
       attempt.courseId === Number(courseId) &&
@@ -298,12 +275,12 @@ export async function setCourseCompleted(
   if (!completed) {
     const latest = completedAttempts.at(0)
     if (latest)
-      await deleteStudentCourseAttempt(studentId, latest.id, getAccessToken)
+      await deleteStudentCourseAttempt(userId, latest.id, getAccessToken)
     return
   }
   if (completedAttempts.length) return
   await createStudentCourseAttempt(
-    studentId,
+    userId,
     {
       courseId: Number(courseId),
       studyPeriodId: completion?.studyPeriodId ?? null,

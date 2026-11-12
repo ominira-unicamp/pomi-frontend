@@ -21,7 +21,7 @@ const mocks = vi.hoisted(() => ({
     getAccessToken: vi.fn().mockResolvedValue('token'),
     login: vi.fn(),
   },
-  student: { studentId: 7, studentQuery: { isPending: false } },
+  student: { userId: 7, userQuery: { isPending: false } },
 }))
 vi.mock('@tanstack/react-router', () => ({
   Link: ({
@@ -45,8 +45,8 @@ vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => mocks.navigate,
 }))
 vi.mock('@/auth/AuthProvider', () => ({ useOptionalAuth: () => mocks.auth }))
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile: () => mocks.student,
+vi.mock('@/features/identity', () => ({
+  useUserContext: () => mocks.student,
 }))
 vi.mock('./data/groupApi', () => ({ groupApi: mocks }))
 function renderPage(page: ReactNode) {
@@ -62,7 +62,7 @@ function renderPage(page: ReactNode) {
 const membership = {
   id: 9,
   groupId: 42,
-  studentId: 7,
+  userId: 7,
   leftAt: null,
   isPublic: false,
   positions: [{ id: 2, title: 'Presidente', startedAt: null, endedAt: null }],
@@ -73,7 +73,7 @@ const membership = {
 describe('personal group participation', () => {
   beforeEach(() => {
     mocks.auth.isAuthenticated = true
-    mocks.student.studentId = 7
+    mocks.student.userId = 7
     mocks.list
       .mockReset()
       .mockResolvedValue([

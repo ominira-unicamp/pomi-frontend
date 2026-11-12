@@ -39,10 +39,18 @@ vi.mock('@/auth/AuthProvider', () => ({
   useOptionalAuth: () => authState,
 }))
 
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile: () => ({
-    studentId: 1,
-    profileQuery: { isLoading: false, data: { name: 'Estudante' } },
+const academicState = vi.hoisted(() => ({ studentId: 17 as number | null }))
+
+vi.mock('@/features/student/hooks/useStudentAcademicProfile', () => ({
+  useStudentAcademicProfile: () => ({
+    userId: 1,
+    studentId: academicState.studentId,
+    userQuery: { isPending: false, isError: false, refetch: vi.fn() },
+    profileQuery: {
+      isLoading: false,
+      isPending: academicState.studentId === null,
+      data: academicState.studentId ? { name: 'Estudante' } : undefined,
+    },
   }),
 }))
 
@@ -93,6 +101,7 @@ function renderPage() {
 
 describe('CourseSituationPage', () => {
   beforeEach(() => {
+    academicState.studentId = 17
     authState.isAuthenticated = true
     login.mockReset()
     listClassesForStudentCourseAttempt.mockResolvedValue([])
@@ -590,4 +599,26 @@ describe('CourseSituationPage', () => {
     )
     expect(login).toHaveBeenCalledWith('/situacao-do-curso')
   })
+})
+
+it('loads attempts without an academic profile and keeps academic editing disabled', async () => {
+  authState.isAuthenticated = true
+  listStudentCourseAttempts.mockResolvedValue([])
+  academicState.studentId = null
+  renderPage()
+  expect(
+    await screen.findByRole('button', {
+      name: 'Adicionar disciplina cursando',
+    }),
+  ).toBeTruthy()
+  expect(await screen.findByText('Sem vínculo acadêmico')).toBeTruthy()
+  expect(
+    screen.getByRole<HTMLButtonElement>('button', {
+      name: 'Editar vínculo acadêmico',
+    }).disabled,
+  ).toBe(true)
+  expect(listStudentCourseAttempts).toHaveBeenCalledWith(
+    1,
+    authState.getAccessToken,
+  )
 })

@@ -1,10 +1,7 @@
 import { Check, UserPlus } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 
-import type {
-  Friendship,
-  PublicPerson,
-} from '@/features/friends/studentSocialApi'
+import type { Friendship, PublicPerson } from '@/features/friends/userSocialApi'
 import type { RelationshipState } from './types'
 import { PersonAvatar } from '@/features/media/IdentityImages'
 import { Button } from '@/components/ui/button'

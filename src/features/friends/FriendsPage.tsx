@@ -6,11 +6,10 @@ import type {
   Friendship,
   PublicPerson,
   PublicProfile,
-} from '@/features/friends/studentSocialApi'
+} from '@/features/friends/userSocialApi'
 import { PersonAvatar } from '@/features/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
-  EmptyState,
   LoadingState,
   PageContainer,
   PageHeader,
@@ -28,8 +27,9 @@ import {
   requestFriendship,
   searchPeople,
   updatePublicProfile,
-} from '@/features/friends/studentSocialApi'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+} from '@/features/friends/userSocialApi'
+import { useUserContext } from '@/features/identity'
+import { UserIdentityState } from '@/features/identity/UserIdentityState'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 function PersonDetails({ person }: { person: PublicPerson }) {
@@ -89,42 +89,39 @@ export function FriendsPage() {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const queryClient = useQueryClient()
-  const { studentId, studentQuery } = useStudentProfile()
+  const { userId, userQuery } = useUserContext()
   const [search, setSearch] = useState('')
   const [form, setForm] = useState<PublicProfile>()
   const profile = useQuery({
-    queryKey: privateQueryKeys.studentSocialProfile(sessionSubject, studentId),
-    queryFn: () => getPublicProfile(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.userSocialProfile(sessionSubject, userId),
+    queryFn: () => getPublicProfile(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
   })
   const friendships = useQuery({
-    queryKey: privateQueryKeys.studentSocialFriendships(
-      sessionSubject,
-      studentId,
-    ),
-    queryFn: () => listFriendships(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.userSocialFriendships(sessionSubject, userId),
+    queryFn: () => listFriendships(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
   })
   const people = useQuery({
-    queryKey: privateQueryKeys.studentSocialPeople(
+    queryKey: privateQueryKeys.userSocialPeople(
       sessionSubject,
-      studentId,
+      userId,
       search.trim(),
     ),
-    queryFn: () => searchPeople(studentId!, search.trim(), auth.getAccessToken),
-    enabled: Boolean(studentId && search.trim().length >= 3),
+    queryFn: () => searchPeople(userId!, search.trim(), auth.getAccessToken),
+    enabled: Boolean(userId && search.trim().length >= 3),
   })
   useEffect(() => {
     if (profile.data) setForm(profile.data)
   }, [profile.data])
   const refresh = () =>
     queryClient.invalidateQueries({
-      queryKey: privateQueryKeys.studentSocial(sessionSubject, studentId),
+      queryKey: privateQueryKeys.userSocial(sessionSubject, userId),
     })
   const save = useMutation({
     mutationFn: () =>
       updatePublicProfile(
-        studentId!,
+        userId!,
         publicProfileUpdateInput(form!),
         auth.getAccessToken,
       ),
@@ -135,32 +132,29 @@ export function FriendsPage() {
   })
   const add = useMutation({
     mutationFn: (publicId: string) =>
-      requestFriendship(studentId!, publicId, auth.getAccessToken),
+      requestFriendship(userId!, publicId, auth.getAccessToken),
     onSuccess: () => void refresh(),
   })
   const accept = useMutation({
     mutationFn: (id: number) =>
-      acceptFriendship(studentId!, id, auth.getAccessToken),
+      acceptFriendship(userId!, id, auth.getAccessToken),
     onSuccess: () => void refresh(),
   })
   const remove = useMutation({
     mutationFn: (id: number) =>
-      removeFriendship(studentId!, id, auth.getAccessToken),
+      removeFriendship(userId!, id, auth.getAccessToken),
     onSuccess: () => void refresh(),
   })
-  if (studentQuery.isLoading || (studentId && profile.isLoading))
+  if (userQuery.isLoading || (userId && profile.isLoading))
     return (
       <PageContainer>
         <LoadingState label="Carregando perfil e amizades" />
       </PageContainer>
     )
-  if (!studentId)
+  if (!userId)
     return (
       <PageContainer>
-        <EmptyState
-          title="Perfil acadêmico necessário"
-          description="Conclua seu cadastro de estudante antes de usar a área de amigos."
-        />
+        <UserIdentityState query={userQuery} />
       </PageContainer>
     )
   const groups = {
@@ -181,7 +175,7 @@ export function FriendsPage() {
       <PageHeader
         eyebrow="Comunidade"
         title="Amigos"
-        description="Controle o que aparece no seu perfil e encontre outros estudantes."
+        description="Controle o que aparece no seu perfil e encontre outras pessoas."
       />
       {form && (
         <Card>

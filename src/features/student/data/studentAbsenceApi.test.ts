@@ -15,23 +15,21 @@ describe('student absence API', () => {
   })
 
   it('lists all absences for the student', async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            data: [],
-            quantity: 0,
-            total: 0,
-            links: { next: null },
-          }),
-          { status: 200 },
-        ),
-      )
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: [],
+          quantity: 0,
+          total: 0,
+          links: { next: null },
+        }),
+        { status: 200 },
+      ),
+    )
 
     await expect(listStudentAbsences(7, getAccessToken)).resolves.toEqual([])
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringMatching(/\/student\/7\/absences(?:\?|$)/),
+      expect.stringMatching(/\/users\/7\/absences(?:\?|$)/),
       expect.objectContaining({ cache: 'no-store' }),
     )
   })
@@ -54,11 +52,10 @@ describe('student absence API', () => {
       ),
     ).resolves.toEqual(absence)
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringMatching(/\/student\/7\/absences$/),
+      expect.stringMatching(/\/users\/7\/course-attempts\/11\/absences$/),
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({
-          courseAttemptId: 11,
           classScheduleId: 50,
           date: '2026-08-20',
         }),
@@ -71,10 +68,10 @@ describe('student absence API', () => {
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(new Response(null, { status: 204 }))
 
-    await deleteStudentAbsence(7, 9, getAccessToken)
+    await deleteStudentAbsence(7, 11, 9, getAccessToken)
 
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringMatching(/\/student\/7\/absences\/9$/),
+      expect.stringMatching(/\/users\/7\/course-attempts\/11\/absences\/9$/),
       expect.objectContaining({ method: 'DELETE' }),
     )
   })

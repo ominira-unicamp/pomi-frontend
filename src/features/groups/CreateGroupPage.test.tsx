@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
     getAccessToken: vi.fn().mockResolvedValue('token'),
     login: vi.fn(),
   },
-  student: { studentId: 7, studentQuery: { isPending: false } },
+  student: { userId: 7, userQuery: { isPending: false } },
 }))
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children, to }: { children: ReactNode; to: string }) => (
@@ -22,8 +22,8 @@ vi.mock('@tanstack/react-router', () => ({
   useBlocker: vi.fn(),
 }))
 vi.mock('@/auth/AuthProvider', () => ({ useOptionalAuth: () => mocks.auth }))
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile: () => mocks.student,
+vi.mock('@/features/identity', () => ({
+  useUserContext: () => mocks.student,
 }))
 vi.mock('./data/groupApi', () => ({ groupApi: mocks }))
 function renderPage() {

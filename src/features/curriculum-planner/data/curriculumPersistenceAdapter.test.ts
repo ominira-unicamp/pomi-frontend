@@ -2,24 +2,40 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { persistCurriculumState } from './curriculumPersistenceAdapter'
 
-const { createCurriculum, patchCurriculum, patchBodyFromState } = vi.hoisted(() => ({
-  createCurriculum: vi.fn(),
-  patchCurriculum: vi.fn(),
-  patchBodyFromState: vi.fn(() => ({ periods: { upsert: [] } })),
-}))
+const { createCurriculum, patchCurriculum, patchBodyFromState } = vi.hoisted(
+  () => ({
+    createCurriculum: vi.fn(),
+    patchCurriculum: vi.fn(),
+    patchBodyFromState: vi.fn(() => ({ periods: { upsert: [] } })),
+  }),
+)
 
 vi.mock('@/features/curriculum-planner/data/curriculumPersistenceApi', () => ({
   createCurriculum,
   patchCurriculum,
-  documentFromState: (state: {
-    selection: { catalogProgramId?: string; catalogProgramVariantId?: string; languageId?: string }
-    plan: {
-      periods: ReadonlyArray<{ id: string; items: ReadonlyArray<{ courseId: string }> }>
-      unallocatedCourseIds?: ReadonlyArray<string>
-      planningStart?: { year: number; semester: 1 | 2; semesterNumber?: number }
-      currentPeriodId?: string
-    }
-  }, name = 'Meu planejamento') => ({
+  documentFromState: (
+    state: {
+      selection: {
+        catalogProgramId?: string
+        catalogProgramVariantId?: string
+        languageId?: string
+      }
+      plan: {
+        periods: ReadonlyArray<{
+          id: string
+          items: ReadonlyArray<{ courseId: string }>
+        }>
+        unallocatedCourseIds?: ReadonlyArray<string>
+        planningStart?: {
+          year: number
+          semester: 1 | 2
+          semesterNumber?: number
+        }
+        currentPeriodId?: string
+      }
+    },
+    name = 'Meu planejamento',
+  ) => ({
     name,
     selection: {
       catalogProgramId: state.selection.catalogProgramId ?? null,
@@ -70,7 +86,7 @@ describe('persistCurriculumState', () => {
     patchCurriculum.mockResolvedValue({ id: 10, name: 'Meu planejamento' })
 
     await persistCurriculumState({
-      studentId: 1,
+      userId: 1,
       state: {
         revision: 0,
         selection: {},
@@ -121,7 +137,7 @@ describe('persistCurriculumState', () => {
     patchCurriculum.mockResolvedValue(current)
 
     await persistCurriculumState({
-      studentId: 1,
+      userId: 1,
       current,
       state: {
         revision: 0,
@@ -130,10 +146,7 @@ describe('persistCurriculumState', () => {
           periods: [
             {
               id: 'local-period',
-              items: [
-                { courseId: '101' },
-                { courseId: '102' },
-              ],
+              items: [{ courseId: '101' }, { courseId: '102' }],
             },
           ],
         },

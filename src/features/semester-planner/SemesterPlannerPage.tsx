@@ -158,7 +158,8 @@ export function SemesterPlannerPage({
   const [programCatalogId, setProgramCatalogId] = useState('')
   const [programCatalogTouched, setProgramCatalogTouched] = useState(false)
   const [programCatalogProgramId, setProgramCatalogProgramId] = useState('')
-  const [programCatalogProgramVariantId, setProgramCatalogProgramVariantId] = useState('')
+  const [programCatalogProgramVariantId, setProgramCatalogProgramVariantId] =
+    useState('')
   const [programLanguageId, setProgramLanguageId] = useState('')
   const [anonymousSuggestionCourseIds, setAnonymousSuggestionCourseIds] =
     useState<
@@ -177,7 +178,7 @@ export function SemesterPlannerPage({
   )
   const [error, setError] = useState<string>()
   const {
-    studentId,
+    userId,
     studentProfileQuery,
     query,
     plansQuery,
@@ -432,12 +433,12 @@ export function SemesterPlannerPage({
     })
     return createApiSemesterPlanner({
       planner: inMemory,
-      studentId: studentId ?? undefined,
+      userId: userId ?? undefined,
       planningId: activePlanId,
       getAccessToken: auth.getAccessToken,
       onSavingChange: setIsSaving,
     })
-  }, [activePlanId, auth.getAccessToken, document, query.data, studentId])
+  }, [activePlanId, auth.getAccessToken, document, query.data, userId])
 
   const snapshotQuery = useQuery({
     queryKey: privateQueryKeys.semesterPlannerSnapshot(
@@ -778,25 +779,34 @@ export function SemesterPlannerPage({
     setDocument((current) => ({ ...current, studyPeriodId: nextId }))
   }
 
+  const [draftStorageError, setDraftStorageError] = useState<string>()
+
   function saveDraft() {
     if (!studyPeriodId) return
-    saveDraftHandoff({
-      version: 1,
-      kind: 'semester',
-      document: {
-        ...document,
-        studyPeriodId,
-        name:
-          document.name.trim() ||
-          `Planejamento ${(() => {
-            const period = query.data?.studyPeriods.find(
-              (item) => item.id === studyPeriodId,
-            )
-            return period ? studyPeriodLabel(period) : ''
-          })()}`,
-      },
-    })
-    void auth.login(window.location.href)
+    setDraftStorageError(undefined)
+    try {
+      saveDraftHandoff({
+        version: 1,
+        kind: 'semester',
+        document: {
+          ...document,
+          studyPeriodId,
+          name:
+            document.name.trim() ||
+            `Planejamento ${(() => {
+              const period = query.data?.studyPeriods.find(
+                (item) => item.id === studyPeriodId,
+              )
+              return period ? studyPeriodLabel(period) : ''
+            })()}`,
+        },
+      })
+      void auth.login(window.location.href)
+    } catch {
+      setDraftStorageError(
+        'Não foi possível guardar o rascunho neste navegador. Suas escolhas continuam nesta aba; libere o armazenamento e tente novamente.',
+      )
+    }
   }
 
   function selectPlan(planId: number) {
@@ -855,11 +865,11 @@ export function SemesterPlannerPage({
   }
 
   async function saveVisibility() {
-    if (!activePlanId || !studentId) return
+    if (!activePlanId || !userId) return
     try {
       setIsSaving(true)
       const updated = await updateSemesterPlanningVisibility(
-        studentId,
+        userId,
         activePlanId,
         visibilityDraft,
         auth.getAccessToken,
@@ -876,7 +886,7 @@ export function SemesterPlannerPage({
   }
 
   async function removePlan() {
-    if (!activePlanId || !studentId) return
+    if (!activePlanId || !userId) return
     if (
       !window.confirm(
         `Apagar “${document.name}”? Esta ação não pode ser desfeita.`,
@@ -885,7 +895,7 @@ export function SemesterPlannerPage({
       return
     try {
       setIsSaving(true)
-      await deleteSemesterPlanning(studentId, activePlanId, auth.getAccessToken)
+      await deleteSemesterPlanning(userId, activePlanId, auth.getAccessToken)
       await plansQuery.refetch()
       await navigate({ to: '/planejamentos-de-semestre', replace: true })
     } catch {
@@ -2118,6 +2128,7 @@ export function SemesterPlannerPage({
         />
       </div>
       <SaveDraftDialog
+        error={draftStorageError}
         open={saveDraftDialogOpen}
         onOpenChange={setSaveDraftDialogOpen}
         onLogin={saveDraft}

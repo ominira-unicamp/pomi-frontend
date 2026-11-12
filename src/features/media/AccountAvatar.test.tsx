@@ -7,7 +7,7 @@ import { invalidateIdentityImages } from './invalidateMedia'
 
 const mocks = vi.hoisted(() => ({
   subject: 'session-one',
-  studentId: 7,
+  userId: 7,
   getPublicProfile: vi.fn(),
   readPrivateMedia: vi.fn(),
   getAccessToken: vi.fn().mockResolvedValue('token'),
@@ -19,10 +19,10 @@ vi.mock('@/auth/AuthProvider', () => ({
     getAccessToken: mocks.getAccessToken,
   }),
 }))
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useCurrentStudent: () => ({ data: { studentId: mocks.studentId } }),
+vi.mock('@/features/identity', () => ({
+  useCurrentUser: () => ({ data: { userId: mocks.userId } }),
 }))
-vi.mock('@/features/friends/studentSocialApi', () => ({
+vi.mock('@/features/friends/userSocialApi', () => ({
   getPublicProfile: mocks.getPublicProfile,
 }))
 vi.mock('./mediaApi', () => ({
@@ -33,7 +33,7 @@ afterEach(() => {
   vi.unstubAllGlobals()
   vi.clearAllMocks()
   mocks.subject = 'session-one'
-  mocks.studentId = 7
+  mocks.userId = 7
 })
 
 it('refreshes the account image after mutation and never reuses a private image across accounts', async () => {
@@ -76,7 +76,7 @@ it('refreshes the account image after mutation and never reuses a private image 
   )
   expect(revoke).toHaveBeenCalledWith('blob:first')
   mocks.subject = 'session-two'
-  mocks.studentId = 8
+  mocks.userId = 8
   view.rerender(content())
   expect(view.container.querySelector('img')).toBeNull()
   await waitFor(() =>

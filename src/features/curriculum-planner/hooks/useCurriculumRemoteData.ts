@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo } from 'react'
+import { getCurrentUser } from '@/features/identity'
 
 import {
   getCurriculum,
@@ -8,14 +9,13 @@ import {
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import {
-  getCurrentStudent,
-  getStudentProfile,
+  getStudentAcademicProfile,
   isApprovedStudentCourseAttempt,
   listStudentCourseAttempts,
 } from '@/features/student/data/studentApi'
 
 export type CurriculumRemoteData = Readonly<{
-  studentId?: number
+  userId?: number
   summaries: Awaited<ReturnType<typeof listCurricula>>
   document?: Awaited<ReturnType<typeof getCurriculum>>
   completed: ReadonlyArray<string>
@@ -37,31 +37,30 @@ export function useCurriculumRemoteData({
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const enabled = authInitialized && isAuthenticated && !injected
-  const studentQuery = useQuery({
-    queryKey: privateQueryKeys.currentStudent(sessionSubject),
+  const userQuery = useQuery({
+    queryKey: privateQueryKeys.currentUser(sessionSubject),
     enabled,
-    queryFn: () => getCurrentStudent(getAccessToken),
+    queryFn: () => getCurrentUser(getAccessToken),
   })
-  const studentId = studentQuery.data?.studentId ?? undefined
+  const userId = userQuery.data?.userId ?? undefined
   const curriculaQuery = useQuery({
-    queryKey: privateQueryKeys.curricula(sessionSubject, studentId),
-    enabled: enabled && Boolean(studentId),
-    queryFn: () => listCurricula(studentId!, getAccessToken),
+    queryKey: privateQueryKeys.curricula(sessionSubject, userId),
+    enabled: enabled && Boolean(userId),
+    queryFn: () => listCurricula(userId!, getAccessToken),
   })
   const curriculumQuery = useQuery({
     queryKey: privateQueryKeys.curriculum(
       sessionSubject,
-      studentId,
+      userId,
       activeCurriculumId,
     ),
-    enabled: enabled && Boolean(studentId && activeCurriculumId),
-    queryFn: () =>
-      getCurriculum(studentId!, activeCurriculumId!, getAccessToken),
+    enabled: enabled && Boolean(userId && activeCurriculumId),
+    queryFn: () => getCurriculum(userId!, activeCurriculumId!, getAccessToken),
   })
   const attemptsQuery = useQuery({
-    queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
-    enabled: enabled && Boolean(studentId),
-    queryFn: () => listStudentCourseAttempts(studentId!, getAccessToken),
+    queryKey: privateQueryKeys.courseAttempts(sessionSubject, userId),
+    enabled: enabled && Boolean(userId),
+    queryFn: () => listStudentCourseAttempts(userId!, getAccessToken),
   })
   const completed = useMemo(
     () => [
@@ -74,17 +73,17 @@ export function useCurriculumRemoteData({
     [attemptsQuery.data],
   )
   const data = useMemo<CurriculumRemoteData | undefined>(() => {
-    if (!enabled) return { studentId: undefined, summaries: [], completed: [] }
+    if (!enabled) return { userId: undefined, summaries: [], completed: [] }
     if (
-      !studentQuery.data ||
-      (studentId &&
+      !userQuery.data ||
+      (userId &&
         (!curriculaQuery.data ||
           attemptsQuery.isPending ||
           (activeCurriculumId && curriculumQuery.isPending)))
     )
       return undefined
     return {
-      studentId,
+      userId,
       summaries: curriculaQuery.data ?? [],
       document: curriculumQuery.data,
       completed,
@@ -97,12 +96,12 @@ export function useCurriculumRemoteData({
     curriculumQuery.isPending,
     enabled,
     attemptsQuery.isPending,
-    studentId,
-    studentQuery.data,
+    userId,
+    userQuery.data,
   ])
   const refetch = useCallback(async () => {
     await Promise.all([
-      studentQuery.refetch(),
+      userQuery.refetch(),
       curriculaQuery.refetch(),
       attemptsQuery.refetch(),
       ...(activeCurriculumId ? [curriculumQuery.refetch()] : []),
@@ -112,23 +111,28 @@ export function useCurriculumRemoteData({
     attemptsQuery,
     curriculaQuery,
     curriculumQuery,
-    studentQuery,
+    userQuery,
   ])
   const remoteQuery = {
     data,
     isLoading:
       enabled &&
-      (studentQuery.isPending ||
-        (Boolean(studentId) &&
+      (userQuery.isPending ||
+        (Boolean(userId) &&
           (curriculaQuery.isPending ||
             attemptsQuery.isPending ||
             (Boolean(activeCurriculumId) && curriculumQuery.isPending)))),
     refetch,
   }
   const studentProfileQuery = useQuery({
-    queryKey: privateQueryKeys.studentProfile(sessionSubject, studentId),
-    queryFn: () => getStudentProfile(studentId!, getAccessToken),
-    enabled: Boolean(isAuthenticated && studentId && !injected),
+    queryKey: [
+      ...privateQueryKeys.studentAcademicProfile(sessionSubject, userId),
+      userQuery.data?.studentId ?? 'none',
+    ],
+    queryFn: () => getStudentAcademicProfile(userId!, getAccessToken),
+    enabled: Boolean(
+      isAuthenticated && userId && userQuery.data?.studentId && !injected,
+    ),
     staleTime: 5 * 60_000,
   })
   return {

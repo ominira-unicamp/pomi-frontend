@@ -19,6 +19,7 @@ import type {
 import type { InitialAcademicSelection } from '@/features/planning-shared/components/InitialAcademicSelectionFields'
 import type { CurriculumDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
 import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
+import { requireCurrentUserId } from '@/features/identity/identityApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { CreationWizard } from '@/components/CreationWizard'
@@ -36,11 +37,10 @@ import { persistCurriculumState } from '@/features/curriculum-planner/data/curri
 import { curriculumDraftBootstrapKey } from '@/features/planning-shared/data/planningDraftBootstrap'
 import { loadCurriculumSuggestions } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
 import {
-  ensureCurrentStudent,
   isApprovedStudentCourseAttempt,
   listStudentCourseAttempts,
 } from '@/features/student/data/studentApi'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useStudentAcademicProfile } from '@/features/student/hooks/useStudentAcademicProfile'
 import {
   privateQueryKeys,
   publicQueryKeys,
@@ -57,7 +57,7 @@ export function CurriculumPlanCreationPage() {
   const auth = useOptionalAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const { profileQuery, studentId } = useStudentProfile()
+  const { profileQuery, userId } = useStudentAcademicProfile()
   const [step, setStep] = useState(0)
   const [name, setName] = useState('Meu planejamento')
   const [semesterNumber, setSemesterNumber] = useState(1)
@@ -87,12 +87,12 @@ export function CurriculumPlanCreationPage() {
     staleTime: Infinity,
   })
   const sessionSubject = auth.sessionSubject ?? 'anonymous-session'
-  const historyStudentId = studentId ?? undefined
+  const historyUserId = userId ?? undefined
   const attemptsQuery = useQuery({
-    queryKey: privateQueryKeys.courseAttempts(sessionSubject, historyStudentId),
+    queryKey: privateQueryKeys.courseAttempts(sessionSubject, historyUserId),
     queryFn: () =>
-      listStudentCourseAttempts(historyStudentId!, auth.getAccessToken),
-    enabled: auth.isAuthenticated && Boolean(historyStudentId),
+      listStudentCourseAttempts(historyUserId!, auth.getAccessToken),
+    enabled: auth.isAuthenticated && Boolean(historyUserId),
   })
   const historyAttempts = useMemo(
     () =>
@@ -115,7 +115,7 @@ export function CurriculumPlanCreationPage() {
     [historyAttempts],
   )
   const historyReady =
-    auth.isAuthenticated && Boolean(historyStudentId) && attemptsQuery.isSuccess
+    auth.isAuthenticated && Boolean(historyUserId) && attemptsQuery.isSuccess
   const suggestionsQuery = useQuery({
     queryKey: publicQueryKeys.plannerCreationSuggestions(
       selection.catalogProgramId,
@@ -246,14 +246,9 @@ export function CurriculumPlanCreationPage() {
         })
         return
       }
-      const createdStudentId = await ensureCurrentStudent(
-        String(
-          auth.profile?.name ?? auth.profile?.preferred_username ?? 'Estudante',
-        ),
-        auth.getAccessToken,
-      )
+      const createdUserId = await requireCurrentUserId(auth.getAccessToken)
       const document = await persistCurriculumState({
-        studentId: createdStudentId,
+        userId: createdUserId,
         state,
         name: name.trim(),
         getAccessToken: auth.getAccessToken,
@@ -414,8 +409,8 @@ export function CurriculumPlanCreationPage() {
                       ? 'Disponível somente para alunos autenticados.'
                       : attemptsQuery.isError
                         ? 'Não foi possível carregar o histórico acadêmico do aluno.'
-                        : !historyStudentId
-                          ? 'A conta ainda não possui um estudante associado.'
+                        : !historyUserId
+                          ? 'Não foi possível identificar sua conta para carregar o histórico.'
                           : historyReady
                             ? 'Usa as disciplinas do histórico escolar do aluno como já concluídas no planejamento.'
                             : 'Carregando o histórico acadêmico do aluno.'
@@ -485,7 +480,9 @@ export function buildInitialState({
         ? { catalogProgramId: selection.catalogProgramId as CatalogProgramId }
         : {}),
       ...(selection.catalogProgramVariantId
-        ? { catalogProgramVariantId: selection.catalogProgramVariantId as never }
+        ? {
+            catalogProgramVariantId: selection.catalogProgramVariantId as never,
+          }
         : {}),
       ...(selection.languageId
         ? { languageId: selection.languageId as never }
@@ -588,7 +585,8 @@ function earliestHistoryPeriod(attempts: ReadonlyArray<StudentCourseAttempt>) {
         left.year - right.year ||
         historyPeriodOrder(left.yearPeriod) -
           historyPeriodOrder(right.yearPeriod),
-    ).at(0)
+    )
+    .at(0)
   if (!period) return undefined
   return {
     year: period.year,

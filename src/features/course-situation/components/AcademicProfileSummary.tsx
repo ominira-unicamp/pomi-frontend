@@ -33,7 +33,9 @@ export function AcademicProfileSummary({
               ? `${program.program.code} — ${program.program.name}`
               : loading
                 ? 'Carregando vínculo acadêmico'
-                : 'Defina seu curso e ingresso'}
+                : profile
+                  ? 'Defina seu curso e ingresso'
+                  : 'Sem vínculo acadêmico'}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
             {program
@@ -56,6 +58,12 @@ export function AcademicProfileSummary({
           Editar vínculo acadêmico
         </Button>
       </div>
+      {!profile && !loading && (
+        <p className="mt-3 text-sm text-muted-foreground">
+          Você pode registrar disciplinas, histórico e faltas sem vínculo
+          acadêmico.
+        </p>
+      )}
     </Section>
   )
 }

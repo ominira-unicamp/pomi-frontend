@@ -1,3 +1,4 @@
+import { isCurriculumDraft, isRecord, isSemesterDraft } from './draftValidation'
 import type { CurriculumPlannerState } from '@pomi/planner-domain/curriculum'
 import type { SemesterPlanningDocument } from '@pomi/planner-domain/semester'
 
@@ -16,40 +17,63 @@ type SemesterDraftHandoff = Readonly<{
   document: SemesterPlanningDocument
 }>
 
-export type PlanningDraftHandoff =
-  | CurriculumDraftHandoff
-  | SemesterDraftHandoff
+export type PlanningDraftHandoff = CurriculumDraftHandoff | SemesterDraftHandoff
 
-function canUseSessionStorage() {
-  return typeof window !== 'undefined' && Boolean(window.sessionStorage)
-}
+export type DraftHandoffRead =
+  | { status: 'ready'; handoff: PlanningDraftHandoff }
+  | { status: 'missing' | 'invalid' | 'unavailable' }
 
 export function saveDraftHandoff(handoff: PlanningDraftHandoff) {
-  if (!canUseSessionStorage()) return
+  if (typeof window === 'undefined')
+    throw new Error('Armazenamento indisponível.')
   window.sessionStorage.setItem(storageKey, JSON.stringify(handoff))
 }
 
-export function loadDraftHandoff(): PlanningDraftHandoff | undefined {
-  if (!canUseSessionStorage()) return undefined
+export function readDraftHandoff(): DraftHandoffRead {
+  let raw: string | null
   try {
-    const value: unknown = JSON.parse(
-      window.sessionStorage.getItem(storageKey) ?? 'null',
-    )
-    if (!value || typeof value !== 'object') return undefined
-    const handoff = value as Partial<PlanningDraftHandoff>
-    if (handoff.version !== 1 || !['curriculum', 'semester'].includes(String(handoff.kind)))
-      return undefined
-    if (handoff.kind === 'curriculum' && handoff.state && typeof handoff.name === 'string')
-      return handoff as CurriculumDraftHandoff
-    if (handoff.kind === 'semester' && handoff.document)
-      return handoff as SemesterDraftHandoff
-    return undefined
+    if (typeof window === 'undefined') return { status: 'unavailable' }
+    raw = window.sessionStorage.getItem(storageKey)
   } catch {
-    return undefined
+    return { status: 'unavailable' }
+  }
+  if (raw === null) return { status: 'missing' }
+  try {
+    const value: unknown = JSON.parse(raw)
+    if (!isRecord(value) || value.version !== 1) return { status: 'invalid' }
+    if (
+      value.kind === 'curriculum' &&
+      typeof value.name === 'string' &&
+      isCurriculumDraft(value.state)
+    )
+      return {
+        status: 'ready',
+        handoff: {
+          version: 1,
+          kind: 'curriculum',
+          name: value.name,
+          state: value.state,
+        },
+      }
+    if (value.kind === 'semester' && isSemesterDraft(value.document))
+      return {
+        status: 'ready',
+        handoff: { version: 1, kind: 'semester', document: value.document },
+      }
+    return { status: 'invalid' }
+  } catch {
+    return { status: 'invalid' }
   }
 }
 
+export function loadDraftHandoff(): PlanningDraftHandoff | undefined {
+  const result = readDraftHandoff()
+  return result.status === 'ready' ? result.handoff : undefined
+}
+
 export function clearDraftHandoff() {
-  if (!canUseSessionStorage()) return
-  window.sessionStorage.removeItem(storageKey)
+  try {
+    if (typeof window !== 'undefined')
+      window.sessionStorage.removeItem(storageKey)
+  } catch {}
 }

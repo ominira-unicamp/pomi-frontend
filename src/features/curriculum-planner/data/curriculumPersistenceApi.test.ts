@@ -9,7 +9,7 @@ describe('curriculum persistence API', () => {
     const fetchMock = vi.fn().mockResolvedValue(
       Response.json({
         id: 12,
-        studentId: 3,
+        userId: 3,
         name: 'Ciência da Computação',
         isFavorite: true,
         selection: {

@@ -8,7 +8,7 @@ import {
   requestFriendship,
   searchPeople,
   updatePublicProfile,
-} from '@/features/friends/studentSocialApi'
+} from '@/features/friends/userSocialApi'
 
 const getAccessToken = vi.fn(() => Promise.resolve('access-token'))
 
@@ -19,47 +19,43 @@ describe('student social API', () => {
   })
 
   it('searches public people without caching private requests', async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            data: [],
-            quantity: 0,
-            total: 0,
-            links: { next: null },
-          }),
-          { status: 200 },
-        ),
-      )
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: [],
+          quantity: 0,
+          total: 0,
+          links: { next: null },
+        }),
+        { status: 200 },
+      ),
+    )
     await searchPeople(7, 'Ada Lovelace', getAccessToken)
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringMatching(
-        /\/student\/7\/people\?page=1&pageSize=20&query=(Ada%20Lovelace|Ada\+Lovelace)$/,
+        /\/users\/7\/people\?page=1&pageSize=20&query=(Ada%20Lovelace|Ada\+Lovelace)$/,
       ),
       expect.objectContaining({ cache: 'no-store' }),
     )
   })
 
   it('loads the public directory without requiring a search term', async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            data: [],
-            quantity: 0,
-            total: 0,
-            links: { next: null },
-          }),
-          { status: 200 },
-        ),
-      )
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: [],
+          quantity: 0,
+          total: 0,
+          links: { next: null },
+        }),
+        { status: 200 },
+      ),
+    )
 
     await searchPeople(7, undefined, getAccessToken)
 
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringMatching(/\/student\/7\/people\?page=1&pageSize=20$/),
+      expect.stringMatching(/\/users\/7\/people\?page=1&pageSize=20$/),
       expect.objectContaining({ cache: 'no-store' }),
     )
   })
@@ -72,7 +68,7 @@ describe('student social API', () => {
       )
     await updatePublicProfile(7, { enabled: true, bio: 'Olá' }, getAccessToken)
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringMatching(/\/student\/7\/public-profile$/),
+      expect.stringMatching(/\/users\/7\/profile$/),
       expect.objectContaining({
         method: 'PATCH',
         body: JSON.stringify({ enabled: true, bio: 'Olá' }),
@@ -141,7 +137,7 @@ describe('student social API', () => {
       getAccessToken,
     )
     expect(fetchMock).toHaveBeenLastCalledWith(
-      expect.stringMatching(/\/student\/7\/friendships$/),
+      expect.stringMatching(/\/users\/7\/friendships$/),
       expect.objectContaining({ method: 'POST' }),
     )
     fetchMock.mockResolvedValueOnce(
@@ -149,7 +145,7 @@ describe('student social API', () => {
     )
     await acceptFriendship(7, 11, getAccessToken)
     expect(fetchMock).toHaveBeenLastCalledWith(
-      expect.stringMatching(/\/student\/7\/friendships\/11\/accept$/),
+      expect.stringMatching(/\/users\/7\/friendships\/11\/accept$/),
       expect.objectContaining({ method: 'POST' }),
     )
   })
@@ -164,7 +160,7 @@ describe('student social API', () => {
     await getPerson(7, 'person-id', getAccessToken)
 
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringMatching(/\/student\/7\/people\/person-id$/),
+      expect.stringMatching(/\/users\/7\/people\/person-id$/),
       expect.objectContaining({ cache: 'no-store' }),
     )
   })

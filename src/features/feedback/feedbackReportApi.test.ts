@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
-  listStudentFeedbackReports,
+  listUserFeedbackReports,
   submitAnonymousFeedbackReport,
-  submitStudentFeedbackReport,
+  submitUserFeedbackReport,
 } from '@/features/feedback/feedbackReportApi'
 
 const input = {
@@ -48,10 +48,10 @@ describe('feedbackReportApi', () => {
     vi.stubGlobal('fetch', fetchMock)
     const getAccessToken = vi.fn().mockResolvedValue('access-token')
 
-    await submitStudentFeedbackReport(7, input, getAccessToken)
+    await submitUserFeedbackReport(7, input, getAccessToken)
 
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining('/student/7/feedback-reports'),
+      expect.stringContaining('/users/7/feedback-reports'),
       expect.objectContaining({ method: 'POST', body: JSON.stringify(input) }),
     )
     const [, init] = fetchMock.mock.calls[0]
@@ -71,7 +71,7 @@ describe('feedbackReportApi', () => {
         sourcePath: '/',
         status: 'OPEN',
         adminMessage: null,
-        reporterStudentId: 7,
+        reporterUserId: 7,
         createdAt: '2026-09-01T12:00:00.000Z',
         updatedAt: '2026-09-01T12:00:00.000Z',
       },
@@ -87,11 +87,11 @@ describe('feedbackReportApi', () => {
     vi.stubGlobal('fetch', fetchMock)
     const getAccessToken = vi.fn().mockResolvedValue('access-token')
 
-    await expect(
-      listStudentFeedbackReports(7, getAccessToken),
-    ).resolves.toEqual(reports)
+    await expect(listUserFeedbackReports(7, getAccessToken)).resolves.toEqual(
+      reports,
+    )
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringContaining('/student/7/feedback-reports'),
+      expect.stringContaining('/users/7/feedback-reports'),
       expect.objectContaining({ cache: 'no-store' }),
     )
   })

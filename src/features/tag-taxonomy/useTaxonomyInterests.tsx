@@ -1,11 +1,12 @@
 import { Check, LoaderCircle, Plus, Star } from 'lucide-react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { getCurrentUser } from '@/features/identity/identityApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import { getCurrentStudent } from '@/features/student/data/studentApi'
+
 import {
-  deleteStudentTagInterest,
-  listStudentTagInterests,
-  putStudentTagInterest,
+  deleteUserInterest,
+  listUserInterests,
+  putUserInterest,
 } from '@/features/student-interests/data/studentTagInterestApi'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import { Button } from '@/components/ui/button'
@@ -17,45 +18,40 @@ export function useTaxonomyInterests() {
   const client = useQueryClient()
   const session = auth.sessionSubject ?? 'unknown-session'
   const student = useQuery({
-    queryKey: privateQueryKeys.currentStudent(session),
-    queryFn: () => getCurrentStudent(auth.getAccessToken),
+    queryKey: privateQueryKeys.currentUser(session),
+    queryFn: () => getCurrentUser(auth.getAccessToken),
     enabled:
       auth.initialized && auth.isAuthenticated && Boolean(auth.sessionSubject),
     retry: false,
     staleTime: 300_000,
   })
-  const studentId = student.data?.studentId
+  const userId = student.data?.userId
   const interests = useQuery({
-    queryKey: privateQueryKeys.studentTagInterests(session, studentId),
-    queryFn: () => listStudentTagInterests(studentId!, auth.getAccessToken),
-    enabled: auth.initialized && auth.isAuthenticated && Boolean(studentId),
+    queryKey: privateQueryKeys.userInterests(session, userId),
+    queryFn: () => listUserInterests(userId!, auth.getAccessToken),
+    enabled: auth.initialized && auth.isAuthenticated && Boolean(userId),
     retry: false,
     staleTime: 60_000,
   })
   const mutation = useMutation({
     mutationFn: async (input: { tagId: number; interested: boolean }) => {
-      if (!studentId || !interests.isSuccess || !auth.isAuthenticated)
+      if (!userId || !interests.isSuccess || !auth.isAuthenticated)
         throw new Error('Interesses indisponíveis.')
       if (input.interested)
-        await putStudentTagInterest(studentId, input.tagId, auth.getAccessToken)
-      else
-        await deleteStudentTagInterest(
-          studentId,
-          input.tagId,
-          auth.getAccessToken,
-        )
+        await putUserInterest(userId, input.tagId, auth.getAccessToken)
+      else await deleteUserInterest(userId, input.tagId, auth.getAccessToken)
     },
     onSuccess: () =>
       Promise.all([
         client.invalidateQueries({
-          queryKey: privateQueryKeys.studentTagInterests(session, studentId),
+          queryKey: privateQueryKeys.userInterests(session, userId),
         }),
         client.invalidateQueries({
-          queryKey: privateQueryKeys.studentSocial(session, studentId),
+          queryKey: privateQueryKeys.userSocial(session, userId),
         }),
       ]),
   })
-  return { auth, student, studentId, interests, mutation }
+  return { auth, student, userId, interests, mutation }
 }
 
 type InterestState = ReturnType<typeof useTaxonomyInterests>
@@ -73,7 +69,7 @@ export function InterestFeedback({ state }: { state: InterestState }) {
           label: 'Tentar novamente',
           onClick: () => {
             void state.student.refetch()
-            if (state.studentId) void state.interests.refetch()
+            if (state.userId) void state.interests.refetch()
           },
         }}
       />
@@ -108,7 +104,7 @@ export function InterestControl({
   compact?: boolean
   iconOnly?: boolean
 }) {
-  const { auth, student, studentId, interests, mutation } = state
+  const { auth, student, userId, interests, mutation } = state
   if (!auth.initialized)
     return (
       <span role="status" className="text-sm text-muted-foreground">
@@ -127,15 +123,15 @@ export function InterestControl({
         Interesse indisponível
       </span>
     ) : null
-  if (student.isPending || (studentId && interests.isPending))
+  if (student.isPending || (userId && interests.isPending))
     return (
       <span role="status" className="text-sm text-muted-foreground">
         Carregando interesse…
       </span>
     )
-  if (!studentId)
+  if (!userId)
     return compact ? null : (
-      <p>Cadastre seu perfil de estudante para registrar interesses.</p>
+      <p>Não foi possível identificar sua conta para registrar interesses.</p>
     )
   const interested = interests.data?.some((item) => item.id === tagId) ?? false
   return (

@@ -7,9 +7,7 @@ describe('API SDK adapter', () => {
   })
 
   it('renews and sends the bearer token through an SDK operation', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValue(Response.json({ studentId: null }))
+    const fetchMock = vi.fn().mockResolvedValue(Response.json({ userId: null }))
     vi.stubGlobal('fetch', fetchMock)
     const getAccessToken = vi.fn().mockResolvedValue('access-token')
 

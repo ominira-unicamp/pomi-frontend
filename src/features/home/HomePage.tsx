@@ -13,6 +13,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type { PersistedSemesterPlanning } from '@/features/semester-planner/data/semesterPlanningApi'
 import type { ProfessorEvaluationTarget } from '@/features/student/components/ProfessorEvaluationDialog'
+import { requireCurrentUserId } from '@/features/identity/identityApi'
 
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
@@ -27,12 +28,11 @@ import { Card } from '@/components/ui/card'
 import { listCurricula } from '@/features/curriculum-planner/data/curriculumPersistenceApi'
 import { listSemesterPlannings } from '@/features/semester-planner/data/semesterPlanningApi'
 import {
-  ensureCurrentStudent,
   listClassSchedulesByStudyPeriod,
   listPendingProfessorEvaluations,
   listStudentCourseAttempts,
 } from '@/features/student/data/studentApi'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { useUserContext } from '@/features/identity'
 import { cn } from '@/lib/utils'
 import { AgendaPanel, DailyMealsPanel } from '@/features/home/AgendaPanel'
 import { currentStudyPeriodCode } from '@/features/home/todayClasses'
@@ -208,23 +208,23 @@ function AuthenticatedHome() {
   const [situationError, setSituationError] = useState(false)
   const [evaluationTarget, setEvaluationTarget] =
     useState<ProfessorEvaluationTarget>()
-  const { studentId, studentQuery } = useStudentProfile()
+  const { userId, userQuery } = useUserContext()
   const attemptsQuery = useQuery({
-    queryKey: privateQueryKeys.courseAttempts(sessionSubject, studentId),
-    queryFn: () => listStudentCourseAttempts(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.courseAttempts(sessionSubject, userId),
+    queryFn: () => listStudentCourseAttempts(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
   const curriculaQuery = useQuery({
-    queryKey: privateQueryKeys.curricula(sessionSubject, studentId),
-    queryFn: () => listCurricula(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.curricula(sessionSubject, userId),
+    queryFn: () => listCurricula(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
   const semesterPlansQuery = useQuery({
-    queryKey: privateQueryKeys.semesterPlannings(sessionSubject, studentId),
-    queryFn: () => listSemesterPlannings(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.semesterPlannings(sessionSubject, userId),
+    queryFn: () => listSemesterPlannings(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
     retry: false,
   })
   const featuredCurriculum =
@@ -235,7 +235,7 @@ function AuthenticatedHome() {
     (attempt) => attempt.status === 'ENROLLED',
   )
   const absenceController = useStudentAbsences(
-    studentId ?? undefined,
+    userId ?? undefined,
     auth.getAccessToken,
     enrolledAttempts.length > 0,
   )
@@ -244,17 +244,17 @@ function AuthenticatedHome() {
   const pendingEvaluationsQuery = useQuery({
     queryKey: privateQueryKeys.pendingProfessorEvaluations(
       sessionSubject,
-      studentId,
+      userId,
       priorSemester?.year,
       priorSemester?.yearPeriod,
     ),
     queryFn: () =>
       listPendingProfessorEvaluations(
-        studentId!,
+        userId!,
         priorSemester as NonNullable<typeof priorSemester>,
         auth.getAccessToken,
       ),
-    enabled: Boolean(studentId && priorSemester),
+    enabled: Boolean(userId && priorSemester),
     retry: false,
   })
   const currentPeriodAttempt = enrolledAttempts.find(
@@ -285,7 +285,7 @@ function AuthenticatedHome() {
   const latestSemesterPlan = semesterPlansQuery.data?.[0]
   const pendingEvaluation = pendingEvaluationsQuery.data?.[0]
   const showRecentPlannings = Boolean(
-    studentId &&
+    userId &&
     (curriculaQuery.isPending ||
       semesterPlansQuery.isPending ||
       curriculaQuery.isError ||
@@ -296,13 +296,10 @@ function AuthenticatedHome() {
   async function openSituation() {
     setSituationError(false)
     try {
-      if (!studentId) {
-        await ensureCurrentStudent(
-          accountName(auth.profile),
-          auth.getAccessToken,
-        )
+      if (!userId) {
+        await requireCurrentUserId(auth.getAccessToken)
         await queryClient.invalidateQueries({
-          queryKey: privateQueryKeys.currentStudent(sessionSubject),
+          queryKey: privateQueryKeys.currentUser(sessionSubject),
         })
       }
       await navigate({ to: '/situacao-do-curso' })
@@ -311,10 +308,10 @@ function AuthenticatedHome() {
     }
   }
 
-  if (studentQuery.isPending) {
+  if (userQuery.isPending) {
     return (
       <PageContainer>
-        <LoadingState label="Identificando seu perfil acadêmico" />
+        <LoadingState label="Identificando sua conta" />
       </PageContainer>
     )
   }
@@ -370,7 +367,7 @@ function AuthenticatedHome() {
                 onClick={() => {
                   setSituationError(false)
                   void queryClient.invalidateQueries({
-                    queryKey: privateQueryKeys.currentStudent(sessionSubject),
+                    queryKey: privateQueryKeys.currentUser(sessionSubject),
                   })
                 }}
               >
@@ -380,17 +377,17 @@ function AuthenticatedHome() {
           </Alert>
         )}
 
-        {!studentId && (
+        {!userId && (
           <Alert>
-            <AlertTitle>Perfil acadêmico indisponível</AlertTitle>
+            <AlertTitle>Conta de usuário indisponível</AlertTitle>
             <AlertDescription className="flex flex-wrap items-center justify-between gap-3">
-              Não foi possível associar sua conta a um estudante. Confirme se a
-              conta usa um e-mail DAC válido e tente novamente.
+              Não foi possível identificar sua conta. Tente novamente para
+              acessar seus recursos.
               <button
                 className={buttonVariants({ variant: 'outline', size: 'sm' })}
                 onClick={() =>
                   void queryClient.invalidateQueries({
-                    queryKey: privateQueryKeys.currentStudent(sessionSubject),
+                    queryKey: privateQueryKeys.currentUser(sessionSubject),
                   })
                 }
               >
@@ -400,7 +397,7 @@ function AuthenticatedHome() {
           </Alert>
         )}
 
-        {studentId && (
+        {userId && (
           <AsyncSection
             isPending={attemptsQuery.isPending}
             isError={attemptsQuery.isError}
@@ -545,13 +542,13 @@ function AuthenticatedHome() {
           onOpenChange={(open) => {
             if (!open) setEvaluationTarget(undefined)
           }}
-          studentId={studentId ?? undefined}
+          userId={userId ?? undefined}
           target={evaluationTarget}
           onSaved={() =>
             void queryClient.invalidateQueries({
               queryKey: privateQueryKeys.pendingProfessorEvaluations(
                 sessionSubject,
-                studentId,
+                userId,
                 priorSemester?.year,
                 priorSemester?.yearPeriod,
               ),

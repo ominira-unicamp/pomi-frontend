@@ -11,7 +11,7 @@ function attempt(
 ): StudentCourseAttempt {
   return {
     id,
-    studentId: 1,
+    userId: 1,
     courseId: id,
     studyPeriodId: year === null ? null : id,
     classId: null,

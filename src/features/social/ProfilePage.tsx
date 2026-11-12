@@ -6,7 +6,8 @@ import { useState } from 'react'
 import type {
   PublicProfile,
   PublicProfileUpdate,
-} from '@/features/friends/studentSocialApi'
+} from '@/features/friends/userSocialApi'
+import { UserIdentityState } from '@/features/identity/UserIdentityState'
 import { invalidateIdentityImages } from '@/features/media/invalidateMedia'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
@@ -27,16 +28,16 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import {
-  deleteStudentTagInterest,
-  listStudentTagInterests,
-  putStudentTagInterest,
+  deleteUserInterest,
+  listUserInterests,
+  putUserInterest,
 } from '@/features/student-interests/data/studentTagInterestApi'
 import { listTags } from '@/features/tag-taxonomy/data/tagTaxonomyApi'
 import {
   getPublicProfile,
   updatePublicProfile,
-} from '@/features/friends/studentSocialApi'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+} from '@/features/friends/userSocialApi'
+import { useUserContext } from '@/features/identity'
 import { MediaEditor } from '@/features/media/MediaEditor'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
@@ -48,37 +49,31 @@ const courseVisibilityHelp = {
   FRIENDS:
     'Seus amigos podem ver suas disciplinas, turmas, horários e salas de aula.',
   PUBLIC:
-    'Estudantes autenticados podem ver suas disciplinas, turmas, horários e salas de aula.',
+    'Usuários autenticados podem ver suas disciplinas, turmas, horários e salas de aula.',
 }
 
 export function ProfilePage() {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const queryClient = useQueryClient()
-  const { studentId, studentQuery } = useStudentProfile()
-  const scope = `${sessionSubject}:${studentId}`
+  const { userId, userQuery } = useUserContext()
+  const scope = `${sessionSubject}:${userId}`
   const [draft, setDraft] = useState<IdentityDraft>()
   const [photoPending, setPhotoPending] = useState(false)
   const [newInterestId, setNewInterestId] = useState('')
   const [interestFeedback, setInterestFeedback] = useState('')
   const [visibilityDialogOpen, setVisibilityDialogOpen] = useState(false)
-  const profileKey = privateQueryKeys.studentSocialProfile(
-    sessionSubject,
-    studentId,
-  )
+  const profileKey = privateQueryKeys.userSocialProfile(sessionSubject, userId)
   const profileQuery = useQuery({
     queryKey: profileKey,
-    queryFn: () => getPublicProfile(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryFn: () => getPublicProfile(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
   })
-  const interestsKey = privateQueryKeys.studentTagInterests(
-    sessionSubject,
-    studentId,
-  )
+  const interestsKey = privateQueryKeys.userInterests(sessionSubject, userId)
   const interestsQuery = useQuery({
     queryKey: interestsKey,
-    queryFn: () => listStudentTagInterests(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryFn: () => listUserInterests(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
     staleTime: 60 * 1000,
   })
   const tagsQuery = useQuery({
@@ -111,7 +106,7 @@ export function ProfilePage() {
   }
   const save = useMutation({
     mutationFn: (body: Pick<PublicProfileUpdate, 'displayName' | 'bio'>) =>
-      updatePublicProfile(studentId!, body, auth.getAccessToken),
+      updatePublicProfile(userId!, body, auth.getAccessToken),
     onMutate: () => queryClient.cancelQueries({ queryKey: profileKey }),
     onSuccess: (value) => {
       setDraft(undefined)
@@ -121,7 +116,7 @@ export function ProfilePage() {
   const privacy = useMutation({
     mutationFn: (
       body: Pick<PublicProfileUpdate, 'enabled' | 'currentCoursesVisibility'>,
-    ) => updatePublicProfile(studentId!, body, auth.getAccessToken),
+    ) => updatePublicProfile(userId!, body, auth.getAccessToken),
     onMutate: () => queryClient.cancelQueries({ queryKey: profileKey }),
     onSuccess: (value) => {
       refreshProfile(value)
@@ -132,13 +127,13 @@ export function ProfilePage() {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: interestsKey }),
       queryClient.invalidateQueries({
-        queryKey: privateQueryKeys.studentSocial(sessionSubject, studentId),
+        queryKey: privateQueryKeys.userSocial(sessionSubject, userId),
       }),
     ])
   }
   const removeInterest = useMutation({
     mutationFn: (tagId: number) =>
-      deleteStudentTagInterest(studentId!, tagId, auth.getAccessToken),
+      deleteUserInterest(userId!, tagId, auth.getAccessToken),
     onSuccess: async () => {
       setInterestFeedback('Interesse removido.')
       await refreshInterests()
@@ -146,26 +141,23 @@ export function ProfilePage() {
   })
   const addInterest = useMutation({
     mutationFn: (tagId: number) =>
-      putStudentTagInterest(studentId!, tagId, auth.getAccessToken),
+      putUserInterest(userId!, tagId, auth.getAccessToken),
     onSuccess: async () => {
       setNewInterestId('')
       setInterestFeedback('Interesse adicionado.')
       await refreshInterests()
     },
   })
-  if (studentQuery.isLoading || (studentId && profileQuery.isPending))
+  if (userQuery.isLoading || (userId && profileQuery.isPending))
     return (
       <PageContainer>
         <LoadingState label="Carregando seu perfil" />
       </PageContainer>
     )
-  if (!studentId)
+  if (!userId)
     return (
       <PageContainer>
-        <EmptyState
-          title="Perfil acadêmico necessário"
-          description="Conclua seu cadastro de estudante antes de configurar seu perfil público."
-        />
+        <UserIdentityState query={userQuery} />
       </PageContainer>
     )
   if (!profile)
@@ -233,7 +225,7 @@ export function ProfilePage() {
             <MediaEditor
               label="Foto do perfil"
               variant="profile"
-              target={{ kind: 'studentAvatar', studentId }}
+              target={{ kind: 'userAvatar', userId }}
               mediaId={profile.avatarMediaId}
               preset="avatarLarge"
               access="private"
@@ -346,8 +338,8 @@ export function ProfilePage() {
               </p>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
                 {profile.enabled
-                  ? 'Estudantes autenticados podem encontrar seu perfil e ver sua foto, nome, bio e vínculo acadêmico.'
-                  : 'Seu perfil não aparece na lista de pessoas e não pode ser aberto por outros estudantes. Você continua com acesso às suas informações.'}
+                  ? 'Usuários autenticados podem encontrar seu perfil e ver sua foto, nome, bio e vínculo acadêmico.'
+                  : 'Seu perfil não aparece na lista de pessoas e não pode ser aberto por outras pessoas. Você continua com acesso às suas informações.'}
               </p>
               <Button
                 className="mt-3 max-w-full whitespace-normal"
@@ -577,7 +569,7 @@ export function ProfilePage() {
             <DialogDescription>
               {profile.enabled
                 ? 'Seu perfil deixará de aparecer na lista de pessoas. Outras pessoas deixarão de acessar seus dados públicos e horários. Suas preferências serão preservadas.'
-                : 'Estudantes autenticados poderão encontrar seu nome, foto, curso, modalidade, ano de ingresso e bio. As disciplinas seguirão o público configurado nesta página.'}
+                : 'Usuários autenticados poderão encontrar seu nome, foto, curso, modalidade, ano de ingresso e bio. As disciplinas seguirão o público configurado nesta página.'}
             </DialogDescription>
           </DialogHeader>
           {privacy.isError && (

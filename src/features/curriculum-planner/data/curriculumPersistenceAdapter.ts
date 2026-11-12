@@ -18,7 +18,9 @@ function coursesForDocument(
     const period = document.periods.find((item) => item.id === course.periodId)
     return {
       courseId: Number(course.courseId),
-      periodId: period ? (periodIdByPosition.get(period.position) ?? null) : null,
+      periodId: period
+        ? (periodIdByPosition.get(period.position) ?? null)
+        : null,
     }
   })
 }
@@ -46,14 +48,14 @@ function withPersistedPeriodIds(
 }
 
 export async function persistCurriculumState({
-  studentId,
+  userId,
   current,
   state,
   periodIds,
   name,
   getAccessToken,
 }: {
-  studentId: number
+  userId: number
   current?: CurriculumDocument
   state: CurriculumPlannerState
   periodIds?: ReadonlyMap<string, number>
@@ -62,9 +64,9 @@ export async function persistCurriculumState({
 }): Promise<CurriculumDocument> {
   if (!current) {
     const draft = documentFromState(state, name)
-    const created = await createCurriculum(studentId, draft, getAccessToken)
+    const created = await createCurriculum(userId, draft, getAccessToken)
     return patchCurriculum(
-      studentId,
+      userId,
       created.id!,
       { courses: { upsert: coursesForDocument(draft, created) } },
       getAccessToken,
@@ -72,14 +74,14 @@ export async function persistCurriculumState({
   }
   const persistedState = withPersistedPeriodIds(state, periodIds)
   const updated = await patchCurriculum(
-    studentId,
+    userId,
     current.id!,
     patchBodyFromState(current, persistedState),
     getAccessToken,
   )
   const document = documentFromState(persistedState, current.name)
   return patchCurriculum(
-    studentId,
+    userId,
     updated.id!,
     { courses: { upsert: coursesForDocument(document, updated) } },
     getAccessToken,

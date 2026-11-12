@@ -40,8 +40,8 @@ const authState = {
   emailVerificationRequired: false,
 }
 const studentState = {
-  studentId: undefined as number | undefined,
-  studentQuery: { isLoading: false, isError: false },
+  userId: undefined as number | undefined,
+  userQuery: { isLoading: false, isError: false },
   profileQuery: {
     data: undefined as Record<string, unknown> | undefined,
     isLoading: false,
@@ -53,8 +53,8 @@ vi.mock('@/auth/AuthProvider', () => ({
   useOptionalAuth: () => authState,
 }))
 
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useStudentProfile: () => studentState,
+vi.mock('@/features/identity', () => ({
+  useUserContext: () => studentState,
 }))
 
 const {
@@ -75,8 +75,10 @@ const {
   deleteStudentAbsence: vi.fn(),
 }))
 
+vi.mock('@/features/identity/identityApi', () => ({
+  requireCurrentUserId: vi.fn(),
+}))
 vi.mock('@/features/student/data/studentApi', () => ({
-  ensureCurrentStudent: vi.fn(),
   listClassSchedulesByStudyPeriod,
   getProfessorEvaluation,
   listPendingProfessorEvaluations,
@@ -211,8 +213,8 @@ describe('HomePage', () => {
     authState.initialized = true
     authState.isAuthenticated = false
     authState.profile = undefined
-    studentState.studentId = undefined
-    studentState.studentQuery = { isLoading: false, isError: false }
+    studentState.userId = undefined
+    studentState.userQuery = { isLoading: false, isError: false }
     studentState.profileQuery = {
       data: undefined,
       isLoading: false,
@@ -241,7 +243,7 @@ describe('HomePage', () => {
     listStudentAbsences.mockResolvedValue([])
     listDailyMenus.mockResolvedValue([])
     createStudentAbsence.mockImplementation(
-      (_studentId: number, input: Record<string, unknown>) =>
+      (_userId: number, input: Record<string, unknown>) =>
         Promise.resolve({
           id: 90,
           ...input,
@@ -285,7 +287,7 @@ describe('HomePage', () => {
   it('shows the authenticated home without the next-step panel', async () => {
     authState.isAuthenticated = true
     authState.profile = { given_name: 'Ana' }
-    studentState.studentId = 1
+    studentState.userId = 1
     studentState.profileQuery = {
       data: {
         catalogId: 2,
@@ -313,7 +315,7 @@ describe('HomePage', () => {
     renderHome()
 
     expect(
-      await screen.findByText('Perfil acadêmico indisponível'),
+      await screen.findByText('Conta de usuário indisponível'),
     ).toBeTruthy()
     expect(screen.queryByText('Carregando agenda')).toBeNull()
     expect(screen.queryByText('Carregando planejamentos recentes')).toBeNull()
@@ -324,7 +326,7 @@ describe('HomePage', () => {
   it('invites the student to evaluate a professor pending from the previous semester', async () => {
     authState.isAuthenticated = true
     authState.profile = { given_name: 'Ana' }
-    studentState.studentId = 1
+    studentState.userId = 1
     listPendingProfessorEvaluations.mockResolvedValue([
       {
         attemptId: 1,
@@ -347,7 +349,7 @@ describe('HomePage', () => {
   it('registers an absence directly from a finished class today', async () => {
     authState.isAuthenticated = true
     authState.profile = { given_name: 'Ana' }
-    studentState.studentId = 1
+    studentState.userId = 1
     studentState.profileQuery = {
       data: {
         catalogId: 2,
@@ -380,7 +382,7 @@ describe('HomePage', () => {
   it('prioritizes the favorite curriculum on the home page', async () => {
     authState.isAuthenticated = true
     authState.profile = { given_name: 'Ana' }
-    studentState.studentId = 1
+    studentState.userId = 1
     studentState.profileQuery = {
       data: {
         catalogId: 2,
@@ -418,7 +420,7 @@ describe('HomePage', () => {
   it('keeps the agenda visible without enrolled courses', async () => {
     authState.isAuthenticated = true
     authState.profile = { given_name: 'Ana' }
-    studentState.studentId = 1
+    studentState.userId = 1
     studentState.profileQuery = {
       data: undefined,
       isLoading: false,
@@ -431,7 +433,9 @@ describe('HomePage', () => {
     expect(await screen.findByText('Olá, Ana')).toBeTruthy()
     expect(await screen.findByText('Agenda')).toBeTruthy()
     expect(
-      screen.getByText('Você não possui disciplinas cursando em 2026 · 2º semestre.'),
+      screen.getByText(
+        'Você não possui disciplinas cursando em 2026 · 2º semestre.',
+      ),
     ).toBeTruthy()
     expect(
       await screen.findByText('Cardápio não disponível para esta data.'),
@@ -442,7 +446,7 @@ describe('HomePage', () => {
   it('shows an empty agenda state when there are no classes on the selected date', async () => {
     authState.isAuthenticated = true
     authState.profile = { given_name: 'Ana' }
-    studentState.studentId = 1
+    studentState.userId = 1
     studentState.profileQuery = {
       data: undefined,
       isLoading: false,
@@ -461,7 +465,7 @@ describe('HomePage', () => {
   it('isolates a schedule error from the rest of the home page', async () => {
     authState.isAuthenticated = true
     authState.profile = { given_name: 'Ana' }
-    studentState.studentId = 1
+    studentState.userId = 1
     studentState.profileQuery = {
       data: undefined,
       isLoading: false,
@@ -479,7 +483,7 @@ describe('HomePage', () => {
   it('groups meals and shared notices and opens the selected meal details', async () => {
     authState.isAuthenticated = true
     authState.profile = { given_name: 'Ana' }
-    studentState.studentId = 1
+    studentState.userId = 1
     listDailyMenus.mockResolvedValue([
       {
         id: 1,

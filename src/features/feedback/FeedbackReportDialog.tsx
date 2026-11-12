@@ -31,7 +31,7 @@ type Props = Readonly<{
   onOpenChange: (open: boolean) => void
   initialDraft?: FeedbackDraft
   authenticated: boolean
-  studentId?: number
+  userId?: number
   submitting: boolean
   submitted: boolean
   error: Error | null
@@ -69,7 +69,7 @@ function reportError(error: Error | null) {
 function Form({
   initialDraft,
   authenticated,
-  studentId,
+  userId,
   submitting,
   submitted,
   error,
@@ -111,10 +111,8 @@ function Form({
       onLogin(draft)
       return
     }
-    if (identified && !studentId) {
-      setValidationError(
-        'Não foi possível identificar seu perfil de estudante.',
-      )
+    if (identified && !userId) {
+      setValidationError('Não foi possível identificar sua conta.')
       return
     }
     setValidationError('')

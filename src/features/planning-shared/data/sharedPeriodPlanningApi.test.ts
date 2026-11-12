@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   copySharedPeriodPlanning,
   getPublicSharedPeriodPlanning,
-  getSharedPeriodPlanningForStudent,
+  getSharedPeriodPlanningForUser,
   listSharedPeriodPlanningsForPerson,
 } from './sharedPeriodPlanningApi'
 
@@ -16,19 +16,17 @@ describe('shared period planning API', () => {
   })
 
   it('lists plans scoped to a public profile owner', async () => {
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(
-        new Response(
-          JSON.stringify({
-            data: [],
-            quantity: 0,
-            total: 0,
-            links: { next: null },
-          }),
-          { status: 200 },
-        ),
-      )
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          data: [],
+          quantity: 0,
+          total: 0,
+          links: { next: null },
+        }),
+        { status: 200 },
+      ),
+    )
 
     await listSharedPeriodPlanningsForPerson(
       7,
@@ -38,7 +36,7 @@ describe('shared period planning API', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringMatching(
-        /\/student\/7\/shared-period-plannings\?page=1&pageSize=20&filter%5BownerPublicId%5D=a375fdb0-45d9-4a79-8415-89fcb64157b6$/,
+        /\/users\/7\/shared-period-plans\?page=1&pageSize=20&filter%5BownerPublicId%5D=a375fdb0-45d9-4a79-8415-89fcb64157b6$/,
       ),
       expect.objectContaining({ cache: 'no-store' }),
     )
@@ -55,7 +53,7 @@ describe('shared period planning API', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringMatching(
-        /\/shared-period-plannings\/a375fdb0-45d9-4a79-8415-89fcb64157b6$/,
+        /\/shared-period-plans\/a375fdb0-45d9-4a79-8415-89fcb64157b6$/,
       ),
       expect.objectContaining({ cache: 'no-store' }),
     )
@@ -69,7 +67,7 @@ describe('shared period planning API', () => {
         new Response(JSON.stringify({ shareId: 'share-id' }), { status: 200 }),
       )
 
-    await getSharedPeriodPlanningForStudent(
+    await getSharedPeriodPlanningForUser(
       7,
       'a375fdb0-45d9-4a79-8415-89fcb64157b6',
       getAccessToken,
@@ -77,7 +75,7 @@ describe('shared period planning API', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringMatching(
-        /\/student\/7\/shared-period-plannings\/a375fdb0-45d9-4a79-8415-89fcb64157b6$/,
+        /\/users\/7\/shared-period-plans\/a375fdb0-45d9-4a79-8415-89fcb64157b6$/,
       ),
       expect.objectContaining({ cache: 'no-store' }),
     )
@@ -114,7 +112,7 @@ describe('shared period planning API', () => {
     )
 
     expect(fetchMock).toHaveBeenCalledWith(
-      expect.stringMatching(/\/student\/7\/period-plannings$/),
+      expect.stringMatching(/\/users\/7\/period-plans$/),
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({

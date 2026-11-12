@@ -342,10 +342,7 @@ function planningGuideInput(guide: PlanningGuideInput): ApiPlanningGuideInput {
   if (guide.mode === 'program') {
     const { catalogProgramId, catalogProgramVariantId, languageId } =
       guide.program
-    if (
-      catalogProgramId === null ||
-      catalogProgramVariantId === null
-    )
+    if (catalogProgramId === null || catalogProgramVariantId === null)
       throw new TypeError('Incomplete program planning guide')
     return {
       mode: 'PROGRAM',
@@ -385,22 +382,22 @@ function planningGuideInput(guide: PlanningGuideInput): ApiPlanningGuideInput {
 }
 
 export function listSemesterPlannings(
-  studentId: number,
+  userId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiSdk.app.periodPlannings.listAll(studentId, {}, { getAccessToken })
+  return pomiSdk.app.periodPlans.listAll(userId, {}, { getAccessToken })
 }
 
 export function getSemesterPlanning(
-  studentId: number,
+  userId: number,
   planId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiSdk.app.periodPlannings.get(studentId, planId, { getAccessToken })
+  return pomiSdk.app.periodPlans.get(userId, planId, { getAccessToken })
 }
 
 export function createSemesterPlanning(
-  studentId: number,
+  userId: number,
   document: Readonly<{
     name: string
     studyPeriodId: number
@@ -410,8 +407,8 @@ export function createSemesterPlanning(
   }>,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiSdk.app.periodPlannings.create(
-    studentId,
+  return pomiSdk.app.periodPlans.create(
+    userId,
     {
       name: document.name,
       studyPeriodId: document.studyPeriodId,
@@ -423,7 +420,7 @@ export function createSemesterPlanning(
 }
 
 export function patchSemesterPlanning(
-  studentId: number,
+  userId: number,
   planId: number,
   document: Readonly<{
     name: string
@@ -433,8 +430,8 @@ export function patchSemesterPlanning(
   }>,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiSdk.app.periodPlannings.update(
-    studentId,
+  return pomiSdk.app.periodPlans.update(
+    userId,
     planId,
     {
       name: document.name,
@@ -446,13 +443,13 @@ export function patchSemesterPlanning(
 }
 
 export function updateSemesterPlanningVisibility(
-  studentId: number,
+  userId: number,
   planId: number,
   visibility: SemesterPlanningVisibility,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiSdk.app.periodPlannings.update(
-    studentId,
+  return pomiSdk.app.periodPlans.update(
+    userId,
     planId,
     { visibility },
     { getAccessToken },
@@ -460,11 +457,11 @@ export function updateSemesterPlanningVisibility(
 }
 
 export function deleteSemesterPlanning(
-  studentId: number,
+  userId: number,
   planId: number,
   getAccessToken: () => Promise<string>,
 ) {
-  return pomiSdk.app.periodPlannings.delete(studentId, planId, {
+  return pomiSdk.app.periodPlans.delete(userId, planId, {
     getAccessToken,
   })
 }

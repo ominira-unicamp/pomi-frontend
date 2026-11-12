@@ -10,8 +10,8 @@ import {
   PageHeader,
 } from '@/components/PageLayout'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { getPublicProfile } from '@/features/friends/studentSocialApi'
-import { useStudentProfile } from '@/features/student/hooks/useStudentProfile'
+import { getPublicProfile } from '@/features/friends/userSocialApi'
+import { useUserContext } from '@/features/identity'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import { PersonAvatar } from '@/features/media/IdentityImages'
 
@@ -28,11 +28,11 @@ const tabs = [
 export function MyProfileLayout() {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
-  const { studentId } = useStudentProfile()
+  const { userId } = useUserContext()
   const profileQuery = useQuery({
-    queryKey: privateQueryKeys.studentSocialProfile(sessionSubject, studentId),
-    queryFn: () => getPublicProfile(studentId!, auth.getAccessToken),
-    enabled: Boolean(studentId),
+    queryKey: privateQueryKeys.userSocialProfile(sessionSubject, userId),
+    queryFn: () => getPublicProfile(userId!, auth.getAccessToken),
+    enabled: Boolean(userId),
   })
   const copyCode = useMutation({
     mutationFn: () =>

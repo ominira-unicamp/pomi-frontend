@@ -14,12 +14,12 @@ vi.mock('@tanstack/react-router', () => ({
 vi.mock('@/auth/AuthProvider', () => ({
   useOptionalAuth: () => ({ initialized: true, isAuthenticated: false }),
 }))
-vi.mock('@/features/student/hooks/useStudentProfile', () => ({
-  useCurrentStudent: () => ({ isLoading: false }),
+vi.mock('@/features/identity', () => ({
+  useCurrentUser: () => ({ isLoading: false }),
 }))
 vi.mock('./data/sharedPeriodPlanningApi', () => ({
   getPublicSharedPeriodPlanning: mocks.getPublic,
-  getSharedPeriodPlanningForStudent: vi.fn(),
+  getSharedPeriodPlanningForUser: vi.fn(),
   copySharedPeriodPlanning: vi.fn(),
 }))
 
