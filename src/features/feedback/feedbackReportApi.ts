@@ -8,6 +8,7 @@ import type {
   FeedbackReport,
   FeedbackReportAccepted,
   createFeedbackReportInput,
+  updateFeedbackReportInput,
 } from '@ominira/pomi-sdk/generated/app'
 import { pomiSdk } from '@/api/client'
 
@@ -52,4 +53,18 @@ export function listUserFeedbackReports(
       getAccessToken,
     },
   )
+}
+
+export type FeedbackReportPatch = updateFeedbackReportInput['body']
+
+export function listAdminFeedbackReports(getAccessToken: GetAccessToken) {
+  return pomiSdk.app.feedbackReports.listAll({}, { getAccessToken })
+}
+
+export function updateAdminFeedbackReport(
+  id: number,
+  body: FeedbackReportPatch,
+  getAccessToken: GetAccessToken,
+) {
+  return pomiSdk.app.feedbackReports.update(id, body, { getAccessToken })
 }

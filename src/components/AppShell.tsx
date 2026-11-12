@@ -28,6 +28,7 @@ import {
 import type { LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 
+import { useAdminAccess } from '@/features/administration'
 import { useAuth } from '@/auth/AuthProvider'
 import { Brand } from '@/components/Brand'
 import { SiteFooter } from '@/components/SiteFooter'
@@ -104,6 +105,7 @@ type NavigationItem = Readonly<{
     | '/taxonomia'
     | '/editais-de-intercambio'
     | '/minhas-solicitacoes'
+    | '/admin/feedbacks'
   icon: LucideIcon
   matches: ReadonlyArray<string>
   requiresAuth?: boolean
@@ -240,12 +242,29 @@ const mobilePrimaryNavigationItems = [
 function Navigation({ compact = false }: { compact?: boolean }) {
   const { setMobileOpen } = useSidebar()
   const { isAuthenticated } = useAuth()
+  const { isAdmin } = useAdminAccess()
+  const groups = isAdmin
+    ? [
+        ...navigationGroups,
+        {
+          label: 'Administração',
+          items: [
+            {
+              label: 'Feedbacks',
+              to: '/admin/feedbacks',
+              icon: MessageSquareText,
+              matches: ['/admin/feedbacks'],
+            } satisfies NavigationItem,
+          ],
+        },
+      ]
+    : navigationGroups
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   })
   return (
     <nav aria-label="Navegação principal" className="space-y-3">
-      {navigationGroups.map((group, groupIndex) => (
+      {groups.map((group, groupIndex) => (
         <section
           key={group.label ?? 'inicio'}
           aria-label={group.label}

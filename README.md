@@ -209,3 +209,14 @@ Seleções incompletas permanecem no formulário até poderem ser salvas.
 
 O contrato utiliza o SDK publicado `1.0.0-rc.5`, fixado no manifesto e no
 lockfile. O build não depende de um vínculo com o checkout local do SDK.
+
+## Administração de feedbacks
+
+Administradores acessam `/admin/feedbacks` pela seção Administração da navegação.
+O acesso usa a role `ADMIN` informada pela App API em `/me`, sem exigir perfil de
+estudante. A API também autoriza cada leitura e atualização administrativa.
+
+A página permite buscar e filtrar feedbacks, marcar em análise, encerrar com
+confirmação e reabrir. A mensagem da equipe é opcional e aparece em Meus feedbacks
+para o autor identificado. Os filtros são locais sobre a coleção carregada pelo
+SDK. Atualizações simultâneas seguem a semântica atual da API: a última prevalece.

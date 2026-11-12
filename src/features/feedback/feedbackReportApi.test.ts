@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
+  listAdminFeedbackReports,
   listUserFeedbackReports,
   submitAnonymousFeedbackReport,
   submitUserFeedbackReport,
+  updateAdminFeedbackReport,
 } from '@/features/feedback/feedbackReportApi'
 
 const input = {
@@ -93,6 +95,46 @@ describe('feedbackReportApi', () => {
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining('/users/7/feedback-reports'),
       expect.objectContaining({ cache: 'no-store' }),
+    )
+  })
+})
+
+describe('administrative feedback SDK adapters', () => {
+  afterEach(() => vi.unstubAllGlobals())
+  it('reads all feedback through the admin endpoint with authentication', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      Response.json({
+        data: [],
+        quantity: 0,
+        total: 0,
+        links: { next: null },
+      }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    await expect(
+      listAdminFeedbackReports(() => Promise.resolve('admin-token')),
+    ).resolves.toEqual([])
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toContain('/admin/feedback-reports')
+    expect(new Headers(init.headers).get('Authorization')).toBe(
+      'Bearer admin-token',
+    )
+    expect(init.cache).toBe('no-store')
+  })
+  it('patches only the requested fields', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(Response.json({ id: 4, status: 'CLOSED' }))
+    vi.stubGlobal('fetch', fetchMock)
+    await updateAdminFeedbackReport(4, { status: 'CLOSED' }, () =>
+      Promise.resolve('admin-token'),
+    )
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/admin/feedback-reports/4'),
+      expect.objectContaining({
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'CLOSED' }),
+      }),
     )
   })
 })

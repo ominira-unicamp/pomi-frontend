@@ -13,6 +13,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppShell } from '@/components/AppShell'
 import { ThemeProvider } from '@/components/ThemeProvider'
 
+const identity = vi.hoisted(() => ({ roles: [] as Array<string> }))
+vi.mock('@/features/identity', () => ({
+  useCurrentUser: () => ({ data: identity, isError: false }),
+}))
+
 const login = vi.fn()
 const logout = vi.fn()
 const authState = {
@@ -93,7 +98,22 @@ function renderShell(initialEntry = '/') {
 }
 
 describe('AppShell', () => {
+  it('shows the administration destination only for administrators', async () => {
+    authState.isAuthenticated = true
+    identity.roles = ['ADMIN']
+    renderShell()
+    expect(await screen.findByRole('link', { name: 'Feedbacks' })).toBeTruthy()
+  })
+
+  it('hides administration for ordinary users', async () => {
+    authState.isAuthenticated = true
+    renderShell()
+    await screen.findByRole('heading', { name: 'Conteúdo' })
+    expect(screen.queryByRole('link', { name: 'Feedbacks' })).toBeNull()
+  })
+
   beforeEach(() => {
+    identity.roles = []
     login.mockReset()
     logout.mockReset()
     authState.isAuthenticated = false

@@ -23,6 +23,7 @@ import { Route as EventosRouteImport } from './routes/eventos'
 import { Route as EditaisDeIntercambioRouteImport } from './routes/editais-de-intercambio'
 import { Route as DisciplinasRouteImport } from './routes/disciplinas'
 import { Route as CursosRouteImport } from './routes/cursos'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as DesignSystemRouteImport } from './routes/[_]design-system'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TaxonomiaIndexRouteImport } from './routes/taxonomia.index'
@@ -48,6 +49,7 @@ import { Route as GruposGroupIdRouteImport } from './routes/grupos.$groupId'
 import { Route as EventosEventIdRouteImport } from './routes/eventos.$eventId'
 import { Route as EditaisDeIntercambioConfiguracoesRouteImport } from './routes/editais-de-intercambio_.configuracoes'
 import { Route as DisciplinasCourseIdRouteImport } from './routes/disciplinas.$courseId'
+import { Route as AdminFeedbacksRouteImport } from './routes/admin.feedbacks'
 import { Route as TaxonomiaTagsTagIdRouteImport } from './routes/taxonomia.tags.$tagId'
 import { Route as PlanejamentosDeSemestreCompartilhadoShareIdRouteImport } from './routes/planejamentos-de-semestre.compartilhado.$shareId'
 import { Route as GruposGroupIdGerenciarRouteImport } from './routes/grupos.$groupId_.gerenciar'
@@ -134,6 +136,11 @@ const DisciplinasRoute = DisciplinasRouteImport.update({
 const CursosRoute = CursosRouteImport.update({
   id: '/cursos',
   path: '/cursos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DesignSystemRoute = DesignSystemRouteImport.update({
@@ -268,6 +275,11 @@ const DisciplinasCourseIdRoute = DisciplinasCourseIdRouteImport.update({
   path: '/$courseId',
   getParentRoute: () => DisciplinasRoute,
 } as any)
+const AdminFeedbacksRoute = AdminFeedbacksRouteImport.update({
+  id: '/feedbacks',
+  path: '/feedbacks',
+  getParentRoute: () => AdminRoute,
+} as any)
 const TaxonomiaTagsTagIdRoute = TaxonomiaTagsTagIdRouteImport.update({
   id: '/tags/$tagId',
   path: '/tags/$tagId',
@@ -366,6 +378,7 @@ const GruposGroupIdGerenciarAcessosAtribuicoesMembershipIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/admin': typeof AdminRouteWithChildren
   '/cursos': typeof CursosRouteWithChildren
   '/disciplinas': typeof DisciplinasRouteWithChildren
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
@@ -380,6 +393,7 @@ export interface FileRoutesByFullPath {
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/taxonomia': typeof TaxonomiaRouteWithChildren
+  '/admin/feedbacks': typeof AdminFeedbacksRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
   '/eventos/$eventId': typeof EventosEventIdRoute
@@ -423,12 +437,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/admin': typeof AdminRouteWithChildren
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
   '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
   '/pessoas': typeof PessoasRoute
   '/privacidade': typeof PrivacidadeRoute
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
+  '/admin/feedbacks': typeof AdminFeedbacksRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
   '/eventos/$eventId': typeof EventosEventIdRoute
@@ -472,6 +488,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
+  '/admin': typeof AdminRouteWithChildren
   '/cursos': typeof CursosRouteWithChildren
   '/disciplinas': typeof DisciplinasRouteWithChildren
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
@@ -486,6 +503,7 @@ export interface FileRoutesById {
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/taxonomia': typeof TaxonomiaRouteWithChildren
+  '/admin/feedbacks': typeof AdminFeedbacksRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio_/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
   '/eventos/$eventId': typeof EventosEventIdRoute
@@ -531,6 +549,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/_design-system'
+    | '/admin'
     | '/cursos'
     | '/disciplinas'
     | '/editais-de-intercambio'
@@ -545,6 +564,7 @@ export interface FileRouteTypes {
     | '/situacao-do-curso'
     | '/sobre'
     | '/taxonomia'
+    | '/admin/feedbacks'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio/configuracoes'
     | '/eventos/$eventId'
@@ -588,12 +608,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/_design-system'
+    | '/admin'
     | '/editais-de-intercambio'
     | '/minhas-solicitacoes'
     | '/pessoas'
     | '/privacidade'
     | '/situacao-do-curso'
     | '/sobre'
+    | '/admin/feedbacks'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio/configuracoes'
     | '/eventos/$eventId'
@@ -636,6 +658,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_design-system'
+    | '/admin'
     | '/cursos'
     | '/disciplinas'
     | '/editais-de-intercambio'
@@ -650,6 +673,7 @@ export interface FileRouteTypes {
     | '/situacao-do-curso'
     | '/sobre'
     | '/taxonomia'
+    | '/admin/feedbacks'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio_/configuracoes'
     | '/eventos/$eventId'
@@ -694,6 +718,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignSystemRoute: typeof DesignSystemRoute
+  AdminRoute: typeof AdminRouteWithChildren
   CursosRoute: typeof CursosRouteWithChildren
   DisciplinasRoute: typeof DisciplinasRouteWithChildren
   EditaisDeIntercambioRoute: typeof EditaisDeIntercambioRoute
@@ -814,6 +839,13 @@ declare module '@tanstack/react-router' {
       path: '/cursos'
       fullPath: '/cursos'
       preLoaderRoute: typeof CursosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_design-system': {
@@ -991,6 +1023,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DisciplinasCourseIdRouteImport
       parentRoute: typeof DisciplinasRoute
     }
+    '/admin/feedbacks': {
+      id: '/admin/feedbacks'
+      path: '/feedbacks'
+      fullPath: '/admin/feedbacks'
+      preLoaderRoute: typeof AdminFeedbacksRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/taxonomia/tags/$tagId': {
       id: '/taxonomia/tags/$tagId'
       path: '/tags/$tagId'
@@ -1105,6 +1144,16 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AdminRouteChildren {
+  AdminFeedbacksRoute: typeof AdminFeedbacksRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminFeedbacksRoute: AdminFeedbacksRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface CursosRouteChildren {
   CursosIndexRoute: typeof CursosIndexRoute
@@ -1274,6 +1323,7 @@ const TaxonomiaRouteWithChildren = TaxonomiaRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignSystemRoute: DesignSystemRoute,
+  AdminRoute: AdminRouteWithChildren,
   CursosRoute: CursosRouteWithChildren,
   DisciplinasRoute: DisciplinasRouteWithChildren,
   EditaisDeIntercambioRoute: EditaisDeIntercambioRoute,

@@ -50,6 +50,8 @@ export const publicQueryKeys = {
 export const privateQueryKeys = {
   all: ['private'] as const,
   session: (sessionSubject: string) => ['private', sessionSubject] as const,
+  adminFeedbackReports: (sessionSubject: string) =>
+    ['private', sessionSubject, 'admin', 'feedback-reports'] as const,
   currentUser: (sessionSubject: string) =>
     ['private', sessionSubject, 'user', 'current'] as const,
   studentAcademicProfile: (sessionSubject: string, userId?: number | null) =>
