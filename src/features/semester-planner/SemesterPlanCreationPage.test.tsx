@@ -149,3 +149,27 @@ describe('SemesterPlanCreationPage', () => {
     )
   })
 })
+
+it('preserves the program configuration when the initial view is none', async () => {
+  await openProgramGuide()
+  fireEvent.click(screen.getByRole('button', { name: 'Sem língua' }))
+  fireEvent.click(screen.getByRole('button', { name: /^Nenhum/ }))
+  fireEvent.click(screen.getByRole('button', { name: 'Continuar' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Criar planejamento' }))
+  await waitFor(() =>
+    expect(mocks.create).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        guide: expect.objectContaining({
+          mode: 'none',
+          program: {
+            catalogProgramId: 42,
+            catalogProgramVariantId: 7,
+            languageId: null,
+          },
+        }),
+      }),
+      expect.any(Function),
+    ),
+  )
+})

@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 
 import {
   buildGuideClassContext,
+  guideFromApi,
   matchesGuideClass,
   matchesGuideCourse,
+  numericId,
   selectorLabel,
 } from './guide'
 
@@ -100,9 +102,38 @@ describe('semester planning guide', () => {
 
     expect(
       matchesGuideClass(
-        { id: 1, code: 'A', courseId: 15112, courseCode: 'MC102', professors: [] },
+        {
+          id: 1,
+          code: 'A',
+          courseId: 15112,
+          courseCode: 'MC102',
+          professors: [],
+        },
         context,
       ),
     ).toBe(true)
   })
+})
+
+for (const mode of ['NONE', 'PROGRAM', 'CURRICULUM'] as const) {
+  it(`loads both configurations with preference ${mode}`, () => {
+    const guide = guideFromApi({
+      mode,
+      manualCourseIds: [9],
+      curriculum: { source: 'SAVED', saved: { curriculumId: 3 } },
+      program: {
+        catalogProgramId: 4,
+        catalogProgramVariantId: 5,
+        languageId: null,
+      },
+    })
+    expect(guide.mode).toBe(mode.toLowerCase())
+    expect(guide.curriculum.curriculumId).toBe(3)
+    expect(guide.program.catalogProgramVariantId).toBe(5)
+    expect(guide.manualCourseIds).toEqual([9])
+  })
+}
+it('does not turn an empty selection into an academic reference', () => {
+  expect(numericId('')).toBeNull()
+  expect(numericId('5')).toBe(5)
 })

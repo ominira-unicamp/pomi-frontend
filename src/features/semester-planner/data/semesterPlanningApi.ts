@@ -338,47 +338,35 @@ type ApiPlanningGuideInput = AppComponents['schemas']['PlanningGuideInput']
 
 function planningGuideInput(guide: PlanningGuideInput): ApiPlanningGuideInput {
   const manualCourseIds = [...new Set(guide.manualCourseIds)]
-  if (guide.mode === 'none') return { mode: 'NONE', manualCourseIds }
-  if (guide.mode === 'program') {
-    const { catalogProgramId, catalogProgramVariantId, languageId } =
-      guide.program
-    if (catalogProgramId === null || catalogProgramVariantId === null)
-      throw new TypeError('Incomplete program planning guide')
-    return {
-      mode: 'PROGRAM',
-      manualCourseIds,
-      program: { catalogProgramId, catalogProgramVariantId, languageId },
-    }
-  }
-  if (
+  const { catalogProgramId, catalogProgramVariantId, languageId } =
+    guide.program
+  const curriculum =
     guide.curriculum.source === 'saved' &&
     guide.curriculum.curriculumId !== null
-  )
-    return {
-      mode: 'CURRICULUM',
-      manualCourseIds,
-      curriculum: {
-        source: 'SAVED',
-        saved: { curriculumId: guide.curriculum.curriculumId },
-      },
-    }
-  if (
-    guide.curriculum.source === 'suggestion' &&
-    guide.curriculum.suggestionId !== null &&
-    guide.curriculum.suggestionCatalogProgramId !== null
-  )
-    return {
-      mode: 'CURRICULUM',
-      manualCourseIds,
-      curriculum: {
-        source: 'SUGGESTION',
-        suggestion: {
-          suggestionId: guide.curriculum.suggestionId,
-          catalogProgramId: guide.curriculum.suggestionCatalogProgramId,
-        },
-      },
-    }
-  throw new TypeError('Incomplete curriculum planning guide')
+      ? {
+          source: 'SAVED' as const,
+          saved: { curriculumId: guide.curriculum.curriculumId },
+        }
+      : guide.curriculum.source === 'suggestion' &&
+          guide.curriculum.suggestionId !== null &&
+          guide.curriculum.suggestionCatalogProgramId !== null
+        ? {
+            source: 'SUGGESTION' as const,
+            suggestion: {
+              suggestionId: guide.curriculum.suggestionId,
+              catalogProgramId: guide.curriculum.suggestionCatalogProgramId,
+            },
+          }
+        : null
+  return {
+    mode: guide.mode.toUpperCase() as ApiPlanningGuideInput['mode'],
+    manualCourseIds,
+    curriculum,
+    program:
+      catalogProgramId !== null && catalogProgramVariantId !== null
+        ? { catalogProgramId, catalogProgramVariantId, languageId }
+        : null,
+  }
 }
 
 export function listSemesterPlannings(

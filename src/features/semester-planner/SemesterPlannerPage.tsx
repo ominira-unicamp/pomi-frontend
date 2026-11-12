@@ -401,6 +401,15 @@ export function SemesterPlannerPage({
       next.program.languageId ? String(next.program.languageId) : '',
     )
     setManualCourseIds(next.manualCourseIds)
+    const programPartial =
+      next.program.catalogProgramId !== null &&
+      next.program.catalogProgramVariantId === null
+    const curriculumPartial =
+      next.curriculum.source === 'saved'
+        ? next.curriculum.curriculumId === null
+        : next.curriculum.source === 'suggestion' &&
+          next.curriculum.suggestionId === null
+    if (programPartial || curriculumPartial) return
     void dispatch({ type: 'setGuide', guide: next })
   }
 
@@ -409,7 +418,12 @@ export function SemesterPlannerPage({
       ...document.guide,
       ...changes,
       curriculum: { ...document.guide.curriculum, ...changes.curriculum },
-      program: { ...document.guide.program, ...changes.program },
+      program: {
+        catalogProgramId: numericId(programCatalogProgramId),
+        catalogProgramVariantId: numericId(programCatalogProgramVariantId),
+        languageId: numericId(programLanguageId),
+        ...changes.program,
+      },
     }
   }
 
@@ -1145,16 +1159,20 @@ export function SemesterPlannerPage({
                       item.program.code === currentProgram.code),
                 )
               : undefined
-            const nextProgramId =
-              nextCatalogProgram?.id ?? programCatalogProgramId
-            setProgramCatalogProgramId(nextProgramId)
+            const nextVariant = nextCatalogProgram
+              ? catalogProgramVariantForSelection(nextCatalogProgram)
+              : undefined
+            setProgramCatalogProgramId(nextCatalogProgram?.id ?? '')
+            setProgramCatalogProgramVariantId(nextVariant?.id ?? '')
+            setProgramLanguageId('')
+            if (!nextCatalogProgram) return
             updateGuide(
               guideWith({
                 mode: 'program',
                 program: {
-                  catalogProgramId: nextCatalogProgram
-                    ? numericId(nextCatalogProgram.id)
-                    : document.guide.program.catalogProgramId,
+                  catalogProgramId: numericId(nextCatalogProgram.id),
+                  catalogProgramVariantId: numericId(nextVariant?.id ?? ''),
+                  languageId: null,
                 },
               }),
             )
@@ -1540,7 +1558,13 @@ export function SemesterPlannerPage({
         guideMode={guideMode}
         isSaving={isSaving}
         onPeriodChange={changePeriod}
-        onGuideModeChange={(mode) => updateGuide({ ...document.guide, mode })}
+        onGuideModeChange={(mode) => {
+          setGuideMode(mode)
+          void dispatch({
+            type: 'setGuide',
+            guide: { ...document.guide, mode },
+          })
+        }}
         onConfigureGuide={() => {
           setConfigurationMode(
             guideMode === 'program' ? 'program' : 'curriculum',
@@ -1732,6 +1756,36 @@ export function SemesterPlannerPage({
                 {configurationMode === 'curriculum'
                   ? curriculumGuideConfiguration
                   : programGuideConfiguration}
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    updateGuide(
+                      guideWith(
+                        configurationMode === 'curriculum'
+                          ? {
+                              curriculum: {
+                                source: null,
+                                curriculumId: null,
+                                suggestionId: null,
+                                suggestionCatalogProgramId: null,
+                              },
+                            }
+                          : {
+                              program: {
+                                catalogProgramId: null,
+                                catalogProgramVariantId: null,
+                                languageId: null,
+                              },
+                            },
+                      ),
+                    )
+                  }
+                >
+                  Remover configuração de{' '}
+                  {configurationMode === 'curriculum'
+                    ? 'currículo'
+                    : 'programa'}
+                </Button>
               </DialogContent>
             </Dialog>
             <Dialog

@@ -19,7 +19,7 @@ Com o servidor local ativo, `/_design-system` apresenta os tokens, variantes, es
 
 ## SDK e builds independentes
 
-O frontend usa a versão publicada `1.0.0-rc.4` de `@ominira/pomi-sdk`, fixada no
+O frontend usa a versão publicada `1.0.0-rc.5` de `@ominira/pomi-sdk`, fixada no
 manifesto e no lockfile. `npm ci` e `npm run build` devem funcionar com apenas o
 checkout do frontend, inclusive na Vercel. Não externalize o SDK no Rollup: ele
 integra o bundle da aplicação.
@@ -197,3 +197,14 @@ manual. As validações finais e o resultado por registro continuam no servidor.
 A agenda usa grade em desktop e lista por dia no mobile. Ambas abrem **Aulas e
 faltas**, com a mesma operação usada na Página inicial. Os períodos exibidos
 usam o formato `2026 · 2º semestre`; códigos internos como `2026s2` são preservados.
+
+## Configurações do guia de horário
+
+O planejamento de semestre preserva currículo e programa independentemente.
+Alternar Currículo, Programa ou Nenhum salva a última visualização escolhida,
+sem remover configurações, disciplinas manuais ou turmas selecionadas.
+O diálogo de configuração permite remover cada configuração explicitamente.
+Seleções incompletas permanecem no formulário até poderem ser salvas.
+
+O contrato utiliza o SDK publicado `1.0.0-rc.5`, fixado no manifesto e no
+lockfile. O build não depende de um vínculo com o checkout local do SDK.

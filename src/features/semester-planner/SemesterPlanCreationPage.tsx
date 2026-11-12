@@ -65,6 +65,9 @@ export function SemesterPlanCreationPage() {
     catalogProgramVariantId: '',
     languageId: '',
   })
+  const [programSelection, setProgramSelection] =
+    useState<InitialAcademicSelection | null>(null)
+  const programValues = programSelection ?? selection
   const [suggestionId, setSuggestionId] = useState('')
   const [error, setError] = useState<string>()
   const [submitting, setSubmitting] = useState(false)
@@ -95,9 +98,7 @@ export function SemesterPlanCreationPage() {
     queryFn: () =>
       loadCurriculumSuggestions(selection.catalogProgramId as CatalogProgramId),
     enabled:
-      guideMode === 'curriculum' &&
-      curriculumSource === 'suggestion' &&
-      Boolean(selection.catalogProgramId),
+      curriculumSource === 'suggestion' && Boolean(selection.catalogProgramId),
     retry: false,
   })
   const suggestions = suggestionsQuery.data ?? []
@@ -136,60 +137,65 @@ export function SemesterPlanCreationPage() {
   }, [catalogQuery.data, profileQuery.data, selection.catalogProgramId])
 
   const validFirstStep = Boolean(name.trim() && studyPeriodId)
+  const programSelectionComplete =
+    !programSelection?.catalogProgramId ||
+    Boolean(programSelection.catalogProgramVariantId)
   const validGuideStep =
-    guideMode === 'none' ||
-    (guideMode === 'program' &&
-      Boolean(
-        selection.catalogProgramId && selection.catalogProgramVariantId,
-      )) ||
-    (guideMode === 'curriculum' &&
-      (curriculumSource === 'saved'
-        ? Boolean(curriculumId)
-        : Boolean(suggestion)))
+    programSelectionComplete &&
+    (guideMode === 'none' ||
+      (guideMode === 'program' &&
+        Boolean(
+          programValues.catalogProgramId &&
+          programValues.catalogProgramVariantId,
+        )) ||
+      (guideMode === 'curriculum' &&
+        (curriculumSource === 'saved'
+          ? Boolean(curriculumId)
+          : Boolean(suggestion))))
   const generatedDocument: SemesterPlanningDocument = {
     name: name.trim(),
     studyPeriodId: studyPeriodId ? Number(studyPeriodId) : null,
     curriculumId:
-      guideMode === 'curriculum' && curriculumSource === 'saved' && curriculumId
+      curriculumSource === 'saved' && curriculumId
         ? Number(curriculumId)
         : null,
     classIds: [],
     guide: {
       mode: guideMode,
       curriculum: {
-        source: guideMode === 'curriculum' ? curriculumSource : null,
+        source:
+          curriculumSource === 'saved'
+            ? curriculumId
+              ? 'saved'
+              : null
+            : suggestion
+              ? 'suggestion'
+              : null,
         curriculumId:
-          guideMode === 'curriculum' &&
-          curriculumSource === 'saved' &&
-          curriculumId
+          curriculumSource === 'saved' && curriculumId
             ? Number(curriculumId)
             : null,
         suggestionId:
-          guideMode === 'curriculum' &&
-          curriculumSource === 'suggestion' &&
-          suggestion
+          curriculumSource === 'suggestion' && suggestion
             ? Number(suggestion.id)
             : null,
         suggestionCatalogProgramId:
-          guideMode === 'curriculum' &&
-          curriculumSource === 'suggestion' &&
-          selection.catalogProgramId
+          curriculumSource === 'suggestion' && selection.catalogProgramId
             ? Number(selection.catalogProgramId)
             : null,
       },
       program: {
         catalogProgramId:
-          guideMode === 'program' && selection.catalogProgramId
-            ? Number(selection.catalogProgramId)
+          programSelection && programValues.catalogProgramId
+            ? Number(programValues.catalogProgramId)
             : null,
         catalogProgramVariantId:
-          guideMode === 'program' && selection.catalogProgramVariantId
-            ? Number(selection.catalogProgramVariantId)
+          programSelection && programValues.catalogProgramVariantId
+            ? Number(programValues.catalogProgramVariantId)
             : null,
-        languageId:
-          guideMode === 'program' && selection.languageId
-            ? Number(selection.languageId)
-            : null,
+        languageId: programValues.languageId
+          ? Number(programValues.languageId)
+          : null,
       },
       manualCourseIds: [],
     },
@@ -342,7 +348,10 @@ export function SemesterPlanCreationPage() {
                 active={guideMode === 'program'}
                 title="Programa"
                 description="Mostra disciplinas que atendem aos blocos do programa escolhido."
-                onClick={() => setGuideMode('program')}
+                onClick={() => {
+                  setProgramSelection(programValues)
+                  setGuideMode('program')
+                }}
               />
               <GuideChoice
                 active={guideMode === 'none'}
@@ -439,9 +448,24 @@ export function SemesterPlanCreationPage() {
               <div className="border-t border-strong-border/30 pt-5">
                 <InitialAcademicSelectionFields
                   staticData={catalogQuery.data}
-                  value={selection}
-                  onChange={setSelection}
+                  value={programValues}
+                  onChange={setProgramSelection}
                 />
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setProgramSelection({
+                      catalogId: '',
+                      programId: '',
+                      catalogProgramId: '',
+                      catalogProgramVariantId: '',
+                      languageId: '',
+                    })
+                    setGuideMode('none')
+                  }}
+                >
+                  Remover configuração de programa
+                </Button>
                 {!validGuideStep && (
                   <p
                     role="status"

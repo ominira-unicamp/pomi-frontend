@@ -49,8 +49,9 @@ export function guideFromApi(value: {
     catalogProgramId: number
     catalogProgramVariantId: number
     languageId: number | null
-  }
+  } | null
   curriculum?:
+    | null
     | { source: 'SAVED'; saved: { curriculumId: number } }
     | {
         source: 'SUGGESTION'
@@ -84,7 +85,7 @@ export function guideFromApi(value: {
 
 export function numericId(value: string) {
   const parsed = Number(value)
-  return Number.isInteger(parsed) ? parsed : null
+  return value.trim() && Number.isInteger(parsed) && parsed > 0 ? parsed : null
 }
 
 function normalizeCourseCode(value: string) {
