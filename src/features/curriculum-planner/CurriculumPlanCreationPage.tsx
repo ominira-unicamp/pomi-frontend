@@ -631,8 +631,8 @@ function NumberField({
         type="number"
         min={min}
         max={max}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
+        value={Number.isNaN(value) ? '' : value}
+        onChange={(event) => onChange(event.target.valueAsNumber)}
       />
       <span className="block text-xs font-normal text-muted-foreground">
         {description}

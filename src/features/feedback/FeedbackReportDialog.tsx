@@ -1,4 +1,8 @@
 import { useEffect, useState } from 'react'
+import {
+  feedbackFeatureLabels,
+  selectableFeedbackFeatures,
+} from './feedbackFeatures'
 import type { FormEvent } from 'react'
 
 import type { FeedbackDraft } from '@/features/feedback/FeedbackReportProvider'
@@ -47,18 +51,6 @@ function defaultInput(): FeedbackReportInput {
     description: '',
     sourcePath: window.location.pathname,
   }
-}
-
-function featureLabel(feature: (typeof feedbackFeatureKeys)[number]) {
-  return {
-    home: 'Início',
-    'curriculum-planner': 'Planejamento de currículo',
-    'semester-planner': 'Planejamento de semestre',
-    'course-situation': 'Situação do curso',
-    agenda: 'Agenda',
-    social: 'Amigos',
-    'academic-data': 'Dados acadêmicos',
-  }[feature]
 }
 
 function reportError(error: Error | null) {
@@ -209,9 +201,9 @@ function Form({
                   })
                 }
               }}
-              options={feedbackFeatureKeys.map((feature) => ({
+              options={selectableFeedbackFeatures.map((feature) => ({
                 value: feature,
-                label: featureLabel(feature),
+                label: feedbackFeatureLabels[feature],
               }))}
             />
           )}

@@ -273,6 +273,22 @@ describe('event management by permission', () => {
     ).toBeTruthy()
     expect(screen.queryByRole('link', { name: 'Novo evento' })).toBeNull()
   })
+  it('labels a published event with a future end as ongoing', async () => {
+    const now = Date.now()
+    mocks.events.mockResolvedValue([
+      {
+        ...draft,
+        name: 'Evento em andamento',
+        status: 'PUBLISHED',
+        startsAt: new Date(now - 60 * 60 * 1000).toISOString(),
+        endsAt: new Date(now + 60 * 60 * 1000).toISOString(),
+      },
+    ])
+    renderPage(<GroupEventsManagementPage />)
+    const link = await screen.findByRole('link', { name: /Ver detalhes/ })
+    expect(link.textContent).toContain('Publicado · Em andamento')
+    expect(link.textContent).not.toContain('Passado')
+  })
   it('lets EVENT_CREATE save a draft and return to the list without edit actions', async () => {
     renderPage(<GroupEventCreatePage />)
     fireEvent.change(screen.getByRole('textbox', { name: 'Nome' }), {

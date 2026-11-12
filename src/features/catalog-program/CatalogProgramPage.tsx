@@ -545,7 +545,7 @@ export function CatalogProgramDetails({
               courses={courses}
               rules={prerequisitesQuery.data.rules}
               completedCourseIds={completedCourseIds}
-              hideCompleted={hideCompleted}
+              hideCompleted={embedded ? hideCompleted : undefined}
               showCompletedToggle={!embedded}
               focusedCourseId={
                 search.dependencyCourseId

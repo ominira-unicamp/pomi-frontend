@@ -129,6 +129,45 @@ describe('CurriculumPlanCreationPage', () => {
     ).toBe('2026')
   })
 
+  it.each([
+    ['Ano', '2027'],
+    ['Número do semestre', '3'],
+  ])(
+    'allows clearing and replacing %s before continuing',
+    async (label, replacement) => {
+      const queryClient = new QueryClient({
+        defaultOptions: { queries: { retry: false } },
+      })
+      render(
+        <QueryClientProvider client={queryClient}>
+          <CurriculumPlanCreationPage />
+        </QueryClientProvider>,
+      )
+      fireEvent.click(await screen.findByRole('button', { name: 'Continuar' }))
+      const input = screen.getByRole<HTMLInputElement>('spinbutton', {
+        name: new RegExp(`^${label}`),
+      })
+      fireEvent.change(input, { target: { value: '' } })
+      expect(input.value).toBe('')
+      expect(
+        screen
+          .getByRole('button', { name: 'Continuar' })
+          .hasAttribute('disabled'),
+      ).toBe(true)
+      fireEvent.change(input, { target: { value: replacement } })
+      expect(input.value).toBe(replacement)
+      expect(
+        screen
+          .getByRole('button', { name: 'Continuar' })
+          .hasAttribute('disabled'),
+      ).toBe(false)
+      fireEvent.click(screen.getByRole('button', { name: 'Continuar' }))
+      expect(
+        await screen.findByRole('heading', { name: 'Revise o planejamento' }),
+      ).toBeTruthy()
+    },
+  )
+
   it('keeps a manually selected catalog instead of restoring the profile catalog', async () => {
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },

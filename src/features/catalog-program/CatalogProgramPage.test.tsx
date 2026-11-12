@@ -498,7 +498,7 @@ describe('CatalogProgramPage', () => {
     expect(loadCatalogPrerequisites).toHaveBeenCalledWith(2026)
   })
 
-  it('hides completed courses in the dependency tree', async () => {
+  it('hides completed courses while keeping enrolled dependents in the dependency tree', async () => {
     useOptionalAuth.mockReturnValue({
       isAuthenticated: true,
       sessionSubject: 'student-session',
@@ -510,6 +510,7 @@ describe('CatalogProgramPage', () => {
     })
     listStudentCourseAttempts.mockResolvedValue([
       { courseId: 1, status: 'APPROVED' },
+      { courseId: 2, status: 'ENROLLED' },
     ])
     renderPage({
       catalogId: 1,
@@ -528,6 +529,7 @@ describe('CatalogProgramPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Ocultar concluídas' }))
 
     expect(tree.textContent).not.toContain('MU001')
+    expect(tree.textContent).toContain('MU002')
     expect(
       screen.getByRole('button', { name: 'Mostrar concluídas' }),
     ).toBeTruthy()

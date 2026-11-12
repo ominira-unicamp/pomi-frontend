@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { MessageSquareText } from 'lucide-react'
+import { feedbackFeatureLabels } from './feedbackFeatures'
 
 import type {
   FeedbackReport,
@@ -34,7 +35,8 @@ const kindLabels = {
 
 function targetLabel(report: FeedbackReport) {
   if (report.target.type === 'GENERAL') return 'Geral'
-  if (report.target.type === 'FEATURE') return report.target.feature.key
+  if (report.target.type === 'FEATURE')
+    return feedbackFeatureLabels[report.target.feature.key]
   return `${report.target.academicResource.type} #${report.target.academicResource.id}`
 }
 

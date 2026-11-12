@@ -4,6 +4,7 @@ import { ArrowRight, MapPin } from 'lucide-react'
 import { useState } from 'react'
 
 import { groupApi } from './data/groupApi'
+import { eventPeriod } from './eventTiming'
 import type { GroupEvent } from '@ominira/pomi-sdk/generated/app'
 import { GroupAvatar } from '@/features/media/IdentityImages'
 import {
@@ -49,10 +50,12 @@ function EventAgendaItem({
   event,
   groupName,
   groupAvatarMediaId,
+  ongoing,
 }: {
   event: GroupEvent
   groupName?: string
   groupAvatarMediaId?: string | null
+  ongoing: boolean
 }) {
   const start = event.startsAt ? new Date(event.startsAt) : null
   return (
@@ -70,6 +73,9 @@ function EventAgendaItem({
       <div className="min-w-0">
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-bold text-muted-foreground">
           <span>{eventTime(event)}</span>
+          {ongoing && (
+            <span className="font-bold text-primary">Em andamento</span>
+          )}
           {event.location && (
             <span className="inline-flex items-center gap-1 font-medium">
               <MapPin aria-hidden="true" className="size-4" />
@@ -145,14 +151,12 @@ export function EventsPage({
   )
   const now = Date.now()
   const upcoming = (events.data ?? [])
-    .filter(
-      (event) => event.startsAt && new Date(event.startsAt).getTime() >= now,
+    .filter((event) =>
+      ['upcoming', 'ongoing'].includes(eventPeriod(event, now)),
     )
     .sort((a, b) => a.startsAt!.localeCompare(b.startsAt!) || a.id - b.id)
   const past = (events.data ?? [])
-    .filter(
-      (event) => event.startsAt && new Date(event.startsAt).getTime() < now,
-    )
+    .filter((event) => eventPeriod(event, now) === 'past')
     .sort((a, b) => b.startsAt!.localeCompare(a.startsAt!) || b.id - a.id)
   const undated = (events.data ?? []).filter((event) => !event.startsAt)
   const visible =
@@ -279,6 +283,7 @@ export function EventsPage({
                   <li key={event.id}>
                     <EventAgendaItem
                       event={event}
+                      ongoing={eventPeriod(event, now) === 'ongoing'}
                       groupName={groupById.get(event.groupId)?.name}
                       groupAvatarMediaId={
                         groupById.get(event.groupId)?.avatarMediaId

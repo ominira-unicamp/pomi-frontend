@@ -19,8 +19,9 @@ Com o servidor local ativo, `/_design-system` apresenta os tokens, variantes, es
 
 ## SDK e builds independentes
 
-O frontend usa a versão publicada `1.0.0-rc.5` de `@ominira/pomi-sdk`, fixada no
-manifesto e no lockfile. `npm ci` e `npm run build` devem funcionar com apenas o
+O frontend usa `@ominira/pomi-sdk` na versão `1.0.0-rc.6`, empacotada em
+`vendor/ominira-pomi-sdk-1.0.0-rc.6.tgz` e fixada no manifesto e no lockfile.
+O pacote foi regenerado a partir do OpenAPI local e ainda não foi publicado no npm. `npm ci` e `npm run build` devem funcionar com apenas o
 checkout do frontend, inclusive na Vercel. Não externalize o SDK no Rollup: ele
 integra o bundle da aplicação.
 
@@ -207,8 +208,8 @@ O diálogo de configuração permite remover a configuração de programa explic
 O campo de língua aparece somente quando o programa oferece opções de língua.
 Seleções incompletas permanecem no formulário até poderem ser salvas.
 
-O contrato utiliza o SDK publicado `1.0.0-rc.5`, fixado no manifesto e no
-lockfile. O build não depende de um vínculo com o checkout local do SDK.
+O contrato utiliza o SDK `1.0.0-rc.6` do pacote local versionado, fixado no
+manifesto e no lockfile. O build não depende de um vínculo com o checkout local do SDK.
 
 ## Administração de feedbacks
 
@@ -220,3 +221,19 @@ A página permite buscar e filtrar feedbacks, marcar em análise, encerrar com
 confirmação e reabrir. A mensagem da equipe é opcional e aparece em Meus feedbacks
 para o autor identificado. Os filtros são locais sobre a coleção carregada pelo
 SDK. Atualizações simultâneas seguem a semântica atual da API: a última prevalece.
+
+
+### Categorias do formulário de feedback
+
+O formulário oferece Início, Situação do curso, Planejamento de currículo,
+Planejamento de horários, Agenda e faltas, Cursos, Disciplinas, Meu perfil e
+privacidade, Pessoas e amigos, Grupos, Eventos, Tags e interesses, Intercâmbio e
+Meus feedbacks. Os rótulos são compartilhados com as consultas do autor e da
+administração. A categoria antiga Dados acadêmicos continua aceita pela API e
+legível nos relatos existentes, mas não aparece entre as novas escolhas.
+
+Disponibilize o backend com o contrato ampliado antes de disponibilizar o
+frontend. A alteração não exige migration. O tarball versionado permite instalar
+o frontend sem depender do checkout vizinho ou da publicação do SDK. Quando
+`1.0.0-rc.6` for publicado, substitua a dependência local pela versão do registry
+e atualize o lockfile.

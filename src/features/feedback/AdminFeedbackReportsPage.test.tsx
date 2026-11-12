@@ -259,7 +259,5 @@ describe('feedback administration', () => {
 
 async function chooseFilter(label: string, option: string) {
   fireEvent.click(screen.getByRole('combobox', { name: label }))
-  fireEvent.click(
-    await screen.findByRole('option', { name: option }),
-  )
+  fireEvent.click(await screen.findByRole('option', { name: option }))
 }

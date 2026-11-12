@@ -47,7 +47,7 @@ export function CourseAttemptRow({
 }) {
   return (
     <DataRow className="py-4 first:pt-4 last:pb-4">
-      <div className="min-w-0 flex-1">
+      <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">
         <div className="flex flex-wrap items-center gap-2">
           {attempt.status === 'ENROLLED' && (
             <span
@@ -82,7 +82,7 @@ export function CourseAttemptRow({
             : ''}
         </p>
       </div>
-      <ActionBar className="w-full sm:w-auto">
+      <ActionBar className="w-full min-w-0 max-w-full sm:w-auto sm:max-w-1/2">
         {attempt.status === 'ENROLLED' && (
           <Button
             className="flex-1 sm:flex-none"
@@ -97,7 +97,7 @@ export function CourseAttemptRow({
           attempt.class?.professors.map((professor) => (
             <Button
               key={professor.id}
-              className="flex-1 sm:flex-none"
+              className="h-auto min-h-8 min-w-0 max-w-full flex-1 whitespace-normal py-1 text-center [overflow-wrap:anywhere] sm:flex-none"
               size="sm"
               onClick={() =>
                 onEvaluate({

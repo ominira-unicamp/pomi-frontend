@@ -65,6 +65,7 @@ export function PrerequisiteTreeView({
   includeIsolated = false,
   loading = false,
   showCompletedToggle = true,
+  hideCompleted: controlledHideCompleted,
   allowTreeSelection = true,
   showPlanningLegend = true,
   headerAction,
@@ -81,6 +82,7 @@ export function PrerequisiteTreeView({
   includeIsolated?: boolean
   loading?: boolean
   showCompletedToggle?: boolean
+  hideCompleted?: boolean
   allowTreeSelection?: boolean
   showPlanningLegend?: boolean
   headerAction?: ReactNode
@@ -95,7 +97,8 @@ export function PrerequisiteTreeView({
     () => new Set(initialFocusedCourseIds),
   )
   const [revealingAllCourses, setRevealingAllCourses] = useState(false)
-  const [hideCompleted, setHideCompleted] = useState(false)
+  const [localHideCompleted, setHideCompleted] = useState(false)
+  const hideCompleted = controlledHideCompleted ?? localHideCompleted
   const [hoveredCourseId, setHoveredCourseId] = useState<CourseId>()
   const [isDragging, setIsDragging] = useState(false)
   const stateById = useMemo(
@@ -120,25 +123,15 @@ export function PrerequisiteTreeView({
       )
     return courseIds
   }, [includeIsolated, links, states, visibleCourseIds])
-  const layoutCourseIds = useMemo(() => {
-    const candidateCourseIds = new Set(
-      [...treeCourseIds].filter(
-        (courseId) => !hideCompleted || !stateById.get(courseId)?.completed,
+  const layoutCourseIds = useMemo(
+    () =>
+      new Set(
+        [...treeCourseIds].filter(
+          (courseId) => !hideCompleted || !stateById.get(courseId)?.completed,
+        ),
       ),
-    )
-    if (!hideCompleted) return candidateCourseIds
-    const connectedCourseIds = new Set<CourseId>()
-    for (const link of links) {
-      if (
-        !candidateCourseIds.has(link.prerequisiteCourseId) ||
-        !candidateCourseIds.has(link.dependentCourseId)
-      )
-        continue
-      connectedCourseIds.add(link.prerequisiteCourseId)
-      connectedCourseIds.add(link.dependentCourseId)
-    }
-    return connectedCourseIds
-  }, [hideCompleted, links, stateById, treeCourseIds])
+    [hideCompleted, stateById, treeCourseIds],
+  )
   const visibleLinks = useMemo(
     () =>
       links.filter(

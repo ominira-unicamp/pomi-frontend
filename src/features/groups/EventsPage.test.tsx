@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { EventsPage } from './EventsPage'
 import { EventDetailPage } from './EventDetailPage'
 import type { ReactNode } from 'react'
@@ -55,6 +55,7 @@ const event = {
 }
 
 describe('event discovery', () => {
+  afterEach(() => vi.restoreAllMocks())
   beforeEach(() => {
     mocks.listEvents.mockReset().mockResolvedValue([event])
     mocks.getEvent.mockReset().mockResolvedValue(event)
@@ -121,6 +122,33 @@ describe('event discovery', () => {
     )
     expect(screen.getByText('Horário a confirmar')).toBeTruthy()
     expect(screen.getByRole('link', { name: 'Oficina aberta' })).toBeTruthy()
+  })
+  it('keeps ongoing events in upcoming until their end and excludes them from past', async () => {
+    const now = Date.parse('2026-11-12T15:00:00Z')
+    vi.spyOn(Date, 'now').mockReturnValue(now)
+    mocks.listEvents.mockResolvedValue([
+      {
+        ...event,
+        startsAt: '2026-11-11T13:00:00Z',
+        endsAt: '2026-11-13T17:00:00Z',
+      },
+      {
+        ...event,
+        id: 13,
+        name: 'Evento encerrado',
+        startsAt: '2026-11-12T10:00:00Z',
+        endsAt: '2026-11-12T15:00:00Z',
+      },
+    ])
+    renderPage(<EventsPage />)
+    expect(
+      await screen.findByRole('link', { name: 'Oficina aberta' }),
+    ).toBeTruthy()
+    expect(screen.getByText('Em andamento')).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Evento encerrado' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Anteriores' }))
+    expect(screen.getByRole('link', { name: 'Evento encerrado' })).toBeTruthy()
+    expect(screen.queryByRole('link', { name: 'Oficina aberta' })).toBeNull()
   })
   it('shows a public event and its organizer on a direct detail page', async () => {
     renderPage(<EventDetailPage eventId={12} />)

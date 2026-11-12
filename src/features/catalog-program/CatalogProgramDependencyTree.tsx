@@ -78,7 +78,7 @@ export function CatalogProgramDependencyTree({
   courses,
   rules,
   completedCourseIds,
-  hideCompleted = false,
+  hideCompleted,
   showCompletedToggle = true,
   focusedCourseId,
   onOpenCourseDetails,
@@ -105,27 +105,17 @@ export function CatalogProgramDependencyTree({
     () => catalogProgramTreeCourseIds(program, variant, showElectives),
     [program, showElectives, variant],
   )
-  const visibleCourseIds = useMemo(
-    () =>
-      new Set(
-        [...courseIds].filter(
-          (courseId) =>
-            !hideCompleted || !completedCourseIds.has(Number(courseId)),
-        ),
-      ),
-    [completedCourseIds, courseIds, hideCompleted],
-  )
   const visibleCourses = useMemo(
-    () => courses.filter((course) => visibleCourseIds.has(course.id)),
-    [courses, visibleCourseIds],
+    () => courses.filter((course) => courseIds.has(course.id)),
+    [courses, courseIds],
   )
   const courseById = useMemo(
     () => new Map(visibleCourses.map((course) => [course.id, course])),
     [visibleCourses],
   )
   const links = useMemo(
-    () => dependencyLinks(rules, visibleCourseIds),
-    [rules, visibleCourseIds],
+    () => dependencyLinks(rules, courseIds),
+    [rules, courseIds],
   )
 
   return (
@@ -138,6 +128,7 @@ export function CatalogProgramDependencyTree({
       initialFocusedCourseIds={focusedCourseId ? [focusedCourseId] : []}
       showPlanningLegend={false}
       showCompletedToggle={showCompletedToggle}
+      hideCompleted={hideCompleted}
       title="Árvore de dependências"
       description="Visualize as relações entre as disciplinas deste currículo."
       onOpenCourseDetails={(courseId) => {

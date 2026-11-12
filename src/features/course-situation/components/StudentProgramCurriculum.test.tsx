@@ -245,8 +245,18 @@ describe('saved program curriculum', () => {
     )
     expect(screen.getByText('MC102')).toBeTruthy()
   })
-  it('hides completed courses in the dependency tree', async () => {
-    renderCurriculum()
+  it('keeps enrolled courses after hiding their completed prerequisites in the dependency tree', async () => {
+    renderCurriculum(profile, {
+      attempts: [
+        ...attempts,
+        {
+          id: 2,
+          courseId: 11,
+          status: 'ENROLLED',
+          studyPeriod: null,
+        } as StudentCourseAttempt,
+      ],
+    })
     fireEvent.mouseDown(
       screen.getByRole('tab', { name: 'Árvore de dependências' }),
     )
@@ -263,7 +273,12 @@ describe('saved program curriculum', () => {
     )
 
     expect(tree.textContent).not.toContain('MC102')
-    expect(tree.textContent).not.toContain('MC202')
+    expect(tree.textContent).toContain('MC202')
+    fireEvent.click(
+      screen.getByRole('switch', { name: 'Mostrar disciplinas concluídas' }),
+    )
+    expect(tree.textContent).toContain('MC102')
+    expect(tree.textContent).toContain('MC202')
     expect(
       screen.queryByRole('button', { name: 'Ocultar concluídas' }),
     ).toBeNull()

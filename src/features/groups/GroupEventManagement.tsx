@@ -3,6 +3,7 @@ import { Link, useBlocker, useNavigate } from '@tanstack/react-router'
 import { useRef, useState } from 'react'
 
 import { groupApi } from './data/groupApi'
+import { eventPeriod } from './eventTiming'
 import { displayLocalDateTime, preserveUnchangedInstant } from './dateFields'
 import { Failure } from './EditorFeedback'
 import { useGroupManagement } from './GroupManagementLayout'
@@ -25,9 +26,12 @@ const statusLabel = {
 const eventsPath = '/grupos/$groupId/gerenciar/eventos'
 
 function eventTime(event: ManagedGroupEvent, now: number) {
-  if (!event.startsAt) return { order: 1, label: 'Sem data definida', time: 0 }
-  const time = new Date(event.startsAt).getTime()
-  return time >= now
+  const period = eventPeriod(event, now)
+  const time = event.startsAt ? new Date(event.startsAt).getTime() : 0
+  if (period === 'undated')
+    return { order: 1, label: 'Sem data definida', time }
+  if (period === 'ongoing') return { order: 0, label: 'Em andamento', time }
+  return period === 'upcoming'
     ? { order: 0, label: 'Futuro', time }
     : { order: 2, label: 'Passado', time }
 }

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ApiError } from '@ominira/pomi-sdk'
+import { feedbackFeatureLabels } from './feedbackFeatures'
 import {
   listAdminFeedbackReports,
   updateAdminFeedbackReport,
@@ -43,15 +44,6 @@ const kinds = {
   SUGGESTION: 'Sugestão',
   DATA_ISSUE: 'Problema de dados',
 }
-const features: Record<string, string> = {
-  home: 'Início',
-  'curriculum-planner': 'Planejamento de currículo',
-  'semester-planner': 'Planejamento de semestre',
-  'course-situation': 'Situação do curso',
-  agenda: 'Agenda',
-  social: 'Amigos',
-  'academic-data': 'Dados acadêmicos',
-}
 const statusOptions = {
   PENDING: 'Pendentes',
   OPEN: 'Abertos',
@@ -64,7 +56,7 @@ type StatusFilter = keyof typeof statusOptions
 function targetLabel(report: FeedbackReport) {
   if (report.target.type === 'GENERAL') return 'Geral'
   if (report.target.type === 'FEATURE')
-    return features[report.target.feature.key] ?? report.target.feature.key
+    return feedbackFeatureLabels[report.target.feature.key]
   return `${report.target.academicResource.type} #${report.target.academicResource.id}`
 }
 
