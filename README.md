@@ -203,7 +203,8 @@ usam o formato `2026 · 2º semestre`; códigos internos como `2026s2` são pres
 O planejamento de semestre preserva currículo e programa independentemente.
 Alternar Currículo, Programa ou Nenhum salva a última visualização escolhida,
 sem remover configurações, disciplinas manuais ou turmas selecionadas.
-O diálogo de configuração permite remover cada configuração explicitamente.
+O diálogo de configuração permite remover a configuração de programa explicitamente.
+O campo de língua aparece somente quando o programa oferece opções de língua.
 Seleções incompletas permanecem no formulário até poderem ser salvas.
 
 O contrato utiliza o SDK publicado `1.0.0-rc.5`, fixado no manifesto e no

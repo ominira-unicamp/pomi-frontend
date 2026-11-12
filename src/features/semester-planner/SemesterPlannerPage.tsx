@@ -1245,32 +1245,34 @@ export function SemesterPlannerPage({
           />
         </label>
       ) : null}
-      <label className="block text-xs font-extrabold">
-        Língua
-        <AutocompleteSelect
-          ariaLabel="Língua do programa"
-          value={programLanguageId}
-          disabled={!selectedProgramCatalog}
-          emptyLabel="Sem língua"
-          options={(selectedProgramCatalog?.languages ?? []).map(
-            (language) => ({ value: language.id, label: language.name }),
-          )}
-          placeholder={
-            selectedProgramCatalog
-              ? 'Escolha a língua'
-              : 'Escolha um programa primeiro'
-          }
-          onValueChange={(value) => {
-            setProgramLanguageId(value)
-            updateGuide(
-              guideWith({
-                mode: 'program',
-                program: { languageId: numericId(value) },
-              }),
-            )
-          }}
-        />
-      </label>
+      {Boolean(selectedProgramCatalog?.languages.length) && (
+        <label className="block text-xs font-extrabold">
+          Língua
+          <AutocompleteSelect
+            ariaLabel="Língua do programa"
+            value={programLanguageId}
+            disabled={!selectedProgramCatalog}
+            emptyLabel="Sem língua"
+            options={(selectedProgramCatalog?.languages ?? []).map(
+              (language) => ({ value: language.id, label: language.name }),
+            )}
+            placeholder={
+              selectedProgramCatalog
+                ? 'Escolha a língua'
+                : 'Escolha um programa primeiro'
+            }
+            onValueChange={(value) => {
+              setProgramLanguageId(value)
+              updateGuide(
+                guideWith({
+                  mode: 'program',
+                  program: { languageId: numericId(value) },
+                }),
+              )
+            }}
+          />
+        </label>
+      )}
     </div>
   )
   const curriculumGuideConfigured =
@@ -1756,36 +1758,24 @@ export function SemesterPlannerPage({
                 {configurationMode === 'curriculum'
                   ? curriculumGuideConfiguration
                   : programGuideConfiguration}
-                <Button
-                  variant="outline"
-                  onClick={() =>
-                    updateGuide(
-                      guideWith(
-                        configurationMode === 'curriculum'
-                          ? {
-                              curriculum: {
-                                source: null,
-                                curriculumId: null,
-                                suggestionId: null,
-                                suggestionCatalogProgramId: null,
-                              },
-                            }
-                          : {
-                              program: {
-                                catalogProgramId: null,
-                                catalogProgramVariantId: null,
-                                languageId: null,
-                              },
-                            },
-                      ),
-                    )
-                  }
-                >
-                  Remover configuração de{' '}
-                  {configurationMode === 'curriculum'
-                    ? 'currículo'
-                    : 'programa'}
-                </Button>
+                {configurationMode === 'program' && (
+                  <Button
+                    variant="outline"
+                    onClick={() =>
+                      updateGuide(
+                        guideWith({
+                          program: {
+                            catalogProgramId: null,
+                            catalogProgramVariantId: null,
+                            languageId: null,
+                          },
+                        }),
+                      )
+                    }
+                  >
+                    Remover configuração de programa
+                  </Button>
+                )}
               </DialogContent>
             </Dialog>
             <Dialog
