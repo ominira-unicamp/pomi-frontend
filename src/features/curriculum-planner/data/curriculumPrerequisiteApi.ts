@@ -1,0 +1,123 @@
+import { prerequisiteAlternativeKey } from '@pomi/planner-domain/curriculum'
+import type {
+  CourseId,
+  CoursePrerequisiteRule,
+  PrerequisiteItem,
+} from '@pomi/planner-domain/curriculum'
+
+import type { CatalogCourse } from '@ominira/pomi-sdk/generated/data'
+import { pomiSdk } from '@/api/client'
+
+type CurriculumApiCatalogCourse = CatalogCourse
+type CurriculumApiPrerequisiteItem =
+  CatalogCourse['prerequisites']['any'][number]['all'][number]
+
+export type CurrentYearPrerequisites = Readonly<{
+  catalogId: number
+  year: number
+  courseIds: ReadonlyArray<CourseId>
+  rules: ReadonlyArray<CoursePrerequisiteRule>
+}>
+
+export class CurrentCatalogUnavailableError extends Error {
+  constructor(readonly year: number) {
+    super(`Current catalog ${year} is unavailable`)
+    this.name = 'CurrentCatalogUnavailableError'
+  }
+}
+
+const loadsByYear = new Map<number, Promise<CurrentYearPrerequisites>>()
+
+export function currentCatalogYear(date = new Date()) {
+  return Number(
+    new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      timeZone: 'America/Sao_Paulo',
+    }).format(date),
+  )
+}
+
+function prerequisiteItemFromApi(
+  item: CurriculumApiPrerequisiteItem,
+): PrerequisiteItem {
+  if (item.type === 'SPECIAL_REQUIREMENT') {
+    const specialRequirement = item.specialRequirement
+    return {
+      target: {
+        type: 'special',
+        requirementType:
+          specialRequirement.type === 'AUTHORIZATION'
+            ? 'AUTHORIZATION'
+            : 'PROGRESSION_COEFFICIENT',
+        value:
+          specialRequirement.type === 'AUTHORIZATION'
+            ? 0
+            : specialRequirement.progressionCoefficient.value,
+      },
+    }
+  }
+  if (item.course.courseId !== null) {
+    return {
+      target: {
+        type: 'course',
+        courseId: String(item.course.courseId) as CourseId,
+        fulfillment: item.course.fulfillment,
+      },
+    }
+  }
+  return {
+    target: {
+      type: 'unresolvedCourse',
+      fulfillment: item.course.fulfillment,
+    },
+  }
+}
+
+function ruleFromApi(
+  course: CurriculumApiCatalogCourse,
+): CoursePrerequisiteRule {
+  return {
+    courseId: String(course.courseId) as CourseId,
+    alternatives: course.prerequisites.any
+      .map((alternative) => {
+        const allOf = alternative.all.map(prerequisiteItemFromApi)
+        return { key: prerequisiteAlternativeKey(allOf), allOf }
+      })
+      .sort((left, right) => left.key.localeCompare(right.key)),
+  }
+}
+
+async function loadForYear(year: number): Promise<CurrentYearPrerequisites> {
+  const catalogs = await pomiSdk.data.catalogs.listAll({ filter: { year } })
+  const catalog = catalogs.find((item) => item.year === year)
+  if (!catalog) throw new CurrentCatalogUnavailableError(year)
+  const courses = await pomiSdk.data.catalogCourses.listAll({
+    page: 1,
+    pageSize: 1000,
+    filter: { catalogId: catalog.id },
+  })
+  return {
+    catalogId: catalog.id,
+    year,
+    courseIds: courses.map((course) => String(course.courseId) as CourseId),
+    rules: courses
+      .map(ruleFromApi)
+      .filter((rule) => rule.alternatives.length > 0)
+      .sort((left, right) => left.courseId.localeCompare(right.courseId)),
+  }
+}
+
+export function loadCatalogPrerequisites(year: number) {
+  const current = loadsByYear.get(year)
+  if (current) return current
+  const loading = loadForYear(year).catch((error) => {
+    loadsByYear.delete(year)
+    throw error
+  })
+  loadsByYear.set(year, loading)
+  return loading
+}
+
+export function loadCurrentYearPrerequisites(date = new Date()) {
+  return loadCatalogPrerequisites(currentCatalogYear(date))
+}

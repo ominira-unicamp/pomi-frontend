@@ -1,0 +1,141 @@
+import { CalendarDays, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
+
+import { Link } from '@tanstack/react-router'
+import { labelForStatus } from '../model/model'
+import type { ProfessorEvaluationTarget } from '@/features/student/components/ProfessorEvaluationDialog'
+import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
+import { scheduleCourseColor } from '@/features/student/components/StudentWeeklySchedule'
+import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
+import { ActionBar } from '@/components/patterns/ActionBar'
+import { Badge } from '@/components/patterns/Badge'
+import { DataRow } from '@/components/patterns/DataList'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+
+function statusVariant(status: StudentCourseAttempt['status']) {
+  if (
+    status === 'APPROVED' ||
+    status === 'APPROVED_BY_ATTENDANCE' ||
+    status === 'APPROVED_BY_PROFICIENCY' ||
+    status === 'SUFFICIENT'
+  )
+    return 'success' as const
+  if (status === 'ENROLLED') return 'warning' as const
+  if (status === 'DROPPED') return 'secondary' as const
+  return 'destructive' as const
+}
+
+export function CourseAttemptRow({
+  attempt,
+  absenceCount,
+  onOpenAbsences,
+  onEvaluate,
+  onEdit,
+  onRemove,
+}: {
+  attempt: StudentCourseAttempt
+  absenceCount: number
+  onOpenAbsences: (attemptId: number) => void
+  onEvaluate: (target: ProfessorEvaluationTarget) => void
+  onEdit: (attempt: StudentCourseAttempt) => void
+  onRemove: (attemptId: number) => void
+}) {
+  return (
+    <DataRow className="py-4 first:pt-4 last:pb-4">
+      <div className="min-w-0 flex-1 [overflow-wrap:anywhere]">
+        <div className="flex flex-wrap items-center gap-2">
+          {attempt.status === 'ENROLLED' && (
+            <span
+              aria-hidden
+              className={`size-3 shrink-0 rounded-sm border-2 ${scheduleCourseColor(attempt.course.code, 'red')}`}
+            />
+          )}
+          <Link
+            className="pomi-focus font-bold hover:text-primary"
+            to="/disciplinas/$courseId"
+            params={{ courseId: String(attempt.courseId) }}
+            search={{
+              catalogYear:
+                attempt.studyPeriod?.year ?? new Date().getFullYear(),
+            }}
+          >
+            {attempt.course.code} — {attempt.course.name}
+          </Link>
+          <Badge variant={statusVariant(attempt.status)}>
+            {labelForStatus(attempt.status)}
+          </Badge>
+        </div>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {attempt.course.credits} créditos
+          {attempt.grade !== null ? ` · Nota ${attempt.grade}` : ''}
+          {attempt.class ? ` · Turma ${attempt.class.code}` : ''}
+          {attempt.class?.professors.length
+            ? ` · ${attempt.class.professors.map((professor) => professor.name).join(', ')}`
+            : ''}
+          {attempt.status === 'ENROLLED'
+            ? ` · ${absenceCount} ${absenceCount === 1 ? 'falta' : 'faltas'}`
+            : ''}
+        </p>
+      </div>
+      <ActionBar className="w-full min-w-0 max-w-full sm:w-auto sm:max-w-1/2">
+        {attempt.status === 'ENROLLED' && (
+          <Button
+            className="flex-1 sm:flex-none"
+            size="sm"
+            variant="outline"
+            onClick={() => onOpenAbsences(attempt.id)}
+          >
+            <CalendarDays /> Aulas e faltas
+          </Button>
+        )}
+        {attempt.status !== 'ENROLLED' &&
+          attempt.class?.professors.map((professor) => (
+            <Button
+              key={professor.id}
+              className="h-auto min-h-8 min-w-0 max-w-full flex-1 whitespace-normal py-1 text-center [overflow-wrap:anywhere] sm:flex-none"
+              size="sm"
+              onClick={() =>
+                onEvaluate({
+                  classId: attempt.class!.id,
+                  classCode: attempt.class!.code,
+                  courseCode: attempt.course.code,
+                  courseName: attempt.course.name,
+                  professorId: professor.id,
+                  professorName: professor.name,
+                })
+              }
+            >
+              Avaliar {professor.name}
+            </Button>
+          ))}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={`Ações de ${attempt.course.code}, ${attempt.studyPeriod ? studyPeriodLabel(attempt.studyPeriod) : 'período não informado'}`}
+            >
+              <MoreHorizontal />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => onEdit(attempt)}>
+              <Pencil /> Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-destructive focus:text-destructive"
+              onSelect={() => onRemove(attempt.id)}
+            >
+              <Trash2 /> Remover
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </ActionBar>
+    </DataRow>
+  )
+}

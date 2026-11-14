@@ -1,0 +1,5 @@
+export { FriendshipsPage } from './FriendshipsPage'
+export { MyProfileLayout } from './MyProfileLayout'
+export { PersonProfilePage } from './PersonProfilePage'
+export { ProfilePage } from './ProfilePage'
+export { PublicPeoplePage } from './PublicPeoplePage'
