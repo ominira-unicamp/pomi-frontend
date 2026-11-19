@@ -102,7 +102,7 @@ export function SemesterScheduleGrid({
             {isClassSelectionEnabled && (
               <div
                 ref={selection.ref}
-                className={`absolute inset-y-0 left-[3.5rem] right-0 z-[1] touch-none select-none ${selection.isDragging ? 'cursor-crosshair' : ''}`}
+                className={`absolute inset-y-0 left-[3.5rem] right-0 z-[1] touch-auto select-none xl:touch-none ${selection.isDragging ? 'cursor-crosshair' : ''}`}
                 onPointerDown={selection.onPointerDown}
                 onPointerMove={selection.onPointerMove}
                 onPointerUp={selection.onPointerUp}

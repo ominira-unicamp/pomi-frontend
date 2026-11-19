@@ -1,13 +1,13 @@
 import { createContext, forwardRef, useContext } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
 import type { ComponentProps, ReactNode } from 'react'
+import type { NavigationSearch } from '@/lib/navigation'
 import {
   isContextualDestination,
   navigationHref,
   parseNavigationSearch,
   readReturnTo,
 } from '@/lib/navigation'
-import type { NavigationSearch } from '@/lib/navigation'
 
 const NavigationContext = createContext<{
   pathname: string
@@ -54,7 +54,11 @@ export const ContextLink = forwardRef<
     return (
       <Link
         {...props}
-        search={parseNavigationSearch(target.searchParams)}
+        search={
+          (() => parseNavigationSearch(target.searchParams)) as unknown as ComponentProps<
+            typeof Link
+          >['search']
+        }
         ref={ref}
       />
     )

@@ -232,6 +232,57 @@ export function CatalogProgramPage({
             : `${variant.code} — ${variant.name}`,
       }))
     : []
+  const catalogField = (
+    <Field>
+      <FieldLabel>Catálogo</FieldLabel>
+      <AutocompleteSelect
+        ariaLabel="Catálogo"
+        value={selectedProgram?.catalog.id ?? ''}
+        options={catalogs}
+        disabled={!selectedProgramId || catalogs.length === 0}
+        placeholder={
+          selectedProgramId
+            ? 'Escolha o catálogo'
+            : 'Escolha um programa primeiro'
+        }
+        onValueChange={(value) => {
+          const catalogProgram = staticData.catalogPrograms.find(
+            (program) =>
+              Number(program.program.id) === selectedProgramId &&
+              Number(program.catalog.id) === Number(value),
+          )
+          updateSearch({
+            catalogId: value ? Number(value) : undefined,
+            programId: selectedProgramId || undefined,
+            catalogProgramId: catalogProgram
+              ? Number(catalogProgram.id)
+              : undefined,
+            catalogProgramVariantId: catalogProgram
+              ? Number(catalogProgramVariantForSelection(catalogProgram)?.id) ||
+                undefined
+              : undefined,
+          })
+        }}
+      />
+    </Field>
+  )
+  const variantField = selectedProgram && variants.length > 1 && (
+    <Field>
+      <FieldLabel>Modalidade</FieldLabel>
+      <AutocompleteSelect
+        ariaLabel="Modalidade"
+        value={selectedVariant?.id ?? ''}
+        emptyLabel="Escolha uma modalidade"
+        options={variants}
+        placeholder="Escolha uma modalidade"
+        onValueChange={(value) =>
+          updateSearch({
+            catalogProgramVariantId: value ? Number(value) : undefined,
+          })
+        }
+      />
+    </Field>
+  )
 
   return (
     <PageContainer>
@@ -269,102 +320,57 @@ export function CatalogProgramPage({
         }
       />
 
-      <Card variant="flat" className="mb-8">
-        <CardContent className="grid gap-4 p-4 md:grid-cols-3">
-          {!fixedProgram && (
-            <Field>
-              <FieldLabel>Programa</FieldLabel>
-              <AutocompleteSelect
-                ariaLabel="Programa"
-                value={
-                  selectedProgram?.program.id ?? String(search.programId ?? '')
-                }
-                options={programs}
-                placeholder="Escolha o programa"
-                onValueChange={(value) => {
-                  const programId = value ? Number(value) : undefined
-                  const latestCatalogProgram = staticData.catalogPrograms
-                    .filter(
-                      (program) =>
-                        programId !== undefined &&
-                        Number(program.program.id) === programId,
-                    )
-                    .sort(
-                      (left, right) => right.catalog.year - left.catalog.year,
-                    )
-                    .at(0)
-                  updateSearch({
-                    programId,
-                    catalogId: latestCatalogProgram
-                      ? Number(latestCatalogProgram.catalog.id)
-                      : undefined,
-                    catalogProgramId: latestCatalogProgram
-                      ? Number(latestCatalogProgram.id)
-                      : undefined,
-                    catalogProgramVariantId: latestCatalogProgram
-                      ? Number(
-                          catalogProgramVariantForSelection(
-                            latestCatalogProgram,
-                          )?.id,
-                        ) || undefined
-                      : undefined,
-                  })
-                }}
-              />
-            </Field>
-          )}
-          <Field>
-            <FieldLabel>Catálogo</FieldLabel>
-            <AutocompleteSelect
-              ariaLabel="Catálogo"
-              value={selectedProgram?.catalog.id ?? ''}
-              options={catalogs}
-              disabled={!selectedProgramId || catalogs.length === 0}
-              placeholder={
-                selectedProgramId
-                  ? 'Escolha o catálogo'
-                  : 'Escolha um programa primeiro'
-              }
-              onValueChange={(value) => {
-                const catalogProgram = staticData.catalogPrograms.find(
-                  (program) =>
-                    Number(program.program.id) === selectedProgramId &&
-                    Number(program.catalog.id) === Number(value),
-                )
-                updateSearch({
-                  catalogId: value ? Number(value) : undefined,
-                  programId: selectedProgramId || undefined,
-                  catalogProgramId: catalogProgram
-                    ? Number(catalogProgram.id)
-                    : undefined,
-                  catalogProgramVariantId: catalogProgram
-                    ? Number(
-                        catalogProgramVariantForSelection(catalogProgram)?.id,
-                      ) || undefined
-                    : undefined,
-                })
-              }}
-            />
-          </Field>
-          {selectedProgram && variants.length > 1 && (
-            <Field>
-              <FieldLabel>Modalidade</FieldLabel>
-              <AutocompleteSelect
-                ariaLabel="Modalidade"
-                value={selectedVariant?.id ?? ''}
-                emptyLabel="Escolha uma modalidade"
-                options={variants}
-                placeholder="Escolha uma modalidade"
-                onValueChange={(value) =>
-                  updateSearch({
-                    catalogProgramVariantId: value ? Number(value) : undefined,
-                  })
-                }
-              />
-            </Field>
-          )}
-        </CardContent>
-      </Card>
+      {(!fixedProgram || !selectedProgram) && (
+        <Card variant="flat" className="mb-8">
+          <CardContent className="grid gap-4 p-4 md:grid-cols-3">
+            {!fixedProgram && (
+              <Field>
+                <FieldLabel>Programa</FieldLabel>
+                <AutocompleteSelect
+                  ariaLabel="Programa"
+                  value={
+                    selectedProgram?.program.id ??
+                    String(search.programId ?? '')
+                  }
+                  options={programs}
+                  placeholder="Escolha o programa"
+                  onValueChange={(value) => {
+                    const programId = value ? Number(value) : undefined
+                    const latestCatalogProgram = staticData.catalogPrograms
+                      .filter(
+                        (program) =>
+                          programId !== undefined &&
+                          Number(program.program.id) === programId,
+                      )
+                      .sort(
+                        (left, right) => right.catalog.year - left.catalog.year,
+                      )
+                      .at(0)
+                    updateSearch({
+                      programId,
+                      catalogId: latestCatalogProgram
+                        ? Number(latestCatalogProgram.catalog.id)
+                        : undefined,
+                      catalogProgramId: latestCatalogProgram
+                        ? Number(latestCatalogProgram.id)
+                        : undefined,
+                      catalogProgramVariantId: latestCatalogProgram
+                        ? Number(
+                            catalogProgramVariantForSelection(
+                              latestCatalogProgram,
+                            )?.id,
+                          ) || undefined
+                        : undefined,
+                    })
+                  }}
+                />
+              </Field>
+            )}
+            {catalogField}
+            {variantField}
+          </CardContent>
+        </Card>
+      )}
 
       {!selectedProgram ? (
         <EmptyState
@@ -384,6 +390,16 @@ export function CatalogProgramPage({
           markCompleted={markCompleted}
           search={search}
           onSearchChange={(next, options) => updateSearch(next, options)}
+          actions={
+            fixedProgram ? (
+              <div className="flex w-full flex-wrap gap-3 sm:w-auto">
+                <div className="w-full sm:w-72">{catalogField}</div>
+                {variantField && (
+                  <div className="w-full sm:w-72">{variantField}</div>
+                )}
+              </div>
+            ) : undefined
+          }
         />
       )}
     </PageContainer>
@@ -481,7 +497,7 @@ export function CatalogProgramDetails({
   return (
     <CatalogProgramYearContext.Provider value={selectedProgram.catalog.year}>
       {!embedded && (
-        <div className="mb-6 flex flex-wrap items-center justify-end gap-2">
+        <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           {actions}
           <Button
             variant="outline"
