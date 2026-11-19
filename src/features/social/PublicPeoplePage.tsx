@@ -24,12 +24,20 @@ import {
 import { useUserContext } from '@/features/identity'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
-export function PublicPeoplePage() {
+export function PublicPeoplePage({
+  query,
+  onQueryChange,
+}: {
+  query?: string
+  onQueryChange?: (query: string) => void
+} = {}) {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const queryClient = useQueryClient()
   const { userId, userQuery } = useUserContext()
-  const [search, setSearch] = useState('')
+  const [localSearch, setLocalSearch] = useState('')
+  const search = query ?? localSearch
+  const setSearch = onQueryChange ?? setLocalSearch
   const friendshipsQuery = useQuery({
     queryKey: privateQueryKeys.userSocialFriendships(sessionSubject, userId),
     queryFn: () => listFriendships(userId!, auth.getAccessToken),

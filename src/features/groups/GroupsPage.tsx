@@ -57,7 +57,7 @@ export function GroupsPage({
             <>
               <Link
                 to="/meus-grupos"
-                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+                className={buttonVariants({ variant: 'default', size: 'sm' })}
               >
                 Meus grupos
               </Link>

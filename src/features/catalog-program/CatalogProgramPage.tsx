@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { ContextLink as Link } from '@/components/NavigationContext'
 import {
   ChevronDown,
   ChevronLeft,
@@ -13,6 +13,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react'
 
@@ -20,6 +21,7 @@ import {
   catalogProgramVariantForSelection,
   suggestionLabel,
 } from '@pomi/planner-domain/curriculum'
+import { CatalogProgramAbout } from './CatalogProgramAbout'
 import { CatalogProgramCourseDialog } from './CatalogProgramCourseDialog'
 import {
   CatalogProgramDependencyTree,
@@ -65,7 +67,7 @@ import {
   publicQueryKeys,
 } from '@/integrations/tanstack-query/queryKeys'
 
-export type CatalogProgramTab = 'full' | 'proposal' | 'dependencies'
+export type CatalogProgramTab = 'full' | 'proposal' | 'dependencies' | 'about'
 
 export type CatalogProgramSearch = Readonly<{
   catalogId?: number
@@ -83,7 +85,9 @@ export type CatalogProgramNavigationOptions = Readonly<{
 export function CatalogProgramPage({
   search,
   onSearchChange,
+  fixedProgram = false,
 }: {
+  fixedProgram?: boolean
   search: CatalogProgramSearch
   onSearchChange: (
     search: CatalogProgramSearch,
@@ -168,17 +172,19 @@ export function CatalogProgramPage({
     })
   }, [onSearchChange, profileQuery.data, search, staticData])
 
-  const selectedProgram = staticData?.catalogPrograms.find((program) => {
-    const matchesProgram =
-      search.programId !== undefined
-        ? Number(program.program.id) === search.programId
-        : Number(program.id) === search.catalogProgramId
-    return (
-      matchesProgram &&
-      (search.catalogId === undefined ||
-        Number(program.catalog.id) === search.catalogId)
-    )
-  })
+  const selectedProgram = [...(staticData?.catalogPrograms ?? [])]
+    .sort((left, right) => right.catalog.year - left.catalog.year)
+    .find((program) => {
+      const matchesProgram =
+        search.programId !== undefined
+          ? Number(program.program.id) === search.programId
+          : Number(program.id) === search.catalogProgramId
+      return (
+        matchesProgram &&
+        (search.catalogId === undefined ||
+          Number(program.catalog.id) === search.catalogId)
+      )
+    })
   const selectedVariant = selectedProgram
     ? (selectedProgram.variants.find(
         (variant) => Number(variant.id) === search.catalogProgramVariantId,
@@ -229,10 +235,29 @@ export function CatalogProgramPage({
 
   return (
     <PageContainer>
+      {fixedProgram && (
+        <Link
+          to="/cursos"
+          search={{ tab: 'full' }}
+          className="mb-4 inline-flex items-center gap-2 text-sm font-bold text-primary"
+        >
+          <ChevronLeft aria-hidden="true" className="size-4" /> Todos os cursos
+        </Link>
+      )}
       <PageHeader
         eyebrow="Catálogo acadêmico"
-        title="Cursos"
-        description="Consulte o currículo pleno e a proposta de cumprimento de currículo de cada curso."
+        title={
+          fixedProgram
+            ? selectedProgram
+              ? `${selectedProgram.program.code} — ${selectedProgram.program.name}`
+              : 'Curso'
+            : 'Cursos'
+        }
+        description={
+          selectedProgram
+            ? `Catálogo ${selectedProgram.catalog.year}`
+            : 'Consulte os currículos e as informações de cada curso por catálogo e modalidade.'
+        }
         actions={
           auth.isAuthenticated ? (
             <CompletedCoursesToggle
@@ -246,43 +271,48 @@ export function CatalogProgramPage({
 
       <Card variant="flat" className="mb-8">
         <CardContent className="grid gap-4 p-4 md:grid-cols-3">
-          <Field>
-            <FieldLabel>Programa</FieldLabel>
-            <AutocompleteSelect
-              ariaLabel="Programa"
-              value={
-                selectedProgram?.program.id ?? String(search.programId ?? '')
-              }
-              options={programs}
-              placeholder="Escolha o programa"
-              onValueChange={(value) => {
-                const programId = value ? Number(value) : undefined
-                const latestCatalogProgram = staticData.catalogPrograms
-                  .filter(
-                    (program) =>
-                      programId !== undefined &&
-                      Number(program.program.id) === programId,
-                  )
-                  .sort((left, right) => right.catalog.year - left.catalog.year)
-                  .at(0)
-                updateSearch({
-                  programId,
-                  catalogId: latestCatalogProgram
-                    ? Number(latestCatalogProgram.catalog.id)
-                    : undefined,
-                  catalogProgramId: latestCatalogProgram
-                    ? Number(latestCatalogProgram.id)
-                    : undefined,
-                  catalogProgramVariantId: latestCatalogProgram
-                    ? Number(
-                        catalogProgramVariantForSelection(latestCatalogProgram)
-                          ?.id,
-                      ) || undefined
-                    : undefined,
-                })
-              }}
-            />
-          </Field>
+          {!fixedProgram && (
+            <Field>
+              <FieldLabel>Programa</FieldLabel>
+              <AutocompleteSelect
+                ariaLabel="Programa"
+                value={
+                  selectedProgram?.program.id ?? String(search.programId ?? '')
+                }
+                options={programs}
+                placeholder="Escolha o programa"
+                onValueChange={(value) => {
+                  const programId = value ? Number(value) : undefined
+                  const latestCatalogProgram = staticData.catalogPrograms
+                    .filter(
+                      (program) =>
+                        programId !== undefined &&
+                        Number(program.program.id) === programId,
+                    )
+                    .sort(
+                      (left, right) => right.catalog.year - left.catalog.year,
+                    )
+                    .at(0)
+                  updateSearch({
+                    programId,
+                    catalogId: latestCatalogProgram
+                      ? Number(latestCatalogProgram.catalog.id)
+                      : undefined,
+                    catalogProgramId: latestCatalogProgram
+                      ? Number(latestCatalogProgram.id)
+                      : undefined,
+                    catalogProgramVariantId: latestCatalogProgram
+                      ? Number(
+                          catalogProgramVariantForSelection(
+                            latestCatalogProgram,
+                          )?.id,
+                        ) || undefined
+                      : undefined,
+                  })
+                }}
+              />
+            </Field>
+          )}
           <Field>
             <FieldLabel>Catálogo</FieldLabel>
             <AutocompleteSelect
@@ -338,8 +368,12 @@ export function CatalogProgramPage({
 
       {!selectedProgram ? (
         <EmptyState
-          title="Escolha um curso"
-          description="Selecione um catálogo e um programa para consultar suas informações curriculares."
+          title={fixedProgram ? 'Curso não encontrado' : 'Escolha um curso'}
+          description={
+            fixedProgram
+              ? 'O curso ou catálogo solicitado não está disponível. Volte à listagem para escolher outro curso.'
+              : 'Selecione um catálogo e um programa para consultar suas informações curriculares.'
+          }
         />
       ) : (
         <CatalogProgramDetails
@@ -392,6 +426,17 @@ export function CatalogProgramDetails({
   personalContext?: (course: Course, closeDetails: () => void) => ReactNode
 }) {
   const { openFeedback } = useFeedbackReport()
+  const tabsContainer = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const revealActiveTab = () => {
+      const container = tabsContainer.current
+      const active = container?.querySelector<HTMLElement>('[role="tab"][data-state="active"]')
+      if (container && active) container.scrollLeft = Math.max(0, active.offsetLeft - (container.clientWidth - active.offsetWidth) / 2)
+    }
+    revealActiveTab()
+    window.addEventListener('resize', revealActiveTab)
+    return () => window.removeEventListener('resize', revealActiveTab)
+  }, [search.tab])
   const [selectedCourse, setSelectedCourse] = useState<Course>()
   const suggestionsQuery = useQuery({
     queryKey: publicQueryKeys.curriculumSuggestions(selectedProgram.id),
@@ -436,34 +481,28 @@ export function CatalogProgramDetails({
   return (
     <CatalogProgramYearContext.Provider value={selectedProgram.catalog.year}>
       {!embedded && (
-        <PageHeader
-          compact
-          title={`${selectedProgram.program.code} — ${selectedProgram.program.name}`}
-          description={`Catálogo ${selectedProgram.catalog.year}`}
-          actions={
-            <>
-              {actions}
-              <Button
-                variant="outline"
-                onClick={() =>
-                  openFeedback({
-                    kind: 'DATA_ISSUE',
-                    target: {
-                      type: 'ACADEMIC_RESOURCE',
-                      academicResource: {
-                        type: 'CATALOG_PROGRAM',
-                        id: Number(selectedProgram.id),
-                      },
-                    },
-                    title: `Informação do catálogo ${selectedProgram.catalog.year} — ${selectedProgram.program.code}`,
-                  })
-                }
-              >
-                <MessageSquareWarning /> Reportar dado incorreto do catálogo
-              </Button>
-            </>
-          }
-        />
+        <div className="mb-6 flex flex-wrap items-center justify-end gap-2">
+          {actions}
+          <Button
+            variant="outline"
+            className="max-w-full whitespace-normal text-left"
+            onClick={() =>
+              openFeedback({
+                kind: 'DATA_ISSUE',
+                target: {
+                  type: 'ACADEMIC_RESOURCE',
+                  academicResource: {
+                    type: 'CATALOG_PROGRAM',
+                    id: Number(selectedProgram.id),
+                  },
+                },
+                title: `Informação do catálogo ${selectedProgram.catalog.year} — ${selectedProgram.program.code}`,
+              })
+            }
+          >
+            <MessageSquareWarning /> Reportar dado incorreto do catálogo
+          </Button>
+        </div>
       )}
       <Tabs
         value={search.tab}
@@ -474,11 +513,32 @@ export function CatalogProgramDetails({
           )
         }
       >
-        <TabsList aria-label="Informações curriculares do curso">
-          <TabsTrigger value="full">Currículo pleno</TabsTrigger>
-          <TabsTrigger value="proposal">Proposta de currículo</TabsTrigger>
-          <TabsTrigger value="dependencies">Árvore de dependências</TabsTrigger>
-        </TabsList>
+        <div ref={tabsContainer} className="relative overflow-x-auto">
+          <TabsList
+            aria-label="Informações curriculares do curso"
+            className="w-max min-w-full grid-cols-4 sm:w-full [&>button]:whitespace-nowrap [&>button]:px-4"
+            onFocusCapture={(event) => {
+              if (event.target instanceof HTMLElement)
+                event.target.scrollIntoView?.({
+                  block: 'nearest',
+                  inline: 'nearest',
+                })
+            }}
+          >
+            <TabsTrigger value="full">Currículo pleno</TabsTrigger>
+            <TabsTrigger value="proposal">Proposta de currículo</TabsTrigger>
+            <TabsTrigger value="dependencies">
+              Árvore de dependências
+            </TabsTrigger>
+            <TabsTrigger value="about">Sobre o curso</TabsTrigger>
+          </TabsList>
+        </div>
+        <TabsContent value="about">
+          <CatalogProgramAbout
+            program={selectedProgram}
+            variant={selectedVariant}
+          />
+        </TabsContent>
         <TabsContent value="full">
           <FullCurriculum
             program={selectedProgram}

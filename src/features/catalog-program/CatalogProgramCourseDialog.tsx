@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { ContextLink as Link } from '@/components/NavigationContext'
 import { ExternalLink, MessageSquareWarning } from 'lucide-react'
 import { useId, useRef } from 'react'
 import type { ReactNode } from 'react'

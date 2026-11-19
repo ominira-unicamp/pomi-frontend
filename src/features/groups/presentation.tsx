@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { ContextLink as Link } from '@/components/NavigationContext'
 import { CalendarDays, MapPin } from 'lucide-react'
 
 import type { GroupEvent } from '@ominira/pomi-sdk/generated/app'

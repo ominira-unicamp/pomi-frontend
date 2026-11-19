@@ -2,6 +2,12 @@ import { Link } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 
 import { buttonVariants } from '@/components/ui/button'
+import { useNavigationContext } from '@/components/NavigationContext'
+import {
+  parseNavigationSearch,
+  readReturnTo,
+  returnLabel,
+} from '@/lib/navigation'
 import { cn } from '@/lib/utils'
 
 type ContextBackLinkProps = Readonly<{
@@ -11,6 +17,7 @@ type ContextBackLinkProps = Readonly<{
     | '/pessoas'
     | '/editais-de-intercambio'
     | '/taxonomia'
+    | '/eventos'
   label: string
   search?: {
     q?: string
@@ -18,6 +25,7 @@ type ContextBackLinkProps = Readonly<{
     interests?: boolean
     order?: 'asc' | 'desc'
   }
+  returnTo?: string
   className?: string
 }>
 
@@ -26,16 +34,25 @@ export function ContextBackLink({
   label,
   className,
   search,
+  returnTo,
 }: ContextBackLinkProps) {
+  const location = useNavigationContext()
+  const origin = readReturnTo(
+    returnTo ?? location.search.returnTo,
+    location.pathname,
+  )
+  const target = origin ? new URL(origin, 'https://pomi.invalid') : undefined
   return (
     <Link
-      to={to}
+      to={target?.pathname ?? to}
       search={
-        to === '/disciplinas'
-          ? { page: 1 }
-          : to === '/taxonomia'
-            ? search
-            : undefined
+        target
+          ? parseNavigationSearch(target.searchParams)
+          : to === '/disciplinas'
+            ? { ...search, page: 1 }
+            : to === '/taxonomia'
+              ? search
+              : undefined
       }
       className={cn(
         buttonVariants({ variant: 'ghost' }),
@@ -43,7 +60,7 @@ export function ContextBackLink({
         className,
       )}
     >
-      <ArrowLeft /> {label}
+      <ArrowLeft /> {origin ? returnLabel(origin) : label}
     </Link>
   )
 }

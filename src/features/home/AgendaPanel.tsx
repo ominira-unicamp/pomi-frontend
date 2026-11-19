@@ -327,7 +327,7 @@ export function AgendaPanel({
             {formatAcademicDate(selectedDateValue)}
           </p>
           <h2 id="agenda-title" className="mt-1 text-xl font-extrabold">
-            Agenda
+            Agenda atual
           </h2>
         </div>
         <div className="flex items-center gap-2">

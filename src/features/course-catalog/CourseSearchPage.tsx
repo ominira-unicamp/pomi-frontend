@@ -1,5 +1,6 @@
+import type { NavigationOptions } from '@/lib/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { ContextLink as Link } from '@/components/NavigationContext'
 import { BookOpen, ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
@@ -59,7 +60,7 @@ export function CourseSearchPage({
   onSearchChange,
 }: {
   search: CourseSearch
-  onSearchChange: (search: CourseSearch) => void
+  onSearchChange: (search: CourseSearch, options?: NavigationOptions) => void
 }) {
   const [query, setQuery] = useState(search.q ?? '')
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -104,7 +105,7 @@ export function CourseSearchPage({
     if (normalizedQuery === search.q) return
 
     const timeout = window.setTimeout(() => {
-      onSearchChange({ ...search, q: normalizedQuery, page: 1 })
+      onSearchChange({ ...search, q: normalizedQuery, page: 1 }, { replace: true })
     }, 300)
     return () => window.clearTimeout(timeout)
   }, [onSearchChange, query, search])
@@ -312,7 +313,7 @@ export function CourseSearchPage({
                 key={course.id}
                 to="/disciplinas/$courseId"
                 params={{ courseId: String(course.id) }}
-                search={{}}
+                search={{ catalogYear: search.catalogYear }}
                 className="pomi-focus block rounded-lg"
               >
                 <Card

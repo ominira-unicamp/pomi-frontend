@@ -1,3 +1,4 @@
+import type { SituationSearch, NavigationOptions } from '@/lib/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { BookOpenCheck, Check, LogIn, Plus } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -85,13 +86,29 @@ const emptyAttemptForm: CourseAttemptFormState = {
   grade: '',
 }
 
-export function CourseSituationPage() {
+export function CourseSituationPage({
+  search,
+  onSearchChange,
+}: {
+  search?: SituationSearch
+  onSearchChange?: (
+    search: SituationSearch,
+    options?: NavigationOptions,
+  ) => void
+} = {}) {
   const queryClient = useQueryClient()
   const profileTitleRef = useRef<HTMLSpanElement>(null)
   const [profileEditing, setProfileEditing] = useState(false)
   const [profileSaved, setProfileSaved] = useState(false)
-  const [activeTab, setActiveTab] = useState<SituationTab>('enrolled')
-  const [selectedSchedulePeriodId, setSelectedSchedulePeriodId] = useState('')
+  const [localSearch, setLocalSearch] = useState<SituationSearch>({})
+  const currentSearch = search ?? localSearch
+  const changeSearch = onSearchChange ?? setLocalSearch
+  const activeTab = currentSearch.tab ?? 'enrolled'
+  const setActiveTab = (tab: SituationTab) =>
+    changeSearch({
+      ...currentSearch,
+      tab: tab === 'enrolled' ? undefined : tab,
+    })
   const [attemptDialogOpen, setAttemptDialogOpen] = useState(false)
   const [attemptForm, setAttemptFormState] =
     useState<CourseAttemptFormState>(emptyAttemptForm)
@@ -178,15 +195,20 @@ export function CourseSituationPage() {
     return mostRecentStudyPeriodsFirst([...periods.values()])
   }, [enrolledAttempts, periodsQuery.data])
 
-  useEffect(() => {
-    setSelectedSchedulePeriodId((current) =>
-      enrolledPeriods.some((period) => String(period.id) === current)
-        ? current
-        : enrolledPeriods[0]
-          ? String(enrolledPeriods[0].id)
-          : '',
-    )
-  }, [enrolledPeriods])
+  const explicitPeriodId = currentSearch.studyPeriodId
+  const periodsReady = attemptsQuery.isSuccess && periodsQuery.isSuccess
+  const selectedSchedulePeriodId = String(
+    explicitPeriodId &&
+      (!periodsReady ||
+        enrolledPeriods.some((period) => period.id === explicitPeriodId))
+      ? explicitPeriodId
+      : (enrolledPeriods[0]?.id ?? ''),
+  )
+  const setSelectedSchedulePeriodId = (value: string) =>
+    changeSearch({
+      ...currentSearch,
+      studyPeriodId: Number(value) || undefined,
+    })
 
   const scheduleQuery = useQuery({
     queryKey: publicQueryKeys.classSchedules(selectedSchedulePeriodId),
@@ -635,6 +657,8 @@ export function CourseSituationPage() {
           hidden={activeTab !== 'curriculum'}
         >
           <StudentProgramCurriculum
+            navigationSearch={currentSearch}
+            onNavigationSearchChange={changeSearch}
             key={`${profileQuery.data?.catalogId}-${profileQuery.data?.programId}-${profileQuery.data?.specializationId}-${profileQuery.data?.languageId}`}
             profile={profileQuery.data}
             data={staticQuery.data}

@@ -20,6 +20,10 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
                 programId: 3,
                 programCode: 10,
                 programName: 'Programa',
+                shift: 'NIGHT',
+                creditLimitType: 'FIXED',
+                creditLimitFixedCredits: 30,
+                professionalPracticeDescription: 'Atuação profissional.',
                 base: {
                   mandatory: [
                     {
@@ -53,6 +57,13 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
                     type: 'SPECIALIZATION',
                     curriculumSuggestionId: null,
                     specialization: { specializationId: 20 },
+                    integralizationCredits: 243,
+                    integralizationSupervisedHours: 3645,
+                    integralizationExtensionHours: 0,
+                    integralizationSemesters: 10,
+                    integralizationMaximumSemesters: 16,
+                    professionalDescription: 'Perfil profissional.',
+                    recognitionDescription: 'Portaria de reconhecimento.',
                     code: 'ESP',
                     name: 'Especialização',
                     blocks: { mandatory: [], electives: [] },
@@ -109,6 +120,23 @@ describe('createApiCurriculumPlannerStaticDataSource', () => {
     const result = await createApiCurriculumPlannerStaticDataSource().load()
     expect(result.ok).toBe(true)
     if (!result.ok) return
+    expect(result.value.catalogPrograms[0].information).toMatchObject({
+      shift: 'NIGHT',
+      creditLimitType: 'FIXED',
+      creditLimitFixedCredits: 30,
+      professionalPracticeDescription: 'Atuação profissional.',
+      creditLimitThresholdCredits: null,
+    })
+    expect(result.value.catalogPrograms[0].variants[0].information).toEqual({
+      integralizationCredits: 243,
+      integralizationSupervisedHours: 3645,
+      integralizationExtensionHours: 0,
+      integralizationSemesters: 10,
+      integralizationMaximumSemesters: 16,
+      professionalDescription: 'Perfil profissional.',
+      recognitionDescription: 'Portaria de reconhecimento.',
+    })
+    expect(fetchMock).toHaveBeenCalledTimes(3)
     expect(result.value.courses).toHaveLength(3)
     expect(new URL(fetchMock.mock.calls[1][0]).pathname).toBe('/courses')
     expect(new URL(fetchMock.mock.calls[2][0]).search).toBe(

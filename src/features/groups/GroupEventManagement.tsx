@@ -1,7 +1,11 @@
+import type { ManagedEventsSearch } from '@/lib/navigation'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Link, useBlocker, useNavigate } from '@tanstack/react-router'
+import { useBlocker, useNavigate } from '@tanstack/react-router'
+import { ContextLink as Link } from '@/components/NavigationContext'
 import { useRef, useState } from 'react'
 
+import { useNavigationContext } from '@/components/NavigationContext'
+import { readReturnTo, parseNavigationSearch } from '@/lib/navigation'
 import { groupApi } from './data/groupApi'
 import { eventPeriod } from './eventTiming'
 import { displayLocalDateTime, preserveUnchangedInstant } from './dateFields'
@@ -37,10 +41,14 @@ function eventTime(event: ManagedGroupEvent, now: number) {
 }
 
 function EventBack({ groupId }: { groupId: number }) {
+  const location = useNavigationContext()
+  const origin = readReturnTo(location.search.returnTo, location.pathname)
+  const target = origin ? new URL(origin, 'https://pomi.invalid') : undefined
   return (
     <Link
-      to={eventsPath}
+      to={target?.pathname ?? eventsPath}
       params={{ groupId: String(groupId) }}
+      search={target ? parseNavigationSearch(target.searchParams) : undefined}
       className="pomi-focus text-sm font-bold text-primary hover:underline"
     >
       ← Eventos do grupo
@@ -72,10 +80,27 @@ function useManagedEvents() {
   return { query, allowed }
 }
 
-export function GroupEventsManagementPage() {
+export function GroupEventsManagementPage({
+  search,
+  onSearchChange,
+}: {
+  search?: ManagedEventsSearch
+  onSearchChange?: (search: ManagedEventsSearch) => void
+} = {}) {
   const { group, own, refresh } = useGroupManagement()
   const { query, allowed } = useManagedEvents()
-  const [status, setStatus] = useState('ALL')
+  const [localStatus, setLocalStatus] = useState('ALL')
+  const status = search ? (search.status ?? 'ALL') : localStatus
+  const setStatus = (value: string) => {
+    if (onSearchChange)
+      onSearchChange({
+        status:
+          value === 'ALL'
+            ? undefined
+            : (value as ManagedEventsSearch['status']),
+      })
+    else setLocalStatus(value)
+  }
   if (!allowed)
     return (
       <ErrorState
@@ -211,6 +236,8 @@ export function GroupEventsManagementPage() {
 }
 
 function EventForm({ event }: { event?: ManagedGroupEvent }) {
+  const navigation = useNavigationContext()
+  const returnTo = readReturnTo(navigation.search.returnTo, navigation.pathname)
   const { group, own, userId, refresh } = useGroupManagement()
   const auth = useOptionalAuth()
   const navigate = useNavigate()
@@ -282,6 +309,7 @@ function EventForm({ event }: { event?: ManagedGroupEvent }) {
       if (event)
         void navigate({
           to: '/grupos/$groupId/gerenciar/eventos/$eventId',
+          search: { returnTo },
           params: { groupId: String(group.id), eventId: String(event.id) },
         })
     },

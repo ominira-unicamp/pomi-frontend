@@ -1,3 +1,4 @@
+import { ContextBackLink } from '@/components/ContextBackLink'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
@@ -225,6 +226,7 @@ export function PersonProfilePage({ publicId }: { publicId: string }) {
   const friendship = friendshipFor(publicId, friendships)
   return (
     <PageContainer className="min-w-0 space-y-6">
+      <ContextBackLink to="/pessoas" label="Explorar pessoas" />
       <header className="grid gap-x-6 border-b border-border/35 pb-5 xl:grid-cols-[minmax(0,1fr)_auto]">
         <p className="mb-3 text-xs font-black uppercase tracking-widest text-primary xl:col-span-2">
           Comunidade

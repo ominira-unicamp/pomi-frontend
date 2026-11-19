@@ -49,6 +49,7 @@ import { Route as GruposGroupIdRouteImport } from './routes/grupos.$groupId'
 import { Route as EventosEventIdRouteImport } from './routes/eventos.$eventId'
 import { Route as EditaisDeIntercambioConfiguracoesRouteImport } from './routes/editais-de-intercambio_.configuracoes'
 import { Route as DisciplinasCourseIdRouteImport } from './routes/disciplinas.$courseId'
+import { Route as CursosProgramIdRouteImport } from './routes/cursos.$programId'
 import { Route as AdminFeedbacksRouteImport } from './routes/admin.feedbacks'
 import { Route as TaxonomiaTagsTagIdRouteImport } from './routes/taxonomia.tags.$tagId'
 import { Route as PlanejamentosDeSemestreCompartilhadoShareIdRouteImport } from './routes/planejamentos-de-semestre.compartilhado.$shareId'
@@ -275,6 +276,11 @@ const DisciplinasCourseIdRoute = DisciplinasCourseIdRouteImport.update({
   path: '/$courseId',
   getParentRoute: () => DisciplinasRoute,
 } as any)
+const CursosProgramIdRoute = CursosProgramIdRouteImport.update({
+  id: '/$programId',
+  path: '/$programId',
+  getParentRoute: () => CursosRoute,
+} as any)
 const AdminFeedbacksRoute = AdminFeedbacksRouteImport.update({
   id: '/feedbacks',
   path: '/feedbacks',
@@ -394,6 +400,7 @@ export interface FileRoutesByFullPath {
   '/sobre': typeof SobreRoute
   '/taxonomia': typeof TaxonomiaRouteWithChildren
   '/admin/feedbacks': typeof AdminFeedbacksRoute
+  '/cursos/$programId': typeof CursosProgramIdRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
   '/eventos/$eventId': typeof EventosEventIdRoute
@@ -445,6 +452,7 @@ export interface FileRoutesByTo {
   '/situacao-do-curso': typeof SituacaoDoCursoRoute
   '/sobre': typeof SobreRoute
   '/admin/feedbacks': typeof AdminFeedbacksRoute
+  '/cursos/$programId': typeof CursosProgramIdRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
   '/eventos/$eventId': typeof EventosEventIdRoute
@@ -504,6 +512,7 @@ export interface FileRoutesById {
   '/sobre': typeof SobreRoute
   '/taxonomia': typeof TaxonomiaRouteWithChildren
   '/admin/feedbacks': typeof AdminFeedbacksRoute
+  '/cursos/$programId': typeof CursosProgramIdRoute
   '/disciplinas/$courseId': typeof DisciplinasCourseIdRoute
   '/editais-de-intercambio_/configuracoes': typeof EditaisDeIntercambioConfiguracoesRoute
   '/eventos/$eventId': typeof EventosEventIdRoute
@@ -565,6 +574,7 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/taxonomia'
     | '/admin/feedbacks'
+    | '/cursos/$programId'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio/configuracoes'
     | '/eventos/$eventId'
@@ -616,6 +626,7 @@ export interface FileRouteTypes {
     | '/situacao-do-curso'
     | '/sobre'
     | '/admin/feedbacks'
+    | '/cursos/$programId'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio/configuracoes'
     | '/eventos/$eventId'
@@ -674,6 +685,7 @@ export interface FileRouteTypes {
     | '/sobre'
     | '/taxonomia'
     | '/admin/feedbacks'
+    | '/cursos/$programId'
     | '/disciplinas/$courseId'
     | '/editais-de-intercambio_/configuracoes'
     | '/eventos/$eventId'
@@ -1023,6 +1035,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DisciplinasCourseIdRouteImport
       parentRoute: typeof DisciplinasRoute
     }
+    '/cursos/$programId': {
+      id: '/cursos/$programId'
+      path: '/$programId'
+      fullPath: '/cursos/$programId'
+      preLoaderRoute: typeof CursosProgramIdRouteImport
+      parentRoute: typeof CursosRoute
+    }
     '/admin/feedbacks': {
       id: '/admin/feedbacks'
       path: '/feedbacks'
@@ -1156,10 +1175,12 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface CursosRouteChildren {
+  CursosProgramIdRoute: typeof CursosProgramIdRoute
   CursosIndexRoute: typeof CursosIndexRoute
 }
 
 const CursosRouteChildren: CursosRouteChildren = {
+  CursosProgramIdRoute: CursosProgramIdRoute,
   CursosIndexRoute: CursosIndexRoute,
 }
 

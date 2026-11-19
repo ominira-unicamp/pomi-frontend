@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CatalogProgramPage } from './CatalogProgramPage'
+import { CatalogProgramSearchPage } from './CatalogProgramSearchPage'
 
 import type {
   CatalogId,
@@ -74,6 +75,7 @@ vi.mock('@tanstack/react-router', async () => {
   const actual = await vi.importActual('@tanstack/react-router')
   return {
     ...actual,
+    useNavigate: () => vi.fn(),
     Link: ({ children }: { children: ReactNode }) => <a href="#">{children}</a>,
   }
 })
@@ -243,7 +245,7 @@ type TestSearch = Readonly<{
   catalogProgramId?: number
   catalogProgramVariantId?: number
   dependencyCourseId?: number
-  tab: 'full' | 'proposal' | 'dependencies'
+  tab: 'full' | 'proposal' | 'dependencies' | 'about'
 }>
 
 function renderPage(
@@ -254,6 +256,7 @@ function renderPage(
     catalogProgramVariantId: 7,
     tab: 'full' as const,
   },
+  fixedProgram = false,
 ) {
   const onSearchChange = vi.fn()
   const queryClient = new QueryClient({
@@ -261,13 +264,24 @@ function renderPage(
   })
   render(
     <QueryClientProvider client={queryClient}>
-      <CatalogProgramPage search={search} onSearchChange={onSearchChange} />
+      <CatalogProgramPage
+        search={search}
+        onSearchChange={onSearchChange}
+        fixedProgram={fixedProgram}
+      />
     </QueryClientProvider>,
   )
   return onSearchChange
 }
 
 describe('CatalogProgramPage', () => {
+  it('opens the about tab from search using the loaded catalog', async () => {
+    renderPage({ catalogId: 1, programId: 22, catalogProgramId: 101, catalogProgramVariantId: 7, tab: 'about' }, true)
+    expect(await screen.findByRole('heading', { name: 'Sobre o curso' })).toBeTruthy()
+    expect(screen.getByRole('tab', { name: 'Sobre o curso' }).getAttribute('aria-selected')).toBe('true')
+    expect(loadCurriculumCatalog).toHaveBeenCalledTimes(1)
+  })
+
   beforeEach(() => {
     loadCurriculumCatalog.mockResolvedValue({ ok: true, value: staticData })
     loadCurriculumSuggestions.mockResolvedValue(suggestions)
@@ -314,6 +328,31 @@ describe('CatalogProgramPage', () => {
     useStudentAcademicProfile.mockReturnValue({
       profileQuery: { data: undefined },
     })
+  })
+
+  it('abre o detalhe no catálogo mais recente do curso e oferece retorno à listagem', async () => {
+    const program = staticData.catalogPrograms[0]
+    loadCurriculumCatalog.mockResolvedValue({
+      ok: true,
+      value: {
+        ...staticData,
+        catalogPrograms: [
+          program,
+          {
+            ...program,
+            id: '999' as CatalogProgramId,
+            catalog: { id: '2' as CatalogId, year: 2027 },
+          },
+        ],
+      },
+    })
+    renderPage({ programId: 22, tab: 'full' }, true)
+    expect(
+      await screen.findByRole('link', { name: 'Todos os cursos' }),
+    ).toBeTruthy()
+    expect(screen.getByRole('heading', { name: '22 — Música' })).toBeTruthy()
+    expect(screen.getAllByText('Catálogo 2027').length).toBeGreaterThan(0)
+    expect(screen.queryByRole('combobox', { name: 'Programa' })).toBeNull()
   })
 
   it('renders the full curriculum with language options and selected variant', async () => {
@@ -698,5 +737,67 @@ describe('CatalogProgramPage', () => {
       ),
     ).toBeTruthy()
     expect(screen.getByText('4 créditos · Catálogo 2026')).toBeTruthy()
+  })
+})
+
+describe('CatalogProgramSearchPage', () => {
+  it('lista cada curso uma vez e mostra seu catálogo mais recente', async () => {
+    const program = staticData.catalogPrograms[0]
+    loadCurriculumCatalog.mockResolvedValue({
+      ok: true,
+      value: {
+        ...staticData,
+        catalogPrograms: [
+          program,
+          {
+            ...program,
+            id: '999' as CatalogProgramId,
+            catalog: { id: '2' as CatalogId, year: 2027 },
+          },
+        ],
+      },
+    })
+    render(
+      <QueryClientProvider
+        client={
+          new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        }
+      >
+        <CatalogProgramSearchPage
+          search={{ tab: 'full', q: 'musica' }}
+          onSearchChange={vi.fn()}
+        />
+      </QueryClientProvider>,
+    )
+    expect(await screen.findByText('Catálogo mais recente: 2027')).toBeTruthy()
+    expect(screen.getAllByRole('link')).toHaveLength(1)
+    expect(screen.getByText('1 curso encontrado')).toBeTruthy()
+  })
+
+  it('permite buscar pelo código e informa quando não há resultados', async () => {
+    loadCurriculumCatalog.mockResolvedValue({ ok: true, value: staticData })
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    })
+    const onSearchChange = vi.fn()
+    const view = (q: string) => (
+      <QueryClientProvider client={client}>
+        <CatalogProgramSearchPage
+          search={{ tab: 'full', q }}
+          onSearchChange={onSearchChange}
+        />
+      </QueryClientProvider>
+    )
+    const { rerender } = render(view('22'))
+    expect(await screen.findByText('1 curso encontrado')).toBeTruthy()
+    fireEvent.change(screen.getByRole('textbox'), {
+      target: { value: 'inexistente' },
+    })
+    expect(onSearchChange).toHaveBeenCalledWith({
+      tab: 'full',
+      q: 'inexistente',
+    })
+    rerender(view('inexistente'))
+    expect(screen.getByText('Nenhum curso encontrado')).toBeTruthy()
   })
 })

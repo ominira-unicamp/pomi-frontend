@@ -1,3 +1,5 @@
+import { readExchangeSearch } from '@/lib/navigation'
+import type { ExchangeSearch, NavigationOptions } from '@/lib/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -15,10 +17,29 @@ import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 const pageSize = 20
 
-export function useExchangeNoticesCatalog() {
-  const [filters, setFilters] = useState(defaultExchangeNoticeFilters)
+export function useExchangeNoticesCatalog(
+  search?: ExchangeSearch,
+  onSearchChange?: (
+    search: ExchangeSearch,
+    options?: NavigationOptions,
+  ) => void,
+) {
+  const [localSearch, setLocalSearch] = useState<ExchangeSearch>({})
+  const currentSearch = search ?? localSearch
+  const filters = useMemo<ExchangeNoticeFilters>(
+    () => ({
+      ...defaultExchangeNoticeFilters,
+      ...Object.fromEntries(
+        Object.entries(currentSearch).filter(
+          ([key, value]) => key !== 'page' && value !== undefined,
+        ),
+      ),
+    }),
+    [currentSearch],
+  )
   const [debouncedSearch, setDebouncedSearch] = useState(filters.search)
-  const [page, setPage] = useState(1)
+  const requestedPage = currentSearch.page ?? 1
+  const changeSearch = onSearchChange ?? setLocalSearch
   useEffect(() => {
     const timeout = window.setTimeout(
       () => setDebouncedSearch(filters.search),
@@ -64,11 +85,18 @@ export function useExchangeNoticesCatalog() {
     [filters, notices],
   )
   const totalPages = Math.max(1, Math.ceil(processed.length / pageSize))
+  const page = noticesQuery.isSuccess
+    ? Math.min(requestedPage, totalPages)
+    : requestedPage
+  const setPage = (page: number) =>
+    changeSearch(readExchangeSearch({ ...currentSearch, page }))
   const visible = processed.slice((page - 1) * pageSize, page * pageSize)
 
   const changeFilters = (next: ExchangeNoticeFilters) => {
-    setFilters(next)
-    setPage(1)
+    const nextSearch = readExchangeSearch({ ...next, page: 1 })
+    if (onSearchChange)
+      onSearchChange(nextSearch, { replace: next.search !== filters.search })
+    else setLocalSearch(nextSearch)
   }
 
   return {

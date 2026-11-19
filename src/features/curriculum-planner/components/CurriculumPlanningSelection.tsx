@@ -28,7 +28,7 @@ export function CurriculumPlanningSelection({
     <PageContainer>
       <PageHeader
         eyebrow="Planejamento acadêmico"
-        title="Planejamentos de currículo"
+        title="Planejamentos de graduação"
         description={
           planner.isAuthenticated
             ? 'Organize sua trajetória acadêmica, período a período.'
@@ -165,7 +165,7 @@ export function CurriculumPlanningSelection({
       {planner.isAuthenticated && planner.curricula.length === 0 && (
         <EmptyState
           title="Nenhum planejamento salvo"
-          description="Crie seu primeiro planejamento de currículo para organizar os próximos semestres."
+          description="Crie seu primeiro planejamento de graduação para organizar os próximos semestres."
         />
       )}
       {!planner.isAuthenticated && (

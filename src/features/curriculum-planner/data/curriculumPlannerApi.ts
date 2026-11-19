@@ -44,6 +44,14 @@ type ApiCatalogProgram = Pick<
   | 'programId'
   | 'programCode'
   | 'programName'
+  | 'shift'
+  | 'creditLimitType'
+  | 'creditLimitFixedCredits'
+  | 'creditLimitBeforeThresholdCredits'
+  | 'creditLimitThresholdCredits'
+  | 'creditLimitCrBase'
+  | 'creditLimitCrMultiplier'
+  | 'professionalPracticeDescription'
 > & {
   base: ApiBlockSet
   variants: ReadonlyArray<ApiCatalogProgramVariant>
@@ -53,7 +61,16 @@ type ApiCatalogProgram = Pick<
     }
   >
 }
-type ApiCatalogProgramVariant = {
+type ApiCatalogProgramVariant = Pick<
+  CatalogProgramVariant,
+  | 'integralizationCredits'
+  | 'integralizationSupervisedHours'
+  | 'integralizationExtensionHours'
+  | 'integralizationSemesters'
+  | 'integralizationMaximumSemesters'
+  | 'professionalDescription'
+  | 'recognitionDescription'
+> & {
   id: CatalogProgramVariant['id']
   type: CatalogProgramVariant['type']
   curriculumSuggestionId: CatalogProgramVariant['curriculumSuggestionId']
@@ -61,9 +78,9 @@ type ApiCatalogProgramVariant = {
   name: CatalogProgramVariant['name']
   blocks: ApiBlockSet
 } & (
-  | { type: 'PROGRAM'; program: { programId: number } }
-  | { type: 'SPECIALIZATION'; specialization: { specializationId: number } }
-)
+    | { type: 'PROGRAM'; program: { programId: number } }
+    | { type: 'SPECIALIZATION'; specialization: { specializationId: number } }
+  )
 type ApiCourse = Pick<Course, 'id' | 'code' | 'name' | 'credits'> & {
   prefix?: Course['prefix']
 }
@@ -149,6 +166,24 @@ function parseBlockSet(value: unknown): ApiBlockSet {
     }),
   }
 }
+function nullableNumber(value: unknown): number | null {
+  return value == null ? null : expectNumber(value)
+}
+
+function nullableString(value: unknown): string | null {
+  return value == null ? null : expectString(value)
+}
+
+function nullableChoice<T extends string>(
+  value: unknown,
+  choices: ReadonlyArray<T>,
+): T | null {
+  if (value == null) return null
+  if (!choices.includes(value as T))
+    throw new TypeError('Invalid catalog information')
+  return value as T
+}
+
 function parseCatalogProgram(value: unknown): ApiCatalogProgram {
   if (!isRecord(value)) throw new TypeError('Expected catalog program')
   return {
@@ -159,6 +194,24 @@ function parseCatalogProgram(value: unknown): ApiCatalogProgram {
     programId: expectNumber(value.programId),
     programCode: expectNumber(value.programCode),
     programName: expectString(value.programName),
+    shift: nullableChoice(value.shift, ['DAYTIME', 'NIGHT'] as const),
+    creditLimitType: nullableChoice(value.creditLimitType, [
+      'NONE',
+      'FIXED',
+      'CR_FORMULA',
+    ] as const),
+    creditLimitFixedCredits: nullableNumber(value.creditLimitFixedCredits),
+    creditLimitBeforeThresholdCredits: nullableNumber(
+      value.creditLimitBeforeThresholdCredits,
+    ),
+    creditLimitThresholdCredits: nullableNumber(
+      value.creditLimitThresholdCredits,
+    ),
+    creditLimitCrBase: nullableNumber(value.creditLimitCrBase),
+    creditLimitCrMultiplier: nullableNumber(value.creditLimitCrMultiplier),
+    professionalPracticeDescription: nullableString(
+      value.professionalPracticeDescription,
+    ),
     base: parseBlockSet(value.base),
     variants: expectArray(value.variants).map((item) => {
       if (!isRecord(item)) throw new TypeError('Expected variant')
@@ -172,6 +225,19 @@ function parseCatalogProgram(value: unknown): ApiCatalogProgram {
             : expectNumber(item.curriculumSuggestionId),
         code: expectString(item.code),
         name: expectString(item.name),
+        integralizationCredits: nullableNumber(item.integralizationCredits),
+        integralizationSupervisedHours: nullableNumber(
+          item.integralizationSupervisedHours,
+        ),
+        integralizationExtensionHours: nullableNumber(
+          item.integralizationExtensionHours,
+        ),
+        integralizationSemesters: nullableNumber(item.integralizationSemesters),
+        integralizationMaximumSemesters: nullableNumber(
+          item.integralizationMaximumSemesters,
+        ),
+        professionalDescription: nullableString(item.professionalDescription),
+        recognitionDescription: nullableString(item.recognitionDescription),
         blocks: parseBlockSet(item.blocks),
       }
       if (type === 'PROGRAM') {
@@ -203,6 +269,19 @@ function parseCatalogProgram(value: unknown): ApiCatalogProgram {
       return {
         languageId: expectNumber(item.languageId),
         name: expectString(item.name),
+        integralizationCredits: nullableNumber(item.integralizationCredits),
+        integralizationSupervisedHours: nullableNumber(
+          item.integralizationSupervisedHours,
+        ),
+        integralizationExtensionHours: nullableNumber(
+          item.integralizationExtensionHours,
+        ),
+        integralizationSemesters: nullableNumber(item.integralizationSemesters),
+        integralizationMaximumSemesters: nullableNumber(
+          item.integralizationMaximumSemesters,
+        ),
+        professionalDescription: nullableString(item.professionalDescription),
+        recognitionDescription: nullableString(item.recognitionDescription),
         blocks: parseBlockSet(item.blocks),
       }
     }),
@@ -323,6 +402,18 @@ async function loadStaticData(): Promise<
             code: String(program.programCode),
             name: program.programName,
           },
+          information: {
+            shift: program.shift,
+            creditLimitType: program.creditLimitType,
+            creditLimitFixedCredits: program.creditLimitFixedCredits,
+            creditLimitBeforeThresholdCredits:
+              program.creditLimitBeforeThresholdCredits,
+            creditLimitThresholdCredits: program.creditLimitThresholdCredits,
+            creditLimitCrBase: program.creditLimitCrBase,
+            creditLimitCrMultiplier: program.creditLimitCrMultiplier,
+            professionalPracticeDescription:
+              program.professionalPracticeDescription,
+          },
           baseBlocks: blocksFromApi(program.base, { type: 'base' }),
           variants: program.variants
             .map((variant) => ({
@@ -331,6 +422,18 @@ async function loadStaticData(): Promise<
                 variant.type === 'SPECIALIZATION'
                   ? variant.specialization.specializationId
                   : null,
+              information: {
+                integralizationCredits: variant.integralizationCredits,
+                integralizationSupervisedHours:
+                  variant.integralizationSupervisedHours,
+                integralizationExtensionHours:
+                  variant.integralizationExtensionHours,
+                integralizationSemesters: variant.integralizationSemesters,
+                integralizationMaximumSemesters:
+                  variant.integralizationMaximumSemesters,
+                professionalDescription: variant.professionalDescription,
+                recognitionDescription: variant.recognitionDescription,
+              },
               code: variant.code,
               name: variant.name,
               blocks: blocksFromApi(variant.blocks, {

@@ -1,5 +1,7 @@
+import { useNavigationContext } from '@/components/NavigationContext'
+import { navigationHref } from '@/lib/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { ContextLink as Link } from '@/components/NavigationContext'
 import { ArrowRight, BellOff, CheckCircle2, LogIn } from 'lucide-react'
 
 import { useOptionalAuth } from '@/auth/AuthProvider'
@@ -11,6 +13,7 @@ import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import { useUserContext } from '@/features/identity'
 
 export function ExchangeAlertsSummary() {
+  const navigation = useNavigationContext()
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const { userId, userQuery } = useUserContext()
@@ -40,7 +43,14 @@ export function ExchangeAlertsSummary() {
         </div>
         <Button
           className="shrink-0"
-          onClick={() => void auth.login('/editais-de-intercambio')}
+          onClick={() =>
+            void auth.login(
+              navigationHref(
+                navigation.pathname || '/editais-de-intercambio',
+                navigation.search,
+              ),
+            )
+          }
         >
           <LogIn /> Configurar alertas
         </Button>

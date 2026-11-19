@@ -1,5 +1,5 @@
 import { Check, UserPlus } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
+import { ContextLink as Link } from '@/components/NavigationContext'
 
 import type { Friendship, PublicPerson } from '@/features/friends/userSocialApi'
 import type { RelationshipState } from './types'

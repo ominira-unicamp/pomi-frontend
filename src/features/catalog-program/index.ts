@@ -10,3 +10,4 @@ export type {
   CatalogProgramTab,
 } from './CatalogProgramPage'
 export { CatalogProgramCourseDialog } from './CatalogProgramCourseDialog'
+export { CatalogProgramSearchPage } from './CatalogProgramSearchPage'

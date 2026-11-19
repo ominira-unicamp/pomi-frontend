@@ -1,8 +1,10 @@
+import { readReturnTo } from '@/lib/navigation'
 import { createFileRoute } from '@tanstack/react-router'
 
 import { PersonProfilePage } from '@/features/social'
 
 export const Route = createFileRoute('/perfis/$publicId')({
+  validateSearch: (search: Record<string, unknown>): { returnTo?: string } => ({ returnTo: readReturnTo(search.returnTo) }),
   component: PersonProfileRoute,
 })
 

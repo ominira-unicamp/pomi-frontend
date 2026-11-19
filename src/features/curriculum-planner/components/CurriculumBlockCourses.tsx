@@ -1,6 +1,6 @@
 import { useDroppable } from '@dnd-kit/core'
 import { ChevronRight } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
+import { ContextLink as Link } from '@/components/NavigationContext'
 import { memo } from 'react'
 
 import { CompactCourseCard, CompactVisual } from './CourseCard'

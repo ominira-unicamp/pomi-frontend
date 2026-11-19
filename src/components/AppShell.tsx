@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
 import {
   BookOpen,
@@ -119,14 +120,14 @@ const homeNavigationItem: NavigationItem = {
 }
 
 const curriculumNavigationItem: NavigationItem = {
-  label: 'Currículo',
+  label: 'Planejar graduação',
   to: '/planejamentos-de-curriculo',
   icon: PanelsTopLeft,
   matches: ['/planejamentos-de-curriculo'],
 }
 
 const semesterNavigationItem: NavigationItem = {
-  label: 'Horários',
+  label: 'Planejar semestre',
   to: '/planejamentos-de-semestre',
   icon: CalendarDays,
   matches: ['/planejamentos-de-semestre'],
@@ -189,7 +190,7 @@ const navigationGroups: ReadonlyArray<
         label: 'Grupos',
         to: '/grupos',
         icon: Handshake,
-        matches: ['/grupos'],
+        matches: ['/grupos', '/meus-grupos'],
       },
       {
         label: 'Eventos',
@@ -235,7 +236,7 @@ function matchesNavigationItem(pathname: string, item: NavigationItem) {
 
 const mobilePrimaryNavigationItems = [
   homeNavigationItem,
-  curriculumNavigationItem,
+  { ...curriculumNavigationItem, label: 'Graduação' },
   { ...semesterNavigationItem, label: 'Semestre' },
 ] as const satisfies ReadonlyArray<NavigationItem>
 
@@ -595,10 +596,12 @@ function MobileBottomNavigation() {
             aria-current={active ? 'page' : undefined}
             data-active={active}
             onClick={() => setMobileOpen(false)}
-            className="pomi-focus flex min-h-14 min-w-0 items-center justify-center border-t-4 border-transparent px-1 transition-colors hover:bg-sidebar-accent data-[active=true]:border-primary data-[active=true]:bg-sidebar-accent"
+            className="pomi-focus flex min-h-16 min-w-0 flex-col gap-1 items-center justify-center border-t-4 border-transparent px-1 transition-colors hover:bg-sidebar-accent data-[active=true]:border-primary data-[active=true]:bg-sidebar-accent"
           >
             <Icon className="size-5 shrink-0" />
-            <span className="sr-only">{item.label}</span>
+            <span className="text-xs font-bold leading-tight">
+              {item.label}
+            </span>
           </Link>
         )
       })}
@@ -609,24 +612,42 @@ function MobileBottomNavigation() {
         aria-label={menuActive && !mobileOpen ? 'Menu, seção atual' : 'Menu'}
         data-active={menuActive}
         onClick={() => setMobileOpen(true)}
-        className="pomi-focus flex min-h-14 min-w-0 items-center justify-center border-t-4 border-transparent px-1 transition-colors hover:bg-sidebar-accent data-[active=true]:border-primary data-[active=true]:bg-sidebar-accent"
+        className="pomi-focus flex min-h-16 min-w-0 flex-col gap-1 items-center justify-center border-t-4 border-transparent px-1 transition-colors hover:bg-sidebar-accent data-[active=true]:border-primary data-[active=true]:bg-sidebar-accent"
       >
         <Menu className="size-5 shrink-0" />
-        <span className="sr-only">Menu</span>
+        <span className="text-xs font-bold leading-tight">Menu</span>
       </button>
     </nav>
   )
 }
 
 function Shell({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  })
+  const previousPathname = useRef(pathname)
+  useEffect(() => {
+    if (previousPathname.current === pathname) return
+    previousPathname.current = pathname
+    if (/^\/grupos\/[^/]+\/gerenciar(?:\/|$)/.test(pathname)) return
+    document.getElementById('main-content')?.focus({ preventScroll: true })
+  }, [pathname])
   return (
-    <div className="flex min-h-svh flex-col pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">
+    <div className="flex min-h-svh flex-col pb-[calc(4.25rem+env(safe-area-inset-bottom))] md:pb-0">
+      <a
+        href="#main-content"
+        className="pomi-focus sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-background focus:p-3 focus:font-bold focus:text-foreground"
+        onClick={() => document.getElementById('main-content')?.focus()}
+      >
+        Ir para o conteúdo principal
+      </a>
       <AppHeader />
       <div className="flex min-h-0 flex-1 items-stretch">
         <AppSidebar />
         <div className="min-w-0 flex-1">
           <main
             id="main-content"
+            tabIndex={-1}
             className="min-h-[calc(100svh-4.5rem)] overflow-x-clip"
           >
             {children}

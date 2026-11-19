@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { ContextLink as Link } from '@/components/NavigationContext'
 import { specialRequirementCode } from '@pomi/planner-domain/curriculum'
 
 import type { CatalogCourse } from '@/features/course-catalog/data/courseCatalogApi'

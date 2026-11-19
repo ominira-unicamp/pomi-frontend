@@ -30,12 +30,18 @@ const keycloak = new Keycloak({
 })
 
 let initialization: Promise<boolean> | undefined
+const initializationTimeoutMs = 5_000
 
 function initializeKeycloak() {
   initialization ??= keycloak.init({
     onLoad: 'check-sso',
     pkceMethod: 'S256',
     checkLoginIframe: false,
+    silentCheckSsoRedirectUri: new URL(
+      `${import.meta.env.BASE_URL}silent-check-sso.html`,
+      window.location.origin,
+    ).href,
+    silentCheckSsoFallback: false,
   })
   return initialization
 }
@@ -75,27 +81,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true
+    const timeout = window.setTimeout(() => {
+      if (active) setInitialized(true)
+    }, initializationTimeoutMs)
 
     keycloak.onAuthSuccess = synchronizeSession
     keycloak.onAuthRefreshSuccess = synchronizeSession
     keycloak.onAuthLogout = synchronizeSession
     keycloak.onAuthRefreshError = () => {
-      void keycloak.logout({ redirectUri: window.location.origin })
+      keycloak.clearToken()
     }
     keycloak.onTokenExpired = () => {
       void keycloak
         .updateToken(30)
-        .catch(() => keycloak.logout({ redirectUri: window.location.origin }))
+        .catch(() => keycloak.clearToken())
     }
 
     void initializeKeycloak()
       .then(() => {
         if (!active) return
+        window.clearTimeout(timeout)
         synchronizeSession()
         setInitialized(true)
       })
       .catch(() => {
         if (!active) return
+        window.clearTimeout(timeout)
         setInitialized(true)
         setIsAuthenticated(false)
         setProfile(undefined)
@@ -104,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => {
       active = false
+      window.clearTimeout(timeout)
     }
   }, [synchronizeSession])
 

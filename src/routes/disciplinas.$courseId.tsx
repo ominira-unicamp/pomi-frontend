@@ -1,3 +1,4 @@
+import { readReturnTo } from '@/lib/navigation'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
 import type { CourseDetailsSearch } from '@/features/course-catalog'
@@ -10,6 +11,7 @@ export const Route = createFileRoute('/disciplinas/$courseId')({
     search: Record<string, unknown>,
   ): CourseDetailsRouteSearch => ({
     catalogYear: readPositiveInteger(search.catalogYear),
+    returnTo: readReturnTo(search.returnTo),
   }),
   component: DisciplinasDetailsRoute,
 })
@@ -24,6 +26,7 @@ function DisciplinasDetailsRoute() {
       courseId={courseId}
       search={{
         catalogYear: search.catalogYear,
+        returnTo: search.returnTo,
       }}
       onSearchChange={(nextSearch) =>
         void navigate({

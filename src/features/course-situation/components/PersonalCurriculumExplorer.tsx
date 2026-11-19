@@ -1,3 +1,4 @@
+import type { SituationSearch, NavigationOptions } from '@/lib/navigation'
 import { useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { buildPersonalCurriculum } from '@pomi/planner-domain/curriculum'
@@ -36,6 +37,8 @@ export function PersonalCurriculumExplorer({
   attemptsError,
   onRetryAttempts,
   onOpenHistory,
+  navigationSearch,
+  onNavigationSearchChange,
 }: {
   program: CatalogProgramOption
   variant?: CatalogProgramVariantOption
@@ -46,11 +49,49 @@ export function PersonalCurriculumExplorer({
   attemptsError: boolean
   onRetryAttempts?: () => void
   onOpenHistory?: () => void
+  navigationSearch?: SituationSearch
+  onNavigationSearchChange?: (
+    search: SituationSearch,
+    options?: NavigationOptions,
+  ) => void
 }) {
-  const [search, setSearch] = useState<CatalogProgramDetailsSearch>({
+  const [localSearch, setLocalSearch] = useState<CatalogProgramDetailsSearch>({
     tab: 'full',
   })
-  const [hideCompleted, setHideCompleted] = useState(false)
+  const [localHideCompleted, setLocalHideCompleted] = useState(false)
+  const search: CatalogProgramDetailsSearch = navigationSearch
+    ? {
+        tab: navigationSearch.curriculumTab ?? 'full',
+        dependencyCourseId: navigationSearch.dependencyCourseId,
+      }
+    : localSearch
+  const hideCompleted = navigationSearch
+    ? Boolean(navigationSearch.hideCompleted)
+    : localHideCompleted
+  const setSearch = (
+    next: CatalogProgramDetailsSearch,
+    options?: NavigationOptions,
+  ) => {
+    if (onNavigationSearchChange)
+      onNavigationSearchChange(
+        {
+          ...navigationSearch,
+          tab: 'curriculum',
+          curriculumTab: next.tab === 'full' ? undefined : next.tab,
+          dependencyCourseId: next.dependencyCourseId,
+        },
+        options,
+      )
+    else setLocalSearch(next)
+  }
+  const toggleCompleted = () => {
+    if (onNavigationSearchChange)
+      onNavigationSearchChange({
+        ...navigationSearch,
+        hideCompleted: !hideCompleted || undefined,
+      })
+    else setLocalHideCompleted((current) => !current)
+  }
   const projection = useMemo(
     () =>
       buildPersonalCurriculum({
@@ -167,7 +208,7 @@ export function PersonalCurriculumExplorer({
         <CompletedCoursesToggle
           checked={!hideCompleted}
           disabled={attemptsLoading || attemptsError}
-          onClick={() => setHideCompleted((current) => !current)}
+          onClick={toggleCompleted}
         />
       </div>
       <CatalogProgramDetails
@@ -190,7 +231,7 @@ export function PersonalCurriculumExplorer({
         className="pomi-focus text-sm font-bold hover:text-primary"
         to="/planejamentos-de-curriculo"
       >
-        Ir aos planejamentos de currículo
+        Planejar minha graduação
       </Link>
     </div>
   )

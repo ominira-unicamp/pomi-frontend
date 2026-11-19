@@ -1,3 +1,4 @@
+import type { SituationSearch, NavigationOptions } from '@/lib/navigation'
 import { catalogProgramVariantForSelection } from '@pomi/planner-domain/curriculum'
 import { PersonalCurriculumExplorer } from './PersonalCurriculumExplorer'
 import type { CurriculumPlannerStaticData } from '@pomi/planner-domain/curriculum'
@@ -19,6 +20,8 @@ export function StudentProgramCurriculum({
   attemptsError = false,
   onRetryAttempts,
   onOpenHistory,
+  navigationSearch,
+  onNavigationSearchChange,
 }: {
   profile?: StudentProfile
   data?: CurriculumPlannerStaticData
@@ -30,6 +33,11 @@ export function StudentProgramCurriculum({
   attemptsError?: boolean
   onRetryAttempts?: () => void
   onOpenHistory?: () => void
+  navigationSearch?: SituationSearch
+  onNavigationSearchChange?: (
+    search: SituationSearch,
+    options?: NavigationOptions,
+  ) => void
 }) {
   if (isLoading)
     return <LoadingState label="Carregando informações do programa" />
@@ -84,6 +92,8 @@ export function StudentProgramCurriculum({
         </InlineMessage>
       )}
       <PersonalCurriculumExplorer
+        navigationSearch={navigationSearch}
+        onNavigationSearchChange={onNavigationSearchChange}
         program={program}
         variant={variant}
         courses={data.courses}

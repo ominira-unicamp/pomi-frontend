@@ -1,3 +1,5 @@
+import { useNavigationContext } from '@/components/NavigationContext'
+import { navigationHref } from '@/lib/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bell, BellOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -46,6 +48,7 @@ function subscriptionErrorMessage(error: unknown) {
 }
 
 export function ExchangeNoticeSettingsPage() {
+  const navigation = useNavigationContext()
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
   const queryClient = useQueryClient()
@@ -68,9 +71,14 @@ export function ExchangeNoticeSettingsPage() {
 
   useEffect(() => {
     if (auth.initialized && !auth.isAuthenticated) {
-      void auth.login('/editais-de-intercambio/configuracoes')
+      void auth.login(
+        navigationHref(
+          navigation.pathname || '/editais-de-intercambio/configuracoes',
+          navigation.search,
+        ),
+      )
     }
-  }, [auth])
+  }, [auth, navigation])
 
   useEffect(() => {
     if (subscriptionQuery.data) {

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { ContextLink as Link } from '@/components/NavigationContext'
 import { LogIn, MessageSquareWarning, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -51,6 +51,7 @@ import {
 
 export type CourseDetailsSearch = Readonly<{
   catalogYear?: number
+  returnTo?: string
 }>
 
 export function CourseDetailsPage({
@@ -180,7 +181,7 @@ export function CourseDetailsPage({
 
   return (
     <PageContainer size="wide">
-      <ContextBackLink to="/disciplinas" label="Voltar para disciplinas" />
+      <ContextBackLink to="/disciplinas" label="Explorar disciplinas" returnTo={search.returnTo} />
       <PageHeader
         title={`${course.code} — ${course.name}`}
         description={`${course.credits} créditos${course.unitCode ? ` · ${course.unitCode}` : ''}`}

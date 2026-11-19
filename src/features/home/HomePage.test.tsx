@@ -431,7 +431,7 @@ describe('HomePage', () => {
     renderHome()
 
     expect(await screen.findByText('Olá, Ana')).toBeTruthy()
-    expect(await screen.findByText('Agenda')).toBeTruthy()
+    expect(await screen.findByText('Agenda atual')).toBeTruthy()
     expect(
       screen.getByText(
         'Você não possui disciplinas cursando em 2026 · 2º semestre.',

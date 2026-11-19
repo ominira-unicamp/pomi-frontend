@@ -21,9 +21,31 @@ export type Course = Readonly<{
   prefix?: string
 }>
 
+export type CatalogProgramInformation = Readonly<{
+  shift: 'DAYTIME' | 'NIGHT' | null
+  creditLimitType: 'NONE' | 'FIXED' | 'CR_FORMULA' | null
+  creditLimitFixedCredits: number | null
+  creditLimitBeforeThresholdCredits: number | null
+  creditLimitThresholdCredits: number | null
+  creditLimitCrBase: number | null
+  creditLimitCrMultiplier: number | null
+  professionalPracticeDescription: string | null
+}>
+
+export type CatalogProgramVariantInformation = Readonly<{
+  integralizationCredits: number | null
+  integralizationSupervisedHours: number | null
+  integralizationExtensionHours: number | null
+  integralizationSemesters: number | null
+  integralizationMaximumSemesters: number | null
+  professionalDescription: string | null
+  recognitionDescription: string | null
+}>
+
 export type CatalogProgramVariantOption = Readonly<{
   id: CatalogProgramVariantId
   specializationId: number | null
+  information?: CatalogProgramVariantInformation
   code: string
   name: string
   blocks: CurriculumBlocks
@@ -47,6 +69,7 @@ export type CatalogProgramOption = Readonly<{
     code: string
     name: string
   }>
+  information?: CatalogProgramInformation
   baseBlocks: CurriculumBlocks
   variants: ReadonlyArray<CatalogProgramVariantOption>
   languages: ReadonlyArray<LanguageOption>

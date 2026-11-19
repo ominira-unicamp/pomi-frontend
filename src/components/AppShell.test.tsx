@@ -130,7 +130,7 @@ describe('AppShell', () => {
       within(navigation).getByRole('link', { name: 'Início' }),
     ).toBeTruthy()
     expect(
-      within(navigation).getByRole('link', { name: 'Currículo' }),
+      within(navigation).getByRole('link', { name: 'Planejar graduação' }),
     ).toBeTruthy()
     expect(
       within(navigation).getByRole('link', { name: 'Intercâmbio' }),
@@ -158,7 +158,7 @@ describe('AppShell', () => {
       within(navigation).getByRole('link', { name: 'Início' }),
     ).toBeTruthy()
     expect(
-      within(navigation).getByRole('link', { name: 'Currículo' }),
+      within(navigation).getByRole('link', { name: 'Graduação' }),
     ).toBeTruthy()
     expect(
       within(navigation).getByRole('link', { name: 'Semestre' }),
@@ -219,7 +219,7 @@ describe('AppShell', () => {
       )
         .getByRole('link', { name: 'Grupos' })
         .getAttribute('aria-current'),
-    ).toBeNull()
+    ).toBe('page')
     fireEvent.pointerDown(
       await screen.findByRole('button', { name: 'Abrir menu de Conta POMI' }),
       { button: 0, ctrlKey: false },
@@ -256,7 +256,7 @@ describe('AppShell', () => {
   })
 
   it.each([
-    ['/planejamentos-de-curriculo/plan-id', 'Currículo'],
+    ['/planejamentos-de-curriculo/plan-id', 'Planejar graduação'],
     ['/planejamentos-de-semestre/compartilhado/share-id', 'Semestre'],
   ])(
     'marks a deep planning route in the quick navigation',
@@ -287,8 +287,14 @@ describe('AppShell', () => {
     expect(main.nextElementSibling).toBe(footer)
     expect(sidebar?.parentElement).toBe(main.parentElement?.parentElement)
     expect(container.firstElementChild?.className).toContain(
-      'pb-[calc(3.5rem+env(safe-area-inset-bottom))]',
+      'pb-[calc(4.25rem+env(safe-area-inset-bottom))]',
     )
+  })
+
+  it('offers a keyboard shortcut to the main content', async () => {
+    renderShell()
+    fireEvent.click(await screen.findByRole('link', { name: 'Ir para o conteúdo principal' }))
+    expect(document.activeElement).toBe(screen.getByRole('main'))
   })
 
   it('keeps the header and sidebar fixed while the content scrolls', async () => {

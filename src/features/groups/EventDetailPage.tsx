@@ -1,6 +1,7 @@
+import { ContextBackLink } from '@/components/ContextBackLink'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { ArrowLeft, CalendarDays, MapPin } from 'lucide-react'
+import { CalendarDays, MapPin } from 'lucide-react'
 
 import { groupApi } from './data/groupApi'
 import { formatEventDate } from './presentation'
@@ -59,12 +60,7 @@ export function EventDetailPage({ eventId }: { eventId: number }) {
   const value = event.data
   return (
     <PageContainer>
-      <Link
-        to="/eventos"
-        className="pomi-focus mb-6 inline-flex items-center gap-2 text-sm font-bold text-muted-foreground hover:text-primary"
-      >
-        <ArrowLeft aria-hidden="true" className="size-4" /> Explorar eventos
-      </Link>
+      <ContextBackLink to="/eventos" label="Explorar eventos" />
       <PageHeader
         eyebrow="Comunidade · Evento"
         title={value.name}

@@ -1,6 +1,7 @@
 import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
 
+import { NavigationContextProvider } from '@/components/NavigationContext'
 import { AppShell } from '@/components/AppShell'
 import { ErrorState, PageContainer } from '@/components/PageLayout'
 
@@ -15,9 +16,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootComponent() {
   return (
-    <AppShell>
-      <Outlet />
-    </AppShell>
+    <NavigationContextProvider>
+      <AppShell>
+        <Outlet />
+      </AppShell>
+    </NavigationContextProvider>
   )
 }
 

@@ -286,7 +286,7 @@ export function CurriculumPlanCreationPage() {
     <PageContainer>
       <PageHeader
         eyebrow="Planejamento acadêmico"
-        title="Novo planejamento de currículo"
+        title="Novo planejamento de graduação"
         description="Defina as informações iniciais. Todas as escolhas acadêmicas poderão ser ajustadas depois."
       />
       {error && (

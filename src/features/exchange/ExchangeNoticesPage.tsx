@@ -1,3 +1,4 @@
+import type { ExchangeSearch, NavigationOptions } from '@/lib/navigation'
 import {
   EmptyState,
   ErrorState,
@@ -11,8 +12,14 @@ import { ExchangeNoticePagination } from '@/features/exchange/components/Exchang
 import { defaultExchangeNoticeFilters } from '@/features/exchange/data/exchangeNotices'
 import { useExchangeNoticesCatalog } from '@/features/exchange/hooks/useExchangeNoticesCatalog'
 
-export function ExchangeNoticesPage() {
-  const catalog = useExchangeNoticesCatalog()
+export function ExchangeNoticesPage({
+  search,
+  onSearchChange,
+}: {
+  search?: ExchangeSearch
+  onSearchChange?: (search: ExchangeSearch, options?: NavigationOptions) => void
+} = {}) {
+  const catalog = useExchangeNoticesCatalog(search, onSearchChange)
 
   return (
     <PageContainer size="wide">
@@ -54,7 +61,8 @@ export function ExchangeNoticesPage() {
             description="Remova alguns filtros para ampliar a busca."
             action={{
               label: 'Limpar filtros',
-              onClick: () => catalog.changeFilters(defaultExchangeNoticeFilters),
+              onClick: () =>
+                catalog.changeFilters(defaultExchangeNoticeFilters),
             }}
           />
         ) : (

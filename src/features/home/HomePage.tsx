@@ -130,7 +130,7 @@ function AnonymousHome() {
           />
           <ObjectiveCard
             icon={<CalendarDays className="size-5" />}
-            title="Montar meu horário"
+            title="Planejar meu semestre"
             description="Compare turmas e organize os horários de um período letivo."
             action={
               <Link
@@ -440,7 +440,7 @@ function AuthenticatedHome() {
             />
             <ObjectiveCard
               icon={<BookOpen className="size-5" />}
-              title="Planejamento de currículo"
+              title="Planejar graduação"
               description="Organize sua trajetória e acompanhe os blocos da grade."
               action={
                 <Link
@@ -453,7 +453,7 @@ function AuthenticatedHome() {
             />
             <ObjectiveCard
               icon={<CalendarDays className="size-5" />}
-              title="Planejamento de semestre"
+              title="Planejar semestre"
               description="Escolha turmas e monte alternativas de horário."
               action={
                 <Link
@@ -511,7 +511,7 @@ function AuthenticatedHome() {
                         {featuredCurriculum.isFavorite ? ' · Favorito' : ''}
                       </h3>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        Planejamento de currículo
+                        Planejamento de graduação
                       </p>
                     </Card>
                   </Link>

@@ -20,8 +20,8 @@ function DisciplinasIndexRoute() {
   return (
     <CourseSearchPage
       search={search}
-      onSearchChange={(nextSearch) =>
-        void navigate({ to: '/disciplinas', search: nextSearch })
+      onSearchChange={(nextSearch, options) =>
+        void navigate({ to: '/disciplinas', search: nextSearch, ...options })
       }
     />
   )
