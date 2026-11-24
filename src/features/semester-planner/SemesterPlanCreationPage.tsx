@@ -105,6 +105,22 @@ export function SemesterPlanCreationPage() {
   const suggestion = suggestions.find((item) => item.id === suggestionId)
 
   useEffect(() => {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Sao_Paulo',
+      year: 'numeric',
+      month: 'numeric',
+    }).formatToParts(new Date())
+    const year = Number(parts.find((part) => part.type === 'year')?.value)
+    const month = Number(parts.find((part) => part.type === 'month')?.value)
+    const yearPeriod = month <= 6 ? 'FIRST_SEMESTER' : 'SECOND_SEMESTER'
+    const currentPeriod = staticQuery.data?.studyPeriods.find(
+      (period) => period.year === year && period.yearPeriod === yearPeriod,
+    )
+    if (currentPeriod)
+      setStudyPeriodId((selected) => selected || String(currentPeriod.id))
+  }, [staticQuery.data])
+
+  useEffect(() => {
     if (suggestions.length === 1) setSuggestionId(suggestions[0].id)
     else if (!suggestions.some((item) => item.id === suggestionId))
       setSuggestionId('')

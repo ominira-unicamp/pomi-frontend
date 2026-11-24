@@ -53,7 +53,7 @@ export function SemesterScheduleGrid({
   const activeSelection = selection.activeSelection
 
   return (
-    <section className="h-[32rem] overflow-auto rounded-lg border-2 border-strong-border bg-card lg:h-full lg:overflow-hidden">
+    <section className="h-[32rem] min-w-0 overflow-auto rounded-lg border-2 border-strong-border bg-card xl:h-full">
       <div className="flex h-full min-w-[46rem] flex-col">
         <div className="grid shrink-0 grid-cols-[3.5rem_repeat(6,minmax(6.5rem,1fr))]">
           <div className="sticky left-0 z-20 border-b border-strong-border bg-card" />
@@ -102,7 +102,7 @@ export function SemesterScheduleGrid({
             {isClassSelectionEnabled && (
               <div
                 ref={selection.ref}
-                className={`absolute inset-y-0 left-[3.5rem] right-0 z-[1] touch-auto select-none xl:touch-none ${selection.isDragging ? 'cursor-crosshair' : ''}`}
+                className={`absolute inset-y-0 left-[3.5rem] right-0 z-[1] touch-auto select-none ${selection.isDragging ? 'cursor-crosshair' : ''}`}
                 onPointerDown={selection.onPointerDown}
                 onPointerMove={selection.onPointerMove}
                 onPointerUp={selection.onPointerUp}

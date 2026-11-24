@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { SemesterPlanCreationPage } from './SemesterPlanCreationPage'
 
 const mocks = vi.hoisted(() => ({
@@ -29,7 +29,26 @@ vi.mock('@/catalog/data/curriculumCatalogApi', () => ({
 vi.mock('@/features/semester-planner/data/semesterPlanningApi', () => ({
   loadSemesterPlannerStaticData: () =>
     Promise.resolve({
-      studyPeriods: [{ id: 1, year: 2027, yearPeriod: 'FIRST_SEMESTER' }],
+      studyPeriods: [
+        {
+          id: 1,
+          year: 2027,
+          yearPeriod: 'FIRST_SEMESTER',
+          startDate: '2027-02-01',
+        },
+        {
+          id: 2,
+          year: 2026,
+          yearPeriod: 'SECOND_SEMESTER',
+          startDate: '2026-08-01',
+        },
+        {
+          id: 3,
+          year: 2026,
+          yearPeriod: 'FIRST_SEMESTER',
+          startDate: '2026-02-01',
+        },
+      ],
     }),
   createSemesterPlanning: mocks.create,
 }))
@@ -89,10 +108,42 @@ async function openProgramGuide() {
 }
 
 describe('SemesterPlanCreationPage', () => {
+  afterEach(() => vi.useRealTimers())
+
   beforeEach(() => {
     vi.clearAllMocks()
     mocks.create.mockResolvedValue({ id: 9 })
   })
+
+  it.each([
+    ['2026-06-30T15:00:00Z', '2026 · 1º semestre'],
+    ['2026-07-01T01:00:00Z', '2026 · 1º semestre'],
+    ['2026-11-23T15:00:00Z', '2026 · 2º semestre'],
+  ])(
+    'defaults to the current semester at %s in São Paulo',
+    async (date, label) => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date(date))
+      render(
+        <QueryClientProvider client={new QueryClient()}>
+          <SemesterPlanCreationPage />
+        </QueryClientProvider>,
+      )
+
+      const period = await screen.findByRole<HTMLInputElement>('combobox', {
+        name: 'Período letivo do planejamento',
+      })
+      await waitFor(() => expect(period.value).toBe(label))
+      expect(
+        screen.getByRole<HTMLButtonElement>('button', { name: 'Continuar' })
+          .disabled,
+      ).toBe(false)
+
+      fireEvent.focus(period)
+      fireEvent.click(await screen.findByText('2027 · 1º semestre'))
+      expect(period.value).toBe('2027 · 1º semestre')
+    },
+  )
 
   it('logs a creation failure and preserves the review for retry', async () => {
     const error = new Error('Creation failed')

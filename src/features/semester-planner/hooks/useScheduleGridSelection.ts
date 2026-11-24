@@ -71,7 +71,7 @@ export function useScheduleGridSelection({
   }
 
   const onPointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!enabled || event.button !== 0) return
+    if (!enabled || event.button !== 0 || event.pointerType === 'touch') return
     const point = gridPoint(event)
     if (!point) return
     event.currentTarget.setPointerCapture(event.pointerId)

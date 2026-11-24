@@ -1624,7 +1624,7 @@ export function SemesterPlannerPage({
           className={`${mobileView === 'selection' ? 'hidden xl:grid' : 'grid'} min-h-0 flex-1 gap-5 xl:grid-cols-[minmax(0,1fr)_28rem]`}
         >
           <div
-            className={`${mobileView === 'schedule' ? 'block' : 'hidden'} min-h-0 xl:block`}
+            className={`${mobileView === 'schedule' ? 'block' : 'hidden'} min-h-0 min-w-0 xl:block`}
           >
             <SemesterScheduleGrid
               selectedClasses={snapshot.selectedClasses}
