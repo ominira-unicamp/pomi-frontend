@@ -14,12 +14,16 @@ export type SemesterPlanningExportData = Readonly<{
   meetings: ReadonlyArray<ClassMeeting>
 }>
 
+export const semesterExportHourHeight = 84
+
 export function buildSemesterPlanningExport(data: SemesterPlanningExportData) {
   const ids = new Set(data.classes.map((item) => item.id))
   const meetings = data.meetings.filter((meeting) => ids.has(meeting.classId))
   const courses = new Map(data.courses.map((course) => [course.id, course]))
+  const courseIds = [...new Set(data.classes.map((item) => item.courseId))]
   const entries = data.classes.map((item) => ({
     ...item,
+    colorIndex: (courseIds.indexOf(item.courseId) % 4) + 1,
     name: courses.get(item.courseId)?.name ?? item.courseCode,
     credits: courses.get(item.courseId)?.credits,
     meetings: meetings.filter((meeting) => meeting.classId === item.id),
@@ -87,9 +91,12 @@ export function buildSemesterPlanningExport(data: SemesterPlanningExportData) {
         dayIndex,
         lane,
         lanes: laneEnds.length,
-        top: (scheduleMinutes(meeting.start) - startHour * 60) * 2,
+        top:
+          (scheduleMinutes(meeting.start) - startHour * 60) *
+          (semesterExportHourHeight / 60),
         height:
-          (scheduleMinutes(meeting.end) - scheduleMinutes(meeting.start)) * 2,
+          (scheduleMinutes(meeting.end) - scheduleMinutes(meeting.start)) *
+          (semesterExportHourHeight / 60),
         hasConflict: group.some(
           (other) =>
             other.classId !== meeting.classId &&
@@ -106,7 +113,7 @@ export function buildSemesterPlanningExport(data: SemesterPlanningExportData) {
     days,
     startHour,
     endHour,
-    height: (endHour - startHour) * 120,
+    height: (endHour - startHour) * semesterExportHourHeight,
     credits: [...new Set(data.classes.map((item) => item.courseId))].reduce(
       (total, id) => total + (courses.get(id)?.credits ?? 0),
       0,

@@ -22,7 +22,6 @@ export type WeeklyScheduleMeeting = Readonly<{
 type StudentWeeklyScheduleProps = Readonly<{
   meetings: ReadonlyArray<WeeklyScheduleMeeting>
   tone?: 'default' | 'subtle'
-  palette?: 'default' | 'red'
   onOpenMeeting?: (meeting: WeeklyScheduleMeeting) => void
 }>
 
@@ -34,24 +33,13 @@ function formatScheduleTime(minutes: number) {
   return `${String(hours).padStart(2, '0')}:${String(remainder).padStart(2, '0')}`
 }
 
-export function scheduleCourseColor(
-  code: string,
-  palette: 'default' | 'red' = 'default',
-) {
-  const colors =
-    palette === 'red'
-      ? [
-          'border-schedule-red-1 bg-schedule-red-1 text-schedule-red-foreground',
-          'border-schedule-red-2 bg-schedule-red-2 text-schedule-red-foreground',
-          'border-schedule-red-3 bg-schedule-red-3 text-schedule-red-foreground',
-          'border-schedule-red-4 bg-schedule-red-4 text-schedule-red-foreground',
-        ]
-      : [
-          'border-schedule-1 bg-schedule-1 text-schedule-foreground',
-          'border-schedule-2 bg-schedule-2 text-schedule-foreground',
-          'border-schedule-3 bg-schedule-3 text-schedule-foreground',
-          'border-secondary bg-secondary text-secondary-foreground',
-        ]
+export function scheduleCourseColor(code: string) {
+  const colors = [
+    'border-schedule-1 bg-schedule-1 text-schedule-foreground',
+    'border-schedule-2 bg-schedule-2 text-schedule-foreground',
+    'border-schedule-3 bg-schedule-3 text-schedule-foreground',
+    'border-schedule-4 bg-schedule-4 text-schedule-foreground',
+  ]
   return (
     colors[
       [...code].reduce((total, char) => total + char.charCodeAt(0), 0) %
@@ -63,7 +51,6 @@ export function scheduleCourseColor(
 export function StudentWeeklySchedule({
   meetings,
   tone = 'default',
-  palette = 'default',
   onOpenMeeting,
 }: StudentWeeklyScheduleProps) {
   const days = [
@@ -123,7 +110,7 @@ export function StudentWeeklySchedule({
                     >
                       <span
                         aria-hidden
-                        className={`mt-1 size-3 shrink-0 rounded-sm border-2 ${scheduleCourseColor(meeting.courseCode, palette)}`}
+                        className={`mt-1 size-3 shrink-0 rounded-sm border-2 ${scheduleCourseColor(meeting.courseCode)}`}
                       />
                       <div>
                         <p className="font-bold">
@@ -199,7 +186,7 @@ export function StudentWeeklySchedule({
                 onClick={() => onOpenMeeting?.(meeting)}
                 type="button"
                 disabled={!onOpenMeeting}
-                className={`pomi-focus absolute z-10 overflow-hidden rounded-md border-2 p-1.5 text-left text-[11px] font-bold shadow-sm ${scheduleCourseColor(meeting.courseCode, palette)}`}
+                className={`pomi-focus absolute z-10 overflow-hidden rounded-md border-2 p-1.5 text-left text-[11px] font-bold shadow-sm ${scheduleCourseColor(meeting.courseCode)}`}
                 style={{
                   left: `calc(3.5rem + ${dayIndex} * (100% - 3.5rem) / ${days.length} + 3px)`,
                   width: `calc((100% - 3.5rem) / ${days.length} - 6px)`,

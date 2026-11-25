@@ -1,7 +1,10 @@
 import type { RefObject } from 'react'
 import type { ResolvedTheme } from '@/components/ThemeProvider'
 import type { SemesterPlanningExportData } from '@/features/semester-planner/model/semesterPlanningExport'
-import { buildSemesterPlanningExport } from '@/features/semester-planner/model/semesterPlanningExport'
+import {
+  buildSemesterPlanningExport,
+  semesterExportHourHeight,
+} from '@/features/semester-planner/model/semesterPlanningExport'
 import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
 import './semesterPlanningExport.css'
 
@@ -15,6 +18,7 @@ export function SemesterPlanningExport({
   captureRef: RefObject<HTMLDivElement | null>
 }) {
   const model = buildSemesterPlanningExport(data)
+  const defaultName = data.name.trim() === 'Novo planejamento de semestre'
   return (
     <div className="semester-export-stage" aria-hidden="true">
       <div
@@ -22,12 +26,20 @@ export function SemesterPlanningExport({
         className={`semester-export ${theme === 'dark' ? 'dark' : 'semester-export-light'}`}
       >
         <header className="semester-export-header">
-          <p>POMI · Planejamento de semestre</p>
-          <h1>{data.name}</h1>
-          <p>
-            {studyPeriodLabel(data.period)} · {model.entries.length} disciplinas
-            · {model.credits} créditos
-          </p>
+          <div className="semester-export-brand">
+            <img src="/pomi-logo.svg" alt="POMI" />
+            <div>
+              <strong>POMI</strong>
+              <p>Planejamento de semestre</p>
+            </div>
+          </div>
+          <div className="semester-export-heading">
+            <h1>{defaultName ? studyPeriodLabel(data.period) : data.name}</h1>
+            <p>
+              {!defaultName && `${studyPeriodLabel(data.period)} · `}
+              {model.entries.length} disciplinas · {model.credits} créditos
+            </p>
+          </div>
         </header>
         {model.blocks.length ? (
           <div className="semester-export-grid">
@@ -52,7 +64,7 @@ export function SemesterPlanningExport({
                   <div
                     className="semester-export-hour"
                     key={index}
-                    style={{ top: index * 120 }}
+                    style={{ top: index * semesterExportHourHeight }}
                   >
                     <span>
                       {String(model.startHour + index).padStart(2, '0')}:00
@@ -74,7 +86,7 @@ export function SemesterPlanningExport({
                 {model.blocks.map((block) => (
                   <div
                     key={block.id}
-                    className={`semester-export-block ${block.lanes > 1 ? 'semester-export-block-compact' : ''} ${block.hasConflict ? 'semester-export-conflict' : ''}`}
+                    className={`semester-export-block semester-export-color-${block.classItem.colorIndex} ${block.lanes > 1 ? 'semester-export-block-compact' : ''} ${block.hasConflict ? 'semester-export-conflict' : ''} ${block.height < semesterExportHourHeight ? 'semester-export-block-short' : ''}`}
                     style={{
                       top: block.top + 2,
                       height: Math.max(1, block.height - 4),
@@ -82,8 +94,12 @@ export function SemesterPlanningExport({
                       width: `calc(${100 / model.days.length / block.lanes}% - 6px)`,
                     }}
                   >
-                    <strong>{block.classItem.courseCode}</strong>
-                    <span>Turma {block.classItem.code}</span>
+                    <strong className="semester-export-block-heading">
+                      {block.classItem.courseCode}
+                      <span className="semester-export-block-detail">
+                        Turma {block.classItem.code}
+                      </span>
+                    </strong>
                     {block.lanes > 1 ? (
                       <>
                         <span>{block.start}</span>
@@ -127,27 +143,44 @@ export function SemesterPlanningExport({
           </section>
         )}
         <section className="semester-export-legend">
-          <h2>Disciplinas selecionadas</h2>
           {model.entries.map((item) => (
             <div key={item.id}>
               <strong>
-                {item.courseCode} · Turma {item.code}
+                <span
+                  className={`semester-export-swatch semester-export-color-${item.colorIndex}`}
+                />
+                {item.courseCode}
+                <small>Turma {item.code}</small>
               </strong>
-              <span>
+              <span className="semester-export-course-details">
                 {item.name}
-                {item.meetings.map((meeting) => (
-                  <small className="semester-export-meeting" key={meeting.id}>
-                    {model.days.find(([day]) => day === meeting.dayOfWeek)?.[1]}{' '}
-                    · {meeting.start}–{meeting.end} ·{' '}
-                    {meeting.roomCode || 'Sala não informada'}
-                  </small>
-                ))}
+                <small className="semester-export-detail">
+                  {item.professors.length
+                    ? `${item.professors.length === 1 ? 'Professor' : 'Professores'}: ${item.professors.map((professor) => professor.name).join(', ')}`
+                    : 'Professor não informado'}
+                </small>
+                {model.blocks.some(
+                  (block) =>
+                    block.classId === item.id &&
+                    (block.height < semesterExportHourHeight ||
+                      block.lanes > 1),
+                ) &&
+                  item.meetings.map((meeting) => (
+                    <small className="semester-export-meeting" key={meeting.id}>
+                      {
+                        model.days.find(
+                          ([day]) => day === meeting.dayOfWeek,
+                        )?.[1]
+                      }{' '}
+                      · {meeting.start}–{meeting.end} ·{' '}
+                      {meeting.roomCode || 'Sala não informada'}
+                    </small>
+                  ))}
               </span>
-              <span>
+              <span className="semester-export-credits">
                 {item.credits === undefined
                   ? 'Créditos não informados'
                   : `${item.credits} créditos`}
-                {!item.meetings.length ? ' · Sem horário cadastrado' : ''}
               </span>
             </div>
           ))}

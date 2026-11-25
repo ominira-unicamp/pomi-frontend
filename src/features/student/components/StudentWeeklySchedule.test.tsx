@@ -40,7 +40,7 @@ describe('StudentWeeklySchedule', () => {
       container.querySelector<HTMLElement>('[style*="height:"]')?.style.height,
     ).toBe('22rem')
     const meeting = container.querySelector('[title^="MC102"]')
-    expect(meeting?.className).toContain('bg-secondary')
+    expect(meeting?.className).toContain('bg-schedule-4')
     expect(meeting?.className).not.toContain('opacity-')
   })
   it('keeps Sunday meetings available in the grid and opens the same attendance action', () => {
@@ -70,10 +70,9 @@ describe('StudentWeeklySchedule', () => {
     )
     expect(onOpenMeeting).toHaveBeenCalledWith(meeting)
   })
-  it('uses the red palette when requested', () => {
+  it('uses the schedule palette by default', () => {
     const { container } = render(
       <StudentWeeklySchedule
-        palette="red"
         meetings={[
           {
             id: 1,
@@ -88,7 +87,7 @@ describe('StudentWeeklySchedule', () => {
       />,
     )
     expect(container.querySelector('[title^="MC102"]')?.className).toContain(
-      'bg-schedule-red-',
+      'bg-schedule-',
     )
   })
 })

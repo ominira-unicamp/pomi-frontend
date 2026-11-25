@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { LayoutGrid, Table2 } from 'lucide-react'
 import {
   buildGuideClassContext,
@@ -46,6 +46,7 @@ import { useSemesterPlannerQueries } from '@/features/semester-planner/hooks/use
 import { isApprovedStudentCourseAttempt } from '@/features/student/data/studentApi'
 import { ClassesGuidePanel } from '@/features/semester-planner/components/ClassesGuidePanel'
 import { SemesterPlanningHeader } from '@/features/semester-planner/components/SemesterPlanningHeader'
+import { SemesterPlanningExportDialog } from '@/features/semester-planner/components/SemesterPlanningExportDialog'
 import { SemesterScheduleGrid } from '@/features/semester-planner/components/SemesterScheduleGrid'
 import { PlanningVisibilityDialog } from '@/features/semester-planner/components/PlanningVisibilityDialog'
 import { SelectedClassDialog } from '@/features/semester-planner/components/SelectedClassDialog'
@@ -70,12 +71,6 @@ import {
 import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
 import { CatalogProgramCourseDialog } from '@/features/catalog-program/CatalogProgramCourseDialog'
 import { useTheme } from '@/components/ThemeProvider'
-
-const SemesterPlanningExportDialog = lazy(() =>
-  import('@/features/semester-planner/components/SemesterPlanningExportDialog').then(
-    (module) => ({ default: module.SemesterPlanningExportDialog }),
-  ),
-)
 
 type GuideTab = 'disciplines' | 'classes'
 type DisciplineView = 'cards' | 'table'
@@ -1613,13 +1608,11 @@ export function SemesterPlannerPage({
         }}
       />
       {exportData && (
-        <Suspense fallback={<p role="status">Abrindo exportação…</p>}>
-          <SemesterPlanningExportDialog
-            data={exportData}
-            initialTheme={resolvedTheme}
-            onClose={() => setExportData(undefined)}
-          />
-        </Suspense>
+        <SemesterPlanningExportDialog
+          data={exportData}
+          initialTheme={resolvedTheme}
+          onClose={() => setExportData(undefined)}
+        />
       )}
       {error && (
         <Alert variant="destructive" className="mb-5">

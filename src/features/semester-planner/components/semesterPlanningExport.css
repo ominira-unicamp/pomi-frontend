@@ -14,16 +14,57 @@
   line-height: 1.4;
 }
 .semester-export-header {
-  margin-bottom: 28px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 40px;
+  margin-bottom: 18px;
+}
+.semester-export-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.semester-export-brand img {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  object-fit: contain;
+  padding: 5px;
+  border-radius: 50%;
+  background: var(--sidebar);
+}
+.semester-export.dark .semester-export-brand img {
+  background: transparent;
+}
+.semester-export-brand strong {
+  display: block;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.semester-export-brand p {
+  font-size: 15px;
+  line-height: 1.25;
 }
 .semester-export-header h1 {
-  margin: 8px 0;
-  font-size: 36px;
+  margin: 0;
+  font-size: 32px;
   font-weight: 800;
   overflow-wrap: anywhere;
 }
 .semester-export-header p {
+  margin: 0;
   color: var(--muted-foreground);
+}
+.semester-export-heading {
+  min-width: 0;
+  text-align: right;
+}
+.semester-export-heading p {
+  font-size: 16px;
+  margin-top: 2px;
 }
 .semester-export h2 {
   font-size: 22px;
@@ -32,6 +73,8 @@
 }
 .semester-export-grid {
   border: 2px solid var(--strong-border);
+  border-radius: 8px;
+  overflow: hidden;
   padding-bottom: 26px;
   background: var(--card);
 }
@@ -72,9 +115,10 @@
 .semester-export-block {
   position: absolute;
   padding: 6px;
-  border: 2px solid var(--primary);
-  background: var(--secondary);
-  color: var(--foreground);
+  border: 0;
+  border-left: 5px solid var(--export-course-color);
+  background: var(--export-course-color);
+  color: var(--schedule-foreground);
   border-radius: 5px;
   font-size: 16px;
   overflow: hidden;
@@ -84,22 +128,45 @@
   display: block;
 }
 .semester-export-conflict {
-  border-color: var(--destructive);
+  border: 3px solid var(--destructive);
 }
 .semester-export-conflicts {
   margin-top: 28px;
   color: var(--destructive);
 }
 .semester-export-legend {
-  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 32px;
+  margin-top: 16px;
 }
 .semester-export-legend > div {
   display: grid;
-  grid-template-columns: 190px 1fr 220px;
-  gap: 16px;
-  padding: 12px 0;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px 12px;
+  padding: 7px 0;
   border-bottom: 1px solid var(--border);
   overflow-wrap: anywhere;
+}
+.semester-export-course-details {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  font-size: 16px;
+  line-height: 1.25;
+}
+.semester-export-legend > div > strong {
+  font-size: 16px;
+  line-height: 1.25;
+}
+.semester-export-legend > div > strong > small {
+  display: inline;
+  padding-left: 8px;
+}
+.semester-export-legend .semester-export-credits {
+  grid-column: 2;
+  grid-row: 1;
+  font-size: 15px;
+  line-height: 1.25;
 }
 .semester-export-empty {
   padding: 24px;
@@ -118,9 +185,64 @@
 .semester-export-block-compact > * {
   white-space: nowrap;
 }
-.semester-export-meeting {
+.semester-export-color-1 {
+  --export-course-color: var(--schedule-1);
+}
+.semester-export-color-2 {
+  --export-course-color: var(--schedule-2);
+}
+.semester-export-color-3 {
+  --export-course-color: var(--schedule-3);
+}
+.semester-export-color-4 {
+  --export-course-color: var(--schedule-4);
+}
+.semester-export-block > .semester-export-block-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+}
+.semester-export-block-detail {
+  font-size: 13px;
+  font-weight: 400;
+}
+.semester-export-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--border);
+  background: var(--export-course-color);
+  margin-right: 8px;
+}
+.semester-export-legend small {
   display: block;
+  padding-left: 20px;
   color: var(--muted-foreground);
+  font-weight: 400;
   font-size: 15px;
-  margin-top: 4px;
+}
+.semester-export-credits {
+  text-align: right;
+  color: var(--muted-foreground);
+}
+.semester-export-block-compact .semester-export-block-detail {
+  font-size: inherit;
+  margin-bottom: 0;
+}
+.semester-export-legend .semester-export-detail,
+.semester-export-legend .semester-export-meeting {
+  padding-left: 0;
+  margin-top: 2px;
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.semester-export-block-short {
+  padding: 3px;
+  font-size: 12px;
+}
+.semester-export-block-short > :not(.semester-export-block-heading),
+.semester-export-block-short .semester-export-block-detail {
+  display: none;
 }

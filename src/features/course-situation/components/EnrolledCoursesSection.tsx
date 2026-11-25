@@ -76,7 +76,6 @@ function ScheduleState({
     return (
       <StudentWeeklySchedule
         meetings={meetings}
-        palette="red"
         onOpenMeeting={(meeting) => onOpenMeeting(meeting.classId)}
       />
     )
