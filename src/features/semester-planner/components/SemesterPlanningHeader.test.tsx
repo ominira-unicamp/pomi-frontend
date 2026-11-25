@@ -18,7 +18,8 @@ const periods = [
   },
 ]
 
-function renderHeader(studyPeriodLocked = false) {
+function renderHeader(studyPeriodLocked = false, canExport = true) {
+  const onExport = vi.fn()
   const onPeriodChange = vi.fn()
   render(
     <SemesterPlanningHeader
@@ -37,16 +38,20 @@ function renderHeader(studyPeriodLocked = false) {
       onOpenSaveDraft={vi.fn()}
       onRename={vi.fn()}
       onRemove={vi.fn()}
+      onExport={onExport}
+      canExport={canExport}
     />,
   )
-  return { onPeriodChange }
+  return { onPeriodChange, onExport }
 }
 
 describe('SemesterPlanningHeader', () => {
   it('orders periods from most recent and allows changing an unlocked period', () => {
     const { onPeriodChange } = renderHeader()
     const period = screen.getByLabelText('Período letivo')
-    expect(period.querySelectorAll('option')[0].textContent).toBe('2026 · 1º semestre')
+    expect(period.querySelectorAll('option')[0].textContent).toBe(
+      '2026 · 1º semestre',
+    )
     fireEvent.change(period, { target: { value: '1' } })
     expect(onPeriodChange).toHaveBeenCalledWith(1)
   })
@@ -57,10 +62,25 @@ describe('SemesterPlanningHeader', () => {
     expect(screen.getByText('2026 · 1º semestre')).toBeTruthy()
   })
 
-  it('does not offer file import or export actions', () => {
-    renderHeader()
-    fireEvent.click(screen.getByRole('button', { name: /Ações/ }))
-    expect(screen.queryByText('Importar')).toBeNull()
-    expect(screen.queryByText('Exportar')).toBeNull()
+  it('offers PNG export for a draft', async () => {
+    const { onExport } = renderHeader()
+    fireEvent.keyDown(screen.getByRole('button', { name: /Ações/ }), {
+      key: 'ArrowDown',
+    })
+    fireEvent.click(
+      await screen.findByRole('menuitem', { name: 'Exportar PNG' }),
+    )
+    expect(onExport).toHaveBeenCalledOnce()
+  })
+
+  it('disables export when there are no selected classes', async () => {
+    const { onExport } = renderHeader(false, false)
+    fireEvent.keyDown(screen.getByRole('button', { name: /Ações/ }), {
+      key: 'ArrowDown',
+    })
+    const action = await screen.findByRole('menuitem', { name: 'Exportar PNG' })
+    expect(action.getAttribute('aria-disabled')).toBe('true')
+    fireEvent.click(action)
+    expect(onExport).not.toHaveBeenCalled()
   })
 })

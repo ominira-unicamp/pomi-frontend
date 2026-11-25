@@ -1,4 +1,11 @@
-import { MoreHorizontal, Pencil, Save, Share2, Trash2 } from 'lucide-react'
+import {
+  Download,
+  MoreHorizontal,
+  Pencil,
+  Save,
+  Share2,
+  Trash2,
+} from 'lucide-react'
 import type { GuideMode, StudyPeriod } from '@pomi/planner-domain/semester'
 
 import type { SemesterPlanningVisibility } from '@/features/semester-planner/data/semesterPlanningApi'
@@ -37,6 +44,8 @@ export function SemesterPlanningHeader({
   onOpenSaveDraft,
   onRename,
   onRemove,
+  onExport,
+  canExport = false,
 }: {
   name: string
   planningId: string
@@ -54,6 +63,8 @@ export function SemesterPlanningHeader({
   onOpenSaveDraft: () => void
   onRename: () => void
   onRemove: () => void
+  onExport?: () => void
+  canExport?: boolean
 }) {
   const selectedStudyPeriod = studyPeriods.find(
     (period) => period.id === studyPeriodId,
@@ -134,6 +145,9 @@ export function SemesterPlanningHeader({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem disabled={!canExport} onSelect={onExport}>
+                <Download className="size-4" /> Exportar PNG
+              </DropdownMenuItem>
               {activePlanId && (
                 <DropdownMenuItem onSelect={onRename}>
                   <Pencil className="size-4" /> Editar nome

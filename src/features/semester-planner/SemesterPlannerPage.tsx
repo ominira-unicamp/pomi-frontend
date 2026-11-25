@@ -1,6 +1,6 @@
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react'
 import { LayoutGrid, Table2 } from 'lucide-react'
 import {
   buildGuideClassContext,
@@ -25,6 +25,7 @@ import type {
 } from '@pomi/planner-domain/semester'
 import type { SemesterDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
 import type { SemesterPlanningVisibility } from '@/features/semester-planner/data/semesterPlanningApi'
+import type { SemesterPlanningExportData } from '@/features/semester-planner/model/semesterPlanningExport'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -68,6 +69,13 @@ import {
 } from '@/features/semester-planner/hooks/useClassesGuideFilters'
 import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
 import { CatalogProgramCourseDialog } from '@/features/catalog-program/CatalogProgramCourseDialog'
+import { useTheme } from '@/components/ThemeProvider'
+
+const SemesterPlanningExportDialog = lazy(() =>
+  import('@/features/semester-planner/components/SemesterPlanningExportDialog').then(
+    (module) => ({ default: module.SemesterPlanningExportDialog }),
+  ),
+)
 
 type GuideTab = 'disciplines' | 'classes'
 type DisciplineView = 'cards' | 'table'
@@ -81,6 +89,8 @@ export function SemesterPlannerPage({
 }: {
   planningId?: string
 }) {
+  const { resolvedTheme } = useTheme()
+  const [exportData, setExportData] = useState<SemesterPlanningExportData>()
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'anonymous-session'
   const navigate = useNavigate()
@@ -1578,7 +1588,39 @@ export function SemesterPlannerPage({
         visibility={visibility}
         onConfigureVisibility={openVisibilityDialog}
         onRemove={() => void removePlan()}
+        canExport={
+          snapshot.selectedClasses.length > 0 &&
+          query.data.studyPeriods.some(
+            (period) => period.id === studyPeriodId,
+          ) &&
+          !snapshotQuery.isFetching &&
+          !query.isFetching
+        }
+        onExport={() => {
+          const period = query.data.studyPeriods.find(
+            (item) => item.id === studyPeriodId,
+          )
+          if (!period) return
+          setExportData(
+            structuredClone({
+              name: document.name,
+              period,
+              classes: snapshot.selectedClasses,
+              courses: [...courseById.values()],
+              meetings: query.data.meetings,
+            }),
+          )
+        }}
       />
+      {exportData && (
+        <Suspense fallback={<p role="status">Abrindo exportação…</p>}>
+          <SemesterPlanningExportDialog
+            data={exportData}
+            initialTheme={resolvedTheme}
+            onClose={() => setExportData(undefined)}
+          />
+        </Suspense>
+      )}
       {error && (
         <Alert variant="destructive" className="mb-5">
           <AlertTitle>Não foi possível atualizar o planejamento</AlertTitle>

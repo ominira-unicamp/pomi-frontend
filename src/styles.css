@@ -4,7 +4,8 @@
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
+:root,
+.semester-export-light {
   color-scheme: light;
   --schedule-1: #c6dbe0;
   --schedule-2: #d3d8b7;
