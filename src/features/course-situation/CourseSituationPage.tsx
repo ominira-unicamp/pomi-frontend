@@ -1,20 +1,18 @@
-import type { SituationSearch, NavigationOptions } from '@/lib/navigation'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { BookOpenCheck, Check, LogIn, Plus } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { AcademicProfileSummary } from './components/AcademicProfileSummary'
+import { useHistoryImport } from './hooks/useHistoryImport'
+import type { NavigationOptions, SituationSearch } from '@/lib/navigation'
 import type { CourseProfileValues } from '@/features/student/components/CourseProfilePanel'
 import type { ProfessorEvaluationTarget } from '@/features/student/components/ProfessorEvaluationDialog'
 import type { CourseAttemptFormState } from '@/features/course-situation/components/CourseAttemptDialog'
 import type {
   StudentCourseAttempt,
   StudentCourseAttemptStatus,
-  StudentHistoryImport,
-  StudentHistoryImportSummary,
 } from '@/features/student/data/studentApi'
 import type { StudyPeriodYearPeriod } from '@/features/student/data/studyPeriod'
-import type { StudentHistoryParseResult } from '@/features/student/historyImport/studentHistoryParser'
 import { UserIdentityState } from '@/features/identity/UserIdentityState'
 import {
   ErrorState,
@@ -59,13 +57,11 @@ import { useCourseSituationQueries } from '@/features/course-situation/hooks/use
 import {
   createStudentCourseAttempt,
   deleteStudentCourseAttempt,
-  importStudentHistory,
   listClassSchedulesByStudyPeriod,
   patchStudentCourseAttempt,
   patchStudentProfile,
 } from '@/features/student/data/studentApi'
 import { mostRecentStudyPeriodsFirst } from '@/features/student/data/studyPeriodOrdering'
-import { parseStudentHistoryPdf } from '@/features/student/historyImport/studentHistoryParser'
 
 type SituationTab = 'enrolled' | 'history' | 'curriculum'
 
@@ -98,7 +94,9 @@ export function CourseSituationPage({
 } = {}) {
   const queryClient = useQueryClient()
   const profileTitleRef = useRef<HTMLSpanElement>(null)
-  const [profileEditing, setProfileEditing] = useState(false)
+  const [profileEditing, setProfileEditing] = useState(
+    search?.action === 'profile',
+  )
   const [profileSaved, setProfileSaved] = useState(false)
   const [localSearch, setLocalSearch] = useState<SituationSearch>({})
   const currentSearch = search ?? localSearch
@@ -122,13 +120,10 @@ export function CourseSituationPage({
   const [evaluationTarget, setEvaluationTarget] =
     useState<ProfessorEvaluationTarget>()
   const historyFileInput = useRef<HTMLInputElement>(null)
-  const [historyImporting, setHistoryImporting] = useState(false)
-  const [historyImportError, setHistoryImportError] = useState<string>()
-  const [pendingHistoryImport, setPendingHistoryImport] =
-    useState<StudentHistoryParseResult>()
-  const [historyImportSummary, setHistoryImportSummary] =
-    useState<StudentHistoryImportSummary>()
   const [lambdaImportOpen, setLambdaImportOpen] = useState(false)
+  const [importChoiceOpen, setImportChoiceOpen] = useState(
+    search?.action === 'import',
+  )
 
   const {
     auth,
@@ -147,6 +142,16 @@ export function CourseSituationPage({
     courseId: attemptForm.courseId,
     studyPeriodId: attemptForm.studyPeriodId,
   })
+
+  const {
+    busy: historyImporting,
+    error: historyImportError,
+    pending: pendingHistoryImport,
+    setPending: setPendingHistoryImport,
+    summary: historyImportSummary,
+    parse: parseHistoryFile,
+    confirm: confirmHistoryImport,
+  } = useHistoryImport(userId)
 
   useEffect(() => {
     if (!attemptForm.studyPeriodId || !evaluationModeQuery.isSuccess) return
@@ -360,47 +365,6 @@ export function CourseSituationPage({
     })
     setProfileEditing(false)
     setProfileSaved(true)
-  }
-
-  async function parseHistoryFile(file: File) {
-    if (!userId || historyImporting) return
-    setHistoryImporting(true)
-    setHistoryImportError(undefined)
-    setHistoryImportSummary(undefined)
-    try {
-      setPendingHistoryImport(await parseStudentHistoryPdf(file))
-    } catch (error) {
-      setHistoryImportError(
-        error instanceof Error
-          ? error.message
-          : 'Não foi possível ler o histórico escolar.',
-      )
-    } finally {
-      setHistoryImporting(false)
-    }
-  }
-
-  async function confirmHistoryImport(value: StudentHistoryImport) {
-    if (!userId || !pendingHistoryImport || historyImporting) return
-    setHistoryImporting(true)
-    setHistoryImportError(undefined)
-    try {
-      setHistoryImportSummary(
-        await importStudentHistory(userId, value, auth.getAccessToken),
-      )
-      setPendingHistoryImport(undefined)
-      await queryClient.invalidateQueries({
-        queryKey: privateQueryKeys.courseAttempts(sessionSubject, userId),
-      })
-    } catch (error) {
-      setHistoryImportError(
-        error instanceof Error
-          ? error.message
-          : 'Não foi possível salvar o histórico escolar.',
-      )
-    } finally {
-      setHistoryImporting(false)
-    }
   }
 
   const absenceCount = (attemptId: number) =>
@@ -678,6 +642,32 @@ export function CourseSituationPage({
           />
         </TabsContent>
       </Tabs>
+      <ResponsiveDialog
+        open={importChoiceOpen}
+        onOpenChange={setImportChoiceOpen}
+        title="Importar histórico"
+        description="Escolha como importar seu histórico."
+      >
+        <div className="flex flex-col gap-3">
+          <Button
+            onClick={() => {
+              setImportChoiceOpen(false)
+              historyFileInput.current?.click()
+            }}
+          >
+            Selecionar PDF da DAC
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setImportChoiceOpen(false)
+              setLambdaImportOpen(true)
+            }}
+          >
+            Consultar via DAC (experimental)
+          </Button>
+        </div>
+      </ResponsiveDialog>
       <HistoryImportDialog
         key={
           pendingHistoryImport

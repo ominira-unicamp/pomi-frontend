@@ -221,7 +221,7 @@ describe('AppShell', () => {
         .getAttribute('aria-current'),
     ).toBe('page')
     fireEvent.pointerDown(
-      await screen.findByRole('button', { name: 'Abrir menu de Conta POMI' }),
+      await screen.findByRole('button', { name: 'Abrir menu de Minha conta' }),
       { button: 0, ctrlKey: false },
     )
     const ownGroups = await screen.findByRole('menuitem', {

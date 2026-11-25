@@ -1,6 +1,11 @@
-import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
+import {
+  Outlet,
+  createRootRouteWithContext,
+  useRouterState,
+} from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
 
+import { WelcomeGate } from '@/features/identity'
 import { NavigationContextProvider } from '@/components/NavigationContext'
 import { AppShell } from '@/components/AppShell'
 import { ErrorState, PageContainer } from '@/components/PageLayout'
@@ -15,11 +20,20 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 })
 
 function RootComponent() {
+  const standalone = useRouterState({
+    select: (state) =>
+      state.location.pathname.replace(/\/$/, '') === '/boas-vindas',
+  })
   return (
     <NavigationContextProvider>
-      <AppShell>
+      <WelcomeGate />
+      {standalone ? (
         <Outlet />
-      </AppShell>
+      ) : (
+        <AppShell>
+          <Outlet />
+        </AppShell>
+      )}
     </NavigationContextProvider>
   )
 }

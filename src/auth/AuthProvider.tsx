@@ -52,6 +52,7 @@ interface AuthContextValue {
   profile?: KeycloakTokenParsed
   sessionSubject?: string
   login: (redirectUri?: string) => Promise<void>
+  register: (redirectUri?: string) => Promise<void>
   logout: () => Promise<void>
   getAccessToken: () => Promise<string>
   emailVerificationRequired: boolean
@@ -92,9 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       keycloak.clearToken()
     }
     keycloak.onTokenExpired = () => {
-      void keycloak
-        .updateToken(30)
-        .catch(() => keycloak.clearToken())
+      void keycloak.updateToken(30).catch(() => keycloak.clearToken())
     }
 
     void initializeKeycloak()
@@ -129,6 +128,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await keycloak.login({ redirectUri: target.href })
   }, [])
 
+  const register = useCallback(async (redirectUri?: string) => {
+    const target = new URL(
+      redirectUri ?? window.location.href,
+      window.location.origin,
+    )
+    if (target.origin !== window.location.origin)
+      throw new Error('A URL de retorno do cadastro não é permitida.')
+    await keycloak.register({ redirectUri: target.href })
+  }, [])
+
   const logout = useCallback(async () => {
     await keycloak.logout({ redirectUri: window.location.origin })
   }, [])
@@ -156,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           ? profile.sub
           : undefined,
       login,
+      register,
       logout,
       getAccessToken,
       emailVerificationRequired,
@@ -166,6 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       initialized,
       isAuthenticated,
       login,
+      register,
       logout,
       profile,
     ],
@@ -190,6 +201,7 @@ export function useOptionalAuth(): AuthContextValue {
       isAuthenticated: false,
       sessionSubject: undefined,
       login: () => Promise.resolve(),
+      register: () => Promise.resolve(),
       logout: () => Promise.resolve(),
       getAccessToken: () =>
         Promise.reject(new Error('Authentication is required.')),

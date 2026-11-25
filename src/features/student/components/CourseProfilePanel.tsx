@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import type { CatalogProgramOption } from '@pomi/planner-domain/curriculum'
 import type { StudentProfile } from '@/features/student/data/studentApi'
@@ -22,11 +22,19 @@ export function CourseProfilePanel({
   catalogPrograms,
   onSave,
   onCancel,
+  onDirtyChange,
+  onSavingChange,
+  saveLabel = 'Salvar alterações',
+  allowUnchanged = false,
 }: {
   profile?: StudentProfile
   catalogPrograms: ReadonlyArray<CatalogProgramOption>
   onSave: (value: CourseProfileValues) => Promise<void>
   onCancel?: () => void
+  onDirtyChange?: (dirty: boolean) => void
+  onSavingChange?: (saving: boolean) => void
+  saveLabel?: string
+  allowUnchanged?: boolean
 }) {
   const [catalogId, setCatalogId] = useState(() =>
     profile?.catalogId ? String(profile.catalogId) : '',
@@ -136,8 +144,15 @@ export function CourseProfilePanel({
       parsedEntryYear >= 1900 &&
       parsedEntryYear <= 9999)
 
+  useEffect(() => {
+    onDirtyChange?.(hasChanges)
+  }, [hasChanges, onDirtyChange])
+  useEffect(() => {
+    onSavingChange?.(saving)
+  }, [saving, onSavingChange])
+
   const save = async () => {
-    if (!hasChanges || !entryYearValid) return
+    if ((!hasChanges && !allowUnchanged) || !entryYearValid) return
     setSaving(true)
     setSaveError(false)
     try {
@@ -265,10 +280,12 @@ export function CourseProfilePanel({
           </Button>
         )}
         <Button
-          disabled={!hasChanges || !entryYearValid || saving}
+          disabled={
+            (!hasChanges && !allowUnchanged) || !entryYearValid || saving
+          }
           type="submit"
         >
-          {saving ? 'Salvando…' : 'Salvar alterações'}
+          {saving ? 'Salvando…' : saveLabel}
         </Button>
       </div>
     </form>

@@ -19,11 +19,10 @@ Com o servidor local ativo, `/_design-system` apresenta os tokens, variantes, es
 
 ## SDK e builds independentes
 
-O frontend usa `@ominira/pomi-sdk` na versão `1.0.0-rc.6`, empacotada em
-`vendor/ominira-pomi-sdk-1.0.0-rc.6.tgz` e fixada no manifesto e no lockfile.
-O pacote foi regenerado a partir do OpenAPI local e ainda não foi publicado no npm. `npm ci` e `npm run build` devem funcionar com apenas o
-checkout do frontend, inclusive na Vercel. Não externalize o SDK no Rollup: ele
-integra o bundle da aplicação.
+O frontend usa a versão publicada de `@ominira/pomi-sdk`, fixada no manifesto
+e no lockfile. `npm ci` e `npm run build` devem funcionar com apenas o checkout
+do frontend, inclusive na Vercel. Não externalize o SDK no Rollup: ele integra
+o bundle da aplicação.
 
 Para desenvolver com o checkout vizinho do SDK, use um vínculo apenas local:
 
@@ -208,8 +207,8 @@ O diálogo de configuração permite remover a configuração de programa explic
 O campo de língua aparece somente quando o programa oferece opções de língua.
 Seleções incompletas permanecem no formulário até poderem ser salvas.
 
-O contrato utiliza o SDK `1.0.0-rc.6` do pacote local versionado, fixado no
-manifesto e no lockfile. O build não depende de um vínculo com o checkout local do SDK.
+O contrato utiliza a versão publicada do SDK, fixada no manifesto e no lockfile.
+O build não depende de um vínculo com o checkout local do SDK.
 
 ## Administração de feedbacks
 
@@ -233,7 +232,5 @@ administração. A categoria antiga Dados acadêmicos continua aceita pela API e
 legível nos relatos existentes, mas não aparece entre as novas escolhas.
 
 Disponibilize o backend com o contrato ampliado antes de disponibilizar o
-frontend. A alteração não exige migration. O tarball versionado permite instalar
-o frontend sem depender do checkout vizinho ou da publicação do SDK. Quando
-`1.0.0-rc.6` for publicado, substitua a dependência local pela versão do registry
-e atualize o lockfile.
+frontend. A alteração não exige migration. O SDK publicado e fixado no lockfile
+permite instalar o frontend sem depender do checkout vizinho.

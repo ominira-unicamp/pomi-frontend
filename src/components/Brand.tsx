@@ -1,21 +1,26 @@
 import { Link } from '@tanstack/react-router'
 
+import { PomiMark } from './PomiMark'
 import { cn } from '@/lib/utils'
 
-export function Brand({ compact = false }: { compact?: boolean }) {
+export function Brand({
+  compact = false,
+  surface = 'sidebar',
+}: {
+  compact?: boolean
+  surface?: 'sidebar' | 'page'
+}) {
   return (
     <Link
       to="/"
       aria-label="POMI — ir para o início"
-      className="pomi-focus inline-flex items-center gap-3 rounded-sm text-sidebar-foreground"
+      className={cn(
+        'pomi-focus inline-flex items-center gap-3 rounded-sm',
+        surface === 'page' ? 'text-foreground' : 'text-sidebar-foreground',
+      )}
     >
       <span className="grid size-11 place-items-center">
-        <img
-          src="/pomi-logo.svg"
-          alt=""
-          className="h-9 w-8"
-          aria-hidden="true"
-        />
+        <PomiMark />
       </span>
       <span
         className={cn(

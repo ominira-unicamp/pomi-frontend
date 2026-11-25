@@ -23,6 +23,7 @@ import { Route as EventosRouteImport } from './routes/eventos'
 import { Route as EditaisDeIntercambioRouteImport } from './routes/editais-de-intercambio'
 import { Route as DisciplinasRouteImport } from './routes/disciplinas'
 import { Route as CursosRouteImport } from './routes/cursos'
+import { Route as BoasVindasRouteImport } from './routes/boas-vindas'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as DesignSystemRouteImport } from './routes/[_]design-system'
 import { Route as IndexRouteImport } from './routes/index'
@@ -137,6 +138,11 @@ const DisciplinasRoute = DisciplinasRouteImport.update({
 const CursosRoute = CursosRouteImport.update({
   id: '/cursos',
   path: '/cursos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BoasVindasRoute = BoasVindasRouteImport.update({
+  id: '/boas-vindas',
+  path: '/boas-vindas',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -385,6 +391,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
   '/admin': typeof AdminRouteWithChildren
+  '/boas-vindas': typeof BoasVindasRoute
   '/cursos': typeof CursosRouteWithChildren
   '/disciplinas': typeof DisciplinasRouteWithChildren
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
@@ -445,6 +452,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
   '/admin': typeof AdminRouteWithChildren
+  '/boas-vindas': typeof BoasVindasRoute
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
   '/minhas-solicitacoes': typeof MinhasSolicitacoesRoute
   '/pessoas': typeof PessoasRoute
@@ -497,6 +505,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_design-system': typeof DesignSystemRoute
   '/admin': typeof AdminRouteWithChildren
+  '/boas-vindas': typeof BoasVindasRoute
   '/cursos': typeof CursosRouteWithChildren
   '/disciplinas': typeof DisciplinasRouteWithChildren
   '/editais-de-intercambio': typeof EditaisDeIntercambioRoute
@@ -559,6 +568,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_design-system'
     | '/admin'
+    | '/boas-vindas'
     | '/cursos'
     | '/disciplinas'
     | '/editais-de-intercambio'
@@ -619,6 +629,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_design-system'
     | '/admin'
+    | '/boas-vindas'
     | '/editais-de-intercambio'
     | '/minhas-solicitacoes'
     | '/pessoas'
@@ -670,6 +681,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_design-system'
     | '/admin'
+    | '/boas-vindas'
     | '/cursos'
     | '/disciplinas'
     | '/editais-de-intercambio'
@@ -731,6 +743,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DesignSystemRoute: typeof DesignSystemRoute
   AdminRoute: typeof AdminRouteWithChildren
+  BoasVindasRoute: typeof BoasVindasRoute
   CursosRoute: typeof CursosRouteWithChildren
   DisciplinasRoute: typeof DisciplinasRouteWithChildren
   EditaisDeIntercambioRoute: typeof EditaisDeIntercambioRoute
@@ -851,6 +864,13 @@ declare module '@tanstack/react-router' {
       path: '/cursos'
       fullPath: '/cursos'
       preLoaderRoute: typeof CursosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/boas-vindas': {
+      id: '/boas-vindas'
+      path: '/boas-vindas'
+      fullPath: '/boas-vindas'
+      preLoaderRoute: typeof BoasVindasRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -1345,6 +1365,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DesignSystemRoute: DesignSystemRoute,
   AdminRoute: AdminRouteWithChildren,
+  BoasVindasRoute: BoasVindasRoute,
   CursosRoute: CursosRouteWithChildren,
   DisciplinasRoute: DisciplinasRouteWithChildren,
   EditaisDeIntercambioRoute: EditaisDeIntercambioRoute,

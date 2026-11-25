@@ -1,6 +1,6 @@
 import { cva } from 'class-variance-authority'
 import type { VariantProps } from 'class-variance-authority'
-import type { HTMLAttributes } from 'react'
+import type { HTMLAttributes, Ref } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -46,7 +46,7 @@ export function SectionHeader({
 export function SectionTitle({
   className,
   ...props
-}: HTMLAttributes<HTMLHeadingElement>) {
+}: HTMLAttributes<HTMLHeadingElement> & { ref?: Ref<HTMLHeadingElement> }) {
   return <h2 className={cn('text-xl font-extrabold', className)} {...props} />
 }
 

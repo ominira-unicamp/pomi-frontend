@@ -82,12 +82,7 @@ import { cn } from '@/lib/utils'
 import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
 
 function displayName(profile: ReturnType<typeof useAuth>['profile']) {
-  return String(
-    profile?.name ||
-      profile?.preferred_username ||
-      profile?.email ||
-      'Conta POMI',
-  )
+  return String(profile?.name || 'Minha conta')
 }
 
 type NavigationItem = Readonly<{
@@ -393,7 +388,8 @@ function MobileActionsMenu() {
 }
 
 function AccountMenu() {
-  const { initialized, isAuthenticated, profile, login, logout } = useAuth()
+  const { initialized, isAuthenticated, profile, login, register, logout } =
+    useAuth()
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   })
@@ -415,14 +411,22 @@ function AccountMenu() {
 
   if (!isAuthenticated) {
     return (
-      <Button
-        variant="ghost"
-        className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-        onClick={() => void login()}
-      >
-        <LogIn />
-        <span className="hidden sm:inline">Entrar</span>
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          onClick={() => void register(window.location.href)}
+        >
+          Criar conta
+        </Button>
+        <Button
+          variant="ghost"
+          className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          onClick={() => void login(window.location.href)}
+        >
+          <LogIn />
+          <span className="hidden sm:inline">Entrar</span>
+        </Button>
+      </div>
     )
   }
 

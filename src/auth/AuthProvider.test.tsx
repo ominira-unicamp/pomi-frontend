@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { AuthProvider, useAuth } from '@/auth/AuthProvider'
 
@@ -7,6 +7,7 @@ const keycloak = vi.hoisted(() => ({
   tokenParsed: undefined as { sub: string } | undefined,
   init: vi.fn<() => Promise<boolean>>(),
   login: vi.fn(),
+  register: vi.fn(),
   logout: vi.fn(),
   clearToken: vi.fn(),
   updateToken: vi.fn(),
@@ -29,6 +30,7 @@ function SessionStatus() {
     <div>
       {auth.initialized ? 'ready' : 'waiting'}:
       {auth.isAuthenticated ? 'authenticated' : 'guest'}
+      <button onClick={() => void auth.register('/cursos')}>Criar conta</button>
     </div>
   )
 }
@@ -87,4 +89,16 @@ it('keeps public content available when silent SSO stalls and clears failed sess
   expect(screen.getByText('ready:guest')).toBeTruthy()
   expect(keycloak.clearToken).toHaveBeenCalledOnce()
   expect(keycloak.logout).not.toHaveBeenCalled()
+})
+
+it('opens registration with a return URL on the frontend origin', () => {
+  render(
+    <AuthProvider>
+      <SessionStatus />
+    </AuthProvider>,
+  )
+  fireEvent.click(screen.getByRole('button', { name: 'Criar conta' }))
+  expect(keycloak.register).toHaveBeenCalledWith({
+    redirectUri: `${window.location.origin}/cursos`,
+  })
 })

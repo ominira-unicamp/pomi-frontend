@@ -109,7 +109,7 @@ export function MyProfileLayout() {
               access="private"
               size="compact"
             />
-            <span>Meu perfil</span>
+            <span>Minha conta</span>
           </span>
         }
         description="Gerencie suas informações públicas e conexões no POMI."
@@ -138,6 +138,22 @@ export function MyProfileLayout() {
           })}
         </div>
       </nav>
+      <div className="mb-4 flex flex-wrap gap-3">
+        <Link
+          to="/situacao-do-curso"
+          search={{ action: 'profile' }}
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          Configurar perfil acadêmico
+        </Link>
+        <Link
+          to="/situacao-do-curso"
+          search={{ tab: 'history', action: 'import' }}
+          className={buttonVariants({ variant: 'outline' })}
+        >
+          Importar histórico
+        </Link>
+      </div>
       <Outlet />
     </PageContainer>
   )

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import type {
   StudentHistoryImportSemester,
@@ -177,15 +177,21 @@ export function LambdaHistoryImportDialog({
   open,
   onOpenChange,
   onResult,
+  onBusyChange,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   onResult: (result: StudentHistoryParseResult) => void
+  onBusyChange?: (busy: boolean) => void
 }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string>()
+
+  useEffect(() => {
+    onBusyChange?.(loading)
+  }, [loading, onBusyChange])
 
   function handleClose(nextOpen: boolean) {
     if (loading) return

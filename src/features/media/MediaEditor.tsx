@@ -36,6 +36,7 @@ export function MediaEditor({
   onChanged,
   variant = 'default',
   onPendingChange,
+  onBusyChange,
 }: {
   label: string
   target: MediaTarget
@@ -45,6 +46,7 @@ export function MediaEditor({
   onChanged: () => void
   variant?: 'default' | 'profile'
   onPendingChange?: (pending: boolean) => void
+  onBusyChange?: (busy: boolean) => void
 }) {
   const profile = variant === 'profile'
   const auth = useOptionalAuth()
@@ -112,6 +114,9 @@ export function MediaEditor({
   useEffect(() => {
     onPendingChange?.(Boolean(file) || busy)
   }, [file, busy, onPendingChange])
+  useEffect(() => {
+    onBusyChange?.(busy)
+  }, [busy, onBusyChange])
   const imageSize = 'size-20'
   const shape = profile ? 'rounded-full' : 'rounded-md'
   const fallback = (

@@ -14,6 +14,7 @@ import type {
   StudentHistoryImportSummary as GeneratedStudentHistoryImportSummary,
   createStudentCourseAttemptsInput,
   createStudentHistoryInput,
+  createStudentsInput,
   updateProfessorEvaluationInput,
   updateStudentCourseAttemptsInput,
   updateStudentsInput,
@@ -291,4 +292,12 @@ export async function setCourseCompleted(
     },
     getAccessToken,
   )
+}
+
+export function createStudentProfile(
+  userId: number,
+  body: createStudentsInput['body'],
+  getAccessToken: () => Promise<string>,
+) {
+  return pomiSdk.app.students.create(userId, body, { getAccessToken })
 }

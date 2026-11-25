@@ -19,6 +19,7 @@ function choice<T extends string>(value: unknown, options: ReadonlyArray<T>) {
 }
 
 export type SituationSearch = {
+  action?: 'profile' | 'import'
   tab?: 'history' | 'curriculum'
   studyPeriodId?: number
   curriculumTab?: 'proposal' | 'dependencies' | 'about'
@@ -28,6 +29,7 @@ export type SituationSearch = {
 
 export function readSituationSearch(search: NavigationSearch): SituationSearch {
   return {
+    action: choice(search.action, ['profile', 'import']),
     tab: choice(search.tab, ['history', 'curriculum']),
     studyPeriodId: readPositiveInteger(search.studyPeriodId),
     curriculumTab: choice(search.curriculumTab, [

@@ -24,3 +24,5 @@ export function useUserContext() {
   return { userId: userQuery.data?.userId, userQuery }
 }
 export { UserIdentityState } from './UserIdentityState'
+
+export { WelcomeGate, WelcomePage } from './Welcome'

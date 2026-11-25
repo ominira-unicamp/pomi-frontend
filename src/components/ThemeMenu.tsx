@@ -18,7 +18,11 @@ const labels: Record<Theme, string> = {
   system: 'Sistema',
 }
 
-export function ThemeMenu() {
+export function ThemeMenu({
+  surface = 'sidebar',
+}: {
+  surface?: 'sidebar' | 'page'
+}) {
   const { theme, resolvedTheme, setTheme } = useTheme()
   const Icon = resolvedTheme === 'dark' ? Moon : Sun
 
@@ -28,7 +32,11 @@ export function ThemeMenu() {
         <Button
           variant="ghost"
           size="icon"
-          className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className={
+            surface === 'page'
+              ? 'text-foreground hover:bg-accent hover:text-accent-foreground'
+              : 'text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground'
+          }
           aria-label={`Tema: ${labels[theme]}`}
         >
           <Icon />
