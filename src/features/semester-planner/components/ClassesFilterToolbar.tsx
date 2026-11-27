@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { Search } from 'lucide-react'
 import type {
   GuideClassContext,
@@ -28,6 +28,8 @@ type FilterKey =
   | 'withoutCompleted'
   | 'withoutIncluded'
   | 'withoutUnavailable'
+  | 'prerequisitesSatisfied'
+  | 'reservationMatched'
 
 export function ClassesFilterToolbar({
   mode,
@@ -35,7 +37,14 @@ export function ClassesFilterToolbar({
   courses,
   guideClassContext,
   onChange,
+  eligibility,
 }: {
+  eligibility?: {
+    prerequisitesReady: boolean
+    reservationsReady: boolean
+    prerequisiteHint: string
+    reservationHint: string
+  }
   mode: 'disciplines' | 'classes'
   filters: ClassesGuideFilters
   courses: ReadonlyArray<SemesterCourse>
@@ -49,6 +58,7 @@ export function ClassesFilterToolbar({
     mode,
     courses,
     guideClassContext,
+    eligibility,
   })
   const controller = useFilterController({
     state: filters,
@@ -131,7 +141,7 @@ export function ClassesFilterToolbar({
           {filterContent}
         </ResponsiveFilterSurface>
       </div>
-      <div className="flex items-center gap-2 overflow-x-auto pb-1">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible">
         <span className="text-xs font-extrabold text-muted-foreground">
           Turno
         </span>
@@ -203,25 +213,47 @@ function QuickFilter({
   active,
   label,
   segmented = false,
+  disabled = false,
+  hint,
   onClick,
 }: {
   active: boolean
   label: string
   segmented?: boolean
+  disabled?: boolean
+  hint?: string
   onClick: () => void
 }) {
+  const hintId = useId()
   return (
-    <Button
+    <span
       className={
         segmented
-          ? 'shrink-0 rounded-none border-0 border-r-2 border-strong-border shadow-none last:border-r-0 hover:translate-x-0 hover:translate-y-0 hover:shadow-none'
-          : 'shrink-0'
+          ? 'relative shrink-0 border-r-2 border-strong-border last:border-r-0'
+          : 'relative shrink-0'
       }
-      size="sm"
-      variant={active ? 'default' : 'outline'}
-      onClick={onClick}
+      title={hint}
     >
-      {label}
-    </Button>
+      <Button
+        className={
+          segmented
+            ? 'shrink-0 rounded-none border-0 shadow-none hover:translate-x-0 hover:translate-y-0 hover:shadow-none'
+            : 'shrink-0'
+        }
+        size="sm"
+        variant={active ? 'default' : 'outline'}
+        aria-pressed={active}
+        aria-describedby={hint ? hintId : undefined}
+        disabled={disabled}
+        onClick={onClick}
+      >
+        {label}
+      </Button>
+      {hint && (
+        <span id={hintId} className="sr-only">
+          {hint}
+        </span>
+      )}
+    </span>
   )
 }

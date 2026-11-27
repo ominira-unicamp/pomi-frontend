@@ -73,7 +73,7 @@ function prerequisiteItemFromApi(
   }
 }
 
-function ruleFromApi(
+export function ruleFromApi(
   course: CurriculumApiCatalogCourse,
 ): CoursePrerequisiteRule {
   return {

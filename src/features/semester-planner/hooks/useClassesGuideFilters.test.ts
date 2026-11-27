@@ -150,3 +150,39 @@ describe('filterClassesGuide', () => {
     ).toEqual([20])
   })
 })
+
+it('applies academic filters independently and ignores them without context', () => {
+  const input = {
+    filters: { ...emptyFilters, prerequisitesSatisfied: true },
+    courses,
+    classes,
+    meetings,
+    selectedClassIds: new Set<number>(),
+    guideClassContext: { courseIds: new Set([1, 2]), prefixes: [] },
+    eligibility: {
+      prerequisitesReady: true,
+      reservationsReady: true,
+      acceptedCourseIds: new Set([1]),
+      matchedClassIds: new Set([20]),
+    },
+  }
+  expect(filterClassesGuide(input).map((item) => item.id)).toEqual([10])
+  expect(
+    filterClassesGuide({
+      ...input,
+      filters: { ...emptyFilters, reservationMatched: true },
+    }).map((item) => item.id),
+  ).toEqual([20])
+  expect(
+    filterClassesGuide({
+      ...input,
+      filters: { ...input.filters, reservationMatched: true },
+    }),
+  ).toEqual([])
+  expect(
+    filterClassesGuide({
+      ...input,
+      eligibility: { ...input.eligibility, prerequisitesReady: false },
+    }),
+  ).toHaveLength(2)
+})

@@ -40,6 +40,9 @@ export type ClassMeeting = Readonly<{
 }>
 
 export type SemesterClass = Readonly<{
+  reservationPrograms?: ReadonlyArray<
+    Readonly<{ id: number; code: number; name: string }>
+  >
   id: number
   code: string
   courseId: number

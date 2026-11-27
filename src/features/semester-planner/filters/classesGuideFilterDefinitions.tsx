@@ -22,10 +22,12 @@ export function classesGuideFilterDefinitions({
   mode,
   courses,
   guideClassContext,
+  eligibility,
 }: {
   mode: 'disciplines' | 'classes'
   courses: ReadonlyArray<SemesterCourse>
   guideClassContext: GuideClassContext
+  eligibility?: { prerequisitesReady: boolean; reservationsReady: boolean }
 }): ReadonlyArray<AnyFilterDefinition<ClassesGuideFilters>> {
   const courseById = new Map(courses.map((course) => [course.id, course]))
   const courseOptions = courses
@@ -131,6 +133,8 @@ export function classesGuideFilterDefinitions({
         ['withoutCompleted', 'Só pendentes'],
         ['withoutIncluded', 'Ocultar adicionadas'],
         ['withoutUnavailable', 'Ocultar sem turmas'],
+        ['prerequisitesSatisfied', 'Pré-requisitos atendidos'],
+        ['reservationMatched', 'Reserva contempla meu curso'],
       ] as const
     ).map(([key, label]) =>
       defineFilter<ClassesGuideFilters, boolean>({
@@ -139,9 +143,13 @@ export function classesGuideFilterDefinitions({
         source: 'local',
         operators: ['eq'],
         isAvailable: () =>
-          key !== 'withoutUnavailable' || mode === 'disciplines',
+          (key !== 'withoutUnavailable' || mode === 'disciplines') &&
+          (key !== 'prerequisitesSatisfied' ||
+            Boolean(eligibility?.prerequisitesReady)) &&
+          (key !== 'reservationMatched' ||
+            Boolean(eligibility?.reservationsReady)),
         editor: { type: 'boolean' },
-        read: (state) => state[key],
+        read: (state) => Boolean(state[key]),
         update: (state, value) => ({ ...state, [key]: value }),
         clear: (state) => ({ ...state, [key]: false }),
         isActive: Boolean,

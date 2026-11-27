@@ -25,6 +25,8 @@ export type ClassesGuideFilters = Readonly<{
   withoutConflict: boolean
   withoutCompleted: boolean
   withoutIncluded: boolean
+  prerequisitesSatisfied?: boolean
+  reservationMatched?: boolean
   withoutUnavailable: boolean
 }>
 
@@ -48,6 +50,8 @@ const emptyFilters: ClassesGuideFilters = {
   withoutConflict: false,
   withoutCompleted: false,
   withoutIncluded: false,
+  prerequisitesSatisfied: false,
+  reservationMatched: false,
   withoutUnavailable: false,
 }
 
@@ -82,6 +86,7 @@ export function filterClassesGuide({
   selectedClassIds,
   completedCourseIds = new Set(),
   guideClassContext,
+  eligibility,
 }: {
   filters: ClassesGuideFilters
   courses: ReadonlyArray<SemesterCourse>
@@ -90,6 +95,12 @@ export function filterClassesGuide({
   selectedClassIds: ReadonlySet<number>
   completedCourseIds?: ReadonlySet<number>
   guideClassContext: GuideClassContext
+  eligibility?: {
+    prerequisitesReady: boolean
+    reservationsReady: boolean
+    acceptedCourseIds: ReadonlySet<number>
+    matchedClassIds: ReadonlySet<number>
+  }
 }) {
   const courseById = new Map(courses.map((course) => [course.id, course]))
   const selectedClasses = classes.filter((classItem) =>
@@ -106,6 +117,18 @@ export function filterClassesGuide({
   })
   return classes.filter((classItem) => {
     if (!matchesGuideClass(classItem, guideClassContext)) return false
+    if (
+      filters.prerequisitesSatisfied &&
+      eligibility?.prerequisitesReady &&
+      !eligibility.acceptedCourseIds.has(classItem.courseId)
+    )
+      return false
+    if (
+      filters.reservationMatched &&
+      eligibility?.reservationsReady &&
+      !eligibility.matchedClassIds.has(classItem.id)
+    )
+      return false
     if (
       !matchesClassSearch({
         query: filters.search,

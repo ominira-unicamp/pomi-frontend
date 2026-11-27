@@ -15,6 +15,7 @@ import { pomiSdk } from '@/api/client'
 import { publicStaticDataCache } from '@/lib/publicStaticDataCache'
 
 type ApiClass = Readonly<{
+  reservationPrograms?: SemesterClass['reservationPrograms']
   id: number
   code: string
   courseId: number
@@ -73,7 +74,7 @@ let professorEvaluationSummariesRefreshed = false
 
 const studyPeriodsCacheKey = 'semester-planner:study-periods'
 const coursesCacheKey = 'semester-planner:courses'
-const classesCachePrefix = 'semester-planner:classes:v2:'
+const classesCachePrefix = 'semester-planner:classes:v3:'
 const meetingsCachePrefix = 'semester-planner:meetings:'
 const professorEvaluationSummariesCacheKey =
   'semester-planner:professor-evaluation-summaries'
@@ -323,6 +324,7 @@ export async function loadSemesterPlannerStaticData(
         courseId: item.courseId,
         courseCode: item.courseCode,
         professors: item.professors,
+        reservationPrograms: item.reservationPrograms,
       }),
     ),
     meetings,

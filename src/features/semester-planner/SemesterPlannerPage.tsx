@@ -16,6 +16,11 @@ import {
   catalogProgramVariantForSelection,
   suggestionLabel,
 } from '@pomi/planner-domain/curriculum'
+import {
+  SemesterEligibilityDetails,
+  SemesterPrerequisiteDetails,
+} from './components/SemesterEligibilityDetails'
+import { useSemesterEligibility } from './hooks/useSemesterEligibility'
 import type {
   GuideChanges,
   GuideMode,
@@ -201,6 +206,20 @@ export function SemesterPlannerPage({
     guideCurriculumId,
     anonymousCatalogProgramId,
     planningId,
+  })
+
+  const eligibility = useSemesterEligibility({
+    data: query.data,
+    catalogId: studentProfileQuery.isError
+      ? undefined
+      : studentProfileQuery.data?.catalogId,
+    programId: studentProfileQuery.isError
+      ? undefined
+      : studentProfileQuery.data?.programId,
+    attempts: courseAttemptsQuery.isError
+      ? undefined
+      : courseAttemptsQuery.data,
+    studyPeriodId,
   })
 
   const professorEvaluationSummaries = useMemo(
@@ -570,6 +589,7 @@ export function SemesterPlannerPage({
       selectedClassIds: selectedIds,
       completedCourseIds,
       guideClassContext,
+      eligibility,
     })
     const disciplineGuideClasses = filterClassesGuide({
       filters: { ...filters, courseId: '' },
@@ -579,6 +599,7 @@ export function SemesterPlannerPage({
       selectedClassIds: selectedIds,
       completedCourseIds,
       guideClassContext,
+      eligibility,
     })
     const courseClassAvailability = buildCourseClassAvailability({
       classes: query.data.classes,
@@ -604,9 +625,23 @@ export function SemesterPlannerPage({
       filters.days.length ||
       filters.withoutConflict ||
       filters.withoutCompleted ||
-      filters.withoutIncluded,
+      filters.withoutIncluded ||
+      filters.prerequisitesSatisfied ||
+      filters.reservationMatched,
     )
     const disciplineMatchesFilters = (course: SemesterCourse) => {
+      if (
+        filters.prerequisitesSatisfied &&
+        eligibility.prerequisitesReady &&
+        !eligibility.acceptedCourseIds.has(course.id)
+      )
+        return false
+      if (
+        filters.reservationMatched &&
+        eligibility.reservationsReady &&
+        !matchingCourseIds.has(course.id)
+      )
+        return false
       if (matchingCourseIds.has(course.id)) return true
       if (filters.withoutCompleted && completedCourseIds.has(course.id))
         return false
@@ -720,6 +755,7 @@ export function SemesterPlannerPage({
     anonymousCurriculumDataQuery.data,
     anonymousSuggestionCourseIds,
     completedCourseIds,
+    eligibility,
     curriculumQuery.data,
     document.classIds,
     filters,
@@ -1351,6 +1387,9 @@ export function SemesterPlannerPage({
                   </span>
                 )}
               </button>
+              <SemesterPrerequisiteDetails
+                result={eligibility.prerequisites.get(course.id)}
+              />
             </div>
           ))}
         </div>
@@ -1390,6 +1429,9 @@ export function SemesterPlannerPage({
                   <span className="block truncate" title={course.name}>
                     {course.name}
                   </span>
+                  <SemesterPrerequisiteDetails
+                    result={eligibility.prerequisites.get(course.id)}
+                  />
                   {classAvailabilityStatus(course.id) && (
                     <span className="block truncate font-semibold">
                       {classAvailabilityStatus(course.id)}
@@ -1439,6 +1481,9 @@ export function SemesterPlannerPage({
             <span className="block">{classAvailabilityStatus(course.id)}</span>
           )}
         </button>
+        <SemesterPrerequisiteDetails
+          result={eligibility.prerequisites.get(course.id)}
+        />
       </div>
       <button
         type="button"
@@ -1499,6 +1544,9 @@ export function SemesterPlannerPage({
                   <span className="block truncate" title={course.name}>
                     {course.name}
                   </span>
+                  <SemesterPrerequisiteDetails
+                    result={eligibility.prerequisites.get(course.id)}
+                  />
                   {classAvailabilityStatus(course.id) && (
                     <span className="block truncate font-semibold">
                       {classAvailabilityStatus(course.id)}
@@ -1627,6 +1675,7 @@ export function SemesterPlannerPage({
           <ClassesFilterToolbar
             mode={guideTab}
             filters={filters}
+            eligibility={eligibility}
             courses={query.data.courses}
             guideClassContext={guideClassContext}
             onChange={updateFilters}
@@ -1871,6 +1920,7 @@ export function SemesterPlannerPage({
                   meetings={query.data.meetings}
                   selectedClassIds={new Set(document.classIds)}
                   professorEvaluationSummaries={professorEvaluationSummaries}
+                  eligibility={eligibility}
                   onDispatch={(command) => void dispatch(command)}
                   onPreview={setPreviewClassId}
                   onSelectedClassClick={setSelectedClassDetailsId}
@@ -1987,6 +2037,15 @@ export function SemesterPlannerPage({
                                     </Button>
                                   )}
                                 </div>
+                                <SemesterEligibilityDetails
+                                  prerequisite={eligibility.prerequisites.get(
+                                    classItem.courseId,
+                                  )}
+                                  reservation={eligibility.reservations.get(
+                                    classItem.id,
+                                  )}
+                                  programs={classItem.reservationPrograms}
+                                />
                                 <ul className="space-y-1 text-xs text-muted-foreground">
                                   {meetings.map((meeting) => (
                                     <li key={meeting.id}>
@@ -2235,6 +2294,7 @@ export function SemesterPlannerPage({
             : []
         }
         professorEvaluationSummaries={professorEvaluationSummaries}
+        eligibility={eligibility}
         onOpenChange={(open) => {
           if (!open) setSelectedClassDetailsId(undefined)
         }}

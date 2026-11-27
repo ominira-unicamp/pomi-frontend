@@ -1,4 +1,9 @@
 import { scheduleDays as days } from '@pomi/planner-domain/semester'
+import { SemesterEligibilityDetails } from './SemesterEligibilityDetails'
+import type {
+  PrerequisiteResult,
+  ReservationResult,
+} from '../model/semesterEligibility'
 import type {
   ClassMeeting,
   SemesterClass,
@@ -20,6 +25,7 @@ export function SelectedClassDialog({
   course,
   meetings,
   professorEvaluationSummaries,
+  eligibility,
   onOpenChange,
   onShowAlternatives,
   onRemove,
@@ -27,6 +33,10 @@ export function SelectedClassDialog({
   classItem?: SemesterClass
   course?: SemesterCourse
   meetings: ReadonlyArray<ClassMeeting>
+  eligibility?: {
+    prerequisites: ReadonlyMap<number, PrerequisiteResult>
+    reservations: ReadonlyMap<number, ReservationResult>
+  }
   professorEvaluationSummaries: ReadonlyMap<number, ProfessorEvaluationSummary>
   onOpenChange: (open: boolean) => void
   onShowAlternatives: (courseId: number) => void
@@ -43,6 +53,13 @@ export function SelectedClassDialog({
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
+              <SemesterEligibilityDetails
+                prerequisite={eligibility?.prerequisites.get(
+                  classItem.courseId,
+                )}
+                reservation={eligibility?.reservations.get(classItem.id)}
+                programs={classItem.reservationPrograms}
+              />
               {course && (
                 <p className="text-sm text-muted-foreground">
                   {course.name} · {course.credits} créditos

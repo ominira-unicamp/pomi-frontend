@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react'
 import { scheduleDays as days } from '@pomi/planner-domain/semester'
+import { SemesterEligibilityDetails } from './SemesterEligibilityDetails'
+import type {
+  PrerequisiteResult,
+  ReservationResult,
+} from '../model/semesterEligibility'
 import type {
   ClassMeeting,
   SemesterClass,
@@ -18,6 +23,7 @@ export function ClassesGuidePanel({
   meetings,
   selectedClassIds,
   professorEvaluationSummaries,
+  eligibility,
   onDispatch,
   onPreview,
   onSelectedClassClick,
@@ -27,6 +33,10 @@ export function ClassesGuidePanel({
   allClasses: ReadonlyArray<SemesterClass>
   meetings: ReadonlyArray<ClassMeeting>
   selectedClassIds: ReadonlySet<number>
+  eligibility?: {
+    prerequisites: ReadonlyMap<number, PrerequisiteResult>
+    reservations: ReadonlyMap<number, ReservationResult>
+  }
   professorEvaluationSummaries: ReadonlyMap<number, ProfessorEvaluationSummary>
   onDispatch: (command: SemesterPlannerCommand) => void
   onPreview: (classId: number | undefined) => void
@@ -139,6 +149,11 @@ export function ClassesGuidePanel({
                     : 'Adicionar'}
               </Button>
             </div>
+            <SemesterEligibilityDetails
+              prerequisite={eligibility?.prerequisites.get(classItem.courseId)}
+              reservation={eligibility?.reservations.get(classItem.id)}
+              programs={classItem.reservationPrograms}
+            />
             {hasConflict && !selected && (
               <p className="text-xs font-bold text-chart-4">
                 Conflita com uma turma selecionada
