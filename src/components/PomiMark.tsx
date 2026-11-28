@@ -1,0 +1,45 @@
+export function PomiMark() {
+  return (
+    <svg
+      className="h-9 w-8"
+      aria-hidden="true"
+      viewBox="0 0 118 130"
+      fill="none"
+    >
+      <circle
+        cx="58.7917"
+        cy="65"
+        r="45"
+        stroke="currentColor"
+        className="text-primary"
+        strokeWidth="10"
+      />
+      <path
+        d="M58.7917 0L66.2917 12.9904H51.2917L58.7917 0Z"
+        fill="currentColor"
+      />
+      <path
+        d="M58.7917 130L51.2917 117.01H66.2917L58.7917 130Z"
+        fill="currentColor"
+      />
+      <path
+        d="M2.50006 32.5L17.5001 32.5L10.0001 45.4904L2.50006 32.5Z"
+        fill="currentColor"
+      />
+      <path
+        d="M115.083 97.5L100.083 97.5L107.583 84.5096L115.083 97.5Z"
+        fill="currentColor"
+      />
+      <path
+        d="M115.083 32.5L107.583 45.4904L100.083 32.5L115.083 32.5Z"
+        fill="currentColor"
+      />
+      <path d="M2.5 97.5L10 84.5096L17.5 97.5L2.5 97.5Z" fill="currentColor" />
+      <path
+        d="M88.4323 47.8857V82.1133L58.7917 99.2256L29.1511 82.1133V47.8857L58.7917 30.7734L88.4323 47.8857Z"
+        stroke="currentColor"
+        strokeWidth="10"
+      />
+    </svg>
+  )
+}

@@ -17,3 +17,11 @@ playground-temp
 temp
 TODOs.md
 .eslintcache
+.env
+docs
+
+/.playwright-cli/
+/output/playwright/
+/playwright-report/
+/test-results/
+/blob-report/

@@ -1,34 +1,46 @@
-import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
-import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
-import { TanStackDevtools } from '@tanstack/react-devtools'
-
-import Header from '../components/Header'
-
-import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
-
+import { Outlet, createRootRouteWithContext, useRouterState } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
 
-interface MyRouterContext {
+import { WelcomeGate } from '@/workflows/onboarding'
+import { NavigationContextProvider } from '@/app/navigation/NavigationContext'
+import { AppShell } from '@/components/AppShell'
+import { ErrorState, PageContainer } from '@/components/PageLayout'
+
+interface RouterContext {
   queryClient: QueryClient
 }
 
-export const Route = createRootRouteWithContext<MyRouterContext>()({
-  component: () => (
-    <>
-      <Header />
-      <Outlet />
-      <TanStackDevtools
-        config={{
-          position: 'bottom-right',
-        }}
-        plugins={[
-          {
-            name: 'Tanstack Router',
-            render: <TanStackRouterDevtoolsPanel />,
-          },
-          TanStackQueryDevtools,
-        ]}
-      />
-    </>
-  ),
+export const Route = createRootRouteWithContext<RouterContext>()({
+  component: RootComponent,
+  notFoundComponent: NotFoundPage,
 })
+
+function RootComponent() {
+  const standalone = useRouterState({
+    select: (state) =>
+      state.location.pathname.replace(/\/$/, '') === '/boas-vindas',
+  })
+  return (
+    <NavigationContextProvider>
+      <WelcomeGate />
+      {standalone ? (
+        <Outlet />
+      ) : (
+        <AppShell>
+          <Outlet />
+        </AppShell>
+      )}
+    </NavigationContextProvider>
+  )
+}
+
+function NotFoundPage() {
+  return (
+    <PageContainer>
+      <ErrorState
+        title="Página não encontrada"
+        description="O endereço informado não pertence ao POMI."
+      />
+    </PageContainer>
+  )
+}
