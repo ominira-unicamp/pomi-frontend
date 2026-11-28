@@ -1,11 +1,8 @@
-import type { SituationSearch, NavigationOptions } from '@/lib/navigation'
 import { catalogProgramVariantForSelection } from '@pomi/planner-domain/curriculum'
 import { PersonalCurriculumExplorer } from './PersonalCurriculumExplorer'
+import type { NavigationOptions, SituationSearch } from '@/lib/navigation'
 import type { CurriculumPlannerStaticData } from '@pomi/planner-domain/curriculum'
-import type {
-  StudentCourseAttempt,
-  StudentProfile,
-} from '@/features/student/data/studentApi'
+import type { StudentCourseAttempt, StudentProfile } from '@/academic-record/data/studentApi'
 import { InlineMessage } from '@/components/patterns/InlineMessage'
 import { EmptyState, ErrorState, LoadingState } from '@/components/PageLayout'
 

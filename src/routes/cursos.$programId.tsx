@@ -1,9 +1,6 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
-import type {
-  CatalogProgramNavigationOptions,
-  CatalogProgramSearch,
-} from '@/features/catalog-program'
+import type { CatalogProgramNavigationOptions, CatalogProgramSearch } from '@/features/catalog-program'
 import { CatalogProgramPage } from '@/features/catalog-program'
 
 export const Route = createFileRoute('/cursos/$programId')({

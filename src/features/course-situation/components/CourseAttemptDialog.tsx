@@ -1,10 +1,5 @@
 import { evaluationModes, statusesByEvaluationMode } from '../model/model'
-import type {
-  StudentCourseAttemptClass,
-  StudentCourseAttemptStatus,
-  StudentCourseEvaluationMode,
-  StudyPeriod,
-} from '@/features/student/data/studentApi'
+import type { StudentCourseAttemptClass, StudentCourseAttemptStatus, StudentCourseEvaluationMode, StudyPeriod } from '@/academic-record/data/studentApi'
 import type { Course } from '@pomi/planner-domain/curriculum'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Field, FieldError, FieldLabel } from '@/components/patterns/Field'
@@ -12,8 +7,8 @@ import { InlineMessage } from '@/components/patterns/InlineMessage'
 import { ResponsiveDialog } from '@/components/patterns/ResponsiveDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { mostRecentStudyPeriodsFirst } from '@/features/student/data/studyPeriodOrdering'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
+import { mostRecentStudyPeriodsFirst } from '@/catalog/model/studyPeriodOrdering'
+import { studyPeriodLabel } from '@/catalog/model/studyPeriod'
 
 export type CourseAttemptFormState = Readonly<{
   editingAttemptId?: number

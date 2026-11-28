@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
-
-import { expectApiResponse } from './errors'
+import { expectApiResponse } from '@/api/errors'
 
 describe('API errors', () => {
   it('preserves backend problem details and validation fields', async () => {

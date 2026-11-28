@@ -1,41 +1,24 @@
-import { useNavigationContext } from '@/components/NavigationContext'
-import { navigationHref } from '@/lib/navigation'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Bell, BellOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import type { ExchangeNoticeSubscription } from '@/features/exchange/data/exchangeApi'
+import { navigationHref } from '@/lib/navigation'
+import { useNavigationContext } from '@/app/navigation/NavigationContext'
 import { ApiError } from '@/api/errors'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { ContextBackLink } from '@/components/ContextBackLink'
-import {
-  ErrorState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { ErrorState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Card } from '@/components/ui/card'
 import { ActionBar } from '@/components/patterns/ActionBar'
-import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from '@/components/patterns/Field'
+import { Field, FieldDescription, FieldLabel } from '@/components/patterns/Field'
 import { InlineMessage } from '@/components/patterns/InlineMessage'
 import { SearchableMultiSelect } from '@/components/patterns/SearchableMultiSelect'
-import {
-  buildExchangeSubscriptionPatch,
-  getExchangeNoticeSubscription,
-  listExchangePlaces,
-  patchExchangeNoticeSubscription,
-} from '@/features/exchange/data/exchangeApi'
+import { buildExchangeSubscriptionPatch, getExchangeNoticeSubscription, listExchangePlaces, patchExchangeNoticeSubscription } from '@/features/exchange/data/exchangeApi'
 import { useUserContext } from '@/features/identity'
-import {
-  privateQueryKeys,
-  publicQueryKeys,
-} from '@/integrations/tanstack-query/queryKeys'
+import { privateQueryKeys, publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 function subscriptionErrorMessage(error: unknown) {
   if (error instanceof ApiError && error.status === 422) {

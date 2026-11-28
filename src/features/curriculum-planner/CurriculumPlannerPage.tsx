@@ -1,100 +1,40 @@
-import {
-  DndContext,
-  DragOverlay,
-  KeyboardSensor,
-  MeasuringStrategy,
-  PointerSensor,
-  TouchSensor,
-  closestCenter,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core'
-import {
-  History,
-  LayoutGrid,
-  MoreHorizontal,
-  Network,
-  Pencil,
-  Plus,
-  RotateCcw,
-  Save,
-  Star,
-  Trash2,
-} from 'lucide-react'
+import { DndContext, DragOverlay, KeyboardSensor, MeasuringStrategy, PointerSensor, TouchSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
+import { History, LayoutGrid, MoreHorizontal, Network, Pencil, Plus, RotateCcw, Save, Star, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import {
-  catalogProgramVariantForSelection,
-  evaluatePrerequisites,
-  periodTitle,
-} from '@pomi/planner-domain/curriculum'
+import { catalogProgramVariantForSelection, evaluatePrerequisites, periodTitle } from '@pomi/planner-domain/curriculum'
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
 
-import type {
-  CoursePrerequisiteResolver,
-  PlannerDragData,
-} from '@/features/curriculum-planner/components/CourseCard'
-import type {
-  CourseId,
-  CurriculumCourseState,
-  PlanningPeriodId,
-} from '@pomi/planner-domain/curriculum'
-import {
-  ErrorState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import type { CoursePrerequisiteResolver, PlannerDragData } from '@/features/curriculum-planner/components/CourseCard'
+import type { CourseId, CurriculumCourseState, PlanningPeriodId } from '@pomi/planner-domain/curriculum'
+import { ErrorState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { CurriculumBlocksPanel } from '@/features/curriculum-planner/components/CurriculumBlocksPanel'
 import { CourseDetailsDialog } from '@/features/curriculum-planner/components/CourseDetailsDialog'
 import { ClearPlanningDialog } from '@/features/curriculum-planner/components/ClearPlanningDialog'
 import { ActionTooltip } from '@/features/curriculum-planner/components/ActionTooltip'
-import { SaveDraftDialog } from '@/features/planning-shared/components/SaveDraftDialog'
-import {
-  DeleteCurriculumDialog,
-  RenameCurriculumDialog,
-} from '@/features/curriculum-planner/components/CurriculumPlanActions'
+import { SaveDraftDialog } from '@/planning-drafts/components/SaveDraftDialog'
+import { DeleteCurriculumDialog, RenameCurriculumDialog } from '@/features/curriculum-planner/components/CurriculumPlanActions'
 import { CurriculumSelectionFields } from '@/features/curriculum-planner/components/CurriculumSelection'
-import {
-  ChangeSuggestionDialog,
-  StudentHistoryImportDialog,
-  SuggestionOnboardingPanel,
-} from '@/features/curriculum-planner/components/CurriculumSuggestion'
+import { ChangeSuggestionDialog, StudentHistoryImportDialog, SuggestionOnboardingPanel } from '@/features/curriculum-planner/components/CurriculumSuggestion'
 import { PlanningStartDialog } from '@/features/curriculum-planner/components/PlanningStartDialog'
 import { CurriculumPlanningSelection } from '@/features/curriculum-planner/components/CurriculumPlanningSelection'
-import {
-  SemesterRow,
-  UnallocatedCoursesPanel,
-} from '@/features/curriculum-planner/components/SemesterBoard'
+import { SemesterRow, UnallocatedCoursesPanel } from '@/features/curriculum-planner/components/SemesterBoard'
 import { CompactVisual } from '@/features/curriculum-planner/components/CourseCard'
 import { PrerequisiteGraph } from '@/features/curriculum-planner/components/PrerequisiteGraph'
-import { PrerequisiteTreeView } from '@/features/curriculum-planner/components/PrerequisiteTreeView'
-import { suggestionOnboardingPreferenceKey } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
+import { PrerequisiteTreeView } from '@/catalog/components/PrerequisiteTreeView'
+import { suggestionOnboardingPreferenceKey } from '@/catalog/data/curriculumSuggestionApi'
 import { useCurriculumPlanner } from '@/features/curriculum-planner/CurriculumPlannerProvider'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import { saveDraftHandoff } from '@/features/planning-shared/data/planningDraftHandoff'
+import { saveDraftHandoff } from '@/planning-drafts/data/planningDraftHandoff'
 import { buildPlannerViewModel } from '@/features/curriculum-planner/viewModel'
 import { commandForCourseDrop } from '@/features/curriculum-planner/dnd'
-import {
-  CurrentCatalogUnavailableError,
-  currentCatalogYear,
-  loadCatalogPrerequisites,
-} from '@/features/curriculum-planner/data/curriculumPrerequisiteApi'
-import {
-  curriculumPlannerErrorText,
-  curriculumPlanningName,
-} from '@/features/curriculum-planner/model/presentation'
+import { CurrentCatalogUnavailableError, currentCatalogYear, loadCatalogPrerequisites } from '@/catalog/data/curriculumPrerequisiteApi'
+import { curriculumPlannerErrorText, curriculumPlanningName } from '@/features/curriculum-planner/model/presentation'
 
 const dragMeasuring = {
   droppable: { strategy: MeasuringStrategy.BeforeDragging },
@@ -495,6 +435,11 @@ export function CurriculumPlannerPage({
   }
   return (
     <PageContainer>
+      {planner.actionError && (
+        <p role="alert" className="mb-3 text-sm text-destructive">
+          {planner.actionError}
+        </p>
+      )}
       <PageHeader
         compact
         eyebrow="Planejamento acadêmico"
@@ -513,6 +458,16 @@ export function CurriculumPlannerPage({
         }
         actions={
           <>
+            {planner.saveStatus === 'error' && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  void planner.retry()
+                }}
+              >
+                Tentar salvar novamente
+              </Button>
+            )}
             {!planner.activeCurriculumId && curriculumId === 'rascunho' && (
               <ActionTooltip content="Entre para salvar este rascunho na sua conta.">
                 <Button

@@ -1,17 +1,16 @@
 import { describe, expect, it } from 'vitest'
-
+import type {
+  ClassMeeting,
+  SemesterClass,
+  SemesterCourse,
+} from '@pomi/planner-domain/semester'
 import {
   buildCourseClassAvailability,
   buildDetailedScheduleConflicts,
   buildSemesterPlannerSummary,
   classConflictsWithSelection,
   matchesClassSearch,
-} from './semesterPlannerView'
-import type {
-  ClassMeeting,
-  SemesterClass,
-  SemesterCourse,
-} from '@pomi/planner-domain/semester'
+} from '@/features/semester-planner/model/semesterPlannerView'
 
 const courses: ReadonlyArray<SemesterCourse> = [
   { id: 1, code: 'MC102', name: 'Algoritmos', credits: 6 },

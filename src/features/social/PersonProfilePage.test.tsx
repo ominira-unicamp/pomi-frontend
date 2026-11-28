@@ -1,11 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { PersonProfilePage } from './PersonProfilePage'
@@ -60,7 +54,7 @@ vi.mock('@tanstack/react-router', () => ({
   ),
 }))
 vi.mock('@/auth/AuthProvider', () => ({ useOptionalAuth: () => mocks.auth }))
-vi.mock('@/features/media/mediaApi', () => ({
+vi.mock('@/media/mediaApi', () => ({
   mediaUrl: (id: string, preset: string) => `/media/${id}/${preset}`,
   readPrivateMedia: mocks.readPrivateMedia,
 }))
@@ -74,7 +68,7 @@ vi.mock('@/features/identity', () => ({
     userQuery: { isLoading: false },
   }),
 }))
-vi.mock('@/features/friends/userSocialApi', () => ({
+vi.mock('@/social-profile/data/userSocialApi', () => ({
   getPerson: mocks.getPerson,
   getPublicProfile: mocks.getPublicProfile,
   listFriendships: mocks.listFriendships,

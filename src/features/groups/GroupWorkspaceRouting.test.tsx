@@ -1,9 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import {
-  RouterProvider,
-  createMemoryHistory,
-  createRouter,
-} from '@tanstack/react-router'
+import { RouterProvider, createMemoryHistory, createRouter } from '@tanstack/react-router'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, expect, it, vi } from 'vitest'
 import type { ReactNode } from 'react'
@@ -32,6 +28,10 @@ vi.mock('@/components/AppShell', () => ({
 vi.mock('@/auth/AuthProvider', () => ({ useOptionalAuth: () => mocks.auth }))
 vi.mock('@/features/identity', () => ({
   useUserContext: () => mocks.student,
+}))
+vi.mock('@/workflows/onboarding', () => ({
+  WelcomeGate: () => null,
+  WelcomePage: () => null,
 }))
 vi.mock('./data/groupApi', () => ({ groupApi: mocks }))
 vi.mock('@/api/client', () => ({

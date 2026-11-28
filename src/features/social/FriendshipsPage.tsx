@@ -7,11 +7,7 @@ import { useOptionalAuth } from '@/auth/AuthProvider'
 import { LoadingState, PageContainer } from '@/components/PageLayout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  acceptFriendship,
-  listFriendships,
-  removeFriendship,
-} from '@/features/friends/userSocialApi'
+import { acceptFriendship, listFriendships, removeFriendship } from '@/social-profile/data/userSocialApi'
 import { useUserContext } from '@/features/identity'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 

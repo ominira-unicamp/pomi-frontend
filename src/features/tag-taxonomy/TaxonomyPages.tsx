@@ -1,47 +1,17 @@
 import { useQuery } from '@tanstack/react-query'
-import { ContextLink as Link } from '@/components/NavigationContext'
-import {
-  ChevronDown,
-  ChevronRight,
-  GraduationCap,
-  Layers3,
-  Pencil,
-  Search,
-  Tags,
-} from 'lucide-react'
+import { ChevronDown, ChevronRight, GraduationCap, Layers3, Pencil, Search, Tags } from 'lucide-react'
 import { useId, useMemo, useState } from 'react'
-import {
-  getTag,
-  listCategories,
-  listTagCoursesPage,
-  listTags,
-} from './data/tagTaxonomyApi'
+import { getTag, listCategories, listTagCoursesPage, listTags } from './data/tagTaxonomyApi'
 import { taxonomyKeys } from './data/tagTaxonomyQueries'
 import { buildTagTree } from './data/tagTaxonomyTree'
-import {
-  normalizeTagSearch,
-  tagAncestors,
-  tagPath,
-} from './data/tagTaxonomyNavigation'
-import {
-  InterestControl,
-  InterestFeedback,
-  useTaxonomyInterests,
-} from './useTaxonomyInterests'
-import type {
-  TagDetailsSearch,
-  TaxonomySearch,
-} from './data/tagTaxonomyNavigation'
+import { normalizeTagSearch, tagAncestors, tagPath } from './data/tagTaxonomyNavigation'
+import { InterestControl, InterestFeedback, useTaxonomyInterests } from './useTaxonomyInterests'
+import type { TagDetailsSearch, TaxonomySearch } from './data/tagTaxonomyNavigation'
 import type { Tag } from './data/tagTaxonomyApi'
 import type { ReactNode } from 'react'
 import type { TagTreeNode } from './data/tagTaxonomyTree'
-import {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { ContextLink as Link } from '@/app/navigation/NavigationContext'
+import { EmptyState, ErrorState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -50,13 +20,7 @@ import { ContextBackLink } from '@/components/ContextBackLink'
 import { AppliedFilters } from '@/components/patterns/AppliedFilters'
 import { Field, FieldLabel } from '@/components/patterns/Field'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 function useTaxonomy() {
   const categories = useQuery({

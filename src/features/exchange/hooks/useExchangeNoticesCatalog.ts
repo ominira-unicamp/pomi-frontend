@@ -1,18 +1,10 @@
-import { readExchangeSearch } from '@/lib/navigation'
-import type { ExchangeSearch, NavigationOptions } from '@/lib/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { useEffect, useMemo, useState } from 'react'
-
+import type { ExchangeSearch, NavigationOptions } from '@/lib/navigation'
 import type { ExchangeNoticeFilters } from '@/features/exchange/data/exchangeNotices'
-import {
-  listExchangeNotices,
-  listExchangePlaces,
-} from '@/features/exchange/data/exchangeApi'
-import {
-  buildExchangeNoticeQuery,
-  defaultExchangeNoticeFilters,
-  processExchangeNotices,
-} from '@/features/exchange/data/exchangeNotices'
+import { readExchangeSearch } from '@/lib/navigation'
+import { listExchangeNotices, listExchangePlaces } from '@/features/exchange/data/exchangeApi'
+import { buildExchangeNoticeQuery, defaultExchangeNoticeFilters, processExchangeNotices } from '@/features/exchange/data/exchangeNotices'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 const pageSize = 20
@@ -31,7 +23,8 @@ export function useExchangeNoticesCatalog(
       ...defaultExchangeNoticeFilters,
       ...Object.fromEntries(
         Object.entries(currentSearch).filter(
-          ([key, value]) => key !== 'page' && value !== undefined,
+          ([key, value]: [string, unknown]) =>
+            key !== 'page' && value !== undefined,
         ),
       ),
     }),
@@ -88,8 +81,8 @@ export function useExchangeNoticesCatalog(
   const page = noticesQuery.isSuccess
     ? Math.min(requestedPage, totalPages)
     : requestedPage
-  const setPage = (page: number) =>
-    changeSearch(readExchangeSearch({ ...currentSearch, page }))
+  const setPage = (nextPage: number) =>
+    changeSearch(readExchangeSearch({ ...currentSearch, page: nextPage }))
   const visible = processed.slice((page - 1) * pageSize, page * pageSize)
 
   const changeFilters = (next: ExchangeNoticeFilters) => {

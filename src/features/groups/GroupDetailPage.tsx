@@ -6,15 +6,10 @@ import { groupApi } from './data/groupApi'
 import { canOrganizeEvents } from './groupNavigation'
 import { EventCard, formatEventDate } from './presentation'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import {
-  ErrorState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { ErrorState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { buttonVariants } from '@/components/ui/button'
 import { useUserContext } from '@/features/identity'
-import { GroupAvatar, PersonAvatar } from '@/features/media/IdentityImages'
+import { GroupAvatar, PersonAvatar } from '@/media/IdentityImages'
 
 export function GroupDetailPage({ groupId }: { groupId: number }) {
   const auth = useOptionalAuth()

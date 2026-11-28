@@ -3,42 +3,21 @@ import { Link, useBlocker } from '@tanstack/react-router'
 import { Eye, EyeOff, Tags, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
-import type {
-  PublicProfile,
-  PublicProfileUpdate,
-} from '@/features/friends/userSocialApi'
+import type { PublicProfile, PublicProfileUpdate } from '@/social-profile/data/userSocialApi'
 import { UserIdentityState } from '@/features/identity/UserIdentityState'
-import { invalidateIdentityImages } from '@/features/media/invalidateMedia'
+import { invalidateIdentityImages } from '@/integrations/tanstack-query/invalidateIdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import {
-  EmptyState,
-  LoadingState,
-  PageContainer,
-} from '@/components/PageLayout'
+import { EmptyState, LoadingState, PageContainer } from '@/components/PageLayout'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import {
-  deleteUserInterest,
-  listUserInterests,
-  putUserInterest,
-} from '@/features/student-interests/data/studentTagInterestApi'
+import { deleteUserInterest, listUserInterests, putUserInterest } from '@/features/student-interests/data/studentTagInterestApi'
 import { listTags } from '@/features/tag-taxonomy/data/tagTaxonomyApi'
-import {
-  getPublicProfile,
-  updatePublicProfile,
-} from '@/features/friends/userSocialApi'
+import { getPublicProfile, updatePublicProfile } from '@/social-profile/data/userSocialApi'
 import { useUserContext } from '@/features/identity'
-import { MediaEditor } from '@/features/media/MediaEditor'
+import { MediaEditor } from '@/media/MediaEditor'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 type IdentityDraft = { scope: string; displayName: string; bio: string | null }

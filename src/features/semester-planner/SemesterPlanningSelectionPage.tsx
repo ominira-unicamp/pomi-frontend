@@ -11,7 +11,7 @@ import {
 
 import type { PersistedSemesterPlanning } from '@/features/semester-planner/data/semesterPlanningApi'
 import { getCurrentUser } from '@/features/identity/identityApi'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
+import { studyPeriodLabel } from '@/catalog/model/studyPeriod'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import {
   EmptyState,

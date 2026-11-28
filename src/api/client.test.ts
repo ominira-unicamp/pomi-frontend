@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { pomiSdk } from './client'
+import { pomiSdk } from '@/api/client'
 
 describe('API SDK adapter', () => {
   afterEach(() => {

@@ -130,24 +130,16 @@ it.each(['Pré-requisitos atendidos', 'Reserva contempla meu curso'] as const)(
       )
     }
     render(<Toolbar />)
-    expect(
-      screen.queryByRole('button', { name: label }),
-    ).toBeNull()
+    expect(screen.queryByRole('button', { name: label })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Filtros' }))
     fireEvent.click(
-      screen.getByRole('button', { name: 'Filtros' }),
+      screen.getByRole('button', {
+        name: new RegExp(`${label}\\s*Não aplicado`),
+      }),
     )
-    fireEvent.click(
-      screen.getByRole('button', { name: new RegExp(`${label}\\s*Não aplicado`) }),
-    )
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Desativado' }),
-    )
-    expect(
-      screen.getByRole('button', { name: 'Ativado' }),
-    ).toBeTruthy()
-    fireEvent.click(
-      screen.getByRole('button', { name: 'Fechar filtros' }),
-    )
+    fireEvent.click(screen.getByRole('button', { name: 'Desativado' }))
+    expect(screen.getByRole('button', { name: 'Ativado' })).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'Fechar filtros' }))
     expect(
       screen.getByRole('button', { name: `Remover filtro ${label}` }),
     ).toBeTruthy()
@@ -157,8 +149,6 @@ it.each(['Pré-requisitos atendidos', 'Reserva contempla meu curso'] as const)(
     expect(
       screen.queryByRole('button', { name: `Remover filtro ${label}` }),
     ).toBeNull()
-    expect(
-      screen.getByRole('button', { name: 'Filtros' }),
-    ).toBeTruthy()
+    expect(screen.getByRole('button', { name: 'Filtros' })).toBeTruthy()
   },
 )

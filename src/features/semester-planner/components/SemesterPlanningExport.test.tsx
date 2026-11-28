@@ -49,9 +49,7 @@ describe('semester export composition', () => {
     expect(container.querySelector('h1')?.textContent).toBe(
       '2027 · 1º semestre',
     )
-    expect(container.textContent).toContain(
-      '2 disciplinas · 16 créditos',
-    )
+    expect(container.textContent).toContain('2 disciplinas · 16 créditos')
     expect(within(sections[0]).getByText('Visão Computacional')).toBeTruthy()
     expect(sections).toHaveLength(1)
     expect(

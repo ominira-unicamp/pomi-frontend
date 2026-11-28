@@ -26,7 +26,7 @@ vi.mock('@/features/identity/identityApi', () => ({
   getCurrentUser: mocks.getCurrentUser,
 }))
 
-vi.mock('@/features/student/data/studentApi', () => ({
+vi.mock('@/academic-record/data/studentApi', () => ({
   getStudentAcademicProfile: mocks.getStudentAcademicProfile,
 }))
 

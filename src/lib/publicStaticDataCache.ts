@@ -1,4 +1,4 @@
-import { isCompatiblePublicStaticData } from './publicStaticDataValidation'
+import { isCompatiblePublicStaticData } from '@/lib/publicStaticDataValidation'
 
 type CacheRecord = Readonly<{
   key: string

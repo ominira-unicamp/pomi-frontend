@@ -1,10 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-import {
-  deleteUserInterest,
-  listUserInterests,
-  putUserInterest,
-} from './studentTagInterestApi'
+import { deleteUserInterest, listUserInterests, putUserInterest } from '@/features/student-interests/data/studentTagInterestApi'
 
 describe('student tag interest API', () => {
   const fetchMock = vi.spyOn(globalThis, 'fetch')

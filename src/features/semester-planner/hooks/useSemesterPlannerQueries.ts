@@ -1,14 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
-
 import type { CatalogProgramId } from '@pomi/planner-domain/curriculum'
 import { loadCurriculumCatalog } from '@/catalog/data/curriculumCatalogApi'
 import {
   getCurriculum,
   listCurricula,
 } from '@/features/curriculum-planner/data/curriculumPersistenceApi'
-import { loadCurriculumSuggestions } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
+import { loadCurriculumSuggestions } from '@/catalog/data/curriculumSuggestionApi'
 import { useStudentAcademicProfile } from '@/features/student/hooks/useStudentAcademicProfile'
-import { listStudentCourseAttempts } from '@/features/student/data/studentApi'
+import { listStudentCourseAttempts } from '@/academic-record/data/studentApi'
 import {
   getSemesterPlanning,
   listSemesterPlannings,

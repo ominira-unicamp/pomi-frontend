@@ -6,16 +6,10 @@ import { groupApi } from './data/groupApi'
 import { canOrganizeEvents, groupWorkspaceDestination } from './groupNavigation'
 import { formatGroupDate } from './presentation'
 import { UserIdentityState } from '@/features/identity/UserIdentityState'
-import { GroupAvatar } from '@/features/media/IdentityImages'
+import { GroupAvatar } from '@/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
-import {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { EmptyState, ErrorState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { useUserContext } from '@/features/identity'
 

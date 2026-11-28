@@ -7,20 +7,10 @@ import { relationshipFor } from './types'
 import { UserIdentityState } from '@/features/identity/UserIdentityState'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
-import {
-  EmptyState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { EmptyState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import {
-  acceptFriendship,
-  listFriendships,
-  requestFriendship,
-  searchPeople,
-} from '@/features/friends/userSocialApi'
+import { acceptFriendship, listFriendships, requestFriendship, searchPeople } from '@/social-profile/data/userSocialApi'
 import { useUserContext } from '@/features/identity'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 

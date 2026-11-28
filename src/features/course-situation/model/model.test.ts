@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
-
-import { groupCourseHistory, parseGrade } from './model'
-import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
-import type { StudyPeriodYearPeriod } from '@/features/student/data/studyPeriod'
+import type { StudentCourseAttempt } from '@/academic-record/data/studentApi'
+import type { StudyPeriodYearPeriod } from '@/catalog/model/studyPeriod'
+import { groupCourseHistory, parseGrade } from '@/features/course-situation/model/model'
 
 function attempt(
   id: number,

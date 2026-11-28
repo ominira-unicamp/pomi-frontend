@@ -1,41 +1,18 @@
-import type { NavigationOptions } from '@/lib/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { ContextLink as Link } from '@/components/NavigationContext'
 import { BookOpen, ChevronLeft, ChevronRight, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import type { NavigationOptions } from '@/lib/navigation'
+import { ContextLink as Link } from '@/app/navigation/NavigationContext'
 
-import {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { EmptyState, ErrorState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
-import {
-  AppliedFilters,
-  FilterPropertyList,
-  FilterViewHeader,
-  FiltersButton,
-} from '@/components/patterns/AppliedFilters'
+import { AppliedFilters, FilterPropertyList, FilterViewHeader, FiltersButton } from '@/components/patterns/AppliedFilters'
 import { ResponsiveFilterSurface } from '@/components/patterns/ResponsiveFilterSurface'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  listCatalogs,
-  listCategories,
-  listCourses,
-  listTags,
-  listUnits,
-} from '@/features/course-catalog/data/courseCatalogApi'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { listCatalogs, listCategories, listCourses, listTags, listUnits } from '@/catalog/data/courseCatalogApi'
 
 export type CourseSearch = Readonly<{
   q?: string
@@ -105,7 +82,10 @@ export function CourseSearchPage({
     if (normalizedQuery === search.q) return
 
     const timeout = window.setTimeout(() => {
-      onSearchChange({ ...search, q: normalizedQuery, page: 1 }, { replace: true })
+      onSearchChange(
+        { ...search, q: normalizedQuery, page: 1 },
+        { replace: true },
+      )
     }, 300)
     return () => window.clearTimeout(timeout)
   }, [onSearchChange, query, search])

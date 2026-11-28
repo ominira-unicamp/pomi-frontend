@@ -2,40 +2,20 @@ import { useQuery } from '@tanstack/react-query'
 import { Sparkles } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
-import {
-  planningFromSuggestion,
-  suggestionLabel,
-} from '@pomi/planner-domain/curriculum'
+import { planningFromSuggestion, suggestionLabel } from '@pomi/planner-domain/curriculum'
 import type { ReactNode } from 'react'
-import type {
-  CatalogProgramId,
-  CourseId,
-  CurriculumPlannerSnapshot,
-  CurriculumPlannerStaticData,
-} from '@pomi/planner-domain/curriculum'
+import type { CatalogProgramId, CourseId, CurriculumPlannerSnapshot, CurriculumPlannerStaticData } from '@pomi/planner-domain/curriculum'
 import type { PlannerDispatch } from '@/features/curriculum-planner/types'
-import type {StudentCourseAttempt} from '@/features/student/data/studentApi';
-import {
-
-  isApprovedStudentCourseAttempt
-} from '@/features/student/data/studentApi'
+import type { StudentCourseAttempt } from '@/academic-record/data/studentApi'
+import { isApprovedStudentCourseAttempt } from '@/academic-record/data/studentApi'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
-import { loadCurriculumSuggestions } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { loadCurriculumSuggestions } from '@/catalog/data/curriculumSuggestionApi'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
-import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
+import { compareProgramCodes } from '@/catalog/model/programOrdering'
 
 type Dispatch = PlannerDispatch
 

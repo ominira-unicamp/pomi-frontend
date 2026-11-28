@@ -1,8 +1,7 @@
-import { useNavigationContext } from '@/components/NavigationContext'
-import { navigationHref } from '@/lib/navigation'
 import { useQuery } from '@tanstack/react-query'
-import { ContextLink as Link } from '@/components/NavigationContext'
 import { ArrowRight, BellOff, CheckCircle2, LogIn } from 'lucide-react'
+import { ContextLink as Link, useNavigationContext } from '@/app/navigation/NavigationContext'
+import { navigationHref } from '@/lib/navigation'
 
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { ErrorState, LoadingState } from '@/components/PageLayout'

@@ -3,8 +3,8 @@ import type {
   PrerequisiteItem,
 } from '@pomi/planner-domain/curriculum'
 import type { SemesterClass, StudyPeriod } from '@pomi/planner-domain/semester'
-import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
-import { isApprovedStudentCourseAttempt } from '@/features/student/data/studentApi'
+import type { StudentCourseAttempt } from '@/academic-record/data/studentApi'
+import { isApprovedStudentCourseAttempt } from '@/academic-record/data/studentApi'
 
 export type RequirementStatus =
   | 'satisfied'

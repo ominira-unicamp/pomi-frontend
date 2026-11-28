@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
-
-import { relationshipFor } from './types'
-import type { Friendship, PublicPerson } from '@/features/friends/userSocialApi'
+import type { Friendship, PublicPerson } from '@/social-profile/data/userSocialApi'
+import { relationshipFor } from '@/features/social/types'
 
 const person: PublicPerson = {
   publicId: 'a375fdb0-45d9-4a79-8415-89fcb64157b6',

@@ -1,13 +1,6 @@
 import { describe, expect, it } from 'vitest'
-
-import { buildPlannerViewModel } from './viewModel'
-import type {
-  CourseId,
-  CurriculumPlannerSnapshot,
-  CurriculumPlannerStaticData,
-  PlannerRevision,
-  PlanningPeriodId,
-} from '@pomi/planner-domain/curriculum'
+import type { CourseId, CurriculumPlannerSnapshot, CurriculumPlannerStaticData, PlannerRevision, PlanningPeriodId } from '@pomi/planner-domain/curriculum'
+import { buildPlannerViewModel } from '@/features/curriculum-planner/viewModel'
 
 const staticData = {
   courses: [

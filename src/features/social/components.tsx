@@ -1,9 +1,9 @@
 import { Check, UserPlus } from 'lucide-react'
-import { ContextLink as Link } from '@/components/NavigationContext'
 
-import type { Friendship, PublicPerson } from '@/features/friends/userSocialApi'
+import type { Friendship, PublicPerson } from '@/social-profile/data/userSocialApi'
 import type { RelationshipState } from './types'
-import { PersonAvatar } from '@/features/media/IdentityImages'
+import { ContextLink as Link } from '@/app/navigation/NavigationContext'
+import { PersonAvatar } from '@/media/IdentityImages'
 import { Button } from '@/components/ui/button'
 
 export function PersonSummary({ person }: { person: PublicPerson }) {

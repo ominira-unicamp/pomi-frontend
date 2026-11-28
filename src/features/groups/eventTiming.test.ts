@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { eventPeriod } from './eventTiming'
+import { eventPeriod } from '@/features/groups/eventTiming'
 
 const now = Date.parse('2026-11-12T15:00:00Z')
 

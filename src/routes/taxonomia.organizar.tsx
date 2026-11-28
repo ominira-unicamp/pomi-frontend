@@ -1,8 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import {
-  TaxonomyManagePage,
-  readTaxonomyManageSearch,
-} from '@/features/tag-taxonomy'
+import { TaxonomyManagePage, readTaxonomyManageSearch } from '@/features/tag-taxonomy'
 
 export const Route = createFileRoute('/taxonomia/organizar')({
   validateSearch: readTaxonomyManageSearch,

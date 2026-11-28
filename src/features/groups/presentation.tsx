@@ -1,7 +1,7 @@
-import { ContextLink as Link } from '@/components/NavigationContext'
 import { CalendarDays, MapPin } from 'lucide-react'
 
 import type { GroupEvent } from '@ominira/pomi-sdk/generated/app'
+import { ContextLink as Link } from '@/app/navigation/NavigationContext'
 
 export const permissionLabels = {
   GROUP_EDIT: 'Editar perfil e contatos',

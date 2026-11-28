@@ -3,65 +3,37 @@ import { BookOpenCheck, Check, LogIn, Plus } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 import { AcademicProfileSummary } from './components/AcademicProfileSummary'
-import { useHistoryImport } from './hooks/useHistoryImport'
 import type { NavigationOptions, SituationSearch } from '@/lib/navigation'
 import type { CourseProfileValues } from '@/features/student/components/CourseProfilePanel'
-import type { ProfessorEvaluationTarget } from '@/features/student/components/ProfessorEvaluationDialog'
+import type { ProfessorEvaluationTarget } from '@/academic-record/components/ProfessorEvaluationDialog'
 import type { CourseAttemptFormState } from '@/features/course-situation/components/CourseAttemptDialog'
-import type {
-  StudentCourseAttempt,
-  StudentCourseAttemptStatus,
-} from '@/features/student/data/studentApi'
-import type { StudyPeriodYearPeriod } from '@/features/student/data/studyPeriod'
+import type { StudentCourseAttempt, StudentCourseAttemptStatus } from '@/academic-record/data/studentApi'
+import type { StudyPeriodYearPeriod } from '@/catalog/model/studyPeriod'
+import { useHistoryImport } from '@/academic-record/hooks/useHistoryImport'
 import { UserIdentityState } from '@/features/identity/UserIdentityState'
-import {
-  ErrorState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { ErrorState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { Button } from '@/components/ui/button'
 import { ResponsiveDialog } from '@/components/patterns/ResponsiveDialog'
 import { InlineMessage } from '@/components/patterns/InlineMessage'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
+import { studyPeriodLabel } from '@/catalog/model/studyPeriod'
 import { Card } from '@/components/ui/card'
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  privateQueryKeys,
-  publicQueryKeys,
-} from '@/integrations/tanstack-query/queryKeys'
-import { StudentAbsencePanel } from '@/features/student/absences/StudentAbsencePanel'
-import { useStudentAbsences } from '@/features/student/absences/useStudentAbsences'
+import { privateQueryKeys, publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
+import { StudentAbsencePanel } from '@/academic-record/absences/StudentAbsencePanel'
+import { useStudentAbsences } from '@/academic-record/absences/useStudentAbsences'
 import { CourseProfilePanel } from '@/features/student/components/CourseProfilePanel'
-import { ProfessorEvaluationDialog } from '@/features/student/components/ProfessorEvaluationDialog'
+import { ProfessorEvaluationDialog } from '@/academic-record/components/ProfessorEvaluationDialog'
 import { CourseAttemptDialog } from '@/features/course-situation/components/CourseAttemptDialog'
 import { CourseHistorySection } from '@/features/course-situation/components/CourseHistorySection'
 import { EnrolledCoursesSection } from '@/features/course-situation/components/EnrolledCoursesSection'
 import { StudentProgramCurriculum } from '@/features/course-situation/components/StudentProgramCurriculum'
-import { HistoryImportDialog } from '@/features/course-situation/components/HistoryImportDialog'
-import { LambdaHistoryImportDialog } from '@/features/course-situation/components/LambdaHistoryImportDialog'
-import {
-  groupCourseHistory,
-  parseGrade,
-} from '@/features/course-situation/model/model'
+import { HistoryImportDialog } from '@/academic-record/components/HistoryImportDialog'
+import { LambdaHistoryImportDialog } from '@/academic-record/components/LambdaHistoryImportDialog'
+import { groupCourseHistory, parseGrade } from '@/features/course-situation/model/model'
 import { useCourseSituationQueries } from '@/features/course-situation/hooks/useCourseSituationQueries'
-import {
-  createStudentCourseAttempt,
-  deleteStudentCourseAttempt,
-  listClassSchedulesByStudyPeriod,
-  patchStudentCourseAttempt,
-  patchStudentProfile,
-} from '@/features/student/data/studentApi'
-import { mostRecentStudyPeriodsFirst } from '@/features/student/data/studyPeriodOrdering'
+import { createStudentCourseAttempt, deleteStudentCourseAttempt, listClassSchedulesByStudyPeriod, patchStudentCourseAttempt, patchStudentProfile } from '@/academic-record/data/studentApi'
+import { mostRecentStudyPeriodsFirst } from '@/catalog/model/studyPeriodOrdering'
 
 type SituationTab = 'enrolled' | 'history' | 'curriculum'
 

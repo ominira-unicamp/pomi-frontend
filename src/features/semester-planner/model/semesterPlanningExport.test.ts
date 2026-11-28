@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { buildSemesterPlanningExport } from './semesterPlanningExport'
-import type { SemesterPlanningExportData } from './semesterPlanningExport'
+import type { SemesterPlanningExportData } from '@/features/semester-planner/model/semesterPlanningExport'
+import { buildSemesterPlanningExport } from '@/features/semester-planner/model/semesterPlanningExport'
 
 export const exportFixture: SemesterPlanningExportData = {
   name: 'Meu semestre',

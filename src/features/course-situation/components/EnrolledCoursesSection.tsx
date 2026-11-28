@@ -1,27 +1,17 @@
 import { AlertCircle, CalendarDays, LoaderCircle } from 'lucide-react'
 
 import { CourseAttemptRow } from './CourseAttemptRow'
-import type { ProfessorEvaluationTarget } from '@/features/student/components/ProfessorEvaluationDialog'
-import type {
-  StudentClassSchedule,
-  StudentCourseAttempt,
-  StudyPeriod,
-} from '@/features/student/data/studentApi'
+import type { ProfessorEvaluationTarget } from '@/academic-record/components/ProfessorEvaluationDialog'
+import type { StudentClassSchedule, StudentCourseAttempt, StudyPeriod } from '@/academic-record/data/studentApi'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { DataList } from '@/components/patterns/DataList'
-import {
-  Section,
-  SectionContent,
-  SectionDescription,
-  SectionHeader,
-  SectionTitle,
-} from '@/components/patterns/Section'
+import { Section, SectionContent, SectionDescription, SectionHeader, SectionTitle } from '@/components/patterns/Section'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/patterns/Badge'
 import { Card } from '@/components/ui/card'
 import { EmptyState } from '@/components/PageLayout'
-import { StudentWeeklySchedule } from '@/features/student/components/StudentWeeklySchedule'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
+import { StudentWeeklySchedule } from '@/academic-record/components/StudentWeeklySchedule'
+import { studyPeriodLabel } from '@/catalog/model/studyPeriod'
 
 function ScheduleState({
   periodSelected,

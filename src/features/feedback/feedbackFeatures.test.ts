@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest'
-
-import { feedbackFeatureKeys } from './feedbackReportApi'
-import {
-  feedbackFeatureLabels,
-  selectableFeedbackFeatures,
-} from './feedbackFeatures'
+import { feedbackFeatureKeys } from '@/features/feedback/feedbackReportApi'
+import { feedbackFeatureLabels, selectableFeedbackFeatures } from '@/features/feedback/feedbackFeatures'
 
 describe('feedback areas', () => {
   it('offers the current areas using keys accepted by the API', () => {

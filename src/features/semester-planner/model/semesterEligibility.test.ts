@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import {
-  evaluateSemesterPrerequisites,
-  evaluateSemesterReservations,
-} from './semesterEligibility'
 import type {
   CourseId,
   CoursePrerequisiteRule,
   PrerequisiteItem,
 } from '@pomi/planner-domain/curriculum'
-import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
+import type { StudentCourseAttempt } from '@/academic-record/data/studentApi'
+import {
+  evaluateSemesterPrerequisites,
+  evaluateSemesterReservations,
+} from '@/features/semester-planner/model/semesterEligibility'
 
 const period = {
   id: 3,
@@ -26,7 +26,9 @@ const course = (
 ): PrerequisiteItem => ({
   target: { type: 'course', courseId: String(id) as CourseId, fulfillment },
 })
-const rules = (...groups: Array<Array<PrerequisiteItem>>): CoursePrerequisiteRule => ({
+const rules = (
+  ...groups: Array<Array<PrerequisiteItem>>
+): CoursePrerequisiteRule => ({
   courseId: '3' as CourseId,
   alternatives: groups.map((allOf, i) => ({ key: String(i), allOf })),
 })

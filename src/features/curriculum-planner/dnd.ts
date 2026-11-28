@@ -1,8 +1,5 @@
-import type { PlannerDragData } from './components/CourseCard'
-import type {
-  CurriculumPlannerCommand,
-  PlanningPeriodId,
-} from '@pomi/planner-domain/curriculum'
+import type { PlannerDragData } from '@/features/curriculum-planner/components/CourseCard'
+import type { CurriculumPlannerCommand, PlanningPeriodId } from '@pomi/planner-domain/curriculum'
 
 export function commandForCourseDrop(
   data: PlannerDragData,

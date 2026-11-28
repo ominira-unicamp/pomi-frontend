@@ -1,19 +1,13 @@
 import { useQuery } from '@tanstack/react-query'
-import { ContextLink as Link } from '@/components/NavigationContext'
 import { ArrowRight, MapPin } from 'lucide-react'
 import { useState } from 'react'
 
 import { groupApi } from './data/groupApi'
 import { eventPeriod } from './eventTiming'
 import type { GroupEvent } from '@ominira/pomi-sdk/generated/app'
-import { GroupAvatar } from '@/features/media/IdentityImages'
-import {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { ContextLink as Link } from '@/app/navigation/NavigationContext'
+import { GroupAvatar } from '@/media/IdentityImages'
+import { EmptyState, ErrorState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { Button, buttonVariants } from '@/components/ui/button'
 
 type AgendaView = 'upcoming' | 'past' | 'undated'

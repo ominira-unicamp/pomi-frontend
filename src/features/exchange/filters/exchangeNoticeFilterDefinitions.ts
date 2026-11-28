@@ -1,9 +1,8 @@
 import { filterCapabilities } from '@ominira/pomi-sdk/generated/data'
-
-import type { AnyFilterDefinition } from '@/components/filters'
+import type { AnyFilterDefinition } from '@/components/filters/index'
 import type { ExchangeNoticeFilters } from '@/features/exchange/data/exchangeNotices'
 import type { ExchangePlace } from '@/features/exchange/data/exchangeApi'
-import { defineFilter, remoteOperators } from '@/components/filters'
+import { defineFilter, remoteOperators } from '@/components/filters/index'
 
 export function exchangeNoticeFilterDefinitions({
   issuers,

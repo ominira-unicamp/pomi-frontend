@@ -1,0 +1,17 @@
+{
+  "features/identity": ["identityApi", "UserIdentityState"],
+  "features/student": [
+    "hooks/useStudentAcademicProfile",
+    "components/CourseProfilePanel"
+  ],
+  "features/semester-planner": ["data/semesterPlanningApi"],
+  "features/curriculum-planner": [
+    "data/curriculumPersistenceApi",
+    "data/curriculumPersistenceAdapter"
+  ],
+  "features/groups": ["data/groupApi", "groupNavigation"],
+  "features/planning-shared": ["data/sharedPeriodPlanningApi"],
+  "features/tag-taxonomy": ["data/tagTaxonomyApi", "data/tagTaxonomyQueries"],
+  "features/student-interests": ["data/studentTagInterestApi"],
+  "features/feedback": ["feedbackReportApi", "FeedbackReportProvider"]
+}

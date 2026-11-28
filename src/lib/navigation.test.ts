@@ -1,12 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  navigationHref,
-  readExchangeSearch,
-  readManagedEventsSearch,
-  readPeopleSearch,
-  readReturnTo,
-  readSituationSearch,
-} from './navigation'
+import { navigationHref, readExchangeSearch, readManagedEventsSearch, readPeopleSearch, readReturnTo, readSituationSearch } from '@/lib/navigation'
 
 describe('navigation state', () => {
   it('keeps explicit academic selections and drops unsupported values', () => {

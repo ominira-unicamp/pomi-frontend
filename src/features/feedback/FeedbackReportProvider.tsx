@@ -1,19 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { ReactNode } from 'react'
 
 import type { FeedbackReportInput } from '@/features/feedback/feedbackReportApi'
+import { FeedbackReportContext } from '@/integrations/feedback/FeedbackReportContext'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import {
-  submitAnonymousFeedbackReport,
-  submitUserFeedbackReport,
-} from '@/features/feedback/feedbackReportApi'
+import { submitAnonymousFeedbackReport, submitUserFeedbackReport } from '@/features/feedback/feedbackReportApi'
 import { useCurrentUser } from '@/features/identity'
 import { FeedbackReportDialog } from '@/features/feedback/FeedbackReportDialog'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
@@ -24,14 +16,6 @@ export type FeedbackDraft = Readonly<{
   input: FeedbackReportInput
   identified: boolean
 }>
-
-type FeedbackContextValue = Readonly<{
-  openFeedback: (input?: Partial<FeedbackReportInput>) => void
-}>
-
-const FeedbackReportContext = createContext<FeedbackContextValue | undefined>(
-  undefined,
-)
 
 function readDraft() {
   try {
@@ -142,9 +126,4 @@ export function FeedbackReportProvider({ children }: { children: ReactNode }) {
       />
     </FeedbackReportContext.Provider>
   )
-}
-
-export function useFeedbackReport() {
-  const context = useContext(FeedbackReportContext)
-  return context ?? { openFeedback: () => undefined }
 }

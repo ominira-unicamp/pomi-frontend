@@ -9,7 +9,7 @@ vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: ReactNode }) => <a>{children}</a>,
 }))
 
-vi.mock('@/features/course-catalog/data/courseCatalogApi', () => ({
+vi.mock('@/catalog/data/courseCatalogApi', () => ({
   listUnits: vi
     .fn()
     .mockResolvedValue([{ id: 1, code: 'IC', name: 'Computação' }]),

@@ -1,11 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-import {
-  copySharedPeriodPlanning,
-  getPublicSharedPeriodPlanning,
-  getSharedPeriodPlanningForUser,
-  listSharedPeriodPlanningsForPerson,
-} from './sharedPeriodPlanningApi'
+import { copySharedPeriodPlanning, getPublicSharedPeriodPlanning, getSharedPeriodPlanningForUser, listSharedPeriodPlanningsForPerson } from '@/features/planning-shared/data/sharedPeriodPlanningApi'
 
 const getAccessToken = vi.fn(() => Promise.resolve('access-token'))
 

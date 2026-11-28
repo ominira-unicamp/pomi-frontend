@@ -213,7 +213,9 @@ export function readReturnTo(value: unknown, currentPathname?: string) {
     typeof value !== 'string' ||
     !value.startsWith('/') ||
     value.startsWith('//') ||
-    /[\\\x00-\x1f]/.test(value)
+    Array.from(value).some(
+      (character) => character === '\\' || character.charCodeAt(0) < 32,
+    )
   )
     return undefined
   try {

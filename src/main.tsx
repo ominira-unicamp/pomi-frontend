@@ -1,12 +1,9 @@
 import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
+import { AppProviders } from './app/AppProviders'
 
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
-import { AuthProvider } from './auth/AuthProvider.tsx'
-import { ThemeProvider } from './components/ThemeProvider.tsx'
-import { FeedbackReportProvider } from './features/feedback/FeedbackReportProvider.tsx'
-import { PrivateQueryCacheBoundary } from './integrations/tanstack-query/PrivateQueryCacheBoundary.tsx'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
@@ -40,17 +37,9 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
-      <ThemeProvider>
-        <AuthProvider>
-          <TanStackQueryProvider.Provider {...TanStackQueryProviderContext}>
-            <PrivateQueryCacheBoundary>
-              <FeedbackReportProvider>
-                <RouterProvider router={router} />
-              </FeedbackReportProvider>
-            </PrivateQueryCacheBoundary>
-          </TanStackQueryProvider.Provider>
-        </AuthProvider>
-      </ThemeProvider>
+      <AppProviders queryClient={TanStackQueryProviderContext.queryClient}>
+        <RouterProvider router={router} />
+      </AppProviders>
     </StrictMode>,
   )
 }

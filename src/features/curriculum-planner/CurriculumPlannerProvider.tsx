@@ -7,8 +7,14 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react'
 import { createInMemoryCurriculumPlanner } from '@pomi/planner-domain/curriculum'
+import {
+  createCurriculumPlanningSession,
+  unwrapPlannerResult as unwrap,
+} from './application/curriculumPlanningSession'
+import { createCurriculumSaveCoordinator } from './application/curriculumSaveCoordinator'
 import type { ReactNode } from 'react'
 
 import type {
@@ -26,8 +32,8 @@ import type {
 import type {
   StudentCourseAttempt,
   StudentProfile,
-} from '@/features/student/data/studentApi'
-import type { CurriculumDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
+} from '@/academic-record/data/studentApi'
+import type { CurriculumDraftBootstrap } from '@/planning-drafts/data/planningDraftBootstrap'
 import { requireCurrentUserId } from '@/features/identity/identityApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { createCurriculumCatalogDataSource } from '@/catalog/data/curriculumCatalogApi'
@@ -38,30 +44,16 @@ import {
   stateFromDocument,
 } from '@/features/curriculum-planner/data/curriculumPersistenceApi'
 import { persistCurriculumState } from '@/features/curriculum-planner/data/curriculumPersistenceAdapter'
-import { curriculumDraftBootstrapKey } from '@/features/planning-shared/data/planningDraftBootstrap'
-import { setCourseCompleted } from '@/features/student/data/studentApi'
+import { curriculumDraftBootstrapKey } from '@/planning-drafts/data/planningDraftBootstrap'
+import { setCourseCompleted } from '@/academic-record/data/studentApi'
 import { useCurriculumRemoteData } from '@/features/curriculum-planner/hooks/useCurriculumRemoteData'
-import { suggestionOnboardingPreferenceKey } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
+import { suggestionOnboardingPreferenceKey } from '@/catalog/data/curriculumSuggestionApi'
 import {
   privateQueryKeys,
   publicQueryKeys,
 } from '@/integrations/tanstack-query/queryKeys'
 
-class PlannerResultError extends Error {
-  constructor(readonly plannerError: PlannerError) {
-    super(plannerError.code)
-  }
-}
-
-async function unwrap<T>(
-  operation: Promise<
-    { ok: true; value: T } | { ok: false; error: PlannerError }
-  >,
-) {
-  const result = await operation
-  if (!result.ok) throw new PlannerResultError(result.error)
-  return result.value
-}
+import { PendingPlanningChanges } from '@/components/planning/PendingPlanningChanges'
 
 export type CurriculumPlannerContextValue = Readonly<{
   staticData?: CurriculumPlannerStaticData
@@ -140,16 +132,10 @@ export function CurriculumPlannerProvider({
   const [entryState, setEntryState] = useState<'selection' | 'editing'>(
     injectedPlanner ? 'editing' : 'selection',
   )
-  const [saveStatus, setSaveStatus] = useState<
-    'idle' | 'pending' | 'saving' | 'error'
-  >('idle')
   const [actionError, setActionError] = useState<string>()
   const [draftName, setDraftName] = useState<string | undefined>(
     draftBootstrap?.name,
   )
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const saveQueue = useRef(Promise.resolve())
-  const dispatchQueue = useRef(Promise.resolve())
   const remoteDocument = useRef<CurriculumDocument | undefined>(undefined)
   const persistedPeriodIds = useRef(new Map<string, number>())
 
@@ -198,15 +184,36 @@ export function CurriculumPlannerProvider({
   )
   const planner = useMemo(
     () => injectedPlanner ?? createDefaultPlanner(initialState),
-    [injectedPlanner, initialState],
+    [
+      injectedPlanner,
+      sessionSubject,
+      activeCurriculumId,
+      Boolean(remoteQuery.data?.document),
+    ],
   )
+  const documentIdentity = `${sessionSubject}:${activeCurriculumId ?? 'draft'}`
+  const previousDocumentIdentity = useRef(documentIdentity)
   useEffect(() => {
-    remoteDocument.current = remoteQuery.data?.document
-  }, [remoteQuery.data?.document])
+    if (previousDocumentIdentity.current !== documentIdentity) {
+      previousDocumentIdentity.current = documentIdentity
+      remoteDocument.current = undefined
+      persistedPeriodIds.current.clear()
+    }
+    remoteDocument.current ??= remoteQuery.data?.document
+  }, [documentIdentity, remoteQuery.data?.document])
   useEffect(() => {
     if (draftBootstrap)
       queryClient.removeQueries({ queryKey: curriculumDraftBootstrapKey })
   }, [draftBootstrap, queryClient])
+
+  const planningSession = useMemo(
+    () => createCurriculumPlanningSession(planner),
+    [planner, sessionSubject, activeCurriculumId],
+  )
+  const sessionState = useSyncExternalStore(
+    planningSession.subscribe,
+    planningSession.getState,
+  )
 
   const staticDataQuery = useQuery({
     queryKey: publicQueryKeys.curriculumCatalog(),
@@ -215,15 +222,16 @@ export function CurriculumPlannerProvider({
     staleTime: Infinity,
     gcTime: Infinity,
   })
-  const snapshotQuery = useQuery({
-    queryKey: privateQueryKeys.curriculumPlannerSnapshot(
-      sessionSubject,
-      remoteQuery.data?.document?.id ?? 'draft',
-    ),
-    queryFn: () => unwrap(planner.getSnapshot()),
-    retry: false,
-  })
-
+  const persistenceLifetime = useMemo(
+    () => ({ active: true }),
+    [sessionSubject, activeCurriculumId],
+  )
+  useEffect(() => {
+    persistenceLifetime.active = true
+    return () => {
+      persistenceLifetime.active = false
+    }
+  }, [persistenceLifetime])
   const persist = useCallback(
     async (snapshot: CurriculumPlannerSnapshot, name?: string) => {
       if (!auth.isAuthenticated || !remoteQuery.data?.userId || injectedPlanner)
@@ -242,7 +250,19 @@ export function CurriculumPlannerProvider({
         periodIds: persistedPeriodIds.current,
         name,
         getAccessToken: auth.getAccessToken,
+        onStructurePersisted: (confirmed) => {
+          if (!persistenceLifetime.active) return
+          remoteDocument.current = confirmed
+          for (const [index, period] of state.plan.periods.entries()) {
+            const persisted = confirmed.periods.find(
+              (item) => item.position === index + 1,
+            )
+            if (persisted)
+              persistedPeriodIds.current.set(period.id, Number(persisted.id))
+          }
+        },
       })
+      if (!persistenceLifetime.active) return
       const mappedIds = new Set(persistedPeriodIds.current.values())
       for (const [index, period] of state.plan.periods.entries()) {
         if (persistedPeriodIds.current.has(period.id)) continue
@@ -257,6 +277,10 @@ export function CurriculumPlannerProvider({
         mappedIds.add(persistedId)
       }
       remoteDocument.current = document
+      queryClient.setQueryData(
+        privateQueryKeys.curriculum(sessionSubject, userId, document.id),
+        document,
+      )
       if (!activeCurriculumId) setSelectedCurriculumId(document.id)
     },
     [
@@ -264,35 +288,52 @@ export function CurriculumPlannerProvider({
       auth.isAuthenticated,
       injectedPlanner,
       activeCurriculumId,
+      persistenceLifetime,
+      queryClient,
+      sessionSubject,
       remoteQuery.data?.userId,
     ],
   )
 
+  const persistRef = useRef(persist)
+  persistRef.current = persist
+  const saveCoordinator = useMemo(
+    () => createCurriculumSaveCoordinator((next) => persistRef.current(next)),
+    [sessionSubject, activeCurriculumId],
+  )
+  const saveStatus = useSyncExternalStore(
+    saveCoordinator.subscribe,
+    saveCoordinator.getStatus,
+  )
+  const [academicPending, setAcademicPending] = useState(false)
+  useEffect(() => {
+    setAcademicPending(false)
+    setActionError(undefined)
+  }, [persistenceLifetime])
+  useEffect(() => {
+    planningSession.activate()
+    return () => planningSession.dispose()
+  }, [planningSession])
+  useEffect(() => {
+    saveCoordinator.activate()
+    return () => saveCoordinator.dispose()
+  }, [saveCoordinator])
+
   const dispatch = useCallback(
-    (command: CurriculumPlannerCommand) => {
-      const operation = dispatchQueue.current.then(async () => {
-        try {
-          const snapshot = await unwrap(planner.getSnapshot())
-          await unwrap(
-            planner.dispatch(command, { expectedRevision: snapshot.revision }),
-          )
-          const next = await unwrap(planner.getSnapshot())
-          queryClient.setQueryData(
-            privateQueryKeys.curriculumPlannerSnapshot(
-              sessionSubject,
-              remoteQuery.data?.document?.id ?? 'draft',
-            ),
-            next,
-          )
-          if (
-            auth.isAuthenticated &&
-            remoteQuery.data?.userId &&
-            !injectedPlanner
-          ) {
+    async (command: CurriculumPlannerCommand) => {
+      try {
+        return await planningSession.dispatch(
+          command,
+          async () => {
             if (
-              command.type === 'markCourseCompleted' ||
-              command.type === 'unmarkCourseCompleted'
+              auth.isAuthenticated &&
+              remoteQuery.data?.userId &&
+              !injectedPlanner &&
+              (command.type === 'markCourseCompleted' ||
+                command.type === 'unmarkCourseCompleted')
             ) {
+              setAcademicPending(true)
+              setActionError(undefined)
               try {
                 await setCourseCompleted(
                   remoteQuery.data.userId,
@@ -306,61 +347,62 @@ export function CurriculumPlannerProvider({
                       }
                     : undefined,
                 )
-              } catch {
-                setSaveStatus('error')
+                void queryClient.invalidateQueries({
+                  queryKey: privateQueryKeys.courseAttempts(
+                    sessionSubject,
+                    remoteQuery.data.userId,
+                  ),
+                })
+              } catch (error) {
+                if (persistenceLifetime.active)
+                  setActionError(
+                    'Não foi possível atualizar o histórico. A aprovação anterior foi mantida.',
+                  )
+                throw error
+              } finally {
+                if (persistenceLifetime.active) setAcademicPending(false)
               }
-              await queryClient.invalidateQueries({
-                queryKey: privateQueryKeys.courseAttempts(
-                  sessionSubject,
-                  remoteQuery.data.userId,
-                ),
-              })
             }
-            if (!remoteDocument.current?.id) return true
-            setSaveStatus('pending')
-            if (saveTimer.current) clearTimeout(saveTimer.current)
-            saveTimer.current = setTimeout(() => {
-              saveQueue.current = saveQueue.current.then(async () => {
-                setSaveStatus('saving')
-                try {
-                  await persist(next)
-                  setSaveStatus('idle')
-                } catch {
-                  setSaveStatus('error')
-                }
-              })
-            }, 500)
-          }
-          return true
-        } catch {
-          return false
-        }
-      })
-      dispatchQueue.current = operation.then(
-        () => undefined,
-        () => undefined,
-      )
-      return operation
+          },
+          (next) => {
+            if (
+              auth.isAuthenticated &&
+              remoteQuery.data?.userId &&
+              !injectedPlanner &&
+              remoteDocument.current?.id
+            )
+              saveCoordinator.schedule(next)
+          },
+        )
+      } catch {
+        return false
+      }
     },
     [
+      planningSession,
+      saveCoordinator,
       auth.isAuthenticated,
+      auth.getAccessToken,
+      remoteQuery.data?.userId,
       injectedPlanner,
-      persist,
-      planner,
+      persistenceLifetime,
       queryClient,
       sessionSubject,
-      remoteQuery.data?.document?.id,
-      remoteQuery.data?.userId,
+      activeCurriculumId,
     ],
   )
 
   const retry = useCallback(async () => {
+    if (saveCoordinator.getStatus() === 'error') {
+      await saveCoordinator.flush()
+      return
+    }
     await Promise.all([
       staticDataQuery.refetch(),
-      snapshotQuery.refetch(),
+      planningSession.refresh(),
       remoteQuery.refetch(),
     ])
-  }, [remoteQuery, snapshotQuery, staticDataQuery])
+  }, [remoteQuery, planningSession, staticDataQuery, saveCoordinator])
 
   const resetLocalPlan = useCallback(() => {
     window.localStorage.removeItem(suggestionOnboardingPreferenceKey)
@@ -372,7 +414,6 @@ export function CurriculumPlannerProvider({
 
   const selectCurriculum = useCallback((id: number) => {
     setDraftName(undefined)
-    setSaveStatus('idle')
     setSelectedCurriculumId(id)
     setEntryState('editing')
   }, [])
@@ -414,6 +455,7 @@ export function CurriculumPlannerProvider({
           },
           auth.getAccessToken,
         )
+        if (!persistenceLifetime.active) return undefined
         remoteDocument.current = created
         queryClient.setQueryData(
           privateQueryKeys.curriculum(sessionSubject, userId, created.id),
@@ -427,6 +469,7 @@ export function CurriculumPlannerProvider({
         })
         return created.id
       } catch (error) {
+        if (!persistenceLifetime.active) return undefined
         console.error('[curriculum-planner] create failed', error)
         setActionError(
           'Não foi possível criar o planejamento. Verifique se sua conta possui a permissão de planejamento.',
@@ -438,6 +481,7 @@ export function CurriculumPlannerProvider({
       auth.getAccessToken,
       auth.isAuthenticated,
       injectedPlanner,
+      persistenceLifetime,
       queryClient,
       remoteQuery.data?.userId,
       sessionSubject,
@@ -449,13 +493,14 @@ export function CurriculumPlannerProvider({
     try {
       const snapshot = await unwrap(planner.getSnapshot())
       await persist(snapshot, draftName)
-      return remoteDocument.current?.id
+      return persistenceLifetime.active ? remoteDocument.current?.id : undefined
     } catch {
       return undefined
     }
   }, [
     auth.isAuthenticated,
     draftName,
+    persistenceLifetime,
     injectedPlanner,
     persist,
     planner,
@@ -465,17 +510,21 @@ export function CurriculumPlannerProvider({
     async (name: string) => {
       if (!auth.isAuthenticated || !remoteQuery.data?.userId) return false
       try {
+        await planningSession.settled()
+        if (!(await saveCoordinator.flush())) return false
         if (!remoteDocument.current?.id) {
           const snapshot = await unwrap(planner.getSnapshot())
           await persist(snapshot)
         }
         if (!remoteDocument.current?.id) return false
-        remoteDocument.current = await patchCurriculum(
+        const renamed = await patchCurriculum(
           remoteQuery.data.userId,
           remoteDocument.current.id,
           { name: name.trim() },
           auth.getAccessToken,
         )
+        if (!persistenceLifetime.active) return false
+        remoteDocument.current = renamed
         queryClient.setQueryData(
           privateQueryKeys.curriculum(
             sessionSubject,
@@ -500,6 +549,9 @@ export function CurriculumPlannerProvider({
       auth.isAuthenticated,
       persist,
       planner,
+      planningSession,
+      persistenceLifetime,
+      saveCoordinator,
       queryClient,
       remoteQuery.data?.userId,
       sessionSubject,
@@ -515,6 +567,7 @@ export function CurriculumPlannerProvider({
           { isFavorite },
           auth.getAccessToken,
         )
+        if (!persistenceLifetime.active) return false
         if (remoteDocument.current?.id === curriculumId)
           remoteDocument.current = updated
         queryClient.setQueryData(
@@ -539,6 +592,7 @@ export function CurriculumPlannerProvider({
     [
       auth.getAccessToken,
       auth.isAuthenticated,
+      persistenceLifetime,
       queryClient,
       remoteQuery.data?.userId,
       sessionSubject,
@@ -553,11 +607,14 @@ export function CurriculumPlannerProvider({
     }
     if (!remoteQuery.data?.userId) return false
     try {
+      await planningSession.settled()
+      if (!(await saveCoordinator.flush())) return false
       await deleteCurriculum(
         remoteQuery.data.userId,
         remoteDocument.current.id,
         auth.getAccessToken,
       )
+      if (!persistenceLifetime.active) return false
       queryClient.removeQueries({
         queryKey: privateQueryKeys.curriculum(
           sessionSubject,
@@ -584,27 +641,26 @@ export function CurriculumPlannerProvider({
     queryClient,
     remoteQuery.data?.userId,
     resetLocalPlan,
+    persistenceLifetime,
+    planningSession,
+    saveCoordinator,
     sessionSubject,
   ])
 
-  const resultError =
-    snapshotQuery.error instanceof PlannerResultError
-      ? snapshotQuery.error.plannerError
-      : undefined
   const value = useMemo<CurriculumPlannerContextValue>(
     () => ({
       staticData: staticDataQuery.data,
-      snapshot: snapshotQuery.data,
+      snapshot: sessionState.snapshot,
       isLoading:
         !auth.initialized ||
         staticDataQuery.isLoading ||
-        snapshotQuery.isLoading ||
+        sessionState.loading ||
         remoteQuery.isLoading,
-      isDispatching: saveStatus === 'saving',
+      isDispatching: academicPending,
       isAuthenticationReady: auth.initialized,
       isAuthenticated: auth.isAuthenticated,
       saveStatus,
-      error: resultError,
+      error: sessionState.error,
       dispatch,
       retry,
       resetLocalPlan,
@@ -628,6 +684,7 @@ export function CurriculumPlannerProvider({
     }),
     [
       actionError,
+      academicPending,
       attemptsQuery.data,
       attemptsQuery.isLoading,
       studentProfileQuery.data,
@@ -644,15 +701,15 @@ export function CurriculumPlannerProvider({
       renameCurriculum,
       setCurriculumFavorite,
       resetLocalPlan,
-      resultError,
+      sessionState.error,
       retry,
       remoteQuery.data?.summaries,
       remoteQuery.isLoading,
       saveDraft,
       saveStatus,
       selectCurriculum,
-      snapshotQuery.data,
-      snapshotQuery.isLoading,
+      sessionState.snapshot,
+      sessionState.loading,
       staticDataQuery.data,
       staticDataQuery.isLoading,
     ],
@@ -660,6 +717,17 @@ export function CurriculumPlannerProvider({
 
   return (
     <CurriculumPlannerContext.Provider value={value}>
+      <PendingPlanningChanges
+        pending={saveStatus !== 'idle' || academicPending}
+        flush={async () => {
+          await planningSession.settled()
+          return saveCoordinator.flush()
+        }}
+        discard={() => {
+          planningSession.dispose()
+          saveCoordinator.dispose()
+        }}
+      />
       {children}
     </CurriculumPlannerContext.Provider>
   )

@@ -1,13 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, within } from '@testing-library/react'
-import {
-  Outlet,
-  RouterProvider,
-  createMemoryHistory,
-  createRootRoute,
-  createRoute,
-  createRouter,
-} from '@tanstack/react-router'
+import { Outlet, RouterProvider, createMemoryHistory, createRootRoute, createRoute, createRouter } from '@tanstack/react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { AppShell } from '@/components/AppShell'
@@ -256,7 +249,7 @@ describe('AppShell', () => {
   })
 
   it.each([
-    ['/planejamentos-de-curriculo/plan-id', 'Planejar graduação'],
+    ['/planejamentos-de-curriculo/plan-id', 'Graduação'],
     ['/planejamentos-de-semestre/compartilhado/share-id', 'Semestre'],
   ])(
     'marks a deep planning route in the quick navigation',
@@ -293,7 +286,9 @@ describe('AppShell', () => {
 
   it('offers a keyboard shortcut to the main content', async () => {
     renderShell()
-    fireEvent.click(await screen.findByRole('link', { name: 'Ir para o conteúdo principal' }))
+    fireEvent.click(
+      await screen.findByRole('link', { name: 'Ir para o conteúdo principal' }),
+    )
     expect(document.activeElement).toBe(screen.getByRole('main'))
   })
 

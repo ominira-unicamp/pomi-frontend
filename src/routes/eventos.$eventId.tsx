@@ -1,5 +1,5 @@
-import { readReturnTo } from '@/lib/navigation'
 import { createFileRoute } from '@tanstack/react-router'
+import { readReturnTo } from '@/lib/navigation'
 import { EventDetailPage } from '@/features/groups'
 
 export const Route = createFileRoute('/eventos/$eventId')({

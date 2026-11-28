@@ -1,4 +1,4 @@
-import type { FeedbackFeatureKey } from './feedbackReportApi'
+import type { FeedbackFeatureKey } from '@/features/feedback/feedbackReportApi'
 
 export const feedbackFeatureLabels: Record<FeedbackFeatureKey, string> = {
   home: 'Início',

@@ -1,4 +1,4 @@
-import type { Tag } from './tagTaxonomyApi'
+import type { Tag } from '@/features/tag-taxonomy/data/tagTaxonomyApi'
 
 export type TaxonomySearch = {
   q?: string

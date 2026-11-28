@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-
-import { createTag, deleteCategory, listRelatedCourses } from './tagTaxonomyApi'
+import { createTag, deleteCategory, listRelatedCourses } from '@/features/tag-taxonomy/data/tagTaxonomyApi'
 
 describe('tag taxonomy API', () => {
   afterEach(() => vi.restoreAllMocks())

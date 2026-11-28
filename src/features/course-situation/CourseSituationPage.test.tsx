@@ -64,7 +64,7 @@ vi.mock('@/catalog/data/curriculumCatalogApi', () => ({
   }),
 }))
 
-vi.mock('@/features/student/data/studentApi', () => ({
+vi.mock('@/academic-record/data/studentApi', () => ({
   listStudentCourseAttempts,
   listClassesForStudentCourseAttempt,
   listClassSchedulesByStudyPeriod,
@@ -78,7 +78,7 @@ vi.mock('@/features/student/data/studentApi', () => ({
   putProfessorEvaluation: vi.fn(),
 }))
 
-vi.mock('@/features/student/data/studentAbsenceApi', () => ({
+vi.mock('@/academic-record/data/studentAbsenceApi', () => ({
   listStudentAbsences,
   createStudentAbsence: vi.fn(),
   deleteStudentAbsence: vi.fn(),

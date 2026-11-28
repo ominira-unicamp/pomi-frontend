@@ -9,5 +9,5 @@ export type {
   CatalogProgramSearch,
   CatalogProgramTab,
 } from './CatalogProgramPage'
-export { CatalogProgramCourseDialog } from './CatalogProgramCourseDialog'
+export { CatalogProgramCourseDialog } from '@/catalog/components/CatalogProgramCourseDialog'
 export { CatalogProgramSearchPage } from './CatalogProgramSearchPage'

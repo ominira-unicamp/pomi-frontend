@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { CourseHistorySection } from './CourseHistorySection'
-import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
+import type { StudentCourseAttempt } from '@/academic-record/data/studentApi'
 
 vi.mock('./CourseAttemptRow', () => ({
   CourseAttemptRow: ({ attempt }: { attempt: StudentCourseAttempt }) => (

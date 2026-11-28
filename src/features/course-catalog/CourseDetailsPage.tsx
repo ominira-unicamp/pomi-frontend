@@ -1,53 +1,27 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { ContextLink as Link } from '@/components/NavigationContext'
 import { LogIn, MessageSquareWarning, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
-import type {
-  CourseId,
-  CoursePrerequisiteRule,
-  Course as PlannerCourse,
-} from '@pomi/planner-domain/curriculum'
-import type { VisualPrerequisiteLink } from '@/features/curriculum-planner/prerequisiteTreeLayout'
-import type {
-  RelatedCourse,
-  Tag,
-} from '@/features/course-catalog/data/courseCatalogApi'
+import type { CourseId, CoursePrerequisiteRule, Course as PlannerCourse } from '@pomi/planner-domain/curriculum'
+import type { VisualPrerequisiteLink } from '@/catalog/model/prerequisiteTreeLayout'
+import type { RelatedCourse, Tag } from '@/catalog/data/courseCatalogApi'
+import { ContextLink as Link } from '@/app/navigation/NavigationContext'
 import { invalidateTagConsumers } from '@/features/tag-taxonomy/data/tagTaxonomyQueries'
 import { ContextBackLink } from '@/components/ContextBackLink'
-import { CatalogProgramCourseDialog } from '@/features/catalog-program/CatalogProgramCourseDialog'
+import { CatalogProgramCourseDialog } from '@/catalog/components/CatalogProgramCourseDialog'
 import { loadCurriculumCatalog } from '@/catalog/data/curriculumCatalogApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import {
-  ErrorState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { ErrorState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  CatalogCourseAcademicCard,
-  CatalogCoursePrerequisites,
-  CatalogCourseSelector,
-  CatalogCourseSyllabus,
-  selectCatalog,
-} from '@/features/course-catalog/CatalogCourseDetails'
-import { prerequisiteCourseIds } from '@/features/curriculum-planner/prerequisiteTreeLayout'
-import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
-import { PrerequisiteTreeView } from '@/features/curriculum-planner/components/PrerequisiteTreeView'
-import { loadCatalogPrerequisites } from '@/features/curriculum-planner/data/curriculumPrerequisiteApi'
+import { CatalogCourseAcademicCard, CatalogCoursePrerequisites, CatalogCourseSelector, CatalogCourseSyllabus, selectCatalog } from '@/features/course-catalog/CatalogCourseDetails'
+import { prerequisiteCourseIds } from '@/catalog/model/prerequisiteTreeLayout'
+import { useFeedbackReport } from '@/integrations/feedback/FeedbackReportContext'
+import { PrerequisiteTreeView } from '@/catalog/components/PrerequisiteTreeView'
+import { loadCatalogPrerequisites } from '@/catalog/data/curriculumPrerequisiteApi'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
-import {
-  deleteCourseTag,
-  getCourse,
-  listCatalogCourses,
-  listCourseTags,
-  listRelatedCourses,
-  listTags,
-  putCourseTag,
-} from '@/features/course-catalog/data/courseCatalogApi'
+import { deleteCourseTag, getCourse, listCatalogCourses, listCourseTags, listRelatedCourses, listTags, putCourseTag } from '@/catalog/data/courseCatalogApi'
 
 export type CourseDetailsSearch = Readonly<{
   catalogYear?: number
@@ -181,7 +155,11 @@ export function CourseDetailsPage({
 
   return (
     <PageContainer size="wide">
-      <ContextBackLink to="/disciplinas" label="Explorar disciplinas" returnTo={search.returnTo} />
+      <ContextBackLink
+        to="/disciplinas"
+        label="Explorar disciplinas"
+        returnTo={search.returnTo}
+      />
       <PageHeader
         title={`${course.code} — ${course.name}`}
         description={`${course.credits} créditos${course.unitCode ? ` · ${course.unitCode}` : ''}`}

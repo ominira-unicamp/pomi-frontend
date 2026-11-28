@@ -4,15 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { CatalogProgramPage } from './CatalogProgramPage'
 import { CatalogProgramSearchPage } from './CatalogProgramSearchPage'
 
-import type {
-  CatalogId,
-  CatalogProgramId,
-  CatalogProgramVariantId,
-  CourseId,
-  CurriculumPlannerStaticData,
-  LanguageId,
-  ProgramId,
-} from '@pomi/planner-domain/curriculum'
+import type { CatalogId, CatalogProgramId, CatalogProgramVariantId, CourseId, CurriculumPlannerStaticData, LanguageId, ProgramId } from '@pomi/planner-domain/curriculum'
 import type { ReactNode } from 'react'
 
 const {
@@ -36,25 +28,24 @@ const {
 }))
 
 vi.mock('@/catalog/data/curriculumCatalogApi', () => ({
+  createCurriculumCatalogDataSource: () => ({ load: loadCurriculumCatalog }),
   loadCurriculumCatalog,
 }))
 
-vi.mock('@/features/curriculum-planner/data/curriculumSuggestionApi', () => ({
+vi.mock('@/catalog/data/curriculumSuggestionApi', () => ({
   loadCurriculumSuggestions,
 }))
 
-vi.mock('@/features/curriculum-planner/data/curriculumPrerequisiteApi', () => ({
+vi.mock('@/catalog/data/curriculumPrerequisiteApi', () => ({
   loadCatalogPrerequisites,
 }))
 
-vi.mock('@/features/curriculum-planner/data/courseDetailsApi', () => ({
+vi.mock('@/catalog/data/courseDetailsApi', () => ({
   getCatalogCourseDetails,
 }))
 
-vi.mock('@/features/course-catalog/data/courseCatalogApi', async () => {
-  const actual = await vi.importActual(
-    '@/features/course-catalog/data/courseCatalogApi',
-  )
+vi.mock('@/catalog/data/courseCatalogApi', async () => {
+  const actual = await vi.importActual('@/catalog/data/courseCatalogApi')
   return { ...actual, getCourse }
 })
 
@@ -62,8 +53,8 @@ vi.mock('@/features/student/hooks/useStudentAcademicProfile', () => ({
   useStudentAcademicProfile,
 }))
 
-vi.mock('@/features/student/data/studentApi', async () => {
-  const actual = await vi.importActual('@/features/student/data/studentApi')
+vi.mock('@/academic-record/data/studentApi', async () => {
+  const actual = await vi.importActual('@/academic-record/data/studentApi')
   return { ...actual, listStudentCourseAttempts }
 })
 
@@ -276,9 +267,24 @@ function renderPage(
 
 describe('CatalogProgramPage', () => {
   it('opens the about tab from search using the loaded catalog', async () => {
-    renderPage({ catalogId: 1, programId: 22, catalogProgramId: 101, catalogProgramVariantId: 7, tab: 'about' }, true)
-    expect(await screen.findByRole('heading', { name: 'Sobre o curso' })).toBeTruthy()
-    expect(screen.getByRole('tab', { name: 'Sobre o curso' }).getAttribute('aria-selected')).toBe('true')
+    renderPage(
+      {
+        catalogId: 1,
+        programId: 22,
+        catalogProgramId: 101,
+        catalogProgramVariantId: 7,
+        tab: 'about',
+      },
+      true,
+    )
+    expect(
+      await screen.findByRole('heading', { name: 'Sobre o curso' }),
+    ).toBeTruthy()
+    expect(
+      screen
+        .getByRole('tab', { name: 'Sobre o curso' })
+        .getAttribute('aria-selected'),
+    ).toBe('true')
     expect(loadCurriculumCatalog).toHaveBeenCalledTimes(1)
   })
 

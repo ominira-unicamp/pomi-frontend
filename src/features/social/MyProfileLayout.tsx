@@ -4,16 +4,12 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
-import {
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { getPublicProfile } from '@/features/friends/userSocialApi'
+import { getPublicProfile } from '@/social-profile/data/userSocialApi'
 import { useUserContext } from '@/features/identity'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
-import { PersonAvatar } from '@/features/media/IdentityImages'
+import { PersonAvatar } from '@/media/IdentityImages'
 
 const tabs = [
   { to: '/perfil', label: 'Informações', icon: UserRound, exact: true },

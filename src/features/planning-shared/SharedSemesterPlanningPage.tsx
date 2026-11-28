@@ -2,31 +2,16 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { CalendarDays, Copy, GraduationCap, MapPin, Users } from 'lucide-react'
 
-import {
-  copySharedPeriodPlanning,
-  getPublicSharedPeriodPlanning,
-  getSharedPeriodPlanningForUser,
-} from './data/sharedPeriodPlanningApi'
-import type { WeeklyScheduleMeeting } from '@/features/student/components/StudentWeeklySchedule'
-import { PersonAvatar } from '@/features/media/IdentityImages'
-import { StudentWeeklySchedule } from '@/features/student/components/StudentWeeklySchedule'
+import { copySharedPeriodPlanning, getPublicSharedPeriodPlanning, getSharedPeriodPlanningForUser } from './data/sharedPeriodPlanningApi'
+import type { WeeklyScheduleMeeting } from '@/academic-record/components/StudentWeeklySchedule'
+import { PersonAvatar } from '@/media/IdentityImages'
+import { StudentWeeklySchedule } from '@/academic-record/components/StudentWeeklySchedule'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
-  EmptyState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmptyState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { useCurrentUser } from '@/features/identity'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
+import { studyPeriodLabel } from '@/catalog/model/studyPeriod'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 function visibilityLabel(visibility: 'FRIENDS' | 'PUBLIC') {

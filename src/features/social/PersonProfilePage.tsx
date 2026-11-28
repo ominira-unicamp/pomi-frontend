@@ -1,58 +1,25 @@
-import { ContextBackLink } from '@/components/ContextBackLink'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import {
-  BookOpen,
-  CalendarDays,
-  Check,
-  ChevronDown,
-  Tags,
-  Trash2,
-  UserPlus,
-  Users,
-} from 'lucide-react'
+import { BookOpen, CalendarDays, Check, ChevronDown, Tags, Trash2, UserPlus, Users } from 'lucide-react'
 
 import { friendshipFor } from './components'
 import { relationshipFor } from './types'
-import type { WeeklyScheduleMeeting } from '@/features/student/components/StudentWeeklySchedule'
-import { StudentWeeklySchedule } from '@/features/student/components/StudentWeeklySchedule'
+import type { WeeklyScheduleMeeting } from '@/academic-record/components/StudentWeeklySchedule'
+import { ContextBackLink } from '@/components/ContextBackLink'
+import { StudentWeeklySchedule } from '@/academic-record/components/StudentWeeklySchedule'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
-import {
-  EmptyState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { EmptyState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { Button, buttonVariants } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  acceptFriendship,
-  getPerson,
-  getPublicProfile,
-  listFriendships,
-  removeFriendship,
-  requestFriendship,
-} from '@/features/friends/userSocialApi'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { acceptFriendship, getPerson, getPublicProfile, listFriendships, removeFriendship, requestFriendship } from '@/social-profile/data/userSocialApi'
 import { groupApi } from '@/features/groups/data/groupApi'
 import { listSharedPeriodPlanningsForPerson } from '@/features/planning-shared/data/sharedPeriodPlanningApi'
 import { useUserContext } from '@/features/identity'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
-import { GroupAvatar, PersonAvatar } from '@/features/media/IdentityImages'
+import { studyPeriodLabel } from '@/catalog/model/studyPeriod'
+import { GroupAvatar, PersonAvatar } from '@/media/IdentityImages'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 function visibilityLabel(visibility: 'FRIENDS' | 'PUBLIC') {

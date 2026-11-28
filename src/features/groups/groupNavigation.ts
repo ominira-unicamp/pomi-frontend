@@ -22,3 +22,14 @@ export function groupWorkspaceDestination(
       : ('/grupos/$groupId/gerenciar/acessos' as const)
   return '/grupos/$groupId/gerenciar/perfil' as const
 }
+
+export function eventManagementReturnTo(
+  destination: string | undefined,
+  pathname: string,
+  origin: string,
+) {
+  return destination === '/grupos/$groupId/gerenciar/eventos' &&
+    origin.split('?')[0] === pathname.split('/eventos')[0] + '/eventos'
+    ? origin
+    : undefined
+}

@@ -2,18 +2,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { StudentProgramCurriculum } from './StudentProgramCurriculum'
-import type {
-  CatalogId,
-  CatalogProgramId,
-  CatalogProgramVariantId,
-  CourseId,
-  CurriculumPlannerStaticData,
-  ProgramId,
-} from '@pomi/planner-domain/curriculum'
-import type {
-  StudentCourseAttempt,
-  StudentProfile,
-} from '@/features/student/data/studentApi'
+import type { CatalogId, CatalogProgramId, CatalogProgramVariantId, CourseId, CurriculumPlannerStaticData, ProgramId } from '@pomi/planner-domain/curriculum'
+import type { StudentCourseAttempt, StudentProfile } from '@/academic-record/data/studentApi'
 import type { ReactNode } from 'react'
 
 const mocks = vi.hoisted(() => ({
@@ -21,13 +11,13 @@ const mocks = vi.hoisted(() => ({
   prerequisites: vi.fn(),
   details: vi.fn(),
 }))
-vi.mock('@/features/curriculum-planner/data/curriculumSuggestionApi', () => ({
+vi.mock('@/catalog/data/curriculumSuggestionApi', () => ({
   loadCurriculumSuggestions: mocks.suggestions,
 }))
-vi.mock('@/features/curriculum-planner/data/curriculumPrerequisiteApi', () => ({
+vi.mock('@/catalog/data/curriculumPrerequisiteApi', () => ({
   loadCatalogPrerequisites: mocks.prerequisites,
 }))
-vi.mock('@/features/curriculum-planner/data/courseDetailsApi', () => ({
+vi.mock('@/catalog/data/courseDetailsApi', () => ({
   getCatalogCourseDetails: mocks.details,
 }))
 vi.mock('@tanstack/react-router', () => ({

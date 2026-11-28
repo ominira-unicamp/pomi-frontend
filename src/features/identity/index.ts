@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getCurrentUser } from './identityApi'
+import { getCurrentUser } from '@/features/identity/identityApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
@@ -24,5 +24,3 @@ export function useUserContext() {
   return { userId: userQuery.data?.userId, userQuery }
 }
 export { UserIdentityState } from './UserIdentityState'
-
-export { WelcomeGate, WelcomePage } from './Welcome'

@@ -1,21 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import {
-  AlertCircle,
-  CalendarClock,
-  ChevronLeft,
-  ChevronRight,
-  LoaderCircle,
-  Utensils,
-} from 'lucide-react'
+import { AlertCircle, CalendarClock, ChevronLeft, ChevronRight, LoaderCircle, Utensils } from 'lucide-react'
 import { useState } from 'react'
 
-import type {
-  StudentClassSchedule,
-  StudentCourseAttempt,
-} from '@/features/student/data/studentApi'
-import type { StudentAbsence } from '@/features/student/data/studentAbsenceApi'
-import type { ClassOccurrence } from '@/features/student/absences/studentAbsences'
-import type { StudentAbsenceController } from '@/features/student/absences/useStudentAbsences'
+import type { StudentClassSchedule, StudentCourseAttempt } from '@/academic-record/data/studentApi'
+import type { StudentAbsence } from '@/academic-record/data/studentAbsenceApi'
+import type { ClassOccurrence } from '@/academic-record/absences/studentAbsences'
+import type { StudentAbsenceController } from '@/academic-record/absences/useStudentAbsences'
 import type { DailyMeal } from '@/features/home/dailyMenuApi'
 import type { TodayClassStatus } from '@/features/home/todayClasses'
 import { ApiError } from '@/api/errors'
@@ -23,22 +13,11 @@ import { ResponsiveDialog } from '@/components/patterns/ResponsiveDialog'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { StudentAbsenceAction } from '@/features/student/absences/StudentAbsenceAction'
-import {
-  academicDateKey,
-  findOccurrenceAbsence,
-  occurrenceFromMeeting,
-} from '@/features/student/absences/studentAbsences'
+import { StudentAbsenceAction } from '@/academic-record/absences/StudentAbsenceAction'
+import { academicDateKey, findOccurrenceAbsence, occurrenceFromMeeting } from '@/academic-record/absences/studentAbsences'
 import { listDailyMenus } from '@/features/home/dailyMenuApi'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
-import {
-  currentScheduleDay,
-  dateFromAcademicDateKey,
-  formatAcademicDate,
-  shiftAcademicDate,
-  sortTodayMeetings,
-  statusForTodayMeeting,
-} from '@/features/home/todayClasses'
+import { currentScheduleDay, dateFromAcademicDateKey, formatAcademicDate, shiftAcademicDate, sortTodayMeetings, statusForTodayMeeting } from '@/features/home/todayClasses'
 
 type AgendaPanelProps = Readonly<{
   currentPeriodId: number | null

@@ -18,8 +18,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { mostRecentStudyPeriodsFirst } from '@/features/student/data/studyPeriodOrdering'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
+import { mostRecentStudyPeriodsFirst } from '@/catalog/model/studyPeriodOrdering'
+import { studyPeriodLabel } from '@/catalog/model/studyPeriod'
 
 function visibilityLabel(visibility: SemesterPlanningVisibility) {
   if (visibility === 'FRIENDS') return 'Amigos'

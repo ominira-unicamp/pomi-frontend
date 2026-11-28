@@ -1,14 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-
-import {
-  acceptFriendship,
-  getPerson,
-  hasPublicProfileChanges,
-  publicProfileUpdateInput,
-  requestFriendship,
-  searchPeople,
-  updatePublicProfile,
-} from '@/features/friends/userSocialApi'
+import { acceptFriendship, getPerson, hasPublicProfileChanges, publicProfileUpdateInput, requestFriendship, searchPeople, updatePublicProfile } from '@/social-profile/data/userSocialApi'
 
 const getAccessToken = vi.fn(() => Promise.resolve('access-token'))
 

@@ -150,7 +150,10 @@ export function SemesterScheduleGrid({
               {String(endHour).padStart(2, '0')}:00
             </div>
             {days.map(([day]) => (
-              <div key={day} className="border-b border-l border-strong-border/30" />
+              <div
+                key={day}
+                className="border-b border-l border-strong-border/30"
+              />
             ))}
           </div>
         </div>
@@ -176,8 +179,7 @@ function ScheduleClassBlock({
 }) {
   const dayIndex = days.findIndex(([day]) => day === meeting.dayOfWeek)
   const top =
-    ((minutes(meeting.start) - startHour * 60) /
-      ((endHour - startHour) * 60)) *
+    ((minutes(meeting.start) - startHour * 60) / ((endHour - startHour) * 60)) *
     100
   const height =
     ((minutes(meeting.end) - minutes(meeting.start)) /

@@ -2,10 +2,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useState } from 'react'
-import type { CurriculumDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
+import type { CurriculumDraftBootstrap } from '@/planning-drafts/data/planningDraftBootstrap'
 import type { ComponentType, ReactNode } from 'react'
 import { Route } from '@/routes/planejamentos-de-curriculo'
-import { curriculumDraftBootstrapKey } from '@/features/planning-shared/data/planningDraftBootstrap'
+import { curriculumDraftBootstrapKey } from '@/planning-drafts/data/planningDraftBootstrap'
 import { buildInitialState } from '@/features/curriculum-planner/CurriculumPlanCreationPage'
 
 const routeState = vi.hoisted(() => ({

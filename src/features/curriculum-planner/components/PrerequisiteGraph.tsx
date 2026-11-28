@@ -1,7 +1,7 @@
 import { useEffect, useId, useMemo, useState } from 'react'
 import type { RefObject } from 'react'
 
-import type { VisualPrerequisiteLink } from '@/features/curriculum-planner/prerequisiteTreeLayout'
+import type { VisualPrerequisiteLink } from '@/catalog/model/prerequisiteTreeLayout'
 
 import { cn } from '@/lib/utils'
 

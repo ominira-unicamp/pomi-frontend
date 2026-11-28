@@ -1,5 +1,5 @@
 import type { CurriculumPlannerStaticData } from '@pomi/planner-domain/curriculum'
-import type { StudentProfile } from '@/features/student/data/studentApi'
+import type { StudentProfile } from '@/academic-record/data/studentApi'
 import { Button } from '@/components/ui/button'
 import { Section } from '@/components/patterns/Section'
 

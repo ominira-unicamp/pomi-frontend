@@ -1,39 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
-import { ContextLink as Link } from '@/components/NavigationContext'
 import { ExternalLink, MessageSquareWarning, Trash2 } from 'lucide-react'
-import {
-  periodReference,
-  specialRequirementCode,
-} from '@pomi/planner-domain/curriculum'
-import type {
-  Course,
-  CurriculumPlannerSnapshot,
-  PlanningPeriod,
-  PlanningPeriodId,
-} from '@pomi/planner-domain/curriculum'
+import { periodReference, specialRequirementCode } from '@pomi/planner-domain/curriculum'
+import type { Course, CurriculumPlannerSnapshot, PlanningPeriod, PlanningPeriodId } from '@pomi/planner-domain/curriculum'
 import type { CoursePrerequisiteMenuState } from '@/features/curriculum-planner/components/CourseCard'
 import type { CurriculumPlannerContextValue } from '@/features/curriculum-planner/CurriculumPlannerProvider'
-import type { CatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
-import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
+import type { CatalogCourseDetails } from '@/catalog/data/courseDetailsApi'
+import type { StudentCourseAttempt } from '@/academic-record/data/studentApi'
+import { ContextLink as Link } from '@/app/navigation/NavigationContext'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Button, buttonVariants } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
-import { CatalogCourseDetailsContent } from '@/features/course-catalog/CatalogCourseDetailsContent'
-import { getCatalogCourseDetails } from '@/features/curriculum-planner/data/courseDetailsApi'
-import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { CatalogCourseDetailsContent } from '@/catalog/components/CatalogCourseDetailsContent'
+import { getCatalogCourseDetails } from '@/catalog/data/courseDetailsApi'
+import { useFeedbackReport } from '@/integrations/feedback/FeedbackReportContext'
 import { useDesktopLayout } from '@/hooks/useDesktopLayout'
 import { publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 import { cn } from '@/lib/utils'

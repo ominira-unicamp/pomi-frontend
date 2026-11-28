@@ -1,15 +1,16 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
 import {
   catalogProgramVariantForSelection,
   suggestionLabel,
 } from '@pomi/planner-domain/curriculum'
 import type { CatalogProgramId } from '@pomi/planner-domain/curriculum'
-import type { InitialAcademicSelection } from '@/features/planning-shared/components/InitialAcademicSelectionFields'
-import type { SemesterDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
+import type { InitialAcademicSelection } from '@/planning-drafts/components/InitialAcademicSelectionFields'
+import type { SemesterDraftBootstrap } from '@/planning-drafts/data/planningDraftBootstrap'
 import type { SemesterPlanningDocument } from '@pomi/planner-domain/semester'
+import { isApiError } from '@/api/errors'
 import { requireCurrentUserId } from '@/features/identity/identityApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { loadCurriculumCatalog } from '@/catalog/data/curriculumCatalogApi'
@@ -23,17 +24,17 @@ import {
 } from '@/components/PageLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { InitialAcademicSelectionFields } from '@/features/planning-shared/components/InitialAcademicSelectionFields'
+import { InitialAcademicSelectionFields } from '@/planning-drafts/components/InitialAcademicSelectionFields'
 import { listCurricula } from '@/features/curriculum-planner/data/curriculumPersistenceApi'
-import { semesterDraftBootstrapKey } from '@/features/planning-shared/data/planningDraftBootstrap'
-import { loadCurriculumSuggestions } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
+import { semesterDraftBootstrapKey } from '@/planning-drafts/data/planningDraftBootstrap'
+import { loadCurriculumSuggestions } from '@/catalog/data/curriculumSuggestionApi'
 import {
   createSemesterPlanning,
   loadSemesterPlannerStaticData,
 } from '@/features/semester-planner/data/semesterPlanningApi'
 
-import { mostRecentStudyPeriodsFirst } from '@/features/student/data/studyPeriodOrdering'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
+import { mostRecentStudyPeriodsFirst } from '@/catalog/model/studyPeriodOrdering'
+import { studyPeriodLabel } from '@/catalog/model/studyPeriod'
 import { useStudentAcademicProfile } from '@/features/student/hooks/useStudentAcademicProfile'
 import {
   privateQueryKeys,
@@ -45,6 +46,14 @@ const steps = ['Identificação', 'Guia de disciplinas', 'Revisão']
 export function SemesterPlanCreationPage() {
   const auth = useOptionalAuth()
   const sessionSubject = auth.sessionSubject ?? 'unknown-session'
+  const lifetime = useMemo(() => ({ active: true }), [sessionSubject])
+  const isCurrentSession = () => lifetime.active
+  useEffect(() => {
+    lifetime.active = true
+    return () => {
+      lifetime.active = false
+    }
+  }, [lifetime])
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { userId, profileQuery } = useStudentAcademicProfile()
@@ -71,6 +80,9 @@ export function SemesterPlanCreationPage() {
   const [suggestionId, setSuggestionId] = useState('')
   const [error, setError] = useState<string>()
   const [submitting, setSubmitting] = useState(false)
+  const creationAttempt = useRef<{ subject: string; id?: number } | undefined>(
+    undefined,
+  )
   const staticQuery = useQuery({
     queryKey: publicQueryKeys.semesterPlannerCreationStaticData(),
     queryFn: () => loadSemesterPlannerStaticData(),
@@ -231,6 +243,21 @@ export function SemesterPlanCreationPage() {
         return
       }
       const currentUserId = await requireCurrentUserId(auth.getAccessToken)
+      if (!isCurrentSession()) return
+      if (creationAttempt.current?.subject === sessionSubject) {
+        if (creationAttempt.current.id) {
+          await navigate({
+            to: '/planejamentos-de-semestre/$planejamentoId',
+            params: { planejamentoId: String(creationAttempt.current.id) },
+          })
+          return
+        }
+        setError(
+          'A criação anterior não foi confirmada. Confira seus planejamentos antes de iniciar outra criação. Suas escolhas foram mantidas.',
+        )
+        return
+      }
+      creationAttempt.current = { subject: sessionSubject }
       const created = await createSemesterPlanning(
         currentUserId,
         {
@@ -239,14 +266,20 @@ export function SemesterPlanCreationPage() {
         },
         auth.getAccessToken,
       )
+      if (!isCurrentSession()) return
+      creationAttempt.current = { subject: sessionSubject, id: created.id }
       await navigate({
         to: '/planejamentos-de-semestre/$planejamentoId',
         params: { planejamentoId: String(created.id) },
       })
     } catch (creationError) {
       console.error('[semester-planner] create failed', creationError)
+      if (isApiError(creationError) && creationError.status < 500)
+        creationAttempt.current = undefined
       setError(
-        'Não foi possível criar o planejamento. Suas escolhas foram mantidas para uma nova tentativa.',
+        isApiError(creationError) && creationError.status < 500
+          ? 'Não foi possível criar o planejamento. Suas escolhas foram mantidas para uma nova tentativa.'
+          : 'Não foi possível confirmar a criação. Suas escolhas foram mantidas. Confira seus planejamentos antes de tentar novamente.',
       )
     } finally {
       setSubmitting(false)

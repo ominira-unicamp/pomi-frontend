@@ -1,26 +1,14 @@
-import type { SituationSearch, NavigationOptions } from '@/lib/navigation'
 import { useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { buildPersonalCurriculum } from '@pomi/planner-domain/curriculum'
 import { labelForStatus } from '../model/model'
-import type {
-  CatalogProgramOption,
-  CatalogProgramVariantOption,
-  Course,
-  CourseId,
-  LanguageId,
-} from '@pomi/planner-domain/curriculum'
-import type {
-  StudentCourseAttempt,
-  StudentProfile,
-} from '@/features/student/data/studentApi'
+import type { NavigationOptions, SituationSearch } from '@/lib/navigation'
+import type { CatalogProgramOption, CatalogProgramVariantOption, Course, CourseId, LanguageId } from '@pomi/planner-domain/curriculum'
+import type { StudentCourseAttempt, StudentProfile } from '@/academic-record/data/studentApi'
 import type { CatalogProgramDetailsSearch } from '@/features/catalog-program'
-import { isApprovedStudentCourseAttempt } from '@/features/student/data/studentApi'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
-import {
-  CatalogProgramDetails,
-  CompletedCoursesToggle,
-} from '@/features/catalog-program'
+import { isApprovedStudentCourseAttempt } from '@/academic-record/data/studentApi'
+import { studyPeriodLabel } from '@/catalog/model/studyPeriod'
+import { CatalogProgramDetails, CompletedCoursesToggle } from '@/features/catalog-program'
 import { ErrorState, LoadingState } from '@/components/PageLayout'
 import { Badge } from '@/components/patterns/Badge'
 import { DataList, DataRow } from '@/components/patterns/DataList'

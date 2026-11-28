@@ -1,13 +1,8 @@
 import { useMemo, useState } from 'react'
 
-import type {
-  Course,
-  CourseId,
-  CoursePrerequisiteRule,
-  CurriculumPlannerStaticData,
-} from '@pomi/planner-domain/curriculum'
-import type { VisualPrerequisiteLink } from '@/features/curriculum-planner/prerequisiteTreeLayout'
-import { PrerequisiteTreeView } from '@/features/curriculum-planner/components/PrerequisiteTreeView'
+import type { Course, CourseId, CoursePrerequisiteRule, CurriculumPlannerStaticData } from '@pomi/planner-domain/curriculum'
+import type { VisualPrerequisiteLink } from '@/catalog/model/prerequisiteTreeLayout'
+import { PrerequisiteTreeView } from '@/catalog/components/PrerequisiteTreeView'
 import { Button } from '@/components/ui/button'
 
 function curriculumBlocks(

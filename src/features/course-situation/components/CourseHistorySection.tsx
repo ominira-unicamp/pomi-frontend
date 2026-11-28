@@ -3,31 +3,17 @@ import { ChevronDown, Globe, Upload } from 'lucide-react'
 import { labelForStatus } from '../model/model'
 import { CourseAttemptRow } from './CourseAttemptRow'
 import type { ChangeEvent, RefObject } from 'react'
-import type { ProfessorEvaluationTarget } from '@/features/student/components/ProfessorEvaluationDialog'
-import type {
-  StudentCourseAttempt,
-  StudentHistoryImportSummary,
-} from '@/features/student/data/studentApi'
+import type { ProfessorEvaluationTarget } from '@/academic-record/components/ProfessorEvaluationDialog'
+import type { StudentCourseAttempt, StudentHistoryImportSummary } from '@/academic-record/data/studentApi'
 import type { CourseHistoryGroup } from '../model/model'
 import { Input } from '@/components/ui/input'
 import { Field, FieldLabel } from '@/components/patterns/Field'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 import { DataList } from '@/components/patterns/DataList'
 import { InlineMessage } from '@/components/patterns/InlineMessage'
-import {
-  Section,
-  SectionContent,
-  SectionDescription,
-  SectionHeader,
-  SectionTitle,
-} from '@/components/patterns/Section'
+import { Section, SectionContent, SectionDescription, SectionHeader, SectionTitle } from '@/components/patterns/Section'
 import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/PageLayout'
 

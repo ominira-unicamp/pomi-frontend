@@ -2,32 +2,14 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Check, Copy, Search, Trash2, UserPlus, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import type {
-  Friendship,
-  PublicPerson,
-  PublicProfile,
-} from '@/features/friends/userSocialApi'
-import { PersonAvatar } from '@/features/media/IdentityImages'
+import type { Friendship, PublicPerson, PublicProfile } from '@/social-profile/data/userSocialApi'
+import { PersonAvatar } from '@/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import {
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import {
-  acceptFriendship,
-  getPublicProfile,
-  hasPublicProfileChanges,
-  listFriendships,
-  publicProfileUpdateInput,
-  removeFriendship,
-  requestFriendship,
-  searchPeople,
-  updatePublicProfile,
-} from '@/features/friends/userSocialApi'
+import { acceptFriendship, getPublicProfile, hasPublicProfileChanges, listFriendships, publicProfileUpdateInput, removeFriendship, requestFriendship, searchPeople, updatePublicProfile } from '@/social-profile/data/userSocialApi'
 import { useUserContext } from '@/features/identity'
 import { UserIdentityState } from '@/features/identity/UserIdentityState'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'

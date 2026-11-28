@@ -1,15 +1,10 @@
 import { useDroppable } from '@dnd-kit/core'
 import { ChevronRight } from 'lucide-react'
-import { ContextLink as Link } from '@/components/NavigationContext'
 import { memo } from 'react'
 
 import { CompactCourseCard, CompactVisual } from './CourseCard'
-import type {
-  CourseId,
-  CurriculumBlockView,
-  CurriculumPlannerSnapshot,
-  PlanningPeriod,
-} from '@pomi/planner-domain/curriculum'
+import type { CourseId, CurriculumBlockView, CurriculumPlannerSnapshot, PlanningPeriod } from '@pomi/planner-domain/curriculum'
+import { ContextLink as Link } from '@/app/navigation/NavigationContext'
 import { cn } from '@/lib/utils'
 
 export const CurriculumBlockCourses = memo(function CurriculumBlockCourses({

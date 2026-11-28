@@ -2,49 +2,28 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
-import {
-  catalogProgramVariantForSelection,
-  planningFromSuggestion,
-  suggestionForAcademicSelection,
-  suggestionLabel,
-} from '@pomi/planner-domain/curriculum'
-import type {
-  CatalogProgramId,
-  CourseId,
-  CurriculumPlannerState,
-  CurriculumPlannerStaticData,
-  PlannerRevision,
-  PlanningPeriodId,
-} from '@pomi/planner-domain/curriculum'
-import type { InitialAcademicSelection } from '@/features/planning-shared/components/InitialAcademicSelectionFields'
-import type { CurriculumDraftBootstrap } from '@/features/planning-shared/data/planningDraftBootstrap'
-import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
+import { catalogProgramVariantForSelection, planningFromSuggestion, suggestionForAcademicSelection, suggestionLabel } from '@pomi/planner-domain/curriculum'
+import type { CurriculumDocument } from './data/curriculumPersistenceApi'
+import type { CatalogProgramId, CourseId, CurriculumPlannerState, CurriculumPlannerStaticData, PlannerRevision, PlanningPeriodId } from '@pomi/planner-domain/curriculum'
+import type { InitialAcademicSelection } from '@/planning-drafts/components/InitialAcademicSelectionFields'
+import type { CurriculumDraftBootstrap } from '@/planning-drafts/data/planningDraftBootstrap'
+import type { StudentCourseAttempt } from '@/academic-record/data/studentApi'
+import { isApiError } from '@/api/errors'
 import { requireCurrentUserId } from '@/features/identity/identityApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { CreationWizard } from '@/components/CreationWizard'
-import {
-  ErrorState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { ErrorState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { loadCurriculumCatalog } from '@/catalog/data/curriculumCatalogApi'
-import { InitialAcademicSelectionFields } from '@/features/planning-shared/components/InitialAcademicSelectionFields'
+import { InitialAcademicSelectionFields } from '@/planning-drafts/components/InitialAcademicSelectionFields'
 import { persistCurriculumState } from '@/features/curriculum-planner/data/curriculumPersistenceAdapter'
-import { curriculumDraftBootstrapKey } from '@/features/planning-shared/data/planningDraftBootstrap'
-import { loadCurriculumSuggestions } from '@/features/curriculum-planner/data/curriculumSuggestionApi'
-import {
-  isApprovedStudentCourseAttempt,
-  listStudentCourseAttempts,
-} from '@/features/student/data/studentApi'
+import { curriculumDraftBootstrapKey } from '@/planning-drafts/data/planningDraftBootstrap'
+import { loadCurriculumSuggestions } from '@/catalog/data/curriculumSuggestionApi'
+import { isApprovedStudentCourseAttempt, listStudentCourseAttempts } from '@/academic-record/data/studentApi'
 import { useStudentAcademicProfile } from '@/features/student/hooks/useStudentAcademicProfile'
-import {
-  privateQueryKeys,
-  publicQueryKeys,
-} from '@/integrations/tanstack-query/queryKeys'
+import { privateQueryKeys, publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 const steps = ['Base acadêmica', 'Identificação', 'Revisão']
 const currentYear = new Date().getFullYear()
@@ -75,6 +54,9 @@ export function CurriculumPlanCreationPage() {
   )
   const [error, setError] = useState<string>()
   const [submitting, setSubmitting] = useState(false)
+  const creationAttempt = useRef<
+    { subject: string; document?: CurriculumDocument } | undefined
+  >(undefined)
   const profileSelectionInitialized = useRef(false)
   const planningStartTouched = useRef(false)
   const staticQuery = useQuery({
@@ -87,6 +69,14 @@ export function CurriculumPlanCreationPage() {
     staleTime: Infinity,
   })
   const sessionSubject = auth.sessionSubject ?? 'anonymous-session'
+  const lifetime = useMemo(() => ({ active: true }), [sessionSubject])
+  const isCurrentSession = () => lifetime.active
+  useEffect(() => {
+    lifetime.active = true
+    return () => {
+      lifetime.active = false
+    }
+  }, [lifetime])
   const historyUserId = userId ?? undefined
   const attemptsQuery = useQuery({
     queryKey: privateQueryKeys.courseAttempts(sessionSubject, historyUserId),
@@ -247,19 +237,61 @@ export function CurriculumPlanCreationPage() {
         return
       }
       const createdUserId = await requireCurrentUserId(auth.getAccessToken)
+      if (!isCurrentSession()) return
+      const progress =
+        creationAttempt.current?.subject === sessionSubject
+          ? creationAttempt.current
+          : undefined
+      if (progress && !progress.document) {
+        setError(
+          'A criação anterior não foi confirmada. Confira seus planejamentos antes de iniciar outra criação. Suas escolhas foram mantidas.',
+        )
+        return
+      }
+      creationAttempt.current = progress ?? { subject: sessionSubject }
       const document = await persistCurriculumState({
         userId: createdUserId,
+        current: progress?.document,
+        periodIds: progress?.document
+          ? new Map(
+              state.plan.periods.flatMap((period, index) => {
+                const persisted = progress.document?.periods.find(
+                  (item) => item.position === index + 1,
+                )
+                return persisted
+                  ? [[period.id, Number(persisted.id)] as const]
+                  : []
+              }),
+            )
+          : undefined,
+        onStructurePersisted: (confirmed) => {
+          if (!isCurrentSession()) return
+          creationAttempt.current = {
+            subject: sessionSubject,
+            document: confirmed,
+          }
+        },
         state,
         name: name.trim(),
         getAccessToken: auth.getAccessToken,
       })
+      if (!isCurrentSession()) return
       await navigate({
         to: '/planejamentos-de-curriculo/$planejamentoId',
         params: { planejamentoId: String(document.id) },
       })
-    } catch {
+    } catch (creationError) {
+      if (
+        !creationAttempt.current?.document &&
+        isApiError(creationError) &&
+        creationError.status < 500
+      )
+        creationAttempt.current = undefined
       setError(
-        'Não foi possível criar o planejamento. Suas escolhas foram mantidas para uma nova tentativa.',
+        creationAttempt.current?.document ||
+          (isApiError(creationError) && creationError.status < 500)
+          ? 'Não foi possível criar o planejamento. Suas escolhas foram mantidas para uma nova tentativa.'
+          : 'Não foi possível confirmar a criação. Suas escolhas foram mantidas. Confira seus planejamentos antes de tentar novamente.',
       )
     } finally {
       setSubmitting(false)

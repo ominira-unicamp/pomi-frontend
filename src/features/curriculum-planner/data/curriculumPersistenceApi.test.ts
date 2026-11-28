@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-
-import { getCurriculum } from './curriculumPersistenceApi'
+import { getCurriculum } from '@/features/curriculum-planner/data/curriculumPersistenceApi'
 
 describe('curriculum persistence API', () => {
   afterEach(() => vi.unstubAllGlobals())

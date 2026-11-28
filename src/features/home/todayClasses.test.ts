@@ -1,14 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import type { StudentClassSchedule } from '@/features/student/data/studentApi'
-
-import {
-  currentScheduleDay,
-  currentStudyPeriodCode,
-  dateFromAcademicDateKey,
-  shiftAcademicDate,
-  sortTodayMeetings,
-  statusForTodayMeeting,
-} from '@/features/home/todayClasses'
+import type { StudentClassSchedule } from '@/academic-record/data/studentApi'
+import { currentScheduleDay, currentStudyPeriodCode, dateFromAcademicDateKey, shiftAcademicDate, sortTodayMeetings, statusForTodayMeeting } from '@/features/home/todayClasses'
 
 function meeting(id: number, start: string, end: string): StudentClassSchedule {
   return {

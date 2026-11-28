@@ -1,16 +1,13 @@
 import { useEffect, useState } from 'react'
 
 import { catalogProgramVariantForSelection } from '@pomi/planner-domain/curriculum'
-import type {
-  CurriculumPlannerSnapshot,
-  CurriculumPlannerStaticData,
-} from '@pomi/planner-domain/curriculum'
+import type { CurriculumPlannerSnapshot, CurriculumPlannerStaticData } from '@pomi/planner-domain/curriculum'
 import type { PlannerDispatch } from '@/features/curriculum-planner/types'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { InlineMessage } from '@/components/patterns/InlineMessage'
 import { Card, CardContent } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
+import { compareProgramCodes } from '@/catalog/model/programOrdering'
 
 type Dispatch = PlannerDispatch
 
@@ -56,7 +53,8 @@ export function CurriculumSelectionFields({
   const selectProgram = (value: string) => {
     if (
       value !== snapshot.selection.catalogProgramId &&
-      (snapshot.selection.catalogProgramVariantId || snapshot.selection.languageId)
+      (snapshot.selection.catalogProgramVariantId ||
+        snapshot.selection.languageId)
     )
       setSelectionWarning(selectionWarningMessage)
     void dispatch({

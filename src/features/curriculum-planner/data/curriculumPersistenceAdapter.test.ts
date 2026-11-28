@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-
-import { persistCurriculumState } from './curriculumPersistenceAdapter'
+import { persistCurriculumState } from '@/features/curriculum-planner/data/curriculumPersistenceAdapter'
 
 const { createCurriculum, patchCurriculum, patchBodyFromState } = vi.hoisted(
   () => ({
@@ -178,4 +177,56 @@ describe('persistCurriculumState', () => {
       expect.any(Function),
     )
   })
+})
+
+it('records a confirmed creation before a course-link failure so retry can update the same resource', async () => {
+  createCurriculum.mockClear()
+  const created = {
+    id: 90,
+    name: 'Parcial',
+    isFavorite: false,
+    selection: {
+      catalogProgramId: null,
+      catalogProgramVariantId: null,
+      languageId: null,
+    },
+    planningStart: null,
+    currentPeriodId: null,
+    periods: [{ id: '501', position: 1 }],
+    courses: [],
+  }
+  createCurriculum.mockResolvedValue(created)
+  patchCurriculum
+    .mockRejectedValueOnce(new Error('offline'))
+    .mockResolvedValue(created)
+  const checkpoint = vi.fn()
+  const state = {
+    revision: 0,
+    selection: {},
+    plan: { periods: [{ id: 'local', items: [{ courseId: '101' }] }] },
+    academicRecord: { completedCourseIds: [] },
+  } as never
+  await expect(
+    persistCurriculumState({
+      userId: 1,
+      state,
+      getAccessToken: () => Promise.resolve('token'),
+      onStructurePersisted: checkpoint,
+    }),
+  ).rejects.toThrow('offline')
+  expect(checkpoint).toHaveBeenCalledWith(created)
+  await persistCurriculumState({
+    userId: 1,
+    current: created,
+    state,
+    periodIds: new Map([['local', 501]]),
+    getAccessToken: () => Promise.resolve('token'),
+  })
+  expect(createCurriculum).toHaveBeenCalledOnce()
+  expect(patchCurriculum).toHaveBeenLastCalledWith(
+    1,
+    90,
+    { courses: { upsert: [{ courseId: 101, periodId: 501 }] } },
+    expect.any(Function),
+  )
 })

@@ -1,17 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { createCurriculumCatalogDataSource } from '@/catalog/data/curriculumCatalogApi'
-import {
-  privateQueryKeys,
-  publicQueryKeys,
-} from '@/integrations/tanstack-query/queryKeys'
-import {
-  getCourseEvaluationForStudyPeriod,
-  listClassesForStudentCourseAttempt,
-  listStudentCourseAttempts,
-  listStudyPeriods,
-} from '@/features/student/data/studentApi'
+import { privateQueryKeys, publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
+import { getCourseEvaluationForStudyPeriod, listClassesForStudentCourseAttempt, listStudentCourseAttempts, listStudyPeriods } from '@/academic-record/data/studentApi'
 import { useStudentAcademicProfile } from '@/features/student/hooks/useStudentAcademicProfile'
 
 const staticSource = createCurriculumCatalogDataSource()

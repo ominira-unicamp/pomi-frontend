@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  displayLocalDateTime,
-  parseLocalDateTime,
-  preserveUnchangedInstant,
-} from './dateFields'
+import { displayLocalDateTime, parseLocalDateTime, preserveUnchangedInstant } from '@/features/groups/dateFields'
 
 describe('datas locais dos grupos', () => {
   it('preserva o instante original ao reabrir e salvar sem alterar os campos', () => {

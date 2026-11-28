@@ -1,4 +1,4 @@
-import type { Friendship, PublicPerson } from '@/features/friends/userSocialApi'
+import type { Friendship, PublicPerson } from '@/social-profile/data/userSocialApi'
 
 export type RelationshipState =
   | 'SELF'

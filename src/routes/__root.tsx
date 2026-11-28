@@ -1,12 +1,8 @@
-import {
-  Outlet,
-  createRootRouteWithContext,
-  useRouterState,
-} from '@tanstack/react-router'
+import { Outlet, createRootRouteWithContext, useRouterState } from '@tanstack/react-router'
 import type { QueryClient } from '@tanstack/react-query'
 
-import { WelcomeGate } from '@/features/identity'
-import { NavigationContextProvider } from '@/components/NavigationContext'
+import { WelcomeGate } from '@/workflows/onboarding'
+import { NavigationContextProvider } from '@/app/navigation/NavigationContext'
 import { AppShell } from '@/components/AppShell'
 import { ErrorState, PageContainer } from '@/components/PageLayout'
 

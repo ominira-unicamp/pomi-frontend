@@ -1,17 +1,12 @@
-import { ContextBackLink } from '@/components/ContextBackLink'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 import { CalendarDays, MapPin } from 'lucide-react'
 
 import { groupApi } from './data/groupApi'
 import { formatEventDate } from './presentation'
-import { GroupAvatar } from '@/features/media/IdentityImages'
-import {
-  ErrorState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { ContextBackLink } from '@/components/ContextBackLink'
+import { GroupAvatar } from '@/media/IdentityImages'
+import { ErrorState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { buttonVariants } from '@/components/ui/button'
 
 export function EventDetailPage({ eventId }: { eventId: number }) {

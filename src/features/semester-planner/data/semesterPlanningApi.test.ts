@@ -3,7 +3,7 @@ import { emptyGuide } from '@pomi/planner-domain/semester'
 import {
   createSemesterPlanning,
   patchSemesterPlanning,
-} from './semesterPlanningApi'
+} from '@/features/semester-planner/data/semesterPlanningApi'
 
 const sdk = vi.hoisted(() => ({ create: vi.fn(), update: vi.fn() }))
 vi.mock('@/api/client', () => ({ pomiSdk: { app: { periodPlans: sdk } } }))

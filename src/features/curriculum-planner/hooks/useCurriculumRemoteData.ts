@@ -1,18 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { useCallback, useMemo } from 'react'
-import { getCurrentUser } from '@/features/identity'
-
-import {
-  getCurriculum,
-  listCurricula,
-} from '@/features/curriculum-planner/data/curriculumPersistenceApi'
+import { getCurrentUser } from '@/features/identity/index'
+import { getCurriculum, listCurricula } from '@/features/curriculum-planner/data/curriculumPersistenceApi'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
-import {
-  getStudentAcademicProfile,
-  isApprovedStudentCourseAttempt,
-  listStudentCourseAttempts,
-} from '@/features/student/data/studentApi'
+import { getStudentAcademicProfile, isApprovedStudentCourseAttempt, listStudentCourseAttempts } from '@/academic-record/data/studentApi'
 
 export type CurriculumRemoteData = Readonly<{
   userId?: number

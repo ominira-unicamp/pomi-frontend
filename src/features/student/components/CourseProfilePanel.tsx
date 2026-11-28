@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 
 import type { CatalogProgramOption } from '@pomi/planner-domain/curriculum'
-import type { StudentProfile } from '@/features/student/data/studentApi'
+import type { StudentProfile } from '@/academic-record/data/studentApi'
 import { AutocompleteSelect } from '@/components/AutocompleteSelect'
 import { Field, FieldError, FieldLabel } from '@/components/patterns/Field'
 import { InlineMessage } from '@/components/patterns/InlineMessage'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { compareProgramCodes } from '@/features/planning-shared/data/programOrdering'
+import { compareProgramCodes } from '@/catalog/model/programOrdering'
 
 export type CourseProfileValues = Readonly<{
   catalogId: number | null

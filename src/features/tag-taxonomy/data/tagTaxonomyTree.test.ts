@@ -1,10 +1,5 @@
 import { describe, expect, it } from 'vitest'
-
-import {
-  buildTagTree,
-  collectDescendantTagIds,
-  filterTagTree,
-} from './tagTaxonomyTree'
+import { buildTagTree, collectDescendantTagIds, filterTagTree } from '@/features/tag-taxonomy/data/tagTaxonomyTree'
 
 const tags = [
   { id: 2, name: 'Álgebra', categoryId: 1, parentTagId: null },

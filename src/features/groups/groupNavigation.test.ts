@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { canOrganizeEvents, groupWorkspaceDestination } from './groupNavigation'
+import { canOrganizeEvents, groupWorkspaceDestination } from '@/features/groups/groupNavigation'
 
 describe('group workspace destinations', () => {
   it.each(['EVENT_CREATE', 'EVENT_EDIT', 'EVENT_PUBLISH'] as const)(

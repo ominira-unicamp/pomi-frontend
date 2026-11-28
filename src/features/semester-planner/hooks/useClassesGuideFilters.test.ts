@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { filterClassesGuide } from './useClassesGuideFilters'
-import type { ClassesGuideFilters } from './useClassesGuideFilters'
+import type { ClassesGuideFilters } from '@/features/semester-planner/hooks/useClassesGuideFilters'
 import type {
   ClassMeeting,
   SemesterClass,
   SemesterCourse,
 } from '@pomi/planner-domain/semester'
+import { filterClassesGuide } from '@/features/semester-planner/hooks/useClassesGuideFilters'
 
 const courses: ReadonlyArray<SemesterCourse> = [
   { id: 1, code: 'MC102', name: 'Algoritmos', credits: 6 },

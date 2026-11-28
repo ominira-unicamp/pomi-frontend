@@ -2,15 +2,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import {
-  CurriculumPlanCreationPage,
-  buildInitialState,
-} from './CurriculumPlanCreationPage'
+import { CurriculumPlanCreationPage, buildInitialState } from './CurriculumPlanCreationPage'
 import type { ReactNode } from 'react'
-import type {
-  CatalogProgramId,
-  CurriculumPlannerStaticData,
-} from '@pomi/planner-domain/curriculum'
+import type { CatalogProgramId, CurriculumPlannerStaticData } from '@pomi/planner-domain/curriculum'
 
 const authState = vi.hoisted(() => ({
   initialized: true,
@@ -36,7 +30,7 @@ vi.mock('@/features/identity/identityApi', () => ({
   requireCurrentUserId: vi.fn(),
   getCurrentUser: vi.fn(() => Promise.resolve({ userId: 1 })),
 }))
-vi.mock('@/features/student/data/studentApi', () => ({
+vi.mock('@/academic-record/data/studentApi', () => ({
   isApprovedStudentCourseAttempt: (attempt: { status: string }) =>
     attempt.status === 'APPROVED',
   listStudentCourseAttempts: vi.fn(() =>
@@ -68,7 +62,7 @@ vi.mock('@/catalog/data/curriculumCatalogApi', () => ({
   loadCurriculumCatalog: () => Promise.resolve({ ok: true, value: staticData }),
 }))
 
-vi.mock('@/features/curriculum-planner/data/curriculumSuggestionApi', () => ({
+vi.mock('@/catalog/data/curriculumSuggestionApi', () => ({
   loadCurriculumSuggestions: suggestionLoader,
 }))
 

@@ -1,23 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import {
-  RouterProvider,
-  createMemoryHistory,
-  createRootRoute,
-  createRoute,
-  createRouter,
-} from '@tanstack/react-router'
-import {
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react'
+import { RouterProvider, createMemoryHistory, createRootRoute, createRoute, createRouter } from '@tanstack/react-router'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type * as TodayClassesModule from '@/features/home/todayClasses'
 
 import { HomePage } from '@/features/home/HomePage'
-import { academicDateKey } from '@/features/student/absences/studentAbsences'
+import { academicDateKey } from '@/academic-record/absences/studentAbsences'
 
 vi.mock('@/features/home/todayClasses', async (importOriginal) => {
   const original = await importOriginal<typeof TodayClassesModule>()
@@ -78,14 +66,14 @@ const {
 vi.mock('@/features/identity/identityApi', () => ({
   requireCurrentUserId: vi.fn(),
 }))
-vi.mock('@/features/student/data/studentApi', () => ({
+vi.mock('@/academic-record/data/studentApi', () => ({
   listClassSchedulesByStudyPeriod,
   getProfessorEvaluation,
   listPendingProfessorEvaluations,
   listStudentCourseAttempts,
 }))
 
-vi.mock('@/features/student/data/studentAbsenceApi', () => ({
+vi.mock('@/academic-record/data/studentAbsenceApi', () => ({
   listStudentAbsences,
   createStudentAbsence,
   deleteStudentAbsence,
@@ -163,7 +151,7 @@ vi.mock('@/features/semester-planner/data/semesterPlanningApi', () => ({
   ),
 }))
 
-vi.mock('@/features/curriculum-planner/data/curriculumPlannerApi', () => ({
+vi.mock('@/catalog/data/curriculumPlannerApi', () => ({
   createApiCurriculumPlannerStaticDataSource: () => ({
     load: () =>
       Promise.resolve({
@@ -277,7 +265,7 @@ describe('HomePage', () => {
     renderHome()
 
     expect(await screen.findByText('Planejar minha graduação')).toBeTruthy()
-    expect(screen.getByText('Montar meu horário')).toBeTruthy()
+    expect(screen.getByText('Planejar meu semestre')).toBeTruthy()
     expect(await screen.findByText('Cardápio de hoje')).toBeTruthy()
     expect(await screen.findByText('Arroz com feijão')).toBeTruthy()
     fireEvent.click(screen.getByRole('button', { name: 'Entrar para acessar' }))

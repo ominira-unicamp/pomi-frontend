@@ -2,12 +2,8 @@ import { Link } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 
 import { buttonVariants } from '@/components/ui/button'
-import { useNavigationContext } from '@/components/NavigationContext'
-import {
-  parseNavigationSearch,
-  readReturnTo,
-  returnLabel,
-} from '@/lib/navigation'
+import { useNavigationContext } from '@/app/navigation/NavigationContext'
+import { parseNavigationSearch, readReturnTo, returnLabel } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
 
 type ContextBackLinkProps = Readonly<{

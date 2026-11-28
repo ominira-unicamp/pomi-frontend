@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { requireCurrentUserId } from './identityApi'
+import { requireCurrentUserId } from '@/features/identity/identityApi'
 
 afterEach(() => vi.unstubAllGlobals())
 

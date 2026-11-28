@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { groupApi } from './groupApi'
+import { groupApi } from '@/features/groups/data/groupApi'
 
 const token = () => Promise.resolve('token')
 afterEach(() => vi.unstubAllGlobals())

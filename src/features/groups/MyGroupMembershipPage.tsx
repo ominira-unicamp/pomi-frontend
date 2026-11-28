@@ -6,15 +6,10 @@ import { groupApi } from './data/groupApi'
 import { canOrganizeEvents, groupWorkspaceDestination } from './groupNavigation'
 import { formatEventDate, permissionLabels } from './presentation'
 import { UserIdentityState } from '@/features/identity/UserIdentityState'
-import { GroupAvatar } from '@/features/media/IdentityImages'
+import { GroupAvatar } from '@/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
-import {
-  ErrorState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { ErrorState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { buttonVariants } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useUserContext } from '@/features/identity'

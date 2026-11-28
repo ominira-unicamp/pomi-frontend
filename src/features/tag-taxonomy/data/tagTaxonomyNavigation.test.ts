@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  normalizeTagSearch,
-  readTaxonomySearch,
-  tagPath,
-} from './tagTaxonomyNavigation'
+import { normalizeTagSearch, readTaxonomySearch, tagPath } from '@/features/tag-taxonomy/data/tagTaxonomyNavigation'
 
 describe('taxonomy navigation', () => {
   it('retains valid URL filters and rejects invalid category identifiers', () => {

@@ -1,16 +1,10 @@
 import { ExternalLink } from 'lucide-react'
-import { CatalogPrerequisiteItemView } from './CatalogPrerequisiteItem'
 import type { ReactNode } from 'react'
 
-import type { CatalogCourse } from '@/features/course-catalog/data/courseCatalogApi'
+import type { CatalogCourse } from '@/catalog/data/courseCatalogApi'
+import { CatalogPrerequisiteItemView } from '@/catalog/components/CatalogPrerequisiteItem'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 const offeringLabels = {
   ALL_PERIODS: 'Todos os períodos',

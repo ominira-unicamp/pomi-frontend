@@ -1,53 +1,30 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from '@tanstack/react-router'
-import {
-  ArrowRight,
-  BookOpen,
-  CalendarDays,
-  CheckCircle2,
-  GraduationCap,
-  LogIn,
-  MessageSquareHeart,
-} from 'lucide-react'
+import { ArrowRight, BookOpen, CalendarDays, CheckCircle2, GraduationCap, LogIn, MessageSquareHeart } from 'lucide-react'
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import type { PersistedSemesterPlanning } from '@/features/semester-planner/data/semesterPlanningApi'
-import type { ProfessorEvaluationTarget } from '@/features/student/components/ProfessorEvaluationDialog'
+import type { ProfessorEvaluationTarget } from '@/academic-record/components/ProfessorEvaluationDialog'
 import { requireCurrentUserId } from '@/features/identity/identityApi'
 
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import {
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { AsyncSection } from '@/components/AsyncSection'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { listCurricula } from '@/features/curriculum-planner/data/curriculumPersistenceApi'
 import { listSemesterPlannings } from '@/features/semester-planner/data/semesterPlanningApi'
-import {
-  listClassSchedulesByStudyPeriod,
-  listPendingProfessorEvaluations,
-  listStudentCourseAttempts,
-} from '@/features/student/data/studentApi'
+import { listClassSchedulesByStudyPeriod, listPendingProfessorEvaluations, listStudentCourseAttempts } from '@/academic-record/data/studentApi'
 import { useUserContext } from '@/features/identity'
 import { cn } from '@/lib/utils'
 import { AgendaPanel, DailyMealsPanel } from '@/features/home/AgendaPanel'
 import { currentStudyPeriodCode } from '@/features/home/todayClasses'
-import {
-  previousSemester,
-  studyPeriodFromCode,
-  studyPeriodLabel,
-} from '@/features/student/data/studyPeriod'
-import { ProfessorEvaluationDialog } from '@/features/student/components/ProfessorEvaluationDialog'
-import { useStudentAbsences } from '@/features/student/absences/useStudentAbsences'
-import { academicDateKey } from '@/features/student/absences/studentAbsences'
-import {
-  privateQueryKeys,
-  publicQueryKeys,
-} from '@/integrations/tanstack-query/queryKeys'
+import { previousSemester, studyPeriodFromCode, studyPeriodLabel } from '@/catalog/model/studyPeriod'
+import { ProfessorEvaluationDialog } from '@/academic-record/components/ProfessorEvaluationDialog'
+import { useStudentAbsences } from '@/academic-record/absences/useStudentAbsences'
+import { academicDateKey } from '@/academic-record/absences/studentAbsences'
+import { privateQueryKeys, publicQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 function accountName(profile: ReturnType<typeof useOptionalAuth>['profile']) {
   return String(

@@ -1,11 +1,6 @@
 import type { CurriculumPlannerState } from '@pomi/planner-domain/curriculum'
 import type { CurriculumDocument } from '@/features/curriculum-planner/data/curriculumPersistenceApi'
-import {
-  createCurriculum,
-  documentFromState,
-  patchBodyFromState,
-  patchCurriculum,
-} from '@/features/curriculum-planner/data/curriculumPersistenceApi'
+import { createCurriculum, documentFromState, patchBodyFromState, patchCurriculum } from '@/features/curriculum-planner/data/curriculumPersistenceApi'
 
 function coursesForDocument(
   document: CurriculumDocument,
@@ -54,6 +49,7 @@ export async function persistCurriculumState({
   periodIds,
   name,
   getAccessToken,
+  onStructurePersisted,
 }: {
   userId: number
   current?: CurriculumDocument
@@ -61,10 +57,12 @@ export async function persistCurriculumState({
   periodIds?: ReadonlyMap<string, number>
   name?: string
   getAccessToken: () => Promise<string>
+  onStructurePersisted?: (document: CurriculumDocument) => void
 }): Promise<CurriculumDocument> {
   if (!current) {
     const draft = documentFromState(state, name)
     const created = await createCurriculum(userId, draft, getAccessToken)
+    onStructurePersisted?.(created)
     return patchCurriculum(
       userId,
       created.id!,
@@ -79,6 +77,7 @@ export async function persistCurriculumState({
     patchBodyFromState(current, persistedState),
     getAccessToken,
   )
+  onStructurePersisted?.(updated)
   const document = documentFromState(persistedState, current.name)
   return patchCurriculum(
     userId,

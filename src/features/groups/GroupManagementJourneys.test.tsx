@@ -1,22 +1,9 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import {
-  GroupEventCreatePage,
-  GroupEventDetailPage,
-  GroupEventEditPage,
-  GroupEventsManagementPage,
-} from './GroupEventManagement'
-import {
-  GroupInvitePage,
-  GroupMemberDetailPage,
-  GroupPeopleManagementPage,
-} from './GroupPeopleManagement'
-import {
-  GroupAccessManagementPage,
-  GroupRoleAssignmentPage,
-  GroupRoleDetailPage,
-} from './GroupAccessManagement'
+import { GroupEventCreatePage, GroupEventDetailPage, GroupEventEditPage, GroupEventsManagementPage } from './GroupEventManagement'
+import { GroupInvitePage, GroupMemberDetailPage, GroupPeopleManagementPage } from './GroupPeopleManagement'
+import { GroupAccessManagementPage, GroupRoleAssignmentPage, GroupRoleDetailPage } from './GroupAccessManagement'
 import type { ReactNode } from 'react'
 import { ApiError } from '@/api/errors'
 
@@ -92,7 +79,7 @@ vi.mock('./data/groupApi', () => ({
     updateMember: mocks.updateMember,
   },
 }))
-vi.mock('@/features/friends/userSocialApi', () => ({
+vi.mock('@/social-profile/data/userSocialApi', () => ({
   searchPeople: mocks.searchPeople,
 }))
 vi.mock('@/api/client', () => ({

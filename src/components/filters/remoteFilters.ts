@@ -1,4 +1,4 @@
-import type { FilterOperator } from './filterTypes'
+import type { FilterOperator } from '@/components/filters/filterTypes'
 
 type FilterCapabilities = Readonly<{
   fields: ReadonlyArray<

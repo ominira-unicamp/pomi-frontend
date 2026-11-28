@@ -37,7 +37,7 @@ vi.mock('@tanstack/react-router', () => ({
     <a href={to}>{children}</a>
   ),
 }))
-vi.mock('@/features/friends/userSocialApi', () => ({
+vi.mock('@/social-profile/data/userSocialApi', () => ({
   getPublicProfile: mocks.profile,
   updatePublicProfile: mocks.update,
 }))
@@ -49,10 +49,10 @@ vi.mock('@/features/student-interests/data/studentTagInterestApi', () => ({
 vi.mock('@/features/tag-taxonomy/data/tagTaxonomyApi', () => ({
   listTags: mocks.tags,
 }))
-vi.mock('@/features/media/MediaEditor', () => ({
+vi.mock('@/media/MediaEditor', () => ({
   MediaEditor: () => <p>Foto do perfil</p>,
 }))
-vi.mock('@/features/media/IdentityImages', () => ({ PersonAvatar: () => null }))
+vi.mock('@/media/IdentityImages', () => ({ PersonAvatar: () => null }))
 const initial = {
   publicId: 'self',
   displayName: 'Ana',

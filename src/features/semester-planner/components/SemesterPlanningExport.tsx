@@ -5,7 +5,7 @@ import {
   buildSemesterPlanningExport,
   semesterExportHourHeight,
 } from '@/features/semester-planner/model/semesterPlanningExport'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
+import { studyPeriodLabel } from '@/catalog/model/studyPeriod'
 import './semesterPlanningExport.css'
 
 export function SemesterPlanningExport({

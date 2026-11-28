@@ -2,20 +2,15 @@ import { CalendarDays, MoreHorizontal, Pencil, Trash2 } from 'lucide-react'
 
 import { Link } from '@tanstack/react-router'
 import { labelForStatus } from '../model/model'
-import type { ProfessorEvaluationTarget } from '@/features/student/components/ProfessorEvaluationDialog'
-import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
-import { scheduleCourseColor } from '@/features/student/components/StudentWeeklySchedule'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
+import type { ProfessorEvaluationTarget } from '@/academic-record/components/ProfessorEvaluationDialog'
+import type { StudentCourseAttempt } from '@/academic-record/data/studentApi'
+import { scheduleCourseColor } from '@/academic-record/components/StudentWeeklySchedule'
+import { studyPeriodLabel } from '@/catalog/model/studyPeriod'
 import { ActionBar } from '@/components/patterns/ActionBar'
 import { Badge } from '@/components/patterns/Badge'
 import { DataRow } from '@/components/patterns/DataList'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 function statusVariant(status: StudentCourseAttempt['status']) {
   if (

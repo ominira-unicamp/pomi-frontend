@@ -1,9 +1,4 @@
-import {
-  Outlet,
-  createFileRoute,
-  useParams,
-  useRouterState,
-} from '@tanstack/react-router'
+import { Outlet, createFileRoute, useParams, useRouterState } from '@tanstack/react-router'
 
 import { CurriculumPlannerProvider } from '@/features/curriculum-planner'
 

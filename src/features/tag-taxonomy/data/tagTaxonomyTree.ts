@@ -1,5 +1,5 @@
-import { normalizeTagSearch } from './tagTaxonomyNavigation'
-import type { Tag } from './tagTaxonomyApi'
+import type { Tag } from '@/features/tag-taxonomy/data/tagTaxonomyApi'
+import { normalizeTagSearch } from '@/features/tag-taxonomy/data/tagTaxonomyNavigation'
 
 export type TagTreeNode = Tag & {
   children: ReadonlyArray<TagTreeNode>

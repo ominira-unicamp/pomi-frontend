@@ -4,7 +4,7 @@ import { ResponsiveDialog } from '@/components/patterns/ResponsiveDialog'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { SemesterPlanningExport } from '@/features/semester-planner/components/SemesterPlanningExport'
 import { useSemesterPlanningExport } from '@/features/semester-planner/hooks/useSemesterPlanningExport'
-import { studyPeriodCode } from '@/features/student/data/studyPeriod'
+import { studyPeriodCode } from '@/catalog/model/studyPeriod'
 
 export function SemesterPlanningExportDialog({
   data,

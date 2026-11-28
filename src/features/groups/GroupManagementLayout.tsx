@@ -7,14 +7,10 @@ import { groupApi } from './data/groupApi'
 import { canOrganizeEvents } from './groupNavigation'
 import type { Group, OwnGroupMembership } from '@ominira/pomi-sdk/generated/app'
 import { UserIdentityState } from '@/features/identity/UserIdentityState'
-import { GroupAvatar } from '@/features/media/IdentityImages'
+import { GroupAvatar } from '@/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
 import { AuthRequiredState } from '@/components/AuthRequiredState'
-import {
-  ErrorState,
-  LoadingState,
-  PageContainer,
-} from '@/components/PageLayout'
+import { ErrorState, LoadingState, PageContainer } from '@/components/PageLayout'
 import { useUserContext } from '@/features/identity'
 
 type ManagementContext = {

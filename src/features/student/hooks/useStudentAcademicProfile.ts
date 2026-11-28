@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import { useUserContext } from '@/features/identity'
-import { getStudentAcademicProfile } from '@/features/student/data/studentApi'
+import { useUserContext } from '@/features/identity/index'
+import { getStudentAcademicProfile } from '@/academic-record/data/studentApi'
 import { privateQueryKeys } from '@/integrations/tanstack-query/queryKeys'
 
 export function useStudentAcademicProfile() {

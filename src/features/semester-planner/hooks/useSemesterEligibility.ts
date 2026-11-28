@@ -1,13 +1,13 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
+import type { SemesterPlannerStaticData } from '@pomi/planner-domain/semester'
+import type { StudentCourseAttempt } from '@/academic-record/data/studentApi'
 import {
   evaluateSemesterPrerequisites,
   evaluateSemesterReservations,
-} from '../model/semesterEligibility'
-import type { SemesterPlannerStaticData } from '@pomi/planner-domain/semester'
-import type { StudentCourseAttempt } from '@/features/student/data/studentApi'
+} from '@/features/semester-planner/model/semesterEligibility'
 import { pomiSdk } from '@/api/client'
-import { ruleFromApi } from '@/features/curriculum-planner/data/curriculumPrerequisiteApi'
+import { ruleFromApi } from '@/catalog/data/curriculumPrerequisiteApi'
 
 export function useSemesterEligibility({
   data,

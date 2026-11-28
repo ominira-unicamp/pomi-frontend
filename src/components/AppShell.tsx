@@ -1,239 +1,29 @@
 import { useEffect, useRef } from 'react'
 import { Link, useRouterState } from '@tanstack/react-router'
-import {
-  BookOpen,
-  BookOpenCheck,
-  CalendarDays,
-  ChevronLeft,
-  ChevronRight,
-  FileSearch,
-  GraduationCap,
-  Handshake,
-  House,
-  Info,
-  Laptop,
-  LockKeyhole,
-  LogIn,
-  LogOut,
-  Menu,
-  MessageSquarePlus,
-  MessageSquareText,
-  Moon,
-  MoreHorizontal,
-  PanelsTopLeft,
-  Sun,
-  Tags,
-  UserRound,
-  Users,
-} from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Handshake, Info, Laptop, LockKeyhole, LogIn, LogOut, Menu, MessageSquarePlus, MessageSquareText, Moon, MoreHorizontal, Sun, UserRound } from 'lucide-react'
+import type { NavigationItem } from '@/app/navigation/navigationItems'
 import type { ReactNode } from 'react'
-
 import { useAdminAccess } from '@/features/administration'
 import { useAuth } from '@/auth/AuthProvider'
 import { Brand } from '@/components/Brand'
 import { SiteFooter } from '@/components/SiteFooter'
 import { ThemeMenu } from '@/components/ThemeMenu'
 import { useTheme } from '@/components/ThemeProvider'
-import { AccountAvatar } from '@/features/media/AccountAvatar'
+import { AccountAvatar } from '@/app/account/AccountAvatar'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarProvider,
-  useSidebar,
-} from '@/components/ui/sidebar'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Sidebar, SidebarContent, SidebarFooter, SidebarProvider, useSidebar } from '@/components/ui/sidebar'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
-import { useFeedbackReport } from '@/features/feedback/FeedbackReportProvider'
+import { useFeedbackReport } from '@/integrations/feedback/FeedbackReportContext'
+
+import { matchesNavigationItem, mobilePrimaryNavigationItems, navigationGroups } from '@/app/navigation/navigationItems'
 
 function displayName(profile: ReturnType<typeof useAuth>['profile']) {
   return String(profile?.name || 'Minha conta')
 }
-
-type NavigationItem = Readonly<{
-  label: string
-  to:
-    | '/'
-    | '/planejamentos-de-curriculo'
-    | '/planejamentos-de-semestre'
-    | '/situacao-do-curso'
-    | '/disciplinas'
-    | '/cursos'
-    | '/perfil'
-    | '/pessoas'
-    | '/grupos'
-    | '/eventos'
-    | '/taxonomia'
-    | '/editais-de-intercambio'
-    | '/minhas-solicitacoes'
-    | '/admin/feedbacks'
-  icon: LucideIcon
-  matches: ReadonlyArray<string>
-  requiresAuth?: boolean
-}>
-
-const homeNavigationItem: NavigationItem = {
-  label: 'Início',
-  to: '/',
-  icon: House,
-  matches: ['/'],
-}
-
-const curriculumNavigationItem: NavigationItem = {
-  label: 'Planejar graduação',
-  to: '/planejamentos-de-curriculo',
-  icon: PanelsTopLeft,
-  matches: ['/planejamentos-de-curriculo'],
-}
-
-const semesterNavigationItem: NavigationItem = {
-  label: 'Planejar semestre',
-  to: '/planejamentos-de-semestre',
-  icon: CalendarDays,
-  matches: ['/planejamentos-de-semestre'],
-}
-
-const navigationGroups: ReadonlyArray<
-  Readonly<{ label?: string; items: ReadonlyArray<NavigationItem> }>
-> = [
-  {
-    items: [
-      homeNavigationItem,
-      {
-        label: 'Situação do curso',
-        to: '/situacao-do-curso',
-        icon: BookOpenCheck,
-        matches: ['/situacao-do-curso'],
-        requiresAuth: true,
-      },
-    ],
-  },
-  {
-    label: 'Planejamento',
-    items: [curriculumNavigationItem, semesterNavigationItem],
-  },
-  {
-    label: 'Catálogo acadêmico',
-    items: [
-      {
-        label: 'Cursos',
-        to: '/cursos',
-        icon: GraduationCap,
-        matches: ['/cursos'],
-      },
-      {
-        label: 'Disciplinas',
-        to: '/disciplinas',
-        icon: BookOpen,
-        matches: ['/disciplinas'],
-      },
-    ],
-  },
-  {
-    label: 'Comunidade',
-    items: [
-      {
-        label: 'Meu perfil',
-        to: '/perfil',
-        icon: UserRound,
-        matches: ['/perfil'],
-        requiresAuth: true,
-      },
-      {
-        label: 'Pessoas',
-        to: '/pessoas',
-        icon: Users,
-        matches: ['/pessoas', '/perfis'],
-        requiresAuth: true,
-      },
-      {
-        label: 'Grupos',
-        to: '/grupos',
-        icon: Handshake,
-        matches: ['/grupos', '/meus-grupos'],
-      },
-      {
-        label: 'Eventos',
-        to: '/eventos',
-        icon: CalendarDays,
-        matches: ['/eventos'],
-      },
-    ],
-  },
-  {
-    label: 'Recursos',
-    items: [
-      {
-        label: 'Tags',
-        to: '/taxonomia',
-        icon: Tags,
-        matches: ['/taxonomia'],
-      },
-      {
-        label: 'Intercâmbio',
-        to: '/editais-de-intercambio',
-        icon: FileSearch,
-        matches: ['/editais-de-intercambio'],
-      },
-      {
-        label: 'Meus feedbacks',
-        to: '/minhas-solicitacoes',
-        icon: MessageSquareText,
-        matches: ['/minhas-solicitacoes'],
-        requiresAuth: true,
-      },
-    ],
-  },
-]
-
-function matchesNavigationItem(pathname: string, item: NavigationItem) {
-  return item.matches.some((path) =>
-    path === '/'
-      ? pathname === '/'
-      : pathname === path || pathname.startsWith(`${path}/`),
-  )
-}
-
-const mobilePrimaryNavigationItems = [
-  homeNavigationItem,
-  { ...curriculumNavigationItem, label: 'Graduação' },
-  { ...semesterNavigationItem, label: 'Semestre' },
-] as const satisfies ReadonlyArray<NavigationItem>
 
 function Navigation({ compact = false }: { compact?: boolean }) {
   const { setMobileOpen } = useSidebar()

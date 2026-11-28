@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createPublicStaticDataCache } from './publicStaticDataCache'
+import { createPublicStaticDataCache } from '@/lib/publicStaticDataCache'
 
 afterEach(() => vi.unstubAllGlobals())
 

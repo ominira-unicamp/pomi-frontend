@@ -1,43 +1,6 @@
-import type {
-  StudentCourseAttempt,
-  StudentCourseAttemptStatus,
-  StudentCourseEvaluationMode,
-} from '@/features/student/data/studentApi'
-import type { StudyPeriodYearPeriod } from '@/features/student/data/studyPeriod'
-import { studyPeriodLabel } from '@/features/student/data/studyPeriod'
-
-export const evaluationModes = [
-  ['GRADE_AND_ATTENDANCE', 'Nota e frequência'],
-  ['ATTENDANCE', 'Frequência'],
-  ['CONCEPT', 'Conceito'],
-] as const satisfies ReadonlyArray<
-  readonly [StudentCourseEvaluationMode, string]
->
-
-export const statusesByEvaluationMode = {
-  GRADE_AND_ATTENDANCE: [
-    ['ENROLLED', 'Cursando'],
-    ['DROPPED', 'Desistida'],
-    ['APPROVED', 'Aprovada'],
-    ['FAILED_BY_GRADE', 'Reprovada por nota'],
-    ['FAILED_BY_ATTENDANCE', 'Reprovada por frequência'],
-  ],
-  ATTENDANCE: [
-    ['ENROLLED', 'Cursando'],
-    ['DROPPED', 'Desistida'],
-    ['APPROVED_BY_ATTENDANCE', 'Aprovada por frequência'],
-    ['FAILED_BY_ATTENDANCE', 'Reprovada por frequência'],
-  ],
-  CONCEPT: [
-    ['ENROLLED', 'Cursando'],
-    ['DROPPED', 'Desistida'],
-    ['SUFFICIENT', 'Suficiente'],
-    ['INSUFFICIENT', 'Insuficiente'],
-  ],
-} as const satisfies Record<
-  StudentCourseEvaluationMode,
-  ReadonlyArray<readonly [StudentCourseAttemptStatus, string]>
->
+import type { StudentCourseAttempt } from '@/academic-record/data/studentApi'
+import type { StudyPeriodYearPeriod } from '@/catalog/model/studyPeriod'
+import { studyPeriodLabel } from '@/catalog/model/studyPeriod'
 
 const studyPeriodSortOrder: Readonly<Record<StudyPeriodYearPeriod, number>> = {
   SUMMER: 0,
@@ -52,15 +15,6 @@ export type CourseHistoryGroup = Readonly<{
   period?: Readonly<{ year: number; yearPeriod: StudyPeriodYearPeriod }>
   attempts: ReadonlyArray<StudentCourseAttempt>
 }>
-
-export function labelForStatus(status: StudentCourseAttemptStatus) {
-  if (status === 'APPROVED_BY_PROFICIENCY') return 'Aprovada por proficiência'
-  return (
-    Object.values(statusesByEvaluationMode)
-      .flat()
-      .find(([value]) => value === status)?.[1] ?? status
-  )
-}
 
 export function groupCourseHistory(
   attempts: ReadonlyArray<StudentCourseAttempt>,
@@ -106,3 +60,9 @@ export function parseGrade(value: string) {
       : undefined
   return { numeric, error }
 }
+
+export {
+  evaluationModes,
+  statusesByEvaluationMode,
+  labelForStatus,
+} from '@/academic-record/model/courseAttemptStatus'

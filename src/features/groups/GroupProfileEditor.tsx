@@ -4,14 +4,10 @@ import { useState } from 'react'
 
 import { groupApi } from './data/groupApi'
 import { Failure } from './EditorFeedback'
-import type {
-  Group,
-  OwnGroupMembership,
-  Tag,
-} from '@ominira/pomi-sdk/generated/app'
+import type { Group, OwnGroupMembership, Tag } from '@ominira/pomi-sdk/generated/app'
 import { pomiSdk } from '@/api/client'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import { MediaEditor } from '@/features/media/MediaEditor'
+import { MediaEditor } from '@/media/MediaEditor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'

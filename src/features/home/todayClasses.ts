@@ -1,5 +1,5 @@
-import type { StudentClassSchedule } from '@/features/student/data/studentApi'
-import type { StudyPeriodReference } from '@/features/student/data/studyPeriod'
+import type { StudentClassSchedule } from '@/academic-record/data/studentApi'
+import type { StudyPeriodReference } from '@/catalog/model/studyPeriod'
 
 export const academicTimeZone = 'America/Sao_Paulo'
 

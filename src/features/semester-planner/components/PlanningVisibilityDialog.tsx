@@ -27,7 +27,8 @@ const visibilityOptions: ReadonlyArray<{
   {
     value: 'PUBLIC',
     label: 'Público',
-    description: 'Qualquer pessoa com o link pode visualizar este planejamento.',
+    description:
+      'Qualquer pessoa com o link pode visualizar este planejamento.',
   },
 ]
 

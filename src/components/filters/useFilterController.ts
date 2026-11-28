@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
-
-import type { AnyFilterDefinition } from './filterTypes'
+import type { AnyFilterDefinition } from '@/components/filters/filterTypes'
 
 export function useFilterController<TState>({
   state,

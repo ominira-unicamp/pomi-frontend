@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest'
-
-import { commandForCourseDrop } from './dnd'
-import type {
-  Course,
-  CourseId,
-  PlanningPeriodId,
-} from '@pomi/planner-domain/curriculum'
-import type { PlannerDragData } from './components/CourseCard'
+import type { Course, CourseId, PlanningPeriodId } from '@pomi/planner-domain/curriculum'
+import type { PlannerDragData } from '@/features/curriculum-planner/components/CourseCard'
+import { commandForCourseDrop } from '@/features/curriculum-planner/dnd'
 
 const course = {
   id: 'course' as CourseId,

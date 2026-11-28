@@ -4,15 +4,9 @@ import { ArrowRight, Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import { groupApi } from './data/groupApi'
-import { GroupAvatar } from '@/features/media/IdentityImages'
+import { GroupAvatar } from '@/media/IdentityImages'
 import { useOptionalAuth } from '@/auth/AuthProvider'
-import {
-  EmptyState,
-  ErrorState,
-  LoadingState,
-  PageContainer,
-  PageHeader,
-} from '@/components/PageLayout'
+import { EmptyState, ErrorState, LoadingState, PageContainer, PageHeader } from '@/components/PageLayout'
 import { buttonVariants } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
